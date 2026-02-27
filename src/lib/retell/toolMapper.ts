@@ -101,7 +101,10 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                 type: 'transfer_call',
                 name: toolName,
                 description: dest.description || `Transfiere la llamada a ${dest.name}.`,
-                number: dest.number
+                number: dest.number,
+                speak_during_execution: false,
+                speak_after_execution: false,
+                execution_message_description: `Un momento por favor, transfiriendo con ${dest.name}...`
             });
         });
     }
