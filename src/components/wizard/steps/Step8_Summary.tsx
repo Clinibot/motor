@@ -206,15 +206,15 @@ export const Step8_Summary: React.FC = () => {
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
-    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(!!wizardData.editingAgentId);
+    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(false);
     const editingAgentId = wizardData.editingAgentId;
 
-    // Efecto para detectar si estamos editando y ya tenemos un prompt cargado
+    // Efecto para asegurar que en modo edición el prompt sea visible directamente
     React.useEffect(() => {
-        if (editingAgentId && wizardData.prompt && wizardData.prompt.length > 50) {
+        if (editingAgentId) {
             setHasGeneratedPrompt(true);
         }
-    }, [editingAgentId, wizardData.prompt]);
+    }, [editingAgentId]);
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
