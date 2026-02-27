@@ -26,7 +26,7 @@ export default function LoginPage() {
                 setError(error.message);
                 return;
             }
-            router.push('/wizard');
+            router.push('/dashboard');
             router.refresh();
         } finally {
             setIsLoading(false);

@@ -36,11 +36,11 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // If user IS logged in and tries to go to /login or /register, redirect to /wizard
+    // If user IS logged in and tries to go to /login or /register, redirect to /dashboard
     const isAuthRoute = pathname === '/login' || pathname === '/register';
     if (user && isAuthRoute) {
         const url = request.nextUrl.clone();
-        url.pathname = '/wizard';
+        url.pathname = '/dashboard';
         return NextResponse.redirect(url);
     }
 
