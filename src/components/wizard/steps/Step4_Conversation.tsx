@@ -5,7 +5,7 @@ import { useWizardStore } from '../../../store/wizardStore';
 
 export const Step4_Conversation: React.FC = () => {
     const {
-        language, responsiveness, interruptionSensitivity,
+        language, interruptionSensitivity,
         enableBackchannel, backchannelFrequency, backchannelWords,
         updateField, prevStep, nextStep
     } = useWizardStore();
@@ -150,7 +150,7 @@ export const Step4_Conversation: React.FC = () => {
                     </div>
 
                     <div className="row g-4">
-                        <div className="col-md-6">
+                        <div className="col-md-12">
                             <div className="form-group">
                                 <label className="form-label">Sensibilidad de interrupción</label>
                                 <div className="slider-wrapper">
@@ -164,23 +164,6 @@ export const Step4_Conversation: React.FC = () => {
                                     />
                                 </div>
                                 <div className="form-text">0 = No interrumpe, 1 = Sensibilidad alta</div>
-                            </div>
-                        </div>
-
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <label className="form-label">Capacidad de respuesta</label>
-                                <div className="slider-wrapper">
-                                    <span className="slider-value">{responsiveness}</span>
-                                    <input
-                                        type="range"
-                                        className="custom-range"
-                                        min="0.4" max="1" step="0.05"
-                                        value={responsiveness}
-                                        onChange={(e) => updateField('responsiveness', parseFloat(e.target.value))}
-                                    />
-                                </div>
-                                <div className="form-text">Menor valor = respuesta más inmediata</div>
                             </div>
                         </div>
                     </div>
