@@ -99,7 +99,7 @@ export async function POST(request: Request) {
         const blob = new Blob([bytes], { type: file.type || 'application/octet-stream' });
         retellFormData.append('knowledge_base_files', blob, file.name);
 
-        const retellResponse = await fetch('https://api.retellai.com/v2/knowledge-base', {
+        const retellResponse = await fetch('https://api.retellai.com/create-knowledge-base', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${workspace.retell_api_key}`,
