@@ -86,9 +86,9 @@ ${wizardData.agentType === 'transferencia' ? `
 ### Despedida
 Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete cordialmente.
 
-${wizardData.knowledgeBaseFiles.length > 0 ? `
+${wizardData.kbFiles.length > 0 ? `
 ## CONTEXTO ADICIONAL (Base de Conocimientos)
-${wizardData.knowledgeBaseUsage || 'Usa la información de tus documentos subidos para responder preguntas específicas sobre servicios o productos.'}
+${wizardData.kbUsageInstructions || 'Usa la información de tus documentos subidos para responder preguntas específicas sobre servicios o productos.'}
 ` : ''}
 
 # Información de Contacto y Horarios
@@ -201,7 +201,7 @@ Si el usuario se despide o no necesita nada más, usa la herramienta 'end_call' 
                             </div>
                             <div className="small">
                                 <p className="mb-1"><strong>Modelo:</strong> {wizardData.model} (Temp: {wizardData.temperature})</p>
-                                <p className="mb-0"><strong>KB:</strong> {wizardData.knowledgeBaseFiles.length} archivos subidos</p>
+                                <p className="mb-0"><strong>KB:</strong> {wizardData.kbFiles.length} archivos subidos</p>
                             </div>
                         </div>
                     </div>
@@ -234,7 +234,7 @@ Si el usuario se despide o no necesita nada más, usa la herramienta 'end_call' 
                         </div>
                     </div>
 
-                    {/* CONVERSACIÓN (Added to use getLanguageName) */}
+                    {/* CONVERSACIÓN */}
                     <div className="col-md-12">
                         <div className="p-3 border rounded bg-white h-100 shadow-sm">
                             <div className="d-flex justify-content-between align-items-center mb-3">

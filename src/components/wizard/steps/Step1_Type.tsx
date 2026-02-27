@@ -31,50 +31,55 @@ export const Step1_Type: React.FC = () => {
                             Empecemos con los datos fundamentales. Esta información personaliza todo el comportamiento de tu agente.
                         </p>
 
-                        <div className="form-group">
-                            <label className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '8px', fontSize: '14px' }}>
-                                ¿Cómo se llamará tu agente?
-                                <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
-                                <div className="custom-tooltip">
-                                    <i className="bi bi-info-circle tooltip-icon"></i>
-                                    <div className="tooltip-content">
-                                        <strong>Nombre del agente</strong><br />
-                                        Este será el nombre con el que tu agente se presentará al iniciar la llamada.
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        ¿Cómo se llamará tu agente?
+                                        <span className="required">*</span>
+                                        <div className="custom-tooltip">
+                                            <i className="bi bi-info-circle tooltip-icon"></i>
+                                            <div className="tooltip-content">
+                                                <strong>Nombre del agente</strong><br />
+                                                Este será el nombre con el que tu agente se presentará al iniciar la llamada.
+                                            </div>
+                                        </div>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Ej: Sofia, Carlos, Laura..."
+                                        value={agentName}
+                                        onChange={(e) => updateField('agentName', e.target.value)}
+                                        required
+                                    />
+                                    <div className="form-text">
+                                        <i className="bi bi-lightbulb me-1"></i>
+                                        Se presentará con este nombre al iniciar
                                     </div>
                                 </div>
-                            </label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Ej: Sofia, Carlos, Laura..."
-                                value={agentName}
-                                onChange={(e) => updateField('agentName', e.target.value)}
-                                required
-                            />
-                            <div style={{ color: 'var(--gris-texto)', fontSize: '13px', marginTop: '6px' }}>
-                                <i className="bi bi-lightbulb me-1"></i>
-                                Este nombre aparecerá en todas las interacciones con clientes
                             </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '8px', fontSize: '14px' }}>
-                                Nombre de tu empresa
-                                <span className="custom-tooltip">
-                                    <i className="bi bi-info-circle tooltip-icon"></i>
-                                    <span className="tooltip-content">
-                                        <strong>Nombre de la empresa</strong><br />
-                                        El agente usará este nombre para presentar tu empresa y dar contexto al cliente.
-                                    </span>
-                                </span>
-                            </label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Ej: netelip, Garabato, UX-AI."
-                                value={companyName}
-                                onChange={(e) => updateField('companyName', e.target.value)}
-                            />
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        Nombre de tu empresa
+                                        <div className="custom-tooltip">
+                                            <i className="bi bi-info-circle tooltip-icon"></i>
+                                            <div className="tooltip-content">
+                                                <strong>Nombre de la empresa</strong><br />
+                                                El agente usará este nombre para presentar tu empresa y dar contexto al cliente.
+                                            </div>
+                                        </div>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Ej: netelip, Garabato, UX-AI."
+                                        value={companyName}
+                                        onChange={(e) => updateField('companyName', e.target.value)}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -91,83 +96,94 @@ export const Step1_Type: React.FC = () => {
                         <p className="section-subtitle">
                             Selecciona el tipo de agente según la función principal que necesites.
                         </p>
+
+                        <div className="agent-types-grid">
+                            {/* TRANSFERENCIA */}
+                            <div
+                                className={`agent-type-card ${agentType === 'transferencia' ? 'selected' : ''}`}
+                                onClick={() => updateField('agentType', 'transferencia')}
+                            >
+                                {agentType === 'transferencia' && <div className="selected-check"><i className="bi bi-check-lg"></i></div>}
+                                <div className="agent-type-icon">
+                                    <i className="bi bi-telephone-outbound" style={{ fontSize: '30px', color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <div className="agent-type-name">Transferencia de llamadas</div>
+                                <div className="agent-type-desc">Deriva llamadas inteligentemente a personas o departamentos específicos.</div>
+
+                                <ul className="type-bullets">
+                                    <li><i className="bi bi-check-lg"></i> Transferencia caliente (con contexto)</li>
+                                    <li><i className="bi bi-check-lg"></i> Transferencia fría (directa)</li>
+                                    <li><i className="bi bi-check-lg"></i> Routing por horarios y disponibilidad</li>
+                                    <li><i className="bi bi-check-lg"></i> Múltiples destinos configurables</li>
+                                </ul>
+
+                                <span className="agent-type-badge">DISTRIBUCIÓN INTELIGENTE</span>
+                            </div>
+
+                            {/* AGENDAMIENTO */}
+                            <div
+                                className={`agent-type-card ${agentType === 'agendamiento' ? 'selected' : ''}`}
+                                onClick={() => updateField('agentType', 'agendamiento')}
+                            >
+                                {agentType === 'agendamiento' && <div className="selected-check"><i className="bi bi-check-lg"></i></div>}
+                                <div className="agent-type-icon">
+                                    <i className="bi bi-calendar-check" style={{ fontSize: '30px', color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <div className="agent-type-name">Agendamiento de citas</div>
+                                <div className="agent-type-desc">Gestiona automáticamente la reserva de citas verificando disponibilidad real.</div>
+
+                                <ul className="type-bullets">
+                                    <li><i className="bi bi-check-lg"></i> Integración directa con Cal.com</li>
+                                    <li><i className="bi bi-check-lg"></i> Verificación de disponibilidad real</li>
+                                    <li><i className="bi bi-check-lg"></i> Confirmaciones automáticas</li>
+                                    <li><i className="bi bi-check-lg"></i> Recordatorios de citas</li>
+                                </ul>
+
+                                <span className="agent-type-badge">CAL.COM INTEGRADO</span>
+                            </div>
+
+                            {/* CUALIFICACIÓN */}
+                            <div
+                                className={`agent-type-card ${agentType === 'cualificacion' ? 'selected' : ''}`}
+                                onClick={() => updateField('agentType', 'cualificacion')}
+                            >
+                                {agentType === 'cualificacion' && <div className="selected-check"><i className="bi bi-check-lg"></i></div>}
+                                <div className="agent-type-icon">
+                                    <i className="bi bi-chat-left-dots" style={{ fontSize: '30px', color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <div className="agent-type-name">Cualificación y atención</div>
+                                <div className="agent-type-desc">Cualifica leads con preguntas estratégicas y proporciona atención completa.</div>
+
+                                <ul className="type-bullets">
+                                    <li><i className="bi bi-check-lg"></i> Cualificación de leads inteligente</li>
+                                    <li><i className="bi bi-check-lg"></i> Scoring automático de prospectos</li>
+                                    <li><i className="bi bi-check-lg"></i> Atención 24/7 sin esperas</li>
+                                    <li><i className="bi bi-check-lg"></i> Escalado a humano si es necesario</li>
+                                </ul>
+
+                                <span className="agent-type-badge">SOPORTE Y VENTAS</span>
+                            </div>
+
+                            {/* OUTBOUND (COMING SOON) */}
+                            <div className="agent-type-card disabled-card">
+                                <span className="coming-soon-tag">PRÓXIMAMENTE</span>
+                                <div className="agent-type-icon">
+                                    <i className="bi bi-telephone-plus" style={{ fontSize: '30px', color: '#94a3b8' }}></i>
+                                </div>
+                                <div className="agent-type-name" style={{ color: '#64748b' }}>Campañas Outbound</div>
+                                <div className="agent-type-desc">Realiza llamadas salientes automatizadas para campañas comerciales.</div>
+
+                                <ul className="type-bullets" style={{ color: '#94a3b8' }}>
+                                    <li><i className="bi bi-check-lg"></i> Llamadas masivas programadas</li>
+                                    <li><i className="bi bi-check-lg"></i> Scripts personalizables por campaña</li>
+                                    <li><i className="bi bi-check-lg"></i> Detección de buzones de voz</li>
+                                    <li><i className="bi bi-check-lg"></i> Análisis de sentimientos</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="agent-types-grid">
-                        <div
-                            className={`agent-type-card ${agentType === 'transferencia' ? 'selected' : ''}`}
-                            onClick={() => updateField('agentType', 'transferencia')}
-                        >
-                            <div className="agent-type-icon">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                                    <path d="M3 5C3 3.89543 3.89543 3 5 3H8.27924C8.70967 3 9.09181 3.27543 9.22792 3.68377L10.7257 8.17721C10.8831 8.64932 10.6694 9.16531 10.2243 9.38787L7.96701 10.5165C9.06925 12.9612 11.0388 14.9308 13.4835 16.033L14.6121 13.7757C14.8347 13.3306 15.3507 13.1169 15.8228 13.2743L20.3162 14.7721C20.7246 14.9082 21 15.2903 21 15.7208V19C21 20.1046 20.1046 21 19 21H18C9.71573 21 3 14.2843 3 6V5Z" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M14 3L16 5L14 7" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M20 3L18 5L20 7" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </div>
-                            <div className="agent-type-name">Transferencia de llamadas</div>
-                            <div className="agent-type-desc">Deriva llamadas inteligentemente a departamentos.</div>
-                            <span className="agent-type-badge">Distribución</span>
-                        </div>
-
-                        <div
-                            className={`agent-type-card ${agentType === 'agendamiento' ? 'selected' : ''}`}
-                            onClick={() => updateField('agentType', 'agendamiento')}
-                        >
-                            <div className="agent-type-icon">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                                    <rect x="3" y="6" width="18" height="15" rx="2" stroke="#267ab0" strokeWidth="1.5" />
-                                    <path d="M3 10H21" stroke="#267ab0" strokeWidth="1.5" />
-                                    <path d="M7 3V6M17 3V6" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" />
-                                    <circle cx="9" cy="14" r="1" fill="#267ab0" />
-                                    <circle cx="15" cy="14" r="1" fill="#267ab0" />
-                                    <circle cx="12" cy="17" r="1" fill="#267ab0" />
-                                </svg>
-                            </div>
-                            <div className="agent-type-name">Agendamiento de citas</div>
-                            <div className="agent-type-desc">Gestiona automáticamente la reserva de citas.</div>
-                            <span className="agent-type-badge">Cal.com invertido</span>
-                        </div>
-
-                        <div
-                            className={`agent-type-card ${agentType === 'cualificacion' ? 'selected' : ''}`}
-                            onClick={() => updateField('agentType', 'cualificacion')}
-                        >
-                            <div className="agent-type-icon">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" stroke="#267ab0" strokeWidth="1.5" />
-                                    <path d="M12 11V12M12 15H12.01" stroke="#267ab0" strokeWidth="2" strokeLinecap="round" />
-                                    <circle cx="12" cy="8" r="1.5" fill="#267ab0" />
-                                </svg>
-                            </div>
-                            <div className="agent-type-name">Cualificación y atención</div>
-                            <div className="agent-type-desc">Cualifica leads con preguntas estratégicas.</div>
-                            <span className="agent-type-badge">Soporte y Ventas</span>
-                        </div>
-                    </div>
-
-                    {/* BANNER DE AYUDA */}
-                    <div className="info-banner" style={{ marginTop: '32px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                        <div style={{ background: 'var(--netelip-azul)', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: '2px', justifyContent: 'center' }}>
-                            <i className="bi bi-lightbulb" style={{ color: 'white', fontSize: '18px' }}></i>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--oscuro)', marginBottom: '8px', marginTop: 0 }}>¿No estás seguro cuál elegir?</h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', lineHeight: '1.4' }}>
-                                    <strong style={{ color: 'var(--oscuro)' }}>Transferencia:</strong> Si tu prioridad es distribuir llamadas entre tu equipo.
-                                </div>
-                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', lineHeight: '1.4' }}>
-                                    <strong style={{ color: 'var(--oscuro)' }}>Agendamiento:</strong> Si necesitas automatizar reservas de consultas, visitas o reuniones.
-                                </div>
-                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', lineHeight: '1.4' }}>
-                                    <strong style={{ color: 'var(--oscuro)' }}>Cualificación:</strong> Si buscas filtrar leads y dar soporte a clientes.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="wizard-actions">
+                    <div className="wizard-actions mt-5">
                         <button type="button" className="btn btn-secondary" disabled>
                             Atrás
                         </button>
@@ -177,6 +193,117 @@ export const Step1_Type: React.FC = () => {
                     </div>
                 </form>
             </div>
+
+            <style jsx>{`
+                .agent-types-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                    gap: 20px;
+                    margin-top: 24px;
+                }
+                .agent-type-card {
+                    background: white;
+                    border: 2px solid var(--gris-borde);
+                    border-radius: 12px;
+                    padding: 24px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .agent-type-card:hover {
+                    border-color: var(--netelip-azul);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                }
+                .agent-type-card.selected {
+                    border-color: var(--netelip-azul);
+                    background: #f0f9ff;
+                }
+                .selected-check {
+                    position: absolute;
+                    top: -10px;
+                    right: -10px;
+                    background: var(--netelip-azul);
+                    color: white;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 14px;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .agent-type-icon {
+                    margin-bottom: 16px;
+                }
+                .agent-type-name {
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: var(--oscuro);
+                    margin-bottom: 8px;
+                }
+                .agent-type-desc {
+                    font-size: 13px;
+                    color: var(--gris-texto);
+                    margin-bottom: 16px;
+                    line-height: 1.4;
+                }
+                .type-bullets {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0 0 20px 0;
+                    flex-grow: 1;
+                }
+                .type-bullets li {
+                    font-size: 12px;
+                    color: #475569;
+                    margin-bottom: 6px;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 8px;
+                }
+                .type-bullets li i {
+                    color: var(--netelip-azul);
+                    font-size: 14px;
+                    margin-top: 1px;
+                }
+                .agent-type-badge {
+                    display: inline-block;
+                    padding: 6px 12px;
+                    background: var(--netelip-azul);
+                    color: white;
+                    border-radius: 20px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    align-self: flex-start;
+                }
+                .disabled-card {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                    background: #f8fafc;
+                }
+                .disabled-card:hover {
+                    transform: none;
+                    border-color: var(--gris-borde);
+                    box-shadow: none;
+                }
+                .coming-soon-tag {
+                    position: absolute;
+                    top: 12px;
+                    right: 12px;
+                    background: #fef3c7;
+                    color: #d97706;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    font-size: 10px;
+                    font-weight: 700;
+                }
+            `}</style>
         </div>
     );
 };

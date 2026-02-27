@@ -34,97 +34,111 @@ export const Step2_CompanyInfo: React.FC = () => {
                     </div>
                 </h1>
                 <p className="section-subtitle">
-                    Configura los detalles de contacto y horarios comerciales.
+                    Configura los detalles de contacto y horarios comerciales para que tu IA sea más útil.
                 </p>
 
                 <form onSubmit={handleNext}>
                     {/* SECCIÓN 1: DATOS BÁSICOS */}
-                    <div className="row">
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <label className="form-label">Dirección física</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={companyAddress}
-                                    onChange={(e) => updateField('companyAddress', e.target.value)}
-                                    placeholder="Calle Ejemplo 123, Madrid"
-                                />
+                    <div className="step-section">
+                        <div className="row g-4">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        <i className="bi bi-geo-alt me-2 text-primary"></i>
+                                        Dirección física
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={companyAddress}
+                                        onChange={(e) => updateField('companyAddress', e.target.value)}
+                                        placeholder="Calle Ejemplo 123, Madrid"
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <label className="form-label">Teléfono de contacto</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={companyPhone}
-                                    onChange={(e) => updateField('companyPhone', e.target.value)}
-                                    placeholder="+34 900 000 000"
-                                />
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        <i className="bi bi-telephone me-2 text-primary"></i>
+                                        Teléfono de contacto
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={companyPhone}
+                                        onChange={(e) => updateField('companyPhone', e.target.value)}
+                                        placeholder="+34 900 000 000"
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        <i className="bi bi-globe me-2 text-primary"></i>
+                                        Sitio Web
+                                    </label>
+                                    <input
+                                        type="url"
+                                        className="form-control"
+                                        value={companyWebsite}
+                                        onChange={(e) => updateField('companyWebsite', e.target.value)}
+                                        placeholder="https://www.tuempresa.com"
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        <i className="bi bi-card-text me-2 text-primary"></i>
+                                        Descripción corta (opcional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={companyDescription}
+                                        onChange={(e) => updateField('companyDescription', e.target.value)}
+                                        placeholder="Clínica dental especializada en..."
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="row">
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <label className="form-label">Sitio Web</label>
-                                <input
-                                    type="url"
-                                    className="form-control"
-                                    value={companyWebsite}
-                                    onChange={(e) => updateField('companyWebsite', e.target.value)}
-                                    placeholder="https://www.tuempresa.com"
-                                />
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <label className="form-label">Descripción corta (opcional)</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={companyDescription}
-                                    onChange={(e) => updateField('companyDescription', e.target.value)}
-                                    placeholder="Clínica dental especializada en..."
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    <div className="section-divider"></div>
 
                     {/* SECCIÓN 2: HORARIOS */}
-                    <div className="form-group mt-4">
-                        <label className="form-label mb-3">
+                    <div className="step-section">
+                        <h3 className="step-section-title mb-4">
+                            <i className="bi bi-calendar-check me-2"></i>
                             Horarios de atención
-                        </label>
-                        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid var(--gris-borde)' }}>
+                        </h3>
+
+                        <div className="hours-container">
                             {businessHours.map((item, index) => (
-                                <div key={item.day} className="row align-items-center mb-2">
-                                    <div className="col-3">
-                                        <span style={{ fontSize: '14px', fontWeight: 600 }}>{item.day}</span>
+                                <div key={item.day} className={`hour-row ${item.closed ? 'is-closed' : ''}`}>
+                                    <div className="day-name">{item.day}</div>
+                                    <div className="time-inputs">
+                                        <input
+                                            type="time"
+                                            className="form-control form-control-sm"
+                                            value={item.open}
+                                            disabled={item.closed}
+                                            onChange={(e) => updateHour(index, 'open', e.target.value)}
+                                        />
+                                        <span className="separator">a</span>
+                                        <input
+                                            type="time"
+                                            className="form-control form-control-sm"
+                                            value={item.close}
+                                            disabled={item.closed}
+                                            onChange={(e) => updateHour(index, 'close', e.target.value)}
+                                        />
                                     </div>
-                                    <div className="col-7">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <input
-                                                type="time"
-                                                className="form-control form-control-sm"
-                                                value={item.open}
-                                                disabled={item.closed}
-                                                onChange={(e) => updateHour(index, 'open', e.target.value)}
-                                            />
-                                            <span className="text-muted">a</span>
-                                            <input
-                                                type="time"
-                                                className="form-control form-control-sm"
-                                                value={item.close}
-                                                disabled={item.closed}
-                                                onChange={(e) => updateHour(index, 'close', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="col-2 text-end">
-                                        <div className="form-check form-switch d-inline-block">
+                                    <div className="status-toggle">
+                                        <span className={`status-label ${item.closed ? 'text-danger' : 'text-success'}`}>
+                                            {item.closed ? 'Cerrado' : 'Abierto'}
+                                        </span>
+                                        <div className="form-check form-switch m-0">
                                             <input
                                                 className="form-check-input"
                                                 type="checkbox"
@@ -135,6 +149,10 @@ export const Step2_CompanyInfo: React.FC = () => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                        <div className="form-text mt-3">
+                            <i className="bi bi-info-circle me-1"></i>
+                            El agente usará estos horarios para informar a los clientes sobre tu disponibilidad.
                         </div>
                     </div>
 
@@ -148,6 +166,41 @@ export const Step2_CompanyInfo: React.FC = () => {
                     </div>
                 </form>
             </div>
+
+            <style jsx>{`
+                .step-section { margin-bottom: 32px; }
+                .section-divider { height: 2px; background: var(--gris-borde); margin: 40px 0; }
+                .hours-container { 
+                    background: #f8fafc; 
+                    padding: 8px; 
+                    border-radius: 12px; 
+                    border: 1px solid var(--gris-borde);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1px;
+                }
+                .hour-row {
+                    display: flex;
+                    align-items: center;
+                    background: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    transition: all 0.2s;
+                }
+                .hour-row:hover { background: #f1f5f9; }
+                .hour-row.is-closed { background: #fdf2f2; opacity: 0.8; }
+                .day-name { flex: 1; font-weight: 700; font-size: 14px; color: var(--oscuro); }
+                .time-inputs { flex: 2; display: flex; align-items: center; gap: 12px; justify-content: center; }
+                .separator { color: var(--gris-texto); font-size: 13px; font-weight: 500; }
+                .status-toggle { flex: 1; display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+                .status-label { font-size: 12px; font-weight: 700; text-transform: uppercase; width: 60px; text-align: right; }
+                .form-control-sm { border-radius: 6px; border: 1px solid var(--gris-borde); padding: 5px 10px; width: 110px; }
+                @media (max-width: 768px) {
+                    .hour-row { flex-direction: column; gap: 12px; align-items: flex-start; }
+                    .time-inputs { width: 100%; justify-content: flex-start; }
+                    .status-toggle { width: 100%; justify-content: space-between; }
+                }
+            `}</style>
         </div>
     );
 };

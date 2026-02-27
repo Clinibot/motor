@@ -11,8 +11,9 @@ const stepsMeta = [
     { id: 4, name: 'Selección de voz', desc: 'Voz y personalidad' },
     { id: 5, name: 'Conversación', desc: 'Idioma y respuestas' },
     { id: 6, name: 'Tiempos', desc: 'Duraciones y delays' },
-    { id: 7, name: 'Configuración avanzada', desc: 'Integraciones' },
-    { id: 8, name: 'Resumen', desc: 'Revisar y crear' },
+    { id: 7, name: 'Audio y STT', desc: 'Sonido ambiente' },
+    { id: 8, name: 'Herramientas', desc: 'Integraciones' },
+    { id: 9, name: 'Resumen', desc: 'Revisar y crear' },
 ];
 
 export const Sidebar: React.FC = () => {

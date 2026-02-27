@@ -10,14 +10,15 @@ const stepNames = [
     'Selección de voz',
     'Conversación',
     'Tiempos',
-    'Configuración avanzada',
+    'Audio y STT',
+    'Herramientas',
     'Resumen y Creación',
 ];
 
 export const Topbar: React.FC = () => {
     const currentStep = useWizardStore((state) => state.currentStep);
     const toggleSidebar = useWizardStore((state) => state.toggleSidebar);
-    const percentage = (currentStep / 8) * 100;
+    const percentage = (currentStep / 9) * 100;
     const currentName = stepNames[currentStep - 1] || '';
 
     return (
@@ -30,7 +31,7 @@ export const Topbar: React.FC = () => {
                 >
                     <i className="bi bi-list" style={{ fontSize: '24px', color: 'var(--netelip-azul)' }}></i>
                 </button>
-                <div className="progress-text">Paso {currentStep} de 8 - {currentName}</div>
+                <div className="progress-text">Paso {currentStep} de 9 - {currentName}</div>
                 <div className="d-md-none" style={{ width: '24px' }}></div>
             </div>
             <div className="progress-bar-container" style={{ marginBottom: 0 }}>

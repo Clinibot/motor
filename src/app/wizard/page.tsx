@@ -10,6 +10,7 @@ import { Step2_CompanyInfo } from '../../components/wizard/steps/Step2_CompanyIn
 import { Step3_Voice } from '../../components/wizard/steps/Step3_Voice';
 import { Step4_Conversation } from '../../components/wizard/steps/Step4_Conversation';
 import { Step5_Timings } from '../../components/wizard/steps/Step5_Timings';
+import { Step6_Audio } from '../../components/wizard/steps/Step6_Audio';
 import { Step7_Tools } from '../../components/wizard/steps/Step7_Tools';
 import { Step8_Summary } from '../../components/wizard/steps/Step8_Summary';
 
@@ -34,8 +35,9 @@ export default function WizardPage() {
             case 4: return <Step3_Voice />;
             case 5: return <Step4_Conversation />;
             case 6: return <Step5_Timings />;
-            case 7: return <Step7_Tools />;
-            case 8: return <Step8_Summary />;
+            case 7: return <Step6_Audio />;
+            case 8: return <Step7_Tools />;
+            case 9: return <Step8_Summary />;
             default: return <Step1_Type />;
         }
     };
@@ -44,7 +46,6 @@ export default function WizardPage() {
         <div className="flex min-h-screen bg-[#f5f6f8]">
             <Sidebar />
 
-            {/* Mobile Overlay */}
             <div
                 className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
                 onClick={toggleSidebar}

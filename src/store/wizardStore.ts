@@ -27,18 +27,18 @@ export interface WizardState {
     companyName: string;
     agentType: string;
 
-    // Step 2: Company Info (New)
+    // Step 3: Company Info (New)
     companyAddress: string;
     companyPhone: string;
     companyWebsite: string;
     companyDescription: string;
     businessHours: { day: string; open: string; close: string; closed: boolean }[];
 
-    // Knowledge Base
-    knowledgeBaseFiles: string[];
-    knowledgeBaseUsage: string;
-    retrievalChunks: number;
-    similarityThreshold: number;
+    // Knowledge Base (Moved to Step 2)
+    kbFiles: { name: string; size: string; type: string }[];
+    kbUsageInstructions: string;
+    kbRetrievalChars: number;
+    kbSimilarityThreshold: number;
 
     // Step 2: LLM Config
     model: string;
@@ -50,7 +50,7 @@ export interface WizardState {
     tone: string;
     prompt: string;
 
-    // Step 3: Voice Selection
+    // Step 4: Voice Selection
     voiceId: string;
     voiceName: string;
     voiceProvider: string;
@@ -58,7 +58,7 @@ export interface WizardState {
     voiceSpeed: number;
     voiceTemperature: number;
 
-    // Step 4: Conversation Settings
+    // Step 5: Conversation Settings
     language: string;
     responsiveness: number;
     interruptionSensitivity: number;
@@ -68,7 +68,7 @@ export interface WizardState {
     boostedKeywords: string[];
     normalizeForSpeech: boolean;
 
-    // Step 5: Timings
+    // Step 6: Timings
     beginMessageDelayMs: number;
     endCallAfterSilenceMs: number;
     maxCallDurationMs: number;
@@ -79,7 +79,7 @@ export interface WizardState {
     voicemailDetectionTimeoutMs: number;
     voicemailMessage: string;
 
-    // Step 6: Audio & STT
+    // Step 7: Audio & STT
     volume: number;
     enableAmbientSound: boolean;
     ambientSound: string;
@@ -87,7 +87,7 @@ export interface WizardState {
     sttMode: string;
     enableTranscriptionFormatting: boolean;
 
-    // Step 7: Tools
+    // Step 8: Tools
     enableEndCall: boolean;
     endCallDescription: string;
     enableCalBooking: boolean;
@@ -99,7 +99,7 @@ export interface WizardState {
     enableCustomTools: boolean;
     customTools: CustomTool[];
 
-    // Step 7: Extraction & Webhooks
+    // Step 8: Extraction & Webhooks
     useTemplate: boolean;
     extractionVariables: ExtractionVariable[];
     enableAnalysis: boolean;
@@ -123,9 +123,8 @@ export interface WizardState {
 export const useWizardStore = create<WizardState>((set) => ({
     agentName: '',
     companyName: '',
-    agentType: 'cualificacion', // transfer, booking, etc.
+    agentType: 'cualificacion',
 
-    // Step 2 Initial
     companyAddress: '',
     companyPhone: '',
     companyWebsite: '',
@@ -139,18 +138,18 @@ export const useWizardStore = create<WizardState>((set) => ({
         { day: 'Sábado', open: '09:00', close: '14:00', closed: true },
         { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
     ],
-    knowledgeBaseFiles: [],
-    knowledgeBaseUsage: '',
-    retrievalChunks: 3,
-    similarityThreshold: 0.7,
+    kbFiles: [],
+    kbUsageInstructions: '',
+    kbRetrievalChars: 3,
+    kbSimilarityThreshold: 0.7,
 
     model: 'gpt-4.1',
     temperature: 0.7,
     highPriority: false,
     whoFirst: 'agent',
     beginMessage: '',
-    personality: ['profesional'],
-    tone: 'semiformal',
+    personality: ['Profesional'],
+    tone: 'Semiformal',
     prompt: 'Eres un asistente útil.',
 
     voiceId: '11labs-Adrian',
@@ -207,22 +206,15 @@ export const useWizardStore = create<WizardState>((set) => ({
     currentStep: 1,
     isSidebarOpen: false,
 
-    // Actions
     updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
-    nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 8), isSidebarOpen: false })),
+    nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 9), isSidebarOpen: false })),
     prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1), isSidebarOpen: false })),
     setStep: (step) => set({ currentStep: step, isSidebarOpen: false }),
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
-        model: 'gpt-4.1',
-        temperature: 0.7,
-        highPriority: false,
-        whoFirst: 'agent',
-        beginMessage: '',
-        personality: ['profesional'],
-        tone: 'semiformal',
-        prompt: 'Eres un asistente útil.',
+        model: 'gpt-4.1', temperature: 0.7, highPriority: false, whoFirst: 'agent', beginMessage: '',
+        personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
         voiceId: '11labs-Adrian', voiceName: 'Sofia', voiceProvider: 'retell', voiceDescription: 'Voz profesional española', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 1.0,
         enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
@@ -236,8 +228,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '',
         enableTransfer: false, transferDestinations: [], enableCustomTools: false, customTools: [],
         useTemplate: false, extractionVariables: [], enableAnalysis: false, analysisModel: 'gpt-4.1',
-        webhookUrl: '', webhookInbound: '',
-        companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
+        webhookUrl: '', webhookInbound: '', companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
         businessHours: [
             { day: 'Lunes', open: '09:00', close: '20:00', closed: false },
             { day: 'Martes', open: '09:00', close: '20:00', closed: false },
@@ -247,10 +238,7 @@ export const useWizardStore = create<WizardState>((set) => ({
             { day: 'Sábado', open: '09:00', close: '14:00', closed: true },
             { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
         ],
-        knowledgeBaseFiles: [],
-        knowledgeBaseUsage: '',
-        retrievalChunks: 3,
-        similarityThreshold: 0.7,
+        kbFiles: [], kbUsageInstructions: '', kbRetrievalChars: 3, kbSimilarityThreshold: 0.7,
         currentStep: 1
     })
 }));

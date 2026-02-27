@@ -1,291 +1,253 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 
 export const Step2_LLM: React.FC = () => {
     const {
-        model, temperature, highPriority, whoFirst, beginMessage, personality, tone,
-        knowledgeBaseFiles, knowledgeBaseUsage, retrievalChunks, similarityThreshold,
-        updateField, prevStep, nextStep
+        temperature,
+        highPriority,
+        whoFirst,
+        beginMessage,
+        personality,
+        tone,
+        kbFiles,
+        kbUsageInstructions,
+        kbRetrievalChars,
+        kbSimilarityThreshold,
+        updateField,
+        nextStep,
+        prevStep
     } = useWizardStore();
 
-    const [isDragging, setIsDragging] = useState(false);
-
-    const handleNext = (e: React.FormEvent) => {
-        e.preventDefault();
-        nextStep();
-    };
-
-    const simulateUpload = () => {
-        if (knowledgeBaseFiles.length >= 3) {
-            alert("Límite máximo de 3 archivos alcanzado.");
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (kbFiles.length + files.length > 3) {
+            alert("Máximo 3 archivos permitidos en la base de conocimientos.");
             return;
         }
-        const fileName = `documento_conocimiento_${knowledgeBaseFiles.length + 1}.pdf`;
-        updateField('knowledgeBaseFiles', [...knowledgeBaseFiles, fileName]);
+
+        const newFiles = files.map(f => ({
+            name: f.name,
+            size: (f.size / 1024).toFixed(1) + " KB",
+            type: f.name.split('.').pop() || 'unknown'
+        }));
+
+        updateField('kbFiles', [...kbFiles, ...newFiles]);
     };
 
     const removeFile = (index: number) => {
-        const newFiles = [...knowledgeBaseFiles];
+        const newFiles = [...kbFiles];
         newFiles.splice(index, 1);
-        updateField('knowledgeBaseFiles', newFiles);
+        updateField('kbFiles', newFiles);
     };
 
-    const togglePersonality = (trait: string) => {
-        const newPersonality = personality.includes(trait)
-            ? personality.filter(p => p !== trait)
-            : [...personality, trait];
+    const handlePersonalityToggle = (trait: string) => {
+        const newPersonality = [...personality];
+        const index = newPersonality.indexOf(trait);
+        if (index > -1) {
+            newPersonality.splice(index, 1);
+        } else {
+            newPersonality.push(trait);
+        }
         updateField('personality', newPersonality);
     };
-
-    const personalityOptions = [
-        { id: 'profesional', label: 'Profesional' },
-        { id: 'amigable', label: 'Amigable / Cercano' },
-        { id: 'empatico', label: 'Empático' },
-        { id: 'divertido', label: 'Divertido / Humor' },
-        { id: 'directo', label: 'Directo / Conciso' },
-        { id: 'persuasivo', label: 'Persuasivo' }
-    ];
 
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">
-                    Configuración LLM
-                    <div className="custom-tooltip">
-                        <i className="bi bi-info-circle tooltip-icon"></i>
-                        <div className="tooltip-content">
-                            El Cerebro de tu agente. Aquí defines qué modelo de lenguaje usará y cuáles serán sus rasgos de personalidad y base de conocimientos.
-                        </div>
-                    </div>
-                </h1>
+                <h1 className="section-title">Configuración LLM</h1>
                 <p className="section-subtitle">
-                    Define las instrucciones, el modelo de lenguaje y el conocimiento de tu agente.
+                    Configura el modelo de lenguaje, sus parámetros y la base de conocimientos de tu agente.
                 </p>
 
-                <form onSubmit={handleNext}>
+                <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
                     {/* SECCIÓN 1: CONFIGURACIÓN DEL MODELO */}
-                    <div className="section-group mb-5">
-                        <h3 className="section-group-title mb-4">
-                            <i className="bi bi-cpu me-2"></i> Configuración del Modelo
+                    <div className="step-section">
+                        <h3 className="step-section-title">
+                            <i className="bi bi-cpu me-2"></i>
+                            Configuración del modelo
                         </h3>
+                        <p className="step-section-subtitle">Selecciona el modelo de IA y ajusta sus parámetros de funcionamiento.</p>
 
-                        <div className="row">
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label className="form-label">Modelo LLM</label>
-                                    <select
-                                        className="form-control"
-                                        value={model}
-                                        onChange={(e) => updateField('model', e.target.value)}
-                                    >
-                                        <option value="gpt-4.1">GPT-4.1 (Recomendado)</option>
-                                        <option value="gpt-4o">GPT-4o (Omni)</option>
-                                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                                        <option value="claude-3.5-sonnet">Claude 3.5 Sonnet</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <div className="d-flex justify-content-between mb-2">
-                                        <label className="form-label mb-0">Temperatura</label>
-                                        <span className="badge bg-primary">{temperature}</span>
+                        <div className="form-group">
+                            <label className="form-label">
+                                Modelo de IA <span className="required">*</span>
+                                <div className="custom-tooltip">
+                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
+                                    <div className="tooltip-content">
+                                        <strong>GPT-4.1:</strong> El modelo más avanzado de OpenAI. Ofrece la mejor comprensión contextual y generación de respuestas naturales.
                                     </div>
-                                    <input
-                                        type="range"
-                                        className="form-range"
-                                        min="0" max="1" step="0.1"
-                                        value={temperature}
-                                        onChange={(e) => updateField('temperature', parseFloat(e.target.value))}
-                                    />
-                                    <p className="text-muted small mt-1">Valores bajos son más deterministas, valores altos más creativos.</p>
                                 </div>
+                            </label>
+                            <select className="form-select" disabled>
+                                <option>GPT-4.1 (Recomendado)</option>
+                            </select>
+                            <div className="form-text">
+                                <i className="bi bi-cpu me-1"></i>
+                                Modelo seleccionado por defecto para máxima calidad
                             </div>
                         </div>
 
-                        <div className="form-check form-switch mt-3">
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="highPriority"
-                                checked={highPriority}
-                                onChange={(e) => updateField('highPriority', e.target.checked)}
-                            />
-                            <label className="form-check-label" htmlFor="highPriority">
-                                Activar modelo de alta prioridad
-                                <span className="text-muted small ms-2">(Reduce latencia, coste superior)</span>
+                        <div className="form-group">
+                            <label className="form-label">
+                                Temperature
+                                <div className="custom-tooltip">
+                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
+                                    <div className="tooltip-content">
+                                        <strong>Controla la creatividad:</strong><br />
+                                        0.0-0.3: Consistente/Predecible.<br />
+                                        0.4-0.6: Balanceado.<br />
+                                        0.7-1.0: Creativo/Variado.
+                                    </div>
+                                </div>
                             </label>
+                            <div className="slider-wrapper">
+                                <span className="slider-value">{temperature}</span>
+                                <input
+                                    type="range"
+                                    className="custom-range"
+                                    min="0" max="1" step="0.1"
+                                    value={temperature}
+                                    onChange={(e) => updateField('temperature', parseFloat(e.target.value))}
+                                />
+                            </div>
+                            <div className="form-text">Mayor valor = respuestas más creativas y variadas</div>
+                        </div>
+
+                        <div className="form-group mb-0">
+                            <div className="form-check custom-check">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="highPriority"
+                                    checked={highPriority}
+                                    onChange={(e) => updateField('highPriority', e.target.checked)}
+                                />
+                                <label className="form-check-label" htmlFor="highPriority">
+                                    Activar modelo de alta prioridad
+                                    <div className="custom-tooltip">
+                                        <i className="bi bi-question-circle-fill tooltip-icon"></i>
+                                        <div className="tooltip-content">Garantiza tiempos de respuesta más rápidos mediante el uso de recursos dedicados.</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div className="form-text ms-4">Garantiza respuestas más rápidas en momentos de alto tráfico</div>
                         </div>
                     </div>
 
-                    <hr className="my-5" />
+                    <div className="section-divider"></div>
 
                     {/* SECCIÓN 2: MENSAJE Y COMPORTAMIENTO */}
-                    <div className="section-group mb-5">
-                        <h3 className="section-group-title mb-4">
-                            <i className="bi bi-chat-quote me-2"></i> Mensaje y Comportamiento
+                    <div className="step-section">
+                        <h3 className="step-section-title">
+                            <i className="bi bi-chat-dots me-2"></i>
+                            Mensaje y comportamiento
                         </h3>
+                        <p className="step-section-subtitle">Define cómo tu agente iniciará las conversaciones y su estilo de comunicación.</p>
 
-                        <div className="form-group mb-4">
-                            <label className="form-label d-block mb-3">¿Quién inicia la conversación?</label>
-                            <div className="d-flex gap-4">
-                                <div className="form-check">
-                                    <input
-                                        className="form-check-input"
-                                        type="radio"
-                                        name="whoFirst"
-                                        id="firstAgent"
-                                        checked={whoFirst === 'agent'}
-                                        onChange={() => updateField('whoFirst', 'agent')}
-                                    />
-                                    <label className="form-check-label" htmlFor="firstAgent">
-                                        El Agente
-                                    </label>
-                                </div>
-                                <div className="form-check">
-                                    <input
-                                        className="form-check-input"
-                                        type="radio"
-                                        name="whoFirst"
-                                        id="firstUser"
-                                        checked={whoFirst === 'user'}
-                                        onChange={() => updateField('whoFirst', 'user')}
-                                    />
-                                    <label className="form-check-label" htmlFor="firstUser">
-                                        El Usuario
-                                    </label>
-                                </div>
+                        <div className="form-group">
+                            <label className="form-label">¿Quién habla primero? <span className="required">*</span></label>
+                            <div className="radio-cards">
+                                <label className={`radio-card-option ${whoFirst === 'agent' ? 'active' : ''}`}>
+                                    <input type="radio" name="whoFirst" value="agent" checked={whoFirst === 'agent'} onChange={() => updateField('whoFirst', 'agent')} />
+                                    <span>Agente habla primero</span>
+                                </label>
+                                <label className={`radio-card-option ${whoFirst === 'user' ? 'active' : ''}`}>
+                                    <input type="radio" name="whoFirst" value="user" checked={whoFirst === 'user'} onChange={() => updateField('whoFirst', 'user')} />
+                                    <span>Usuario habla primero</span>
+                                </label>
                             </div>
                         </div>
 
                         {whoFirst === 'agent' && (
-                            <div className="form-group mb-4 animate-fade-in">
-                                <label className="form-label">Mensaje de inicio</label>
+                            <div className="form-group">
+                                <label className="form-label">Mensaje de inicio <span className="required">*</span></label>
                                 <textarea
                                     className="form-control"
                                     rows={3}
+                                    placeholder="Ej: Hola, soy Elio, tu asistente de voz..."
                                     value={beginMessage}
                                     onChange={(e) => updateField('beginMessage', e.target.value)}
-                                    placeholder="Ej: Hola, soy Sofía de DentaDent. ¿En qué puedo ayudarte hoy?"
+                                    required
                                 />
-                                <div className="alert alert-info mt-2 py-2 px-3 border-0 bg-light-blue" style={{ fontSize: '12px' }}>
-                                    <i className="bi bi-info-circle me-1"></i>
-                                    Este mensaje será lo primero que diga el agente al descolgar la llamada.
+
+                                <div className="legal-alert mt-3">
+                                    <i className="bi bi-exclamation-triangle-fill me-3"></i>
+                                    <div>
+                                        <strong>Obligatorio por ley española (RGPD y LOPD):</strong>
+                                        <p className="mb-0">Debes informar que es un asistente de voz con IA y que la llamada está siendo grabada. Incluye siempre: <strong>"Asistente de voz creado con inteligencia artificial"</strong> y <strong>"Esta llamada está siendo grabada"</strong> (si aplica).</p>
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="row">
-                            <div className="col-md-7">
-                                <div className="form-group">
-                                    <label className="form-label mb-3">Personalidad del Agente</label>
-                                    <div className="d-grid gap-2" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                                        {personalityOptions.map(opt => (
-                                            <div key={opt.id} className="form-check custom-checkbox-card">
-                                                <input
-                                                    className="form-check-input d-none"
-                                                    type="checkbox"
-                                                    id={`trait-${opt.id}`}
-                                                    checked={personality.includes(opt.id)}
-                                                    onChange={() => togglePersonality(opt.id)}
-                                                />
-                                                <label
-                                                    className={`personality-pill ${personality.includes(opt.id) ? 'active' : ''}`}
-                                                    htmlFor={`trait-${opt.id}`}
-                                                >
-                                                    {opt.label}
-                                                </label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                        <div className="form-group">
+                            <label className="form-label">Personalidad del agente</label>
+                            <div className="checkbox-cards">
+                                {['Profesional', 'Amigable', 'Empático', 'Proactivo'].map(trait => (
+                                    <label key={trait} className={`check-card-option ${personality.includes(trait) ? 'active' : ''}`}>
+                                        <input type="checkbox" checked={personality.includes(trait)} onChange={() => handlePersonalityToggle(trait)} />
+                                        <span>{trait}</span>
+                                    </label>
+                                ))}
                             </div>
-                            <div className="col-md-5">
-                                <div className="form-group">
-                                    <label className="form-label mb-3">Tono de comunicación</label>
-                                    <div className="tone-selector">
-                                        <button
-                                            type="button"
-                                            className={`tone-btn ${tone === 'formal' ? 'active' : ''}`}
-                                            onClick={() => updateField('tone', 'formal')}
-                                        >
-                                            Formal
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={`tone-btn ${tone === 'semiformal' ? 'active' : ''}`}
-                                            onClick={() => updateField('tone', 'semiformal')}
-                                        >
-                                            Semiformal
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={`tone-btn ${tone === 'casual' ? 'active' : ''}`}
-                                            onClick={() => updateField('tone', 'casual')}
-                                        >
-                                            Casual
-                                        </button>
-                                    </div>
-                                </div>
+                        </div>
+
+                        <div className="form-group mb-0">
+                            <label className="form-label">Tono de comunicación <span className="required">*</span></label>
+                            <div className="radio-cards">
+                                {['Formal', 'Semiformal', 'Casual'].map(t => (
+                                    <label key={t} className={`radio-card-option ${tone === t ? 'active' : ''}`}>
+                                        <input type="radio" name="tone" value={t} checked={tone === t} onChange={() => updateField('tone', t)} />
+                                        <span>{t}</span>
+                                    </label>
+                                ))}
                             </div>
                         </div>
                     </div>
 
-                    <hr className="my-5" />
+                    <div className="section-divider"></div>
 
                     {/* SECCIÓN 3: BASE DE CONOCIMIENTOS */}
-                    <div className="section-group mb-5">
-                        <h1 className="section-title mb-8" style={{ fontSize: '20px', fontWeight: 700 }}>
-                            <i className="bi bi-book me-2"></i> Base de conocimientos
-                        </h1>
-                        <p className="section-subtitle">
-                            Sube documentos que tu agente podrá consultar para responder con información precisa.
-                        </p>
+                    <div className="step-section">
+                        <h3 className="step-section-title">
+                            <i className="bi bi-book me-2"></i>
+                            Base de conocimientos
+                        </h3>
+                        <p className="step-section-subtitle">Sube documentos que tu agente podrá consultar para responder con información precisa.</p>
 
-                        <div className="alert alert-warning mb-4" style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px' }}>
-                            <div className="d-flex gap-3">
-                                <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', fontSize: '20px' }}></i>
-                                <div style={{ fontSize: '13px', color: '#92400e' }}>
-                                    <strong style={{ display: 'block', marginBottom: '4px' }}>Importante: Datos Tratados</strong>
-                                    Recomendamos documentos estructurados en formato <strong>Preguntas Frecuentes (FAQ)</strong> o <strong>Problema/Solución</strong>.
-                                    <br />
-                                    <em>Límite máximo de 3 archivos (máx 10 MB/cada uno).</em>
-                                </div>
+                        <div className="alert-info-custom mb-4">
+                            <i className="bi bi-info-circle-fill me-3"></i>
+                            <div>
+                                <strong>Recomendación:</strong> Para una mejor interpretación, sube documentos en formato texto (.txt o .md) con estructura de Preguntas Frecuentes o Problema-Solución.
                             </div>
                         </div>
 
-                        <div
-                            onClick={simulateUpload}
-                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                            onDragLeave={() => setIsDragging(false)}
-                            className={`dropzone ${isDragging ? 'dragging' : ''}`}
-                            style={{
-                                border: `2px dashed ${isDragging ? 'var(--netelip-azul)' : '#cbd5e1'}`,
-                                borderRadius: '12px',
-                                padding: '30px 20px',
-                                textAlign: 'center',
-                                background: isDragging ? '#f0f9ff' : 'white',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                marginBottom: '20px'
-                            }}
-                        >
-                            <i className="bi bi-cloud-arrow-up h1 text-primary mb-3 d-block"></i>
-                            <strong>Arrastra archivos aquí o haz clic para subir</strong>
-                            <p className="text-muted small m-0">Formatos: .md, .txt, .pdf, .docx</p>
+                        <div className="kb-upload-area" onClick={() => document.getElementById('kb-upload')?.click()}>
+                            <i className="bi bi-cloud-upload" style={{ fontSize: '40px', color: 'var(--netelip-azul)' }}></i>
+                            <h5>Arrastra archivos aquí o haz clic para seleccionar</h5>
+                            <p>Límite: 3 archivos (.txt, .md, .pdf). Máximo 10 MB por archivo.</p>
+                            <input
+                                type="file"
+                                id="kb-upload"
+                                className="d-none"
+                                multiple
+                                accept=".txt,.md,.pdf"
+                                onChange={handleFileUpload}
+                            />
                         </div>
 
-                        {knowledgeBaseFiles.length > 0 && (
-                            <div className="file-list mb-4">
-                                {knowledgeBaseFiles.map((file, idx) => (
-                                    <div key={idx} className="file-item d-flex justify-content-between align-items-center p-2 bg-light rounded mb-2 border">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <i className="bi bi-file-earmark-text text-primary"></i>
-                                            <span className="small fw-bold">{file}</span>
+                        {kbFiles.length > 0 && (
+                            <div className="kb-file-list mt-3">
+                                {kbFiles.map((file, idx) => (
+                                    <div key={idx} className="kb-file-item">
+                                        <div className="d-flex align-items: center;">
+                                            <i className="bi bi-file-earmark-text me-2" style={{ color: 'var(--netelip-azul)' }}></i>
+                                            <span className="file-name">{file.name}</span>
+                                            <span className="file-size ms-2">({file.size})</span>
                                         </div>
-                                        <button type="button" className="btn btn-link btn-sm text-danger p-0" onClick={() => removeFile(idx)}>
+                                        <button type="button" className="btn-remove" onClick={() => removeFile(idx)}>
                                             <i className="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -293,41 +255,43 @@ export const Step2_LLM: React.FC = () => {
                             </div>
                         )}
 
-                        <div className="form-group mb-4">
+                        <div className="form-group mt-4">
                             <label className="form-label">Instrucciones de uso de la base</label>
                             <textarea
                                 className="form-control"
-                                rows={2}
-                                value={knowledgeBaseUsage}
-                                onChange={(e) => updateField('knowledgeBaseUsage', e.target.value)}
-                                placeholder="Ej: Consulta esta información solo para dudas técnicas sobre implantes..."
+                                rows={3}
+                                placeholder="Indica al agente cuándo y cómo debe consultar esta información..."
+                                value={kbUsageInstructions}
+                                onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
                             />
+                            <div className="form-text">Si la información es breve, es mejor incluirla directamente en las instrucciones finales.</div>
                         </div>
 
-                        {/* CONFIGURACIÓN AVANZADA KB */}
-                        <div className="advanced-kb-config p-3 border rounded bg-light">
-                            <h4 className="small fw-bold mb-3"><i className="bi bi-sliders me-1"></i> Configuración avanzada del retrieval</h4>
-                            <div className="row g-3">
-                                <div className="col-md-6">
-                                    <label className="small fw-bold d-block mb-1">Fragmentos (Chunks): {retrievalChunks}</label>
+                        {/* CONFIGURACIÓN AVANZADA DE RETRIEVAL */}
+                        <div className="row mt-4">
+                            <div className="col-md-6">
+                                <label className="form-label small-label">Retrieval chunks</label>
+                                <div className="slider-wrapper compact">
+                                    <span className="slider-value-mini">{kbRetrievalChars}</span>
                                     <input
-                                        type="range"
-                                        className="form-range"
-                                        min="1" max="10" step="1"
-                                        value={retrievalChunks}
-                                        onChange={(e) => updateField('retrievalChunks', parseInt(e.target.value))}
+                                        type="range" min="1" max="10" step="1"
+                                        value={kbRetrievalChars}
+                                        onChange={(e) => updateField('kbRetrievalChars', parseInt(e.target.value))}
                                     />
                                 </div>
-                                <div className="col-md-6">
-                                    <label className="small fw-bold d-block mb-1">Umbral Similitud: {similarityThreshold}</label>
+                                <div className="form-text-mini">Fragmentos a recuperar por consulta</div>
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label small-label">Similarity threshold</label>
+                                <div className="slider-wrapper compact">
+                                    <span className="slider-value-mini">{kbSimilarityThreshold}</span>
                                     <input
-                                        type="range"
-                                        className="form-range"
-                                        min="0.1" max="1" step="0.1"
-                                        value={similarityThreshold}
-                                        onChange={(e) => updateField('similarityThreshold', parseFloat(e.target.value))}
+                                        type="range" min="0.1" max="1.0" step="0.1"
+                                        value={kbSimilarityThreshold}
+                                        onChange={(e) => updateField('kbSimilarityThreshold', parseFloat(e.target.value))}
                                     />
                                 </div>
+                                <div className="form-text-mini">Umbral de similitud (0.1 - 1.0)</div>
                             </div>
                         </div>
                     </div>
@@ -344,59 +308,150 @@ export const Step2_LLM: React.FC = () => {
             </div>
 
             <style jsx>{`
-                .personality-pill {
-                    display: block;
-                    padding: 8px 12px;
-                    border: 1px solid #e2e8f0;
+                .step-section {
+                    margin-bottom: 24px;
+                }
+                .step-section-title {
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: var(--oscuro);
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                }
+                .step-section-subtitle {
+                    font-size: 14px;
+                    color: var(--gris-texto);
+                    margin-bottom: 24px;
+                }
+                .section-divider {
+                    height: 2px;
+                    background: var(--gris-borde);
+                    margin: 40px 0;
+                }
+                .slider-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                }
+                .slider-value {
+                    background: var(--netelip-azul);
+                    color: white;
+                    padding: 4px 12px;
+                    border-radius: 6px;
+                    font-weight: 700;
+                    min-width: 45px;
+                    text-align: center;
+                }
+                .custom-range {
+                    flex-grow: 1;
+                }
+                .radio-cards, .checkbox-cards {
+                    display: flex;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }
+                .radio-card-option, .check-card-option {
+                    flex: 1;
+                    min-width: 140px;
+                    border: 2px solid var(--gris-borde);
                     border-radius: 8px;
-                    font-size: 13px;
+                    padding: 12px;
                     text-align: center;
                     cursor: pointer;
                     transition: all 0.2s;
-                    background: white;
+                    font-weight: 600;
+                    font-size: 14px;
                 }
-                .personality-pill:hover {
-                    background: #f8fafc;
-                    border-color: #cbd5e1;
-                }
-                .personality-pill.active {
-                    background: var(--netelip-azul);
-                    color: white;
+                .radio-card-option:hover, .check-card-option:hover {
                     border-color: var(--netelip-azul);
+                    background: #f0f9ff;
                 }
-                .tone-selector {
-                    display: flex;
-                    gap: 8px;
-                    background: #f1f5f9;
-                    padding: 4px;
+                .radio-card-option.active, .check-card-option.active {
+                    border-color: var(--netelip-azul);
+                    background: #f0f9ff;
+                    color: var(--netelip-azul);
+                }
+                .radio-card-option input, .check-card-option input {
+                    display: none;
+                }
+                .legal-alert {
+                    background: #fffbeb;
+                    border: 1px solid #fef3c7;
                     border-radius: 8px;
+                    padding: 16px;
+                    display: flex;
+                    color: #92400e;
+                    font-size: 12px;
+                    line-height: 1.5;
                 }
-                .tone-btn {
-                    flex: 1;
-                    padding: 6px 12px;
-                    border: none;
-                    background: transparent;
-                    border-radius: 6px;
+                .alert-info-custom {
+                    background: #eff6ff;
+                    border: 1px solid #bfdbfe;
+                    border-radius: 8px;
+                    padding: 16px;
+                    display: flex;
+                    color: "var(--netelip-azul)";
                     font-size: 13px;
+                }
+                .kb-upload-area {
+                    border: 2px dashed var(--gris-borde);
+                    border-radius: 12px;
+                    padding: 40px;
+                    text-align: center;
+                    background: #f8fafc;
                     cursor: pointer;
                     transition: all 0.2s;
                 }
-                .tone-btn.active {
+                .kb-upload-area:hover {
+                    border-color: var(--netelip-azul);
+                    background: #f1f5f9;
+                }
+                .kb-file-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                     background: white;
-                    color: var(--netelip-azul);
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    border: 1px solid var(--gris-borde);
+                    border-radius: 8px;
+                    padding: 10px 16px;
+                    margin-bottom: 8px;
+                }
+                .file-name {
                     font-weight: 600;
+                    font-size: 14px;
                 }
-                .bg-light-blue {
-                    background-color: #f0f9ff;
-                    color: #0369a1;
+                .file-size {
+                    font-size: 12px;
+                    color: var(--gris-texto);
                 }
-                .animate-fade-in {
-                    animation: fadeIn 0.3s ease-out;
+                .btn-remove {
+                    background: none;
+                    border: none;
+                    color: #ef4444;
+                    cursor: pointer;
                 }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-10px); }
-                    to { opacity: 1; transform: translateY(0); }
+                .slider-value-mini {
+                    background: #e2e8f0;
+                    color: #475569;
+                    font-size: 12px;
+                    font-weight: 700;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    min-width: 32px;
+                    text-align: center;
+                }
+                .small-label {
+                    font-size: 13px;
+                    margin-bottom: 4px;
+                }
+                .form-text-mini {
+                    font-size: 11px;
+                    color: var(--gris-texto);
+                    margin-top: 4px;
+                }
+                .compact {
+                    gap: 10px;
                 }
             `}</style>
         </div>

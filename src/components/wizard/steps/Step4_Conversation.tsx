@@ -7,7 +7,6 @@ export const Step4_Conversation: React.FC = () => {
     const {
         language, responsiveness, interruptionSensitivity,
         enableBackchannel, backchannelFrequency, backchannelWords,
-        enableAmbientSound, ambientSound, ambientSoundVolume,
         updateField, prevStep, nextStep
     } = useWizardStore();
 
@@ -41,12 +40,12 @@ export const Step4_Conversation: React.FC = () => {
                     <div className="custom-tooltip">
                         <i className="bi bi-info-circle tooltip-icon"></i>
                         <div className="tooltip-content">
-                            Ajusta el comportamiento dinámico del agente: cómo maneja el ruido, las interrupciones y qué sonidos emite mientras escucha.
+                            Ajusta el comportamiento dinámico del agente: cómo maneja las interrupciones y qué sonidos emite mientras escucha.
                         </div>
                     </div>
                 </h1>
                 <p className="section-subtitle">
-                    Define cómo tu agente interactuará en las llamadas.
+                    Define las reglas de interacción y fluidez de la llamada.
                 </p>
 
                 <form onSubmit={handleNext}>
@@ -67,73 +66,13 @@ export const Step4_Conversation: React.FC = () => {
                         </select>
                     </div>
 
-                    {/* SONIDO AMBIENTE - RESCATADO DEL PASO 6 */}
-                    <div className="section-divider">
-                        <h3>
-                            Sonido ambiente
-                            <div className="custom-tooltip">
-                                <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '16px' }}></i>
-                                <div className="tooltip-content">
-                                    Simula un entorno real (oficina, calle) para que la IA no suene &quot;demasiado limpia&quot; y parezca una llamada humana real.
-                                </div>
-                            </div>
-                        </h3>
-                        <p>Añade un sonido de fondo para hacer las llamadas más naturales.</p>
-                    </div>
-
-                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <input
-                            type="checkbox"
-                            id="enableAmbientSound"
-                            style={{ width: '24px', height: '24px', cursor: 'pointer' }}
-                            checked={enableAmbientSound}
-                            onChange={(e) => updateField('enableAmbientSound', e.target.checked)}
-                        />
-                        <label htmlFor="enableAmbientSound" style={{ fontWeight: 600, cursor: 'pointer', margin: 0 }}>
-                            Activar sonido ambiente
-                        </label>
-                    </div>
-
-                    {enableAmbientSound && (
-                        <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '20px', marginTop: '16px' }}>
-                            <div className="form-group">
-                                <label className="form-label">Tipo de sonido ambiente</label>
-                                <select
-                                    className="form-control"
-                                    value={ambientSound}
-                                    onChange={(e) => updateField('ambientSound', e.target.value)}
-                                >
-                                    <option value="none">Sin sonido (none)</option>
-                                    <option value="office">Oficina (office)</option>
-                                    <option value="cafe">Cafetería (cafe)</option>
-                                    <option value="call_center">Centro de llamadas (call center)</option>
-                                </select>
-                            </div>
-
-                            {ambientSound !== 'none' && (
-                                <div className="form-group mb-0">
-                                    <label className="form-label">Volumen del ambiente</label>
-                                    <div className="slider-container">
-                                        <div className="slider-value">{ambientSoundVolume.toFixed(1)}</div>
-                                        <input
-                                            type="range"
-                                            min="0" max="1" step="0.1"
-                                            value={ambientSoundVolume}
-                                            onChange={(e) => updateField('ambientSoundVolume', parseFloat(e.target.value))}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
                     <div className="section-divider">
                         <h3>
                             Backchannel
                             <div className="custom-tooltip">
                                 <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '16px' }}></i>
                                 <div className="tooltip-content">
-                                    Son sonidos de escucha activa (Ajá, Oh, Entiendo). Ayudan a que el usuario sepa que el agente le está prestando atención.
+                                    Son sonidos de escucha activa (Ajá, Oh, Entiendo). Ayudan a que el usuario sepa que le están prestando atención.
                                 </div>
                             </div>
                         </h3>
@@ -141,50 +80,57 @@ export const Step4_Conversation: React.FC = () => {
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <input
-                            type="checkbox"
-                            id="enableBackchannel"
-                            style={{ width: '24px', height: '24px', cursor: 'pointer' }}
-                            checked={enableBackchannel}
-                            onChange={(e) => updateField('enableBackchannel', e.target.checked)}
-                        />
-                        <label htmlFor="enableBackchannel" style={{ fontWeight: 600, cursor: 'pointer', margin: 0 }}>
-                            Activar backchannel
-                        </label>
+                        <div className="form-check form-switch">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="enableBackchannel"
+                                checked={enableBackchannel}
+                                onChange={(e) => updateField('enableBackchannel', e.target.checked)}
+                            />
+                            <label className="form-check-label ms-2" htmlFor="enableBackchannel" style={{ fontWeight: 600, cursor: 'pointer' }}>
+                                Activar backchannel
+                            </label>
+                        </div>
                     </div>
 
                     {enableBackchannel && (
-                        <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
-                            <div className="form-group">
-                                <label className="form-label">Frecuencia de backchannel</label>
-                                <div className="slider-container">
-                                    <div className="slider-value">{backchannelFrequency}</div>
-                                    <input
-                                        type="range"
-                                        min="0" max="1" step="0.1"
-                                        value={backchannelFrequency}
-                                        onChange={(e) => updateField('backchannelFrequency', parseFloat(e.target.value))}
-                                    />
+                        <div className="row mt-4">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">Frecuencia de backchannel</label>
+                                    <div className="slider-wrapper">
+                                        <span className="slider-value">{backchannelFrequency}</span>
+                                        <input
+                                            type="range"
+                                            className="custom-range"
+                                            min="0" max="1" step="0.1"
+                                            value={backchannelFrequency}
+                                            onChange={(e) => updateField('backchannelFrequency', parseFloat(e.target.value))}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="form-group">
-                                <label className="form-label">Palabras de backchannel</label>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '8px', border: '1px solid var(--gris-borde)', borderRadius: '8px', minHeight: '44px' }}>
-                                    {backchannelWords.map(word => (
-                                        <span key={word} style={{ padding: '4px 8px', background: 'var(--netelip-azul)', color: 'white', borderRadius: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            {word}
-                                            <span style={{ cursor: 'pointer', fontWeight: 'bold' }} onClick={() => removeBackchannelWord(word)}>×</span>
-                                        </span>
-                                    ))}
-                                    <input
-                                        type="text"
-                                        value={newBackchannelWord}
-                                        onChange={(e) => setNewBackchannelWord(e.target.value)}
-                                        onKeyDown={handleAddBackchannel}
-                                        placeholder="Añadir (Enter)..."
-                                        style={{ border: 'none', outline: 'none', flex: 1, minWidth: '120px' }}
-                                    />
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">Palabras de backchannel</label>
+                                    <div className="tag-container p-2 border rounded bg-light" style={{ minHeight: '44px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {backchannelWords.map(word => (
+                                            <span key={word} className="badge bg-primary d-flex align-items-center gap-2">
+                                                {word}
+                                                <i className="bi bi-x-circle" style={{ cursor: 'pointer' }} onClick={() => removeBackchannelWord(word)}></i>
+                                            </span>
+                                        ))}
+                                        <input
+                                            type="text"
+                                            className="border-0 bg-transparent"
+                                            value={newBackchannelWord}
+                                            onChange={(e) => setNewBackchannelWord(e.target.value)}
+                                            onKeyDown={handleAddBackchannel}
+                                            placeholder="Añadir..."
+                                            style={{ outline: 'none', fontSize: '14px', flex: 1 }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -200,47 +146,65 @@ export const Step4_Conversation: React.FC = () => {
                                 </div>
                             </div>
                         </h3>
-                        <p>Controla qué tan fácil puede el usuario interrumpir al agente y qué tan rápido responde.</p>
+                        <p>Controla la fluidez de la interacción hombre-máquina.</p>
                     </div>
 
-                    <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                        <div className="form-group">
-                            <label className="form-label">Sensibilidad de interrupción</label>
-                            <div className="slider-container">
-                                <div className="slider-value">{interruptionSensitivity}</div>
-                                <input
-                                    type="range"
-                                    min="0" max="1" step="0.1"
-                                    value={interruptionSensitivity}
-                                    onChange={(e) => updateField('interruptionSensitivity', parseFloat(e.target.value))}
-                                />
+                    <div className="row g-4">
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <label className="form-label">Sensibilidad de interrupción</label>
+                                <div className="slider-wrapper">
+                                    <span className="slider-value">{interruptionSensitivity}</span>
+                                    <input
+                                        type="range"
+                                        className="custom-range"
+                                        min="0" max="1" step="0.1"
+                                        value={interruptionSensitivity}
+                                        onChange={(e) => updateField('interruptionSensitivity', parseFloat(e.target.value))}
+                                    />
+                                </div>
+                                <div className="form-text">0 = No interrumpe, 1 = Sensibilidad alta</div>
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Capacidad de respuesta</label>
-                            <div className="slider-container">
-                                <div className="slider-value">{responsiveness}</div>
-                                <input
-                                    type="range"
-                                    min="0" max="1" step="0.01"
-                                    value={responsiveness}
-                                    onChange={(e) => updateField('responsiveness', parseFloat(e.target.value))}
-                                />
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <label className="form-label">Capacidad de respuesta</label>
+                                <div className="slider-wrapper">
+                                    <span className="slider-value">{responsiveness}</span>
+                                    <input
+                                        type="range"
+                                        className="custom-range"
+                                        min="0.4" max="1" step="0.05"
+                                        value={responsiveness}
+                                        onChange={(e) => updateField('responsiveness', parseFloat(e.target.value))}
+                                    />
+                                </div>
+                                <div className="form-text">Menor valor = respuesta más inmediata</div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="wizard-actions">
+                    <div className="wizard-actions mt-5">
                         <button type="button" className="btn btn-secondary" onClick={prevStep}>
-                            <i className="bi bi-arrow-left"></i> Atrás
+                            <i className="bi bi-arrow-left"></i> Anterior
                         </button>
-                        <button type="submit" className="btn btn-primary" disabled={!language}>
+                        <button type="submit" className="btn btn-primary">
                             Siguiente paso <i className="bi bi-arrow-right"></i>
                         </button>
                     </div>
                 </form>
             </div>
+
+            <style jsx>{`
+                .section-divider { margin: 40px 0 24px 0; border-top: 2px solid var(--gris-borde); pt: 30px; }
+                .section-divider h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+                .section-divider p { font-size: 14px; color: var(--gris-texto); margin-bottom: 20px; }
+                .slider-wrapper { display: flex; align-items: center; gap: 15px; }
+                .slider-value { background: var(--netelip-azul); color: white; padding: 2px 10px; border-radius: 6px; font-weight: 700; min-width: 45px; text-align: center; font-size: 13px; }
+                .custom-range { flex-grow: 1; }
+                .badge { padding: 6px 12px; font-weight: 500; font-size: 13px; }
+            `}</style>
         </div>
     );
 };
