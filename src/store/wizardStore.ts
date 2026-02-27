@@ -152,10 +152,10 @@ export const useWizardStore = create<WizardState>((set) => ({
     tone: 'Semiformal',
     prompt: 'Eres un asistente útil.',
 
-    voiceId: '11labs-Adrian',
-    voiceName: 'Sofia',
+    voiceId: 'retell-11labs-Adrian',
+    voiceName: 'Adrián',
     voiceProvider: 'retell',
-    voiceDescription: 'Voz profesional española',
+    voiceDescription: 'Voz profesional y clara de España',
     voiceSpeed: 1.0,
     voiceTemperature: 1.0,
 
@@ -215,7 +215,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         agentName: '', companyName: '', agentType: 'cualificacion',
         model: 'gpt-4.1', temperature: 0.7, highPriority: false, whoFirst: 'agent', beginMessage: '',
         personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
-        voiceId: '11labs-Adrian', voiceName: 'Sofia', voiceProvider: 'retell', voiceDescription: 'Voz profesional española', voiceSpeed: 1.0, voiceTemperature: 1.0,
+        voiceId: 'retell-11labs-Adrian', voiceName: 'Adrián', voiceProvider: 'retell', voiceDescription: 'Voz profesional y clara de España', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 1.0,
         enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
         boostedKeywords: [], normalizeForSpeech: true,

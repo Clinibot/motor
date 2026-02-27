@@ -9,48 +9,38 @@ interface Voice {
     provider: 'retell' | 'elevenlabs' | 'cartesia';
     language: string;
     gender: 'male' | 'female';
-    accent: 'spain' | 'latam' | 'usa' | 'uk' | 'brazil';
+    accent: string;
     description: string;
 }
 
 const VOICES_DATA: Voice[] = [
-    // Retell AI (Prominent/Fast)
-    { id: '11labs-Adrian', name: 'Sofia', provider: 'retell', language: 'es', gender: 'female', accent: 'spain', description: 'Voz profesional española' },
-    { id: '11labs-Antoni', name: 'Carlos', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz masculina profesional' },
-    { id: '11labs-Serena', name: 'María', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida latinoamericana' },
-    { id: '11labs-Diego', name: 'Diego', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz enérgica latinoamericana' },
-    { id: '11labs-Rachel', name: 'Rachel', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Professional American voice' },
-    { id: '11labs-George', name: 'James', provider: 'retell', language: 'en', gender: 'male', accent: 'uk', description: 'British professional voice' },
-
-    // ElevenLabs (Ultra-realistic)
-    { id: 'eleven_aurora_es', name: 'Aurora', provider: 'elevenlabs', language: 'es', gender: 'female', accent: 'spain', description: 'Ultra-realista española' },
-    { id: 'eleven_miguel_es', name: 'Miguel', provider: 'elevenlabs', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profunda y clara' },
-    { id: 'eleven_lucia_latam', name: 'Lucía', provider: 'elevenlabs', language: 'es', gender: 'female', accent: 'latam', description: 'Expresiva mexicana' },
-    { id: 'eleven_alex_en', name: 'Alex', provider: 'elevenlabs', language: 'en', gender: 'male', accent: 'usa', description: 'Natural American voice' },
-    { id: 'eleven_emma_en', name: 'Emma', provider: 'elevenlabs', language: 'en', gender: 'female', accent: 'uk', description: 'Elegant British voice' },
-
-    // Cartesia (Natural)
-    { id: 'cart_isabel_es', name: 'Isabel', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Natural y cercana' },
-    { id: 'cart_pablo_es', name: 'Pablo', provider: 'cartesia', language: 'es', gender: 'male', accent: 'spain', description: 'Profesional español' },
-    { id: 'cart_valentina_latam', name: 'Valentina', provider: 'cartesia', language: 'es', gender: 'female', accent: 'latam', description: 'Amigable colombiana' },
+    // Español
+    { id: 'retell-11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España' },
+    { id: 'retell-Cimo', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable' },
+    { id: 'retell-11labs-Serena', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural' },
+    // Inglés
+    { id: 'retell-11labs-Rachel', name: 'Rachel', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Professional American voice' },
+    { id: 'retell-11labs-George', name: 'George', provider: 'retell', language: 'en', gender: 'male', accent: 'uk', description: 'British professional voice' },
+    { id: 'retell-11labs-Charlotte', name: 'Charlotte', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Clear and pleasant voice' },
+    // Francés
+    { id: 'retell-11labs-Thomas', name: 'Thomas', provider: 'retell', language: 'fr', gender: 'male', accent: 'france', description: 'Voix française professionnelle' },
+    { id: 'retell-11labs-Marie', name: 'Marie', provider: 'retell', language: 'fr', gender: 'female', accent: 'france', description: 'Voix douce et élégante' },
 ];
 
 export const Step3_Voice: React.FC = () => {
     const { voiceId, voiceSpeed, voiceTemperature, updateField, prevStep, nextStep } = useWizardStore();
 
-    const [provider, setProvider] = useState<'retell' | 'elevenlabs' | 'cartesia'>('retell');
     const [filterLang, setFilterLang] = useState('es');
     const [filterGender, setFilterGender] = useState('');
     const [filterAccent, setFilterAccent] = useState('');
 
     const filteredVoices = useMemo(() => {
         return VOICES_DATA.filter(v => {
-            return v.provider === provider &&
-                (!filterLang || v.language === filterLang) &&
+            return (!filterLang || v.language === filterLang) &&
                 (!filterGender || v.gender === filterGender) &&
                 (!filterAccent || v.accent === filterAccent);
         });
-    }, [provider, filterLang, filterGender, filterAccent]);
+    }, [filterLang, filterGender, filterAccent]);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -66,7 +56,7 @@ export const Step3_Voice: React.FC = () => {
     const getGenderName = (gender: string) => gender === 'female' ? 'Femenino' : 'Masculino';
 
     const getAccentName = (accent: string) => {
-        const names: Record<string, string> = { spain: 'España', latam: 'Latam', usa: 'USA', uk: 'UK', brazil: 'Brasil' };
+        const names: Record<string, string> = { spain: 'España', latam: 'Latam', usa: 'USA', uk: 'UK', brazil: 'Brasil', france: 'Francia' };
         return names[accent] || accent;
     };
 
@@ -94,36 +84,6 @@ export const Step3_Voice: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleNext}>
-                    {/* PROVEEDOR DE VOZ */}
-                    <div className="form-group">
-                        <label className="form-label">
-                            Proveedor de voz <span className="required">*</span>
-                        </label>
-                        <div className="provider-tabs">
-                            <button
-                                type="button"
-                                className={`provider-tab ${provider === 'retell' ? 'active' : ''}`}
-                                onClick={() => setProvider('retell')}
-                            >
-                                🎙️ Retell AI
-                            </button>
-                            <button
-                                type="button"
-                                className={`provider-tab ${provider === 'elevenlabs' ? 'active' : ''}`}
-                                onClick={() => setProvider('elevenlabs')}
-                            >
-                                🎵 ElevenLabs
-                            </button>
-                            <button
-                                type="button"
-                                className={`provider-tab ${provider === 'cartesia' ? 'active' : ''}`}
-                                onClick={() => setProvider('cartesia')}
-                            >
-                                🔊 Cartesia
-                            </button>
-                        </div>
-                    </div>
-
                     {/* FILTROS */}
                     <div className="filters-row">
                         <div>
@@ -132,6 +92,7 @@ export const Step3_Voice: React.FC = () => {
                                 <option value="">Todos</option>
                                 <option value="es">Español</option>
                                 <option value="en">Inglés</option>
+                                <option value="fr">Francés</option>
                             </select>
                         </div>
                         <div>
@@ -149,6 +110,8 @@ export const Step3_Voice: React.FC = () => {
                                 <option value="spain">España</option>
                                 <option value="latam">Latinoamérica</option>
                                 <option value="usa">USA</option>
+                                <option value="uk">UK</option>
+                                <option value="france">Francia</option>
                             </select>
                         </div>
                     </div>
