@@ -7,12 +7,10 @@ export const Step4_Conversation: React.FC = () => {
     const {
         language, responsiveness, interruptionSensitivity,
         enableBackchannel, backchannelFrequency, backchannelWords,
-        boostedKeywords, normalizeForSpeech,
         updateField, prevStep, nextStep
     } = useWizardStore();
 
     const [newBackchannelWord, setNewBackchannelWord] = useState('');
-    const [newKeyword, setNewKeyword] = useState('');
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,20 +32,7 @@ export const Step4_Conversation: React.FC = () => {
         updateField('backchannelWords', backchannelWords.filter(w => w !== wordToRemove));
     };
 
-    const handleAddKeyword = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const val = newKeyword.trim();
-            if (val && !boostedKeywords.includes(val)) {
-                updateField('boostedKeywords', [...boostedKeywords, val]);
-                setNewKeyword('');
-            }
-        }
-    };
 
-    const removeKeyword = (keywordToRemove: string) => {
-        updateField('boostedKeywords', boostedKeywords.filter(k => k !== keywordToRemove));
-    };
 
     return (
         <div className="content-area">
@@ -161,43 +146,6 @@ export const Step4_Conversation: React.FC = () => {
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    <div className="section-divider">
-                        <h3>Palabras clave reforzadas</h3>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Boosted keywords</label>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '8px', border: '1px solid var(--gris-borde)', borderRadius: '8px', minHeight: '44px' }}>
-                            {boostedKeywords.map(keyword => (
-                                <span key={keyword} style={{ padding: '4px 8px', background: 'var(--netelip-azul)', color: 'white', borderRadius: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    {keyword}
-                                    <span style={{ cursor: 'pointer', fontWeight: 'bold' }} onClick={() => removeKeyword(keyword)}>×</span>
-                                </span>
-                            ))}
-                            <input
-                                type="text"
-                                value={newKeyword}
-                                onChange={(e) => setNewKeyword(e.target.value)}
-                                onKeyDown={handleAddKeyword}
-                                placeholder="Añadir keyword..."
-                                style={{ border: 'none', outline: 'none', flex: 1, minWidth: '120px' }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '32px' }}>
-                        <input
-                            type="checkbox"
-                            id="normalizeForSpeech"
-                            style={{ width: '24px', height: '24px', cursor: 'pointer' }}
-                            checked={normalizeForSpeech}
-                            onChange={(e) => updateField('normalizeForSpeech', e.target.checked)}
-                        />
-                        <label htmlFor="normalizeForSpeech" style={{ fontWeight: 600, cursor: 'pointer', margin: 0 }}>
-                            Normalizar para habla
-                        </label>
                     </div>
 
                     <div className="wizard-actions">
