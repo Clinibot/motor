@@ -11,6 +11,7 @@ export const Step2_LLM: React.FC = () => {
         beginMessage,
         personality,
         tone,
+        model,
         updateField,
         nextStep,
         prevStep
@@ -44,8 +45,18 @@ export const Step2_LLM: React.FC = () => {
 
                         <div className="form-group mb-4">
                             <label className="form-label fw-bold">Modelo LLM</label>
-                            <select className="form-select" disabled value="gpt41">
-                                <option value="gpt41">GPT-4.1 (Recomendado)</option>
+                            <select
+                                className="form-select"
+                                value={model}
+                                onChange={(e) => updateField('model', e.target.value)}
+                            >
+                                <option value="gpt-4.1">GPT-4.1 (Recomendado)</option>
+                                <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+                                <option value="gpt-5">GPT-5.0</option>
+                                <option value="gpt-5.1">GPT-5.1</option>
+                                <option value="gpt-5.2">GPT-5.2</option>
+                                <option value="claude-4.5-sonnet">Claude 3.5 Sonnet</option>
+                                <option value="gemini-3.0-flash">Gemini 1.5 Flash</option>
                             </select>
                         </div>
 
