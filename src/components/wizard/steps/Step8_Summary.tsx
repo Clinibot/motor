@@ -14,12 +14,9 @@ export const Step8_Summary: React.FC = () => {
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
-            'inbound-spain': 'Llamada entrante España',
-            'inbound-latam': 'Llamada entrante Latam',
-            'outbound-cold': 'Llamada saliente en frío',
-            'outbound-warm': 'Llamada saliente templada',
-            'support': 'Soporte al cliente',
-            'sales': 'Ventas'
+            'transferencia': 'Transferencia de llamadas',
+            'agendamiento': 'Agendamiento de citas',
+            'cualificacion': 'Cualificación y atención'
         };
         return types[type] || type || 'No definido';
     };
@@ -27,6 +24,8 @@ export const Step8_Summary: React.FC = () => {
     const getLanguageName = (lang: string) => {
         const names: Record<string, string> = {
             'es-ES': 'Español (España)',
+            'es-MX': 'Español (México)',
+            'es-AR': 'Español (Argentina)',
             'es-419': 'Español (Latam)',
             'en-US': 'Inglés (USA)',
             'en-GB': 'Inglés (UK)',
@@ -54,28 +53,26 @@ export const Step8_Summary: React.FC = () => {
         setIsCreating(true);
 
         try {
-            // Call the Next.js internal API route
             const response = await fetch('/api/retell/agent', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(wizardData)
             });
 
             const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || "Error al comunicarse con el servidor");
-            }
-
-            console.log("Respuesta del servidor:", data);
+            if (!response.ok || !data.success) throw new Error(data.error || "Error al comunicarse con el servidor");
             setShowSuccess(true);
         } catch (e: unknown) {
             setErrorMessage(e instanceof Error ? e.message : "Error al crear el agente");
             setShowError(true);
         } finally {
             setIsCreating(false);
+        }
+    };
+
+    const resetWizard = () => {
+        if (confirm('¿Estás seguro de que deseas reiniciar la configuración? Se perderán todos los datos actuales.')) {
+            wizardData.resetWizard();
         }
     };
 
@@ -93,7 +90,7 @@ export const Step8_Summary: React.FC = () => {
                         Tu agente <strong>{wizardData.agentName}</strong> ha sido creado y está listo para usar.
                     </p>
                     <button className="btn btn-primary" onClick={() => window.location.href = '/'}>
-                        Ir al Dashboard
+                        <i className="bi bi-grid-fill me-2"></i> Ir al Dashboard
                     </button>
                 </div>
             </div>
@@ -108,6 +105,14 @@ export const Step8_Summary: React.FC = () => {
                     Revisa todos los detalles de tu agente antes de crearlo. Puedes editar cualquier paso si necesitas hacer cambios.
                 </p>
 
+                <div className="alert alert-success" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '20px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <i className="bi bi-check-circle-fill" style={{ color: 'var(--exito)', fontSize: '32px' }}></i>
+                    <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--oscuro)', margin: '0 0 6px 0' }}>¡Configuración completada!</h3>
+                        <p style={{ fontSize: '14px', color: 'var(--gris-texto)', margin: 0 }}>Has completado todos los pasos. Revisa el resumen y crea tu agente.</p>
+                    </div>
+                </div>
+
                 {showError && (
                     <div className="alert alert-danger" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
                         <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -116,187 +121,200 @@ export const Step8_Summary: React.FC = () => {
                     </div>
                 )}
 
-                <div className="summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+                <div className="summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '24px', marginBottom: '32px' }}>
 
-                    {/* STEP 1 */}
+                    {/* PASO 1: INFORMACIÓN BÁSICA */}
                     <div className="summary-card" style={{ background: 'var(--gris-claro)', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '24px' }}>
-                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-info-circle-fill text-primary"></i> Paso 1: Información básica
-                            </h3>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setStep(1)}><i className="bi bi-pencil"></i> Editar</button>
+                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                    <i className="bi bi-info-circle-fill" style={{ color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Paso 1: Información básica</h3>
+                            </div>
+                            <button className="btn btn-sm" style={{ background: 'white', border: '1px solid var(--gris-borde)', color: 'var(--gris-texto)', fontWeight: 600 }} onClick={() => setStep(1)}>
+                                <i className="bi bi-pencil"></i> Editar
+                            </button>
                         </div>
                         <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--gris-borde)' }}>
                                 <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Tipo de agente</span>
                                 <span style={{ fontSize: '14px', fontWeight: 600 }}>{getAgentTypeName(wizardData.agentType)}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Nombre del agente</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.agentName || 'No definido'}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Cía</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.companyName || 'No definido'}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Nombre / Cía</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.agentName} ({wizardData.companyName})</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* STEP 2 */}
+                    {/* PASO 2: INFORMACIÓN EMPRESA (NEW) */}
                     <div className="summary-card" style={{ background: 'var(--gris-claro)', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '24px' }}>
-                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-robot text-primary"></i> Paso 2: LLM
-                            </h3>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setStep(2)}><i className="bi bi-pencil"></i> Editar</button>
+                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                    <i className="bi bi-building-fill" style={{ color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Paso 2: Información de la empresa</h3>
+                            </div>
+                            <button className="btn btn-sm" style={{ background: 'white', border: '1px solid var(--gris-borde)', color: 'var(--gris-texto)', fontWeight: 600 }} onClick={() => setStep(2)}>
+                                <i className="bi bi-pencil"></i> Editar
+                            </button>
                         </div>
                         <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Modelo</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.model || 'No definido'}</span>
+                                <span style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Web / Tel</span>
+                                <span style={{ fontSize: '13px', fontWeight: 600 }}>{wizardData.companyWebsite || '—'} / {wizardData.companyPhone || '—'}</span>
                             </div>
-                            <div style={{ padding: '8px 0' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Prompt General</span>
-                                <div style={{ fontSize: '12px', background: 'var(--gris-claro)', padding: '8px', borderRadius: '4px', maxHeight: '100px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-                                    {wizardData.prompt || 'Sin prompt'}
+                            <div style={{ marginTop: '8px' }}>
+                                <span style={{ fontSize: '11px', color: 'var(--gris-texto)', fontWeight: 700, textTransform: 'uppercase' }}>Horarios:</span>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginTop: '4px' }}>
+                                    {wizardData.businessHours.slice(0, 6).map(h => (
+                                        <div key={h.day} style={{ fontSize: '11px' }}>
+                                            <strong>{h.day.substring(0, 2)}:</strong> {h.closed ? 'Cerrado' : `${h.open}-${h.close}`}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+                            {wizardData.knowledgeBaseFiles.length > 0 && (
+                                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--gris-borde)' }}>
+                                    <span style={{ fontSize: '11px', color: 'var(--gris-texto)', fontWeight: 700, textTransform: 'uppercase' }}>Base de conocimiento:</span>
+                                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--netelip-azul)', marginTop: '4px' }}>
+                                        <i className="bi bi-file-earmark-arrow-up me-1"></i>
+                                        {wizardData.knowledgeBaseFiles.length} archivos subidos
+                                    </div>
+                                    {wizardData.knowledgeBaseUsage && (
+                                        <div style={{ fontSize: '11px', color: 'var(--gris-texto)', marginTop: '4px', fontStyle: 'italic' }}>
+                                            "{wizardData.knowledgeBaseUsage.substring(0, 50)}..."
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* STEP 3 */}
+                    {/* PASO 3: SELECCIÓN DE VOZ */}
                     <div className="summary-card" style={{ background: 'var(--gris-claro)', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '24px' }}>
-                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-mic-fill text-success"></i> Paso 3: Voz
-                            </h3>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setStep(3)}><i className="bi bi-pencil"></i> Editar</button>
+                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                    <i className="bi bi-mic-fill" style={{ color: 'var(--exito)' }}></i>
+                                </div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Paso 3: Selección de voz</h3>
+                            </div>
+                            <button className="btn btn-sm" style={{ background: 'white', border: '1px solid var(--gris-borde)', color: 'var(--gris-texto)', fontWeight: 600 }} onClick={() => setStep(3)}>
+                                <i className="bi bi-pencil"></i> Editar
+                            </button>
                         </div>
                         <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Voice ID</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600, wordBreak: 'break-all' }}>{wizardData.voiceId || 'No definido'}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Velocidad</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.voiceSpeed}x</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Temperatura</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.voiceTemperature}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Voz</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.voiceName} ({wizardData.voiceSpeed}x)</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* STEP 4 */}
+                    {/* PASO 4: CONVERSACIÓN */}
                     <div className="summary-card" style={{ background: 'var(--gris-claro)', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '24px' }}>
-                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-chat-dots-fill text-primary"></i> Paso 4: Conversación
-                            </h3>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setStep(4)}><i className="bi bi-pencil"></i> Editar</button>
+                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                    <i className="bi bi-chat-dots-fill" style={{ color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Paso 4: Conversación</h3>
+                            </div>
+                            <button className="btn btn-sm" style={{ background: 'white', border: '1px solid var(--gris-borde)', color: 'var(--gris-texto)', fontWeight: 600 }} onClick={() => setStep(4)}>
+                                <i className="bi bi-pencil"></i> Editar
+                            </button>
                         </div>
                         <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Idioma</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{getLanguageName(wizardData.language)}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Responsiveness</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.responsiveness}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Interrupción</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.interruptionSensitivity}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Backchannel</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.enableBackchannel ? 'Sí' : 'No'}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Idioma / Ambiente</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{getLanguageName(wizardData.language)} / {wizardData.enableAmbientSound ? 'Activo' : 'No'}</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* STEP 5 */}
+                    {/* Paso 5: Tiempos */}
                     <div className="summary-card" style={{ background: 'var(--gris-claro)', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '24px' }}>
-                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-clock-fill text-warning"></i> Paso 5: Tiempos
-                            </h3>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setStep(5)}><i className="bi bi-pencil"></i> Editar</button>
+                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                    <i className="bi bi-clock-fill" style={{ color: 'var(--warning)' }}></i>
+                                </div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Paso 5: Tiempos</h3>
+                            </div>
+                            <button className="btn btn-sm" style={{ background: 'white', border: '1px solid var(--gris-borde)', color: 'var(--gris-texto)', fontWeight: 600 }} onClick={() => setStep(5)}>
+                                <i className="bi bi-pencil"></i> Editar
+                            </button>
                         </div>
                         <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Mensaje Inicial (ms)</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.beginMessageDelayMs}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Silencio a Colgar (ms)</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.endCallAfterSilenceMs}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Buzón de Voz</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.enableVoicemailDetection ? 'Activado' : 'Desactivado'}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Delay / Silencio</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.beginMessageDelayMs}ms / {wizardData.endCallAfterSilenceMs}ms</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* STEP 6 */}
+                    {/* Paso 6: Avanzado */}
                     <div className="summary-card" style={{ background: 'var(--gris-claro)', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '24px' }}>
-                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-music-note-beamed text-success"></i> Paso 6: Audio
-                            </h3>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setStep(6)}><i className="bi bi-pencil"></i> Editar</button>
+                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                    <i className="bi bi-gear-fill" style={{ color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Paso 6: Config. avanzada</h3>
+                            </div>
+                            <button className="btn btn-sm" style={{ background: 'white', border: '1px solid var(--gris-borde)', color: 'var(--gris-texto)', fontWeight: 600 }} onClick={() => setStep(6)}>
+                                <i className="bi bi-pencil"></i> Editar
+                            </button>
                         </div>
                         <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Volumen Agente</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.volume}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--gris-borde)' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>Sonido Ambiente</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.enableAmbientSound ? wizardData.ambientSound : 'Desactivado'}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--gris-texto)', fontWeight: 600 }}>STT Mode</span>
-                                <span style={{ fontSize: '14px', fontWeight: 600 }}>{wizardData.sttMode === 'accurate' ? 'Preciso' : 'Rápido'}</span>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                {wizardData.enableCalBooking && <span className="badge bg-light text-dark border">Cal.com</span>}
+                                {wizardData.enableTransfer && <span className="badge bg-light text-dark border">Transf.</span>}
+                                {wizardData.extractionVariables.length > 0 && <span className="badge bg-light text-dark border">Extraer ({wizardData.extractionVariables.length})</span>}
                             </div>
                         </div>
                     </div>
 
-                    {/* STEP 7 */}
+                    {/* Step 7: LLM Card */}
                     <div className="summary-card" style={{ gridColumn: '1 / -1', background: 'var(--gris-claro)', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '24px' }}>
-                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-gear-fill text-primary"></i> Paso 7: Avanzado
-                            </h3>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setStep(7)}><i className="bi bi-pencil"></i> Editar</button>
+                        <div className="summary-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                    <i className="bi bi-robot" style={{ color: 'var(--netelip-azul)' }}></i>
+                                </div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Paso 7: Configuración LLM</h3>
+                            </div>
+                            <button className="btn btn-sm" style={{ background: 'white', border: '1px solid var(--gris-borde)', color: 'var(--gris-texto)', fontWeight: 600 }} onClick={() => setStep(7)}>
+                                <i className="bi bi-pencil"></i> Editar
+                            </button>
                         </div>
-                        <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                            <div style={{ padding: '6px 12px', background: '#eff6ff', borderRadius: '6px', fontSize: '12px', border: '1px solid #bfdbfe' }}>Finalizar Llamada: {wizardData.enableEndCall ? 'Sí' : 'No'}</div>
-                            <div style={{ padding: '6px 12px', background: '#eff6ff', borderRadius: '6px', fontSize: '12px', border: '1px solid #bfdbfe' }}>Reserva Cal.com: {wizardData.enableCalBooking ? 'Sí' : 'No'}</div>
-                            <div style={{ padding: '6px 12px', background: '#eff6ff', borderRadius: '6px', fontSize: '12px', border: '1px solid #bfdbfe' }}>Transferencias: {wizardData.transferDestinations.length}</div>
-                            <div style={{ padding: '6px 12px', background: '#eff6ff', borderRadius: '6px', fontSize: '12px', border: '1px solid #bfdbfe' }}>Custom Tools: {wizardData.customTools.length}</div>
-                            <div style={{ padding: '6px 12px', background: '#ecfdf5', borderRadius: '6px', fontSize: '12px', border: '1px solid #a7f3d0' }}>Análisis IA: {wizardData.enableAnalysis ? 'Sí' : 'No'}</div>
-                            <div style={{ padding: '6px 12px', background: '#ecfdf5', borderRadius: '6px', fontSize: '12px', border: '1px solid #a7f3d0' }}>Variables a Extraer: {wizardData.extractionVariables.length}</div>
-                            <div style={{ padding: '6px 12px', background: '#fffbeb', borderRadius: '6px', fontSize: '12px', border: '1px solid #fde68a' }}>Webhook Post-Call: {wizardData.webhookUrl ? 'Sí' : 'No'}</div>
+                        <div className="summary-content" style={{ background: 'white', padding: '16px', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '12px', background: '#f8fafc', padding: '12px', borderRadius: '8px', maxHeight: '100px', overflowY: 'auto', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap' }}>
+                                {wizardData.prompt}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* ACTIONS */}
-                <div style={{ display: 'flex', gap: '16px', marginTop: '32px', paddingTop: '32px', borderTop: '2px solid var(--gris-borde)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '32px', paddingTop: '32px', borderTop: '2px solid var(--gris-borde)' }}>
                     <button
                         type="button"
                         className="btn"
                         onClick={handleCreateAgent}
                         disabled={isCreating}
-                        style={{ flex: 1, padding: '16px', fontSize: '16px', fontWeight: 600, background: 'var(--exito)', color: 'white', border: 'none', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                        {isCreating ? (
-                            <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creando Agente...</>
-                        ) : (
-                            <><i className="bi bi-rocket-takeoff-fill"></i> Crear Agente IA</>
-                        )}
+                        style={{ padding: '16px', fontSize: '15px', fontWeight: 700, background: 'var(--exito)', color: 'white', border: 'none', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', cursor: isCreating ? 'not-allowed' : 'pointer' }}>
+                        {isCreating ? 'Creando...' : <><i className="bi bi-rocket-takeoff-fill"></i> Crear Agente IA</>}
+                    </button>
+
+                    <button
+                        type="button"
+                        className="btn"
+                        onClick={resetWizard}
+                        style={{ padding: '16px', fontSize: '15px', fontWeight: 700, background: 'white', color: 'var(--danger)', border: '1.5px solid var(--danger)', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+                        <i className="bi bi-arrow-counterclockwise"></i> Reiniciar Agente IA
                     </button>
                 </div>
 

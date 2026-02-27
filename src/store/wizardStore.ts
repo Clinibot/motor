@@ -27,6 +27,19 @@ export interface WizardState {
     companyName: string;
     agentType: string;
 
+    // Step 2: Company Info (New)
+    companyAddress: string;
+    companyPhone: string;
+    companyWebsite: string;
+    companyDescription: string;
+    businessHours: { day: string; open: string; close: string; closed: boolean }[];
+
+    // Knowledge Base
+    knowledgeBaseFiles: string[];
+    knowledgeBaseUsage: string;
+    retrievalChunks: number;
+    similarityThreshold: number;
+
     // Step 2: LLM Config
     model: string;
     prompt: string;
@@ -75,8 +88,6 @@ export interface WizardState {
     calUrl: string;
     calApiKey: string;
     calEventId: string;
-    enableCalAvailability: boolean;
-    calAvailabilityDays: number;
     enableTransfer: boolean;
     transferDestinations: TransferDestination[];
     enableCustomTools: boolean;
@@ -92,6 +103,7 @@ export interface WizardState {
 
     // Global Progress
     currentStep: number;
+    isSidebarOpen: boolean;
 
     // Actions
     updateField: (field: keyof WizardState, value: unknown) => void;
@@ -99,13 +111,32 @@ export interface WizardState {
     prevStep: () => void;
     setStep: (step: number) => void;
     resetWizard: () => void;
+    toggleSidebar: () => void;
 }
 
 export const useWizardStore = create<WizardState>((set) => ({
-    // Initial Fields
     agentName: '',
     companyName: '',
     agentType: 'cualificacion', // transfer, booking, etc.
+
+    // Step 2 Initial
+    companyAddress: '',
+    companyPhone: '',
+    companyWebsite: '',
+    companyDescription: '',
+    businessHours: [
+        { day: 'Lunes', open: '09:00', close: '20:00', closed: false },
+        { day: 'Martes', open: '09:00', close: '20:00', closed: false },
+        { day: 'Miércoles', open: '09:00', close: '20:00', closed: false },
+        { day: 'Jueves', open: '09:00', close: '20:00', closed: false },
+        { day: 'Viernes', open: '09:00', close: '20:00', closed: false },
+        { day: 'Sábado', open: '09:00', close: '14:00', closed: true },
+        { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
+    ],
+    knowledgeBaseFiles: [],
+    knowledgeBaseUsage: '',
+    retrievalChunks: 3,
+    similarityThreshold: 0.7,
 
     model: 'gpt-4.1',
     prompt: 'Eres un asistente útil.',
@@ -149,8 +180,6 @@ export const useWizardStore = create<WizardState>((set) => ({
     calUrl: '',
     calApiKey: '',
     calEventId: '',
-    enableCalAvailability: false,
-    calAvailabilityDays: 7,
     enableTransfer: false,
     transferDestinations: [],
     enableCustomTools: false,
@@ -164,12 +193,14 @@ export const useWizardStore = create<WizardState>((set) => ({
     webhookInbound: '',
 
     currentStep: 1,
+    isSidebarOpen: false,
 
     // Actions
     updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
-    nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 7) })),
-    prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
-    setStep: (step) => set({ currentStep: step }),
+    nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 8), isSidebarOpen: false })),
+    prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1), isSidebarOpen: false })),
+    setStep: (step) => set({ currentStep: step, isSidebarOpen: false }),
+    toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
         model: 'gpt-4.1', prompt: 'Eres un asistente útil.',
@@ -184,9 +215,23 @@ export const useWizardStore = create<WizardState>((set) => ({
         sttMode: 'accurate', enableTranscriptionFormatting: true,
         enableEndCall: true, endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
         enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '',
-        enableCalAvailability: false, calAvailabilityDays: 7,
         enableTransfer: false, transferDestinations: [], enableCustomTools: false, customTools: [],
         useTemplate: false, extractionVariables: [], enableAnalysis: false, analysisModel: 'gpt-4.1',
-        webhookUrl: '', webhookInbound: '', currentStep: 1
+        webhookUrl: '', webhookInbound: '',
+        companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
+        businessHours: [
+            { day: 'Lunes', open: '09:00', close: '20:00', closed: false },
+            { day: 'Martes', open: '09:00', close: '20:00', closed: false },
+            { day: 'Miércoles', open: '09:00', close: '20:00', closed: false },
+            { day: 'Jueves', open: '09:00', close: '20:00', closed: false },
+            { day: 'Viernes', open: '09:00', close: '20:00', closed: false },
+            { day: 'Sábado', open: '09:00', close: '14:00', closed: true },
+            { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
+        ],
+        knowledgeBaseFiles: [],
+        knowledgeBaseUsage: '',
+        retrievalChunks: 3,
+        similarityThreshold: 0.7,
+        currentStep: 1
     })
 }));

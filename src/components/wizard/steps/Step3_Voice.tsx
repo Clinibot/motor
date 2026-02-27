@@ -73,7 +73,15 @@ export const Step3_Voice: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">Selección de voz del agente</h1>
+                <h1 className="section-title">
+                    Selección de voz del agente
+                    <div className="custom-tooltip">
+                        <i className="bi bi-info-circle tooltip-icon"></i>
+                        <div className="tooltip-content">
+                            La voz es la cara audible de tu marca. Elige entre diferentes proveedores para encontrar el tono, acento y género que mejor encaje.
+                        </div>
+                    </div>
+                </h1>
                 <p className="section-subtitle">
                     Elige la voz que mejor represente la personalidad de tu agente.
                 </p>
@@ -199,15 +207,13 @@ export const Step3_Voice: React.FC = () => {
                         <div className="form-group">
                             <label className="form-label">
                                 Voice speed
-                                <span className="custom-tooltip">
-                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                    <span className="tooltip-content">
+                                <div className="custom-tooltip">
+                                    <i className="bi bi-info-circle tooltip-icon"></i>
+                                    <div className="tooltip-content">
                                         <strong>Velocidad de habla:</strong><br />
-                                        0.5-0.8: Lento<br />
-                                        0.9-1.1: Normal<br />
-                                        1.2-2.0: Rápido
-                                    </span>
-                                </span>
+                                        Controla qué tan rápido habla el agente. Valores entre 0.9 y 1.1 suenan más naturales.
+                                    </div>
+                                </div>
                             </label>
                             <div className="slider-container">
                                 <div className="slider-value">{voiceSpeed.toFixed(1)}x</div>
@@ -223,15 +229,13 @@ export const Step3_Voice: React.FC = () => {
                         <div className="form-group">
                             <label className="form-label">
                                 Voice temperature
-                                <span className="custom-tooltip">
-                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                    <span className="tooltip-content">
+                                <div className="custom-tooltip">
+                                    <i className="bi bi-info-circle tooltip-icon"></i>
+                                    <div className="tooltip-content">
                                         <strong>Variación emocional:</strong><br />
-                                        0.0-0.3: Consistente<br />
-                                        0.4-0.6: Natural<br />
-                                        0.7-1.0: Expresiva
-                                    </span>
-                                </span>
+                                        A mayor temperatura, la voz tendrá más inflexiones y sonará más expresiva y humana.
+                                    </div>
+                                </div>
                             </label>
                             <div className="slider-container">
                                 <div className="slider-value">{voiceTemperature.toFixed(1)}</div>

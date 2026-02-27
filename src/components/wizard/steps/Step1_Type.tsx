@@ -18,7 +18,15 @@ export const Step1_Type: React.FC = () => {
                 <form onSubmit={handleNext}>
                     {/* SECCIÓN: INFORMACIÓN BÁSICA DEL AGENTE */}
                     <div style={{ marginBottom: '48px' }}>
-                        <h2 className="section-title">Información básica del agente</h2>
+                        <h2 className="section-title">
+                            Información básica del agente
+                            <div className="custom-tooltip">
+                                <i className="bi bi-info-circle tooltip-icon"></i>
+                                <div className="tooltip-content">
+                                    Aquí defines la identidad de tu agente. El nombre y la empresa son fundamentales para que el agente sepa quién es y a quién representa.
+                                </div>
+                            </div>
+                        </h2>
                         <p className="section-subtitle">
                             Empecemos con los datos fundamentales. Esta información personaliza todo el comportamiento de tu agente.
                         </p>
@@ -27,13 +35,13 @@ export const Step1_Type: React.FC = () => {
                             <label className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '8px', fontSize: '14px' }}>
                                 ¿Cómo se llamará tu agente?
                                 <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
-                                <span className="custom-tooltip">
-                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                    <span className="tooltip-content">
+                                <div className="custom-tooltip">
+                                    <i className="bi bi-info-circle tooltip-icon"></i>
+                                    <div className="tooltip-content">
                                         <strong>Nombre del agente</strong><br />
-                                        Este será el nombre con el que tu agente se presentará.
-                                    </span>
-                                </span>
+                                        Este será el nombre con el que tu agente se presentará al iniciar la llamada.
+                                    </div>
+                                </div>
                             </label>
                             <input
                                 type="text"
@@ -53,10 +61,10 @@ export const Step1_Type: React.FC = () => {
                             <label className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '8px', fontSize: '14px' }}>
                                 Nombre de tu empresa
                                 <span className="custom-tooltip">
-                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
+                                    <i className="bi bi-info-circle tooltip-icon"></i>
                                     <span className="tooltip-content">
                                         <strong>Nombre de la empresa</strong><br />
-                                        El agente usará este nombre para presentar tu empresa.
+                                        El agente usará este nombre para presentar tu empresa y dar contexto al cliente.
                                     </span>
                                 </span>
                             </label>
@@ -71,7 +79,15 @@ export const Step1_Type: React.FC = () => {
                     </div>
 
                     <div style={{ borderTop: '2px solid var(--gris-borde)', margin: '48px 0', paddingTop: '40px' }}>
-                        <h2 className="section-title">¿Qué tipo de agente necesitas?</h2>
+                        <h2 className="section-title">
+                            ¿Qué tipo de agente necesitas?
+                            <div className="custom-tooltip">
+                                <i className="bi bi-info-circle tooltip-icon"></i>
+                                <div className="tooltip-content">
+                                    El tipo de agente pre-configura ciertas herramientas y comportamientos óptimos para cada caso de uso.
+                                </div>
+                            </div>
+                        </h2>
                         <p className="section-subtitle">
                             Selecciona el tipo de agente según la función principal que necesites.
                         </p>
@@ -127,6 +143,27 @@ export const Step1_Type: React.FC = () => {
                             <div className="agent-type-name">Cualificación y atención</div>
                             <div className="agent-type-desc">Cualifica leads con preguntas estratégicas.</div>
                             <span className="agent-type-badge">Soporte y Ventas</span>
+                        </div>
+                    </div>
+
+                    {/* BANNER DE AYUDA */}
+                    <div className="info-banner" style={{ marginTop: '32px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '20px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                        <div style={{ background: 'var(--netelip-azul)', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: '2px', justifyContent: 'center' }}>
+                            <i className="bi bi-lightbulb" style={{ color: 'white', fontSize: '18px' }}></i>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--oscuro)', marginBottom: '8px', marginTop: 0 }}>¿No estás seguro cuál elegir?</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', lineHeight: '1.4' }}>
+                                    <strong style={{ color: 'var(--oscuro)' }}>Transferencia:</strong> Si tu prioridad es distribuir llamadas entre tu equipo.
+                                </div>
+                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', lineHeight: '1.4' }}>
+                                    <strong style={{ color: 'var(--oscuro)' }}>Agendamiento:</strong> Si necesitas automatizar reservas de consultas, visitas o reuniones.
+                                </div>
+                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', lineHeight: '1.4' }}>
+                                    <strong style={{ color: 'var(--oscuro)' }}>Cualificación:</strong> Si buscas filtrar leads y dar soporte a clientes.
+                                </div>
+                            </div>
                         </div>
                     </div>
 

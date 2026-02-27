@@ -6,20 +6,22 @@ import { useWizardStore } from '../../store/wizardStore';
 
 const stepsMeta = [
     { id: 1, name: 'Información básica', desc: 'Nombre y sector' },
-    { id: 2, name: 'Configuración LLM', desc: 'Modelo y prompt' },
+    { id: 2, name: 'Información de la empresa', desc: 'Horarios y contacto' },
     { id: 3, name: 'Selección de voz', desc: 'Voz y personalidad' },
     { id: 4, name: 'Conversación', desc: 'Idioma y respuestas' },
     { id: 5, name: 'Tiempos', desc: 'Duraciones y delays' },
-    { id: 6, name: 'Herramientas', desc: 'Integraciones' },
-    { id: 7, name: 'Resumen', desc: 'Revisar y crear' },
+    { id: 6, name: 'Configuración avanzada', desc: 'Integraciones' },
+    { id: 7, name: 'Configuración LLM', desc: 'Modelo y prompt' },
+    { id: 8, name: 'Resumen', desc: 'Revisar y crear' },
 ];
 
 export const Sidebar: React.FC = () => {
     const currentStep = useWizardStore((state) => state.currentStep);
     const setStep = useWizardStore((state) => state.setStep);
+    const isSidebarOpen = useWizardStore((state) => state.isSidebarOpen);
 
     return (
-        <div className="sidebar">
+        <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
             <div className="sidebar-header">
                 <Link href="/dashboard" className="back-link">
                     <i className="bi bi-arrow-left"></i> Volver al dashboard

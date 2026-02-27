@@ -36,7 +36,15 @@ export const Step4_Conversation: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">Configuración de conversación</h1>
+                <h1 className="section-title">
+                    Configuración de conversación
+                    <div className="custom-tooltip">
+                        <i className="bi bi-info-circle tooltip-icon"></i>
+                        <div className="tooltip-content">
+                            Ajusta el comportamiento dinámico del agente: cómo maneja el ruido, las interrupciones y qué sonidos emite mientras escucha.
+                        </div>
+                    </div>
+                </h1>
                 <p className="section-subtitle">
                     Define cómo tu agente interactuará en las llamadas.
                 </p>
@@ -61,7 +69,15 @@ export const Step4_Conversation: React.FC = () => {
 
                     {/* SONIDO AMBIENTE - RESCATADO DEL PASO 6 */}
                     <div className="section-divider">
-                        <h3>Sonido ambiente</h3>
+                        <h3>
+                            Sonido ambiente
+                            <div className="custom-tooltip">
+                                <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '16px' }}></i>
+                                <div className="tooltip-content">
+                                    Simula un entorno real (oficina, calle) para que la IA no suene &quot;demasiado limpia&quot; y parezca una llamada humana real.
+                                </div>
+                            </div>
+                        </h3>
                         <p>Añade un sonido de fondo para hacer las llamadas más naturales.</p>
                     </div>
 
@@ -112,7 +128,15 @@ export const Step4_Conversation: React.FC = () => {
                     )}
 
                     <div className="section-divider">
-                        <h3>Backchannel</h3>
+                        <h3>
+                            Backchannel
+                            <div className="custom-tooltip">
+                                <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '16px' }}></i>
+                                <div className="tooltip-content">
+                                    Son sonidos de escucha activa (Ajá, Oh, Entiendo). Ayudan a que el usuario sepa que el agente le está prestando atención.
+                                </div>
+                            </div>
+                        </h3>
                         <p>El agente emite pequeñas respuestas (&quot;Ajá&quot;, &quot;Entiendo&quot;) mientras el usuario habla.</p>
                     </div>
 
@@ -167,7 +191,15 @@ export const Step4_Conversation: React.FC = () => {
                     )}
 
                     <div className="section-divider">
-                        <h3>Sensibilidad y respuesta</h3>
+                        <h3>
+                            Sensibilidad y respuesta
+                            <div className="custom-tooltip">
+                                <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '16px' }}></i>
+                                <div className="tooltip-content">
+                                    Configura qué tan rápido responde el agente tras un silencio y qué tan fácil es para el usuario tomar la palabra.
+                                </div>
+                            </div>
+                        </h3>
                         <p>Controla qué tan fácil puede el usuario interrumpir al agente y qué tan rápido responde.</p>
                     </div>
 

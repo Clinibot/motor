@@ -19,7 +19,15 @@ export const Step5_Timings: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">Configuración de tiempos</h1>
+                <h1 className="section-title">
+                    Configuración de tiempos
+                    <div className="custom-tooltip">
+                        <i className="bi bi-info-circle tooltip-icon"></i>
+                        <div className="tooltip-content">
+                            Controla los ritmos de la conversación: cuánto tarda en saludar, cuánto espera antes de colgar por silencio y cómo gestiona el buzón de voz.
+                        </div>
+                    </div>
+                </h1>
                 <p className="section-subtitle">
                     Define las duraciones, delays y comportamientos temporales de tu agente.
                 </p>
@@ -32,7 +40,13 @@ export const Step5_Timings: React.FC = () => {
                                 <i className="bi bi-clock-history"></i>
                             </div>
                             <div style={{ flex: 1 }}>
-                                <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0' }}>Delay del mensaje inicial</h4>
+                                <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    Delay del mensaje inicial
+                                    <div className="custom-tooltip">
+                                        <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '14px' }}></i>
+                                        <div className="tooltip-content">Tiempo de espera desde que el usuario contesta hasta que el agente dice el primer mensaje.</div>
+                                    </div>
+                                </h4>
                                 <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Tiempo antes de que el agente comience a hablar</p>
                             </div>
                         </div>
@@ -59,7 +73,13 @@ export const Step5_Timings: React.FC = () => {
                                 <i className="bi bi-volume-mute"></i>
                             </div>
                             <div style={{ flex: 1 }}>
-                                <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0' }}>Finalizar por silencio</h4>
+                                <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    Finalizar por silencio
+                                    <div className="custom-tooltip">
+                                        <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '14px' }}></i>
+                                        <div className="tooltip-content">Si el usuario no dice nada tras este tiempo de silencio, el agente colgará la llamada de forma educada.</div>
+                                    </div>
+                                </h4>
                                 <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Colgar automáticamente si el usuario no responde</p>
                             </div>
                         </div>
@@ -166,7 +186,13 @@ export const Step5_Timings: React.FC = () => {
                     </div>
 
                     <div className="section-divider">
-                        <h3>Detección de buzón de voz</h3>
+                        <h3>
+                            Detección de buzón de voz
+                            <div className="custom-tooltip">
+                                <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '18px' }}></i>
+                                <div className="tooltip-content">Permite al agente saber si ha saltado un buzón de voz y dejar un mensaje grabado si lo deseas.</div>
+                            </div>
+                        </h3>
                     </div>
 
                     <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
