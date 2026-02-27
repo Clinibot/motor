@@ -37,17 +37,17 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-group mb-0">
-                            <label className="form-label">Begin message delay (ms)</label>
+                            <label className="form-label">Wait time before greeting (seconds)</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="number"
                                     className="form-control"
-                                    value={beginMessageDelayMs}
-                                    min="0" max="10000" step="100"
-                                    onChange={(e) => updateField('beginMessageDelayMs', parseInt(e.target.value) || 0)}
+                                    value={beginMessageDelayMs / 1000}
+                                    min="0" max="10" step="0.1"
+                                    onChange={(e) => updateField('beginMessageDelayMs', Math.round(parseFloat(e.target.value) * 1000) || 0)}
                                     style={{ width: '120px' }}
                                 />
-                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>ms</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>segundos</span>
                             </div>
                         </div>
                     </div>
@@ -64,17 +64,17 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-group mb-0">
-                            <label className="form-label">End call after silence (ms)</label>
+                            <label className="form-label">Silence threshold (seconds)</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="number"
                                     className="form-control"
-                                    value={endCallAfterSilenceMs}
-                                    min="5000" max="120000" step="1000"
-                                    onChange={(e) => updateField('endCallAfterSilenceMs', parseInt(e.target.value) || 0)}
+                                    value={endCallAfterSilenceMs / 1000}
+                                    min="5" max="120" step="1"
+                                    onChange={(e) => updateField('endCallAfterSilenceMs', Math.round(parseFloat(e.target.value) * 1000) || 0)}
                                     style={{ width: '120px' }}
                                 />
-                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>ms</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>segundos</span>
                             </div>
                         </div>
                     </div>
@@ -91,17 +91,17 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-group mb-0">
-                            <label className="form-label">Max call duration (ms)</label>
+                            <label className="form-label">Max call duration (seconds)</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="number"
                                     className="form-control"
-                                    value={maxCallDurationMs}
-                                    min="60000" max="7200000" step="60000"
-                                    onChange={(e) => updateField('maxCallDurationMs', parseInt(e.target.value) || 0)}
+                                    value={maxCallDurationMs / 1000}
+                                    min="60" max="7200" step="60"
+                                    onChange={(e) => updateField('maxCallDurationMs', Math.round(parseFloat(e.target.value) * 1000) || 0)}
                                     style={{ width: '120px' }}
                                 />
-                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>ms</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>segundos</span>
                             </div>
                             <div className="form-text">
                                 <i className="bi bi-hourglass-split me-1"></i>
@@ -126,17 +126,17 @@ export const Step5_Timings: React.FC = () => {
                                 </div>
                             </div>
                             <div className="form-group mb-0">
-                                <label className="form-label">Reminder trigger (ms)</label>
+                                <label className="form-label">Reminder trigger (seconds)</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <input
                                         type="number"
                                         className="form-control"
-                                        value={reminderTriggerMs}
-                                        min="3000" max="60000" step="1000"
-                                        onChange={(e) => updateField('reminderTriggerMs', parseInt(e.target.value) || 0)}
+                                        value={reminderTriggerMs / 1000}
+                                        min="3" max="60" step="1"
+                                        onChange={(e) => updateField('reminderTriggerMs', Math.round(parseFloat(e.target.value) * 1000) || 0)}
                                         style={{ width: '100px' }}
                                     />
-                                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--gris-texto)' }}>ms</span>
+                                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--gris-texto)' }}>segundos</span>
                                 </div>
                             </div>
                         </div>
@@ -185,17 +185,17 @@ export const Step5_Timings: React.FC = () => {
                     {enableVoicemailDetection && (
                         <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '20px', marginTop: '16px' }}>
                             <div className="form-group">
-                                <label className="form-label">Timeout de detección (ms)</label>
+                                <label className="form-label">Timeout de detección (segundos)</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <input
                                         type="number"
                                         className="form-control"
-                                        value={voicemailDetectionTimeoutMs}
-                                        min="1000" max="15000" step="500"
-                                        onChange={(e) => updateField('voicemailDetectionTimeoutMs', parseInt(e.target.value) || 0)}
+                                        value={voicemailDetectionTimeoutMs / 1000}
+                                        min="1" max="15" step="0.5"
+                                        onChange={(e) => updateField('voicemailDetectionTimeoutMs', Math.round(parseFloat(e.target.value) * 1000) || 0)}
                                         style={{ width: '120px' }}
                                     />
-                                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>ms</span>
+                                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>segundos</span>
                                 </div>
                             </div>
 
@@ -227,17 +227,17 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-group mb-0">
-                            <label className="form-label">Ring duration (ms)</label>
+                            <label className="form-label">Ring duration (segundos)</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="number"
                                     className="form-control"
-                                    value={ringDurationMs}
-                                    min="10000" max="120000" step="5000"
-                                    onChange={(e) => updateField('ringDurationMs', parseInt(e.target.value) || 0)}
+                                    value={ringDurationMs / 1000}
+                                    min="10" max="120" step="5"
+                                    onChange={(e) => updateField('ringDurationMs', Math.round(parseFloat(e.target.value) * 1000) || 0)}
                                     style={{ width: '120px' }}
                                 />
-                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>ms</span>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>segundos</span>
                             </div>
                         </div>
                     </div>
