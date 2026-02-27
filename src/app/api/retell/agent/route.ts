@@ -15,6 +15,23 @@ function getSupabaseAdmin() {
     return createClient(supabaseUrl, supabaseServiceKey);
 }
 
+// Mapeo de modelos "marketing" (comerciales) a modelos reales de Retell/OpenAI/Claude/Gemini
+const MODEL_MAPPING: Record<string, string> = {
+    'gpt-5.2': 'gpt-4o',
+    'gpt-5.1': 'gpt-4o',
+    'gpt-5': 'gpt-4o',
+    'gpt-4.1': 'gpt-4o',
+    'gpt-4.1-mini': 'gpt-4o-mini',
+    'gemini-3.0-flash': 'gemini-1.5-flash',
+    'claude-4.5-sonnet': 'claude-3.5-sonnet',
+    'claude-4.6-sonnet': 'claude-3.5-sonnet'
+};
+
+function getRetellModel(modelName: string | undefined): any {
+    if (!modelName) return "gpt-4o";
+    return (MODEL_MAPPING[modelName] || modelName) as any;
+}
+
 export async function POST(request: Request) {
     try {
         const payload = await request.json();
@@ -109,8 +126,8 @@ export async function POST(request: Request) {
 
         console.log(`Tools configured: ${retellTools.length}`, retellTools.map(t => t.type || t.name));
 
-        // Usar el modelo directamente (todos los modelos del wizard son válidos en la API de Retell actual)
-        const retellModel = payload.model || "gpt-4.1";
+        // Usar el modelo mapeado (el wizard usa nombres comerciales que Retell no siempre reconoce)
+        const retellModel = getRetellModel(payload.model);
 
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
         const llmCreateParams: Parameters<typeof retellClient.llm.create>[0] = {
@@ -258,17 +275,7 @@ export async function PATCH(request: Request) {
         const postCallAnalysis = buildPostCallAnalysis(payload);
         const finalPrompt = injectToolInstructions(payload.prompt || 'Eres un asistente amable.', payload);
 
-        const modelMapping: Record<string, string> = {
-            'gpt-5.2': 'gpt-4o',
-            'gpt-5.1': 'gpt-4o',
-            'gpt-5': 'gpt-4o',
-            'gpt-4.1': 'gpt-4o',
-            'gpt-4.1-mini': 'gpt-4o-mini',
-            'gemini-3.0-flash': 'gemini-1.5-flash',
-            'claude-4.5-sonnet': 'claude-3.5-sonnet',
-            'claude-4.6-sonnet': 'claude-3.5-sonnet'
-        };
-        const retellModel = modelMapping[payload.model] || payload.model || "gpt-4o";
+        const retellModel = getRetellModel(payload.model);
 
         const llmUpdateParams: Parameters<typeof retellClient.llm.update>[1] = {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
