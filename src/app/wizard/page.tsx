@@ -4,8 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { Sidebar } from '../../components/wizard/Sidebar';
 import { Topbar } from '../../components/wizard/Topbar';
 import { useWizardStore } from '../../store/wizardStore';
-
-// Import all steps
 import { Step1_Type } from '../../components/wizard/steps/Step1_Type';
 import { Step2_LLM } from '../../components/wizard/steps/Step2_LLM';
 import { Step3_Voice } from '../../components/wizard/steps/Step3_Voice';
@@ -23,10 +21,8 @@ export default function WizardPage() {
         setMounted(true);
     }, []);
 
-    // Prevent hydration errors by not rendering the dynamic step until mounted
-    if (!mounted) {
-        return null;
-    }
+    // Prevent hydration errors — do not render until client-side mounted
+    if (!mounted) return null;
 
     const renderStep = () => {
         switch (currentStep) {
@@ -43,30 +39,12 @@ export default function WizardPage() {
     };
 
     return (
-        <div className="layout">
+        <div className="wizard-layout">
             <Sidebar />
-            <div className="main-content">
+            <div className="wizard-main">
                 <Topbar />
                 {renderStep()}
             </div>
-
-            <style jsx global>{`
-                /* Some additional global styles specific to the wizard structure if needed */
-                .layout {
-                    display: grid;
-                    grid-template-columns: 280px 1fr;
-                    height: 100vh;
-                    overflow: hidden;
-                    background: #f8fafc;
-                }
-                .main-content {
-                    display: flex;
-                    flex-direction: column;
-                    height: 100vh;
-                    overflow-y: auto;
-                    position: relative;
-                }
-            `}</style>
         </div>
     );
 }

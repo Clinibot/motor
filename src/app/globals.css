@@ -726,3 +726,19 @@ select.form-control {
   cursor: pointer;
   height: 6px;
 }
+
+/* ===== WIZARD LAYOUT (replaces styled-jsx in page.tsx) ===== */
+.wizard-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+  background: var(--gris-claro);
+}
+
+.wizard-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-y: auto;
+  position: relative;
+}
