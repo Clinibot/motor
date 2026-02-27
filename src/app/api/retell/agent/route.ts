@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Retell from 'retell-sdk';
+import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '../../../../lib/retell/toolMapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,13 +56,43 @@ export async function POST(request: Request) {
 
         console.log("Creating agent via Retell AI for:", payload.agentName);
 
-        // 4. Create the LLM Configuration in Retell
-        const llmResponse = await retellClient.llm.create({
-            model: payload.model || "gpt-4o",
-            general_prompt: payload.prompt || "Eres un asistente amable.",
-        });
+        // 4. Map Step 7 tools to Retell format
+        const retellTools = buildRetellTools(payload);
+        const postCallAnalysis = buildPostCallAnalysis(payload);
 
-        // 5. Create the Voice Agent in Retell (with webhook configured)
+        // 5. Inject tool instructions into the base prompt
+        const finalPrompt = injectToolInstructions(
+            payload.prompt || 'Eres un asistente amable.',
+            payload
+        );
+
+        console.log(`Tools configured: ${retellTools.length}`, retellTools.map(t => t.type || t.name));
+
+        // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
+        const llmCreateParams: Parameters<typeof retellClient.llm.create>[0] = {
+            model: payload.model || "gpt-4o",
+            general_prompt: finalPrompt,
+        };
+
+        if (retellTools.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (llmCreateParams as any).tools = retellTools;
+        }
+
+        if (postCallAnalysis && postCallAnalysis.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (llmCreateParams as any).post_call_analysis_data = postCallAnalysis;
+        }
+
+        // Analysis model
+        if (payload.enableAnalysis && payload.analysisModel) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (llmCreateParams as any).post_call_analysis_model = payload.analysisModel;
+        }
+
+        const llmResponse = await retellClient.llm.create(llmCreateParams);
+
+        // 7. Create the Voice Agent in Retell
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
         const agentResponse = await retellClient.agent.create({
             response_engine: { type: "retell-llm", llm_id: llmResponse.llm_id },
@@ -70,11 +101,10 @@ export async function POST(request: Request) {
             language: payload.language || "es-ES",
             responsiveness: payload.responsiveness || 1,
             enable_backchannel: payload.enableBackchannel || false,
-            // Register our webhook so Retell sends call data after every call
             webhook_url: `${siteUrl}/api/retell/webhook`,
         });
 
-        // 6. Store the new agent in Supabase
+        // 8. Store the new agent in Supabase (including tools config)
         const { error: insertError } = await supabaseAdmin
             .from('agents')
             .insert([{
@@ -83,7 +113,10 @@ export async function POST(request: Request) {
                 retell_llm_id: llmResponse.llm_id,
                 name: payload.agentName || "New Agent",
                 type: payload.agentType || "Desconocido",
-                configuration: payload,
+                configuration: {
+                    ...payload,
+                    _toolsMapped: retellTools.map(t => t.name || t.type),
+                },
                 status: 'active'
             }]);
 
@@ -94,7 +127,9 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             agent_id: agentResponse.agent_id,
-            message: "Agent created successfully"
+            llm_id: llmResponse.llm_id,
+            tools_count: retellTools.length,
+            message: `Agent created successfully with ${retellTools.length} tool(s).`
         });
 
     } catch (error: unknown) {
