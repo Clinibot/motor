@@ -91,16 +91,18 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     if (p.enableTransfer && p.transferDestinations.length > 0) {
         p.transferDestinations.forEach((dest) => {
             if (!dest.number) return;
+            // Use a clean name for the tool, but keep it unique if multiple destinations exist
+            const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            const toolName = `transfer_call_${cleanName || 'agent'}`;
+
             tools.push({
                 type: 'transfer_call',
-                name: `transfer_to_${dest.name.toLowerCase().replace(/\s+/g, '_') || 'agent'}`,
-                description: dest.description ||
-                    `Transfiere la llamada a ${dest.name}.`,
+                name: toolName,
+                description: dest.description || `Transfiere la llamada a ${dest.name}.`,
                 number: dest.number,
                 speak_during_execution: false,
                 speak_after_execution: false,
-                execution_message_description:
-                    `Di algo como "Ahora te voy a transferir con ${dest.name}, un momento por favor."`,
+                execution_message_description: `Di algo como "Ahora te voy a transferir con ${dest.name}, un momento por favor."`,
             });
         });
     }
@@ -169,10 +171,13 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     if (p.enableTransfer && p.transferDestinations.length > 0) {
         const destList = p.transferDestinations
             .filter(d => d.number)
-            .map(d => `- **${d.name}**: ${d.description || d.number}`)
+            .map(d => {
+                const toolName = `transfer_call_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent'}`;
+                return `- **${d.name}**: ${d.description || d.number} (llama a la función \`${toolName}\`)`;
+            })
             .join('\n');
         blocks.push(
-            `## Transferir llamada\nPuedes transferir la llamada en los siguientes casos:\n${destList}\nAnuncia siempre la transferencia al usuario antes de ejecutarla.`
+            `## Transferir llamada\nPuedes transferir la llamada en los siguientes casos:\n${destList}\nAnuncia siempre la transferencia al usuario antes de ejecutar la función correspondiente.`
         );
     }
 
