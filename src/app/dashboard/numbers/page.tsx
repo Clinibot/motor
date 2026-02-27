@@ -35,7 +35,61 @@ export default function NumbersPage() {
     const [activeTab, setActiveTab] = useState<'inbound' | 'outbound'>('inbound');
     const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [newNumber, setNewNumber] = useState({ phone: '', nickname: '' });
+    const [isSaving, setIsSaving] = useState(false);
+    const [newNumber, setNewNumber] = useState({
+        phone: '',
+        nickname: '',
+        termination_uri: '',
+        username: '',
+        password: '',
+        transport: 'tcp'
+    });
+
+    const handleAddNumber = async () => {
+        if (!newNumber.phone || !newNumber.termination_uri) {
+            alert("Por favor, rellena el número y la URI de terminación.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const response = await fetch('/api/retell/phone-number/sip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone_number: newNumber.phone,
+                    termination_uri: newNumber.termination_uri,
+                    sip_trunk_username: newNumber.username,
+                    sip_trunk_password: newNumber.password,
+                    nickname: newNumber.nickname,
+                    outbound_transport: newNumber.transport,
+                    workspace_id: user?.workspace_id
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Error al registrar el número");
+
+            const id = Math.random().toString(36).substr(2, 9);
+            const newList = [...numbers, {
+                id,
+                phone_number: newNumber.phone,
+                phone_number_pretty: newNumber.phone,
+                nickname: newNumber.nickname || 'Nuevo Número SIP',
+                retell_agent_id: null
+            }];
+            setNumbers(newList);
+            saveToLocalStorage(newList);
+
+            setNewNumber({ phone: '', nickname: '', termination_uri: '', username: '', password: '', transport: 'tcp' });
+            setShowAddModal(false);
+            alert("¡Número SIP conectado con éxito!");
+        } catch (error: any) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -59,14 +113,12 @@ export default function NumbersPage() {
                     .eq('workspace_id', currentWorkspaceId);
                 setAgents(agentList ?? []);
 
-                // Intentamos cargar de localStorage para persistencia básica en este demo
                 const saved = localStorage.getItem(`phone_numbers_${currentWorkspaceId}`);
                 if (saved) {
                     setNumbers(JSON.parse(saved));
                 } else {
                     const initial = [
                         { id: '1', phone_number: '+34910000001', phone_number_pretty: '+34 910 000 001', retell_agent_id: null, nickname: 'Línea Principal' },
-                        { id: '2', phone_number: '+34910000002', phone_number_pretty: '+34 910 000 002', retell_agent_id: agentList?.[0]?.retell_agent_id || null, nickname: 'Soporte Ventas' },
                     ];
                     setNumbers(initial);
                     localStorage.setItem(`phone_numbers_${currentWorkspaceId}`, JSON.stringify(initial));
@@ -91,26 +143,9 @@ export default function NumbersPage() {
             const newList = numbers.map(n => n.id === numberId ? { ...n, retell_agent_id: retellAgentId === 'none' ? null : retellAgentId } : n);
             setNumbers(newList);
             saveToLocalStorage(newList);
-            // Here would go the API call to Retell to update the phone_number object
         } finally {
             setIsUpdatingId(null);
         }
-    };
-
-    const handleAddNumber = () => {
-        if (!newNumber.phone) return;
-        const id = Math.random().toString(36).substr(2, 9);
-        const newList = [...numbers, {
-            id,
-            phone_number: newNumber.phone,
-            phone_number_pretty: newNumber.phone.replace(/(\+\d{2})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4'),
-            nickname: newNumber.nickname || 'Nuevo Número',
-            retell_agent_id: null
-        }];
-        setNumbers(newList);
-        saveToLocalStorage(newList);
-        setNewNumber({ phone: '', nickname: '' });
-        setShowAddModal(false);
     };
 
     const handleDeleteNumber = (id: string) => {
@@ -182,7 +217,6 @@ export default function NumbersPage() {
                 .btn-delete-row{width:32px;height:32px;border-radius:8px;border:1px solid #fee2e2;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
                 .btn-delete-row:hover{background:#fef2f2;border-color:#ef4444}
 
-                /* Modal styles */
                 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
                 .modal-content{background:#fff;border-radius:16px;width:100%;max-width:400px;padding:32px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
                 .modal-title{font-size:20px;font-weight:700;margin-bottom:24px}
@@ -319,32 +353,90 @@ export default function NumbersPage() {
                 </div>
             </main>
 
-            {/* Modal Añadir Número */}
+            {/* Modal Añadir Número - SIP TRUNKING */}
             {showAddModal && (
                 <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h3 className="modal-title">Añadir nuevo número</h3>
+                    <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h3 className="modal-title" style={{ margin: 0 }}>Connect to your number via SIP trunking</h3>
+                            <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>&times;</button>
+                        </div>
+
                         <div className="form-group">
-                            <label className="form-label">Número (E.164)</label>
+                            <label className="form-label">Phone Number</label>
                             <input
                                 className="form-input"
-                                placeholder="+34..."
+                                placeholder="Enter phone number"
                                 value={newNumber.phone}
                                 onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })}
                             />
                         </div>
+
                         <div className="form-group">
-                            <label className="form-label">Nombre / Etiqueta</label>
+                            <label className="form-label">Termination URI</label>
                             <input
                                 className="form-input"
-                                placeholder="Ej: Atención al cliente"
+                                placeholder="Enter termination URI (NOT Retell SIP server uri)"
+                                value={newNumber.termination_uri}
+                                onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })}
+                            />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div className="form-group">
+                                <label className="form-label">SIP Trunk User Name <span style={{ color: '#6b7280', fontWeight: 400 }}>(Optional)</span></label>
+                                <input
+                                    className="form-input"
+                                    placeholder="Enter SIP Trunk User Name"
+                                    value={newNumber.username}
+                                    onChange={e => setNewNumber({ ...newNumber, username: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">SIP Trunk Password <span style={{ color: '#6b7280', fontWeight: 400 }}>(Optional)</span></label>
+                                <input
+                                    className="form-input"
+                                    type="password"
+                                    placeholder="Enter SIP Trunk Password"
+                                    value={newNumber.password}
+                                    onChange={e => setNewNumber({ ...newNumber, password: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Nickname <span style={{ color: '#6b7280', fontWeight: 400 }}>(Optional)</span></label>
+                            <input
+                                className="form-input"
+                                placeholder="Enter Nickname"
                                 value={newNumber.nickname}
                                 onChange={e => setNewNumber({ ...newNumber, nickname: e.target.value })}
                             />
                         </div>
-                        <div className="modal-actions">
-                            <button className="btn-cancel" onClick={() => setShowAddModal(false)}>Cancelar</button>
-                            <button className="btn-confirm" onClick={handleAddNumber}>Añadir</button>
+
+                        <div className="form-group">
+                            <label className="form-label">Outbound Transport</label>
+                            <select
+                                className="form-input"
+                                value={newNumber.transport}
+                                onChange={e => setNewNumber({ ...newNumber, transport: e.target.value })}
+                            >
+                                <option value="tcp">Outbound Transport: TCP</option>
+                                <option value="udp">Outbound Transport: UDP</option>
+                                <option value="tls">Outbound Transport: TLS</option>
+                            </select>
+                        </div>
+
+                        <div className="modal-actions" style={{ marginTop: '32px' }}>
+                            <button className="btn-cancel" onClick={() => setShowAddModal(false)}>Cancel</button>
+                            <button
+                                className="btn-confirm"
+                                onClick={handleAddNumber}
+                                disabled={isSaving}
+                                style={{ background: '#1a1a1a' }}
+                            >
+                                {isSaving ? 'Connecting...' : 'Save'}
+                            </button>
                         </div>
                     </div>
                 </div>
