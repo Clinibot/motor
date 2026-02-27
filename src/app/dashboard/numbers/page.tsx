@@ -34,6 +34,8 @@ export default function NumbersPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'inbound' | 'outbound'>('inbound');
     const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newNumber, setNewNumber] = useState({ phone: '', nickname: '' });
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -57,12 +59,18 @@ export default function NumbersPage() {
                     .eq('workspace_id', currentWorkspaceId);
                 setAgents(agentList ?? []);
 
-                // Mocking numbers for now since we don't have a table for them yet
-                // In a real scenario, we would fetch from Retell or our DB
-                setNumbers([
-                    { id: '1', phone_number: '+34910000001', phone_number_pretty: '+34 910 000 001', retell_agent_id: null, nickname: 'Línea Principal' },
-                    { id: '2', phone_number: '+34910000002', phone_number_pretty: '+34 910 000 002', retell_agent_id: agentList?.[0]?.retell_agent_id || null, nickname: 'Soporte Ventas' },
-                ]);
+                // Intentamos cargar de localStorage para persistencia básica en este demo
+                const saved = localStorage.getItem(`phone_numbers_${currentWorkspaceId}`);
+                if (saved) {
+                    setNumbers(JSON.parse(saved));
+                } else {
+                    const initial = [
+                        { id: '1', phone_number: '+34910000001', phone_number_pretty: '+34 910 000 001', retell_agent_id: null, nickname: 'Línea Principal' },
+                        { id: '2', phone_number: '+34910000002', phone_number_pretty: '+34 910 000 002', retell_agent_id: agentList?.[0]?.retell_agent_id || null, nickname: 'Soporte Ventas' },
+                    ];
+                    setNumbers(initial);
+                    localStorage.setItem(`phone_numbers_${currentWorkspaceId}`, JSON.stringify(initial));
+                }
             }
         } finally {
             setIsLoading(false);
@@ -71,15 +79,45 @@ export default function NumbersPage() {
 
     useEffect(() => { loadData(); }, [loadData]);
 
+    const saveToLocalStorage = (newList: PhoneNumber[]) => {
+        if (user?.workspace_id) {
+            localStorage.setItem(`phone_numbers_${user.workspace_id}`, JSON.stringify(newList));
+        }
+    };
+
     const handleAssignAgent = async (numberId: string, retellAgentId: string) => {
         setIsUpdatingId(numberId);
         try {
-            // Simulated update
-            setNumbers(prev => prev.map(n => n.id === numberId ? { ...n, retell_agent_id: retellAgentId === 'none' ? null : retellAgentId } : n));
+            const newList = numbers.map(n => n.id === numberId ? { ...n, retell_agent_id: retellAgentId === 'none' ? null : retellAgentId } : n);
+            setNumbers(newList);
+            saveToLocalStorage(newList);
             // Here would go the API call to Retell to update the phone_number object
         } finally {
             setIsUpdatingId(null);
         }
+    };
+
+    const handleAddNumber = () => {
+        if (!newNumber.phone) return;
+        const id = Math.random().toString(36).substr(2, 9);
+        const newList = [...numbers, {
+            id,
+            phone_number: newNumber.phone,
+            phone_number_pretty: newNumber.phone.replace(/(\+\d{2})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4'),
+            nickname: newNumber.nickname || 'Nuevo Número',
+            retell_agent_id: null
+        }];
+        setNumbers(newList);
+        saveToLocalStorage(newList);
+        setNewNumber({ phone: '', nickname: '' });
+        setShowAddModal(false);
+    };
+
+    const handleDeleteNumber = (id: string) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar este número?')) return;
+        const newList = numbers.filter(n => n.id !== id);
+        setNumbers(newList);
+        saveToLocalStorage(newList);
     };
 
     const handleLogout = async () => {
@@ -139,7 +177,22 @@ export default function NumbersPage() {
                 .proximamente-text{color:#6b7280;max-width:400px;margin:0 auto}
 
                 .btn-add{padding:10px 20px;background:#267ab0;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
-                .btn-add:hover{background:#1e5a87;transform:translateY(-1px)}
+                .btn-add:hover{background:#1e5a87;transform:translateY(-1px);box-shadow:0 4px 12px rgba(38,122,176,0.2)}
+                
+                .btn-delete-row{width:32px;height:32px;border-radius:8px;border:1px solid #fee2e2;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+                .btn-delete-row:hover{background:#fef2f2;border-color:#ef4444}
+
+                /* Modal styles */
+                .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+                .modal-content{background:#fff;border-radius:16px;width:100%;max-width:400px;padding:32px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
+                .modal-title{font-size:20px;font-weight:700;margin-bottom:24px}
+                .form-group{margin-bottom:16px}
+                .form-label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;color:#4b5563}
+                .form-input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #d1d5db;outline:none}
+                .form-input:focus{border-color:#267ab0;box-shadow:0 0 0 2px rgba(38,122,176,0.1)}
+                .modal-actions{display:flex;gap:12px;margin-top:24px}
+                .btn-cancel{flex:1;padding:10px;border-radius:8px;background:#f3f4f6;border:none;font-weight:600;cursor:pointer}
+                .btn-confirm{flex:1;padding:10px;border-radius:8px;background:#267ab0;color:#fff;border:none;font-weight:600;cursor:pointer}
             `}</style>
 
             <aside className="sidebar">
@@ -193,7 +246,7 @@ export default function NumbersPage() {
                         <div className="card">
                             <div className="table-header">
                                 <h3 className="table-title">Mis números de Retell</h3>
-                                <button className="btn-add">
+                                <button className="btn-add" onClick={() => setShowAddModal(true)}>
                                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                                     </svg>
@@ -210,6 +263,7 @@ export default function NumbersPage() {
                                             <th>Número de Teléfono</th>
                                             <th>Estado</th>
                                             <th>Agente IA Asignado</th>
+                                            <th style={{ textAlign: 'right' }}>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -239,6 +293,13 @@ export default function NumbersPage() {
                                                         ))}
                                                     </select>
                                                 </td>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    <button className="btn-delete-row" onClick={() => handleDeleteNumber(num.id)} title="Borrar número">
+                                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -257,6 +318,37 @@ export default function NumbersPage() {
                     )}
                 </div>
             </main>
+
+            {/* Modal Añadir Número */}
+            {showAddModal && (
+                <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <h3 className="modal-title">Añadir nuevo número</h3>
+                        <div className="form-group">
+                            <label className="form-label">Número (E.164)</label>
+                            <input
+                                className="form-input"
+                                placeholder="+34..."
+                                value={newNumber.phone}
+                                onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Nombre / Etiqueta</label>
+                            <input
+                                className="form-input"
+                                placeholder="Ej: Atención al cliente"
+                                value={newNumber.nickname}
+                                onChange={e => setNewNumber({ ...newNumber, nickname: e.target.value })}
+                            />
+                        </div>
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={() => setShowAddModal(false)}>Cancelar</button>
+                            <button className="btn-confirm" onClick={handleAddNumber}>Añadir</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
