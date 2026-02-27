@@ -60,12 +60,28 @@ export default function DashboardPage() {
                 .from('users').select('full_name, email, role, workspace_id')
                 .eq('id', session.user.id).single();
 
-            setUser(profile ?? { full_name: session.user.email ?? null, email: session.user.email ?? null, role: 'user', workspace_id: null });
+            let currentWorkspaceId = profile?.workspace_id;
 
-            if (profile?.workspace_id) {
+            if (profile && !currentWorkspaceId && profile.role !== 'superadmin') {
+                // Try to auto-assign a free workspace
+                try {
+                    const assignRes = await fetch('/api/admin/workspaces/auto-assign', { method: 'POST' });
+                    const assignData = await assignRes.json();
+                    if (assignData.success && assignData.workspace_id) {
+                        currentWorkspaceId = assignData.workspace_id;
+                        profile.workspace_id = currentWorkspaceId;
+                    }
+                } catch (e) {
+                    console.error("Failed to auto-assign workspace", e);
+                }
+            }
+
+            setUser(profile ?? { full_name: session.user.email ?? null, email: session.user.email ?? null, role: 'user', workspace_id: currentWorkspaceId });
+
+            if (currentWorkspaceId) {
                 const [{ data: agentList }, { data: callList }] = await Promise.all([
-                    supabase.from('agents').select('*').eq('workspace_id', profile.workspace_id).order('created_at', { ascending: false }),
-                    supabase.from('calls').select('*').eq('workspace_id', profile.workspace_id).order('created_at', { ascending: false }).limit(100),
+                    supabase.from('agents').select('*').eq('workspace_id', currentWorkspaceId).order('created_at', { ascending: false }),
+                    supabase.from('calls').select('*').eq('workspace_id', currentWorkspaceId).order('created_at', { ascending: false }).limit(100),
                 ]);
                 setAgents(agentList ?? []);
                 setCalls(callList ?? []);

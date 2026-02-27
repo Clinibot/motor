@@ -15,14 +15,25 @@ function getSupabaseAdmin() {
 export async function GET() {
     try {
         const supabaseAdmin = getSupabaseAdmin();
-        const { data: workspaces, error } = await supabaseAdmin
-            .from('workspaces')
-            .select('*')
-            .order('created_at', { ascending: false });
+        const [{ data: workspaces, error }, { data: users, error: userError }] = await Promise.all([
+            supabaseAdmin.from('workspaces').select('*').order('created_at', { ascending: false }),
+            supabaseAdmin.from('users').select('id, workspace_id').not('workspace_id', 'is', null)
+        ]);
 
         if (error) throw error;
+        if (userError) throw userError;
 
-        return NextResponse.json({ success: true, workspaces });
+        // Map workspaces to include user assignment info
+        const enhancedWorkspaces = workspaces?.map(ws => {
+            const assignedUsers = users?.filter(u => u.workspace_id === ws.id) || [];
+            return {
+                ...ws,
+                users_count: assignedUsers.length,
+                is_free: assignedUsers.length === 0
+            };
+        });
+
+        return NextResponse.json({ success: true, workspaces: enhancedWorkspaces });
     } catch (error: unknown) {
         console.error("Error fetching workspaces:", error);
         return NextResponse.json(
