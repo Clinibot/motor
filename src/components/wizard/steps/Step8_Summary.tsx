@@ -228,8 +228,7 @@ export const Step8_Summary: React.FC = () => {
         return names[lang] || lang || 'No definido';
     };
 
-    const generateAllInstructions = () => {
-        setIsGenerating(true);
+    const getUpdatedPrompt = () => {
         const name = wizardData.agentName || 'Sofía';
         const company = wizardData.companyName || 'nuestra empresa';
         const formattedHours = wizardData.businessHours
@@ -272,12 +271,10 @@ ${wizardData.kbUsageInstructions || 'Usa la información de tus documentos para 
         if (currentPrompt && currentPrompt !== 'Eres un asistente útil.') {
             finalPrompt = currentPrompt;
 
-            // 1. Actualizar o insertar bloque de herramientas
             const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/;
             if (toolsRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(toolsRegex, toolsContent.trim());
             } else if (toolsContent) {
-                // Insertar antes de Despedida o al final
                 if (finalPrompt.includes('### Despedida')) {
                     finalPrompt = finalPrompt.replace('### Despedida', `${toolsContent}\n\n### Despedida`);
                 } else {
@@ -285,7 +282,6 @@ ${wizardData.kbUsageInstructions || 'Usa la información de tus documentos para 
                 }
             }
 
-            // 2. Actualizar o insertar bloque de KB
             const kbRegex = /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/;
             if (kbRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(kbRegex, kbContent.trim());
@@ -297,7 +293,6 @@ ${wizardData.kbUsageInstructions || 'Usa la información de tus documentos para 
                 }
             }
         } else {
-            // Generación completa desde cero
             finalPrompt = `
 # Idioma
 Habla siempre en ${langStr}. No cambies de idioma a menos que el usuario lo solicite explícitamente.
@@ -350,7 +345,12 @@ ${formattedHours}
 Si el usuario se despide o no necesita nada más, despídete y usa la herramienta 'end_call' inmediatamente.
 `.trim();
         }
+        return finalPrompt;
+    };
 
+    const generateAllInstructions = () => {
+        setIsGenerating(true);
+        const finalPrompt = getUpdatedPrompt();
         setTimeout(() => {
             updateField('prompt', finalPrompt);
             setIsGenerating(false);
@@ -359,11 +359,18 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
     };
 
     const handleCreateAgent = async () => {
+        // En modo edición, actualizamos el prompt automáticamente antes de enviar
+        let currentPromptValue = wizardData.prompt;
+        if (editingAgentId) {
+            currentPromptValue = getUpdatedPrompt();
+            updateField('prompt', currentPromptValue);
+        }
+
         const missing = [];
         if (!wizardData.agentName) missing.push('Nombre del agente');
         if (!wizardData.model) missing.push('Modelo LLM');
         if (!wizardData.voiceId) missing.push('Voz');
-        if (!wizardData.prompt || wizardData.prompt.length < 50) missing.push('Prompt (necesitas generarlo)');
+        if (!currentPromptValue || currentPromptValue.length < 50) missing.push('Prompt (necesitas generarlo)');
 
         if (missing.length > 0) {
             setErrorMessage(`Faltan campos obligatorios: ${missing.join(', ')}`);
@@ -373,7 +380,10 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         setIsCreating(true);
         try {
             const method = editingAgentId ? 'PATCH' : 'POST';
-            const bodyObj = editingAgentId ? { ...wizardData, id: editingAgentId } : wizardData;
+            const bodyObj = editingAgentId
+                ? { ...wizardData, id: editingAgentId, prompt: currentPromptValue }
+                : wizardData;
+
             const response = await fetch('/api/retell/agent', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
@@ -545,13 +555,15 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                                     <i className="bi bi-terminal me-2" /> Instrucciones del Agente
                                 </h4>
                                 <p style={{ fontSize: '13px', color: '#10b981', fontWeight: 600, margin: 0 }}>
-                                    <i className="bi bi-check-circle-fill me-1" /> Generadas correctamente. Puedes editarlas.
+                                    <i className="bi bi-check-circle-fill me-1" /> {editingAgentId ? 'Instrucciones maestras del agente (se auto-actualizan al guardar).' : 'Generadas correctamente. Puedes editarlas.'}
                                 </p>
                             </div>
-                            <button onClick={generateAllInstructions} disabled={isGenerating}
-                                style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
-                                {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
-                            </button>
+                            {!editingAgentId && (
+                                <button onClick={generateAllInstructions} disabled={isGenerating}
+                                    style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
+                                    {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
+                                </button>
+                            )}
                         </div>
                         <textarea
                             rows={18}
