@@ -2,18 +2,23 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Retell from 'retell-sdk';
 
-// Initialize Supabase Admin to bypass RLS and read API Keys safely
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export const dynamic = 'force-dynamic';
+
+function getSupabaseAdmin() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error('Supabase environment variables are not configured.');
+    }
+    return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export async function POST(request: Request) {
     try {
+        const supabaseAdmin = getSupabaseAdmin();
         const payload = await request.json();
 
-        // 1. Get the workspace ID from the request or session
-        // For now, since Auth is not fully implemented, we expect it in the payload
-        // Alternatively we can fetch a default workspace for testing:
+        // 1. Get the workspace ID from the request
         let workspaceId = payload.workspace_id;
 
         if (!workspaceId) {
@@ -51,26 +56,23 @@ export async function POST(request: Request) {
         console.log("Creating agent via Retell AI for:", payload.agentName);
 
         // 4. Create the LLM Configuration in Retell
-        // We map the Wizard Payload to Retell's expected format
         const llmResponse = await retellClient.llm.create({
             model: payload.model || "gpt-4o",
             general_prompt: payload.prompt || "Eres un asistente amable.",
-            // In a real scenario we map tools, state machines, etc here based on payload
         });
 
         // 5. Create the Voice Agent in Retell
         const agentResponse = await retellClient.agent.create({
-            llm_websocket_url: llmResponse.llm_websocket_url,
+            response_engine: { type: "retell-llm", llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
             voice_id: payload.voiceId || "11labs-Adrian",
             language: payload.language || "es-ES",
             responsiveness: payload.responsiveness || 1,
             interruption_sensitivity: payload.interruptionSensitivity || 1,
             enable_backchannel: payload.enableBackchannel || false,
-            // mapping other fields...
         });
 
-        // 6. Store the new agent in our Supabase database under the workspace
+        // 6. Store the new agent in Supabase
         const { error: insertError } = await supabaseAdmin
             .from('agents')
             .insert([{
@@ -79,13 +81,12 @@ export async function POST(request: Request) {
                 retell_llm_id: llmResponse.llm_id,
                 name: payload.agentName || "New Agent",
                 type: payload.agentType || "Desconocido",
-                configuration: payload, // Store the entire wizard state backup
+                configuration: payload,
                 status: 'active'
             }]);
 
         if (insertError) {
-            console.error("Error saving to db:", insertError);
-            // We still return success but maybe log a warning
+            console.error("Error saving agent to DB:", insertError);
         }
 
         return NextResponse.json({

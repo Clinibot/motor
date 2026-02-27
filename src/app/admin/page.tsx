@@ -3,8 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Plus, Users, Key, Loader2, Building } from 'lucide-react';
 
+interface Workspace {
+    id: string;
+    name: string;
+    retell_api_key?: string;
+}
+
 export default function AdminDashboard() {
-    const [workspaces, setWorkspaces] = useState<any[]>([]);
+    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
 
@@ -23,8 +29,7 @@ export default function AdminDashboard() {
             } else {
                 setError(data.error);
             }
-        } catch (e) {
-            console.error(e);
+        } catch {
             setError("Error de conexión al cargar workspaces.");
         } finally {
             setIsLoading(false);
@@ -56,7 +61,7 @@ export default function AdminDashboard() {
             } else {
                 setError(data.error || "Error al crear workspace");
             }
-        } catch (e) {
+        } catch {
             setError("Error de conexión al servidor.");
         } finally {
             setIsCreating(false);
