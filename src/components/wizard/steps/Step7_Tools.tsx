@@ -7,7 +7,7 @@ export const Step7_Tools: React.FC = () => {
     const {
         enableCalBooking, calUrl, calApiKey, calEventId,
         enableTransfer, transferDestinations,
-        enableCustomTools, customTools,
+        enableCustomTools,
         extractionVariables, webhookInbound,
         updateField, prevStep, nextStep
     } = useWizardStore();

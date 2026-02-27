@@ -6,9 +6,8 @@ import { useWizardStore } from '../../../store/wizardStore';
 export const Step2_LLM: React.FC = () => {
     const {
         agentName, companyName, agentType,
-        model, prompt, language,
-        voiceName, voiceDescription,
-        webhookInbound, enableCalBooking, calUrl,
+        model, prompt,
+        enableCalBooking, calUrl,
         enableTransfer, transferDestinations,
         extractionVariables,
         companyAddress, companyPhone, companyWebsite, companyDescription, businessHours,
