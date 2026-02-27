@@ -358,46 +358,48 @@ export default function NumbersPage() {
                 <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
                     <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h3 className="modal-title" style={{ margin: 0 }}>Connect to your number via SIP trunking</h3>
+                            <h3 className="modal-title" style={{ margin: 0 }}>Conectar número vía SIP Trunking</h3>
                             <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>&times;</button>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Phone Number</label>
+                            <label className="form-label">Número de Teléfono (E.164)</label>
                             <input
                                 className="form-input"
-                                placeholder="Enter phone number"
+                                placeholder="+34..."
                                 value={newNumber.phone}
                                 onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })}
                             />
+                            <span style={{ fontSize: '11px', color: '#6b7280' }}>Formato internacional obligatorio (ej: +34910...)</span>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Termination URI</label>
+                            <label className="form-label">URI de Terminación (Servidor SIP)</label>
                             <input
                                 className="form-input"
-                                placeholder="Enter termination URI (NOT Retell SIP server uri)"
+                                placeholder="tu-servidor.sip.com"
                                 value={newNumber.termination_uri}
                                 onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })}
                             />
+                            <span style={{ fontSize: '11px', color: '#6b7280' }}>Tu URI de terminación (No la de Retell)</span>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             <div className="form-group">
-                                <label className="form-label">SIP Trunk User Name <span style={{ color: '#6b7280', fontWeight: 400 }}>(Optional)</span></label>
+                                <label className="form-label">Usuario SIP <span style={{ color: '#6b7280', fontWeight: 400 }}>(Opcional)</span></label>
                                 <input
                                     className="form-input"
-                                    placeholder="Enter SIP Trunk User Name"
+                                    placeholder="Usuario"
                                     value={newNumber.username}
                                     onChange={e => setNewNumber({ ...newNumber, username: e.target.value })}
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">SIP Trunk Password <span style={{ color: '#6b7280', fontWeight: 400 }}>(Optional)</span></label>
+                                <label className="form-label">Contraseña SIP <span style={{ color: '#6b7280', fontWeight: 400 }}>(Opcional)</span></label>
                                 <input
                                     className="form-input"
                                     type="password"
-                                    placeholder="Enter SIP Trunk Password"
+                                    placeholder="••••••••"
                                     value={newNumber.password}
                                     onChange={e => setNewNumber({ ...newNumber, password: e.target.value })}
                                 />
@@ -405,37 +407,37 @@ export default function NumbersPage() {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Nickname <span style={{ color: '#6b7280', fontWeight: 400 }}>(Optional)</span></label>
+                            <label className="form-label">Nombre / Etiqueta <span style={{ color: '#6b7280', fontWeight: 400 }}>(Opcional)</span></label>
                             <input
                                 className="form-input"
-                                placeholder="Enter Nickname"
+                                placeholder="Ej: Atención al Cliente"
                                 value={newNumber.nickname}
                                 onChange={e => setNewNumber({ ...newNumber, nickname: e.target.value })}
                             />
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Outbound Transport</label>
+                            <label className="form-label">Transporte de Salida</label>
                             <select
                                 className="form-input"
                                 value={newNumber.transport}
                                 onChange={e => setNewNumber({ ...newNumber, transport: e.target.value })}
                             >
-                                <option value="tcp">Outbound Transport: TCP</option>
-                                <option value="udp">Outbound Transport: UDP</option>
-                                <option value="tls">Outbound Transport: TLS</option>
+                                <option value="tcp">Transporte: TCP (Recomendado)</option>
+                                <option value="udp">Transporte: UDP</option>
+                                <option value="tls">Transporte: TLS</option>
                             </select>
                         </div>
 
                         <div className="modal-actions" style={{ marginTop: '32px' }}>
-                            <button className="btn-cancel" onClick={() => setShowAddModal(false)}>Cancel</button>
+                            <button className="btn-cancel" onClick={() => setShowAddModal(false)}>Cancelar</button>
                             <button
                                 className="btn-confirm"
                                 onClick={handleAddNumber}
                                 disabled={isSaving}
-                                style={{ background: '#1a1a1a' }}
+                                style={{ background: '#267ab0' }}
                             >
-                                {isSaving ? 'Connecting...' : 'Save'}
+                                {isSaving ? 'Conectando...' : 'Guardar y Conectar'}
                             </button>
                         </div>
                     </div>
