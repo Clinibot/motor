@@ -1,21 +1,74 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+
+interface Voice {
+    id: string;
+    name: string;
+    provider: 'retell' | 'elevenlabs' | 'cartesia';
+    language: string;
+    gender: 'male' | 'female';
+    accent: 'spain' | 'latam' | 'usa' | 'uk' | 'brazil';
+    description: string;
+}
+
+const VOICES_DATA: Voice[] = [
+    // Retell AI (Prominent/Fast)
+    { id: '11labs-Adrian', name: 'Sofia', provider: 'retell', language: 'es', gender: 'female', accent: 'spain', description: 'Voz profesional española' },
+    { id: '11labs-Antoni', name: 'Carlos', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz masculina profesional' },
+    { id: '11labs-Serena', name: 'María', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida latinoamericana' },
+    { id: '11labs-Diego', name: 'Diego', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz enérgica latinoamericana' },
+    { id: '11labs-Rachel', name: 'Rachel', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Professional American voice' },
+    { id: '11labs-George', name: 'James', provider: 'retell', language: 'en', gender: 'male', accent: 'uk', description: 'British professional voice' },
+
+    // ElevenLabs (Ultra-realistic)
+    { id: 'eleven_aurora_es', name: 'Aurora', provider: 'elevenlabs', language: 'es', gender: 'female', accent: 'spain', description: 'Ultra-realista española' },
+    { id: 'eleven_miguel_es', name: 'Miguel', provider: 'elevenlabs', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profunda y clara' },
+    { id: 'eleven_lucia_latam', name: 'Lucía', provider: 'elevenlabs', language: 'es', gender: 'female', accent: 'latam', description: 'Expresiva mexicana' },
+    { id: 'eleven_alex_en', name: 'Alex', provider: 'elevenlabs', language: 'en', gender: 'male', accent: 'usa', description: 'Natural American voice' },
+    { id: 'eleven_emma_en', name: 'Emma', provider: 'elevenlabs', language: 'en', gender: 'female', accent: 'uk', description: 'Elegant British voice' },
+
+    // Cartesia (Natural)
+    { id: 'cart_isabel_es', name: 'Isabel', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Natural y cercana' },
+    { id: 'cart_pablo_es', name: 'Pablo', provider: 'cartesia', language: 'es', gender: 'male', accent: 'spain', description: 'Profesional español' },
+    { id: 'cart_valentina_latam', name: 'Valentina', provider: 'cartesia', language: 'es', gender: 'female', accent: 'latam', description: 'Amigable colombiana' },
+];
 
 export const Step3_Voice: React.FC = () => {
     const { voiceId, voiceSpeed, voiceTemperature, updateField, prevStep, nextStep } = useWizardStore();
 
+    const [provider, setProvider] = useState<'retell' | 'elevenlabs' | 'cartesia'>('retell');
+    const [filterLang, setFilterLang] = useState('es');
+    const [filterGender, setFilterGender] = useState('');
+    const [filterAccent, setFilterAccent] = useState('');
+
+    const filteredVoices = useMemo(() => {
+        return VOICES_DATA.filter(v => {
+            return v.provider === provider &&
+                (!filterLang || v.language === filterLang) &&
+                (!filterGender || v.gender === filterGender) &&
+                (!filterAccent || v.accent === filterAccent);
+        });
+    }, [provider, filterLang, filterGender, filterAccent]);
+
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!voiceId) return;
         nextStep();
     };
 
-    const voicesMocks = [
-        { id: '11labs-Adrian', name: 'Adrian (ES)', tags: ['Masculino', 'España', 'Joven'] },
-        { id: '11labs-Antoni', name: 'Antoni (ES)', tags: ['Masculino', 'Latam', 'Adulto'] },
-        { id: '11labs-Bella', name: 'Bella (EN)', tags: ['Femenino', 'USA', 'Joven'] }
-    ];
+    const getLanguageName = (lang: string) => {
+        const names: Record<string, string> = { es: 'Español', en: 'English', pt: 'Português', fr: 'Français' };
+        return names[lang] || lang;
+    };
+
+    const getGenderName = (gender: string) => gender === 'female' ? 'Femenino' : 'Masculino';
+
+    const getAccentName = (accent: string) => {
+        const names: Record<string, string> = { spain: 'España', latam: 'Latam', usa: 'USA', uk: 'UK', brazil: 'Brasil' };
+        return names[accent] || accent;
+    };
 
     return (
         <div className="content-area">
@@ -25,30 +78,139 @@ export const Step3_Voice: React.FC = () => {
                     Elige la voz que mejor represente la personalidad de tu agente.
                 </p>
 
+                <div className="alert-info">
+                    <i className="bi bi-lightbulb-fill"></i>
+                    <div>
+                        <strong>Tip:</strong> Escucha varias voces antes de decidir. La voz transmite la personalidad de tu marca.
+                    </div>
+                </div>
+
                 <form onSubmit={handleNext}>
+                    {/* PROVEEDOR DE VOZ */}
+                    <div className="form-group">
+                        <label className="form-label">
+                            Proveedor de voz <span className="required">*</span>
+                        </label>
+                        <div className="provider-tabs">
+                            <button
+                                type="button"
+                                className={`provider-tab ${provider === 'retell' ? 'active' : ''}`}
+                                onClick={() => setProvider('retell')}
+                            >
+                                🎙️ Retell AI
+                            </button>
+                            <button
+                                type="button"
+                                className={`provider-tab ${provider === 'elevenlabs' ? 'active' : ''}`}
+                                onClick={() => setProvider('elevenlabs')}
+                            >
+                                🎵 ElevenLabs
+                            </button>
+                            <button
+                                type="button"
+                                className={`provider-tab ${provider === 'cartesia' ? 'active' : ''}`}
+                                onClick={() => setProvider('cartesia')}
+                            >
+                                🔊 Cartesia
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* FILTROS */}
+                    <div className="filters-row">
+                        <div>
+                            <label className="form-label">Idioma</label>
+                            <select className="form-control" value={filterLang} onChange={(e) => setFilterLang(e.target.value)}>
+                                <option value="">Todos</option>
+                                <option value="es">Español</option>
+                                <option value="en">Inglés</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="form-label">Género</label>
+                            <select className="form-control" value={filterGender} onChange={(e) => setFilterGender(e.target.value)}>
+                                <option value="">Todos</option>
+                                <option value="female">Femenino</option>
+                                <option value="male">Masculino</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="form-label">Acento</label>
+                            <select className="form-control" value={filterAccent} onChange={(e) => setFilterAccent(e.target.value)}>
+                                <option value="">Todos</option>
+                                <option value="spain">España</option>
+                                <option value="latam">Latinoamérica</option>
+                                <option value="usa">USA</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* GALERÍA DE VOCES */}
                     <div className="voices-grid">
-                        {voicesMocks.map((v) => (
+                        {filteredVoices.map((v) => (
                             <div
                                 key={v.id}
                                 className={`voice-card ${voiceId === v.id ? 'selected' : ''}`}
-                                onClick={() => updateField('voiceId', v.id)}
+                                onClick={() => {
+                                    updateField('voiceId', v.id);
+                                    updateField('voiceName', v.name);
+                                    updateField('voiceProvider', v.provider);
+                                    updateField('voiceDescription', v.description);
+                                }}
                             >
                                 <div className="voice-icon">
-                                    <i className={v.tags[0] === 'Femenino' ? 'bi bi-person-hearts' : 'bi bi-person'}></i>
+                                    {v.gender === 'female' ? '👩' : '👨'}
                                 </div>
                                 <div className="voice-name">{v.name}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{v.description}</div>
                                 <div className="voice-tags">
-                                    {v.tags.map(tag => <span key={tag} className="voice-tag">{tag}</span>)}
+                                    <span className="voice-tag">{getLanguageName(v.language)}</span>
+                                    <span className="voice-tag">{getGenderName(v.gender)}</span>
+                                    <span className="voice-tag">{getAccentName(v.accent)}</span>
                                 </div>
+                                <button
+                                    type="button"
+                                    className="btn-play"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        alert(`🎵 Reproduciendo muestra de: ${v.name}`);
+                                    }}
+                                >
+                                    <i className="bi bi-play-circle"></i> Escuchar
+                                </button>
                             </div>
                         ))}
                     </div>
 
-                    <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '32px' }}>
+                    {filteredVoices.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gris-texto)' }}>
+                            <i className="bi bi-search" style={{ fontSize: '48px', opacity: 0.3 }}></i>
+                            <p>No se encontraron voces con estos filtros.</p>
+                        </div>
+                    )}
+
+                    {/* CONFIGURACIÓN ADICIONAL */}
+                    <div className="section-divider">
+                        <h3><i className="bi bi-sliders"></i> Ajustes de voz</h3>
+                        <p>Ajusta el tono y la velocidad de la voz seleccionada.</p>
+                    </div>
+
+                    <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                         <div className="form-group">
-                            <label className="form-label">Velocidad de voz</label>
+                            <label className="form-label">
+                                Voice speed
+                                <span className="custom-tooltip">
+                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
+                                    <span className="tooltip-content">
+                                        <strong>Velocidad de habla:</strong><br />
+                                        0.5-0.8: Lento<br />
+                                        0.9-1.1: Normal<br />
+                                        1.2-2.0: Rápido
+                                    </span>
+                                </span>
+                            </label>
                             <div className="slider-container">
-                                <div className="slider-value">{voiceSpeed}x</div>
+                                <div className="slider-value">{voiceSpeed.toFixed(1)}x</div>
                                 <input
                                     type="range"
                                     min="0.5" max="2.0" step="0.1"
@@ -59,12 +221,23 @@ export const Step3_Voice: React.FC = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Temperatura de voz</label>
+                            <label className="form-label">
+                                Voice temperature
+                                <span className="custom-tooltip">
+                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
+                                    <span className="tooltip-content">
+                                        <strong>Variación emocional:</strong><br />
+                                        0.0-0.3: Consistente<br />
+                                        0.4-0.6: Natural<br />
+                                        0.7-1.0: Expresiva
+                                    </span>
+                                </span>
+                            </label>
                             <div className="slider-container">
-                                <div className="slider-value">{voiceTemperature}</div>
+                                <div className="slider-value">{voiceTemperature.toFixed(1)}</div>
                                 <input
                                     type="range"
-                                    min="0" max="2.0" step="0.1"
+                                    min="0" max="1.0" step="0.1"
                                     value={voiceTemperature}
                                     onChange={(e) => updateField('voiceTemperature', parseFloat(e.target.value))}
                                 />
@@ -74,7 +247,7 @@ export const Step3_Voice: React.FC = () => {
 
                     <div className="wizard-actions">
                         <button type="button" className="btn btn-secondary" onClick={prevStep}>
-                            <i className="bi bi-arrow-left"></i> Atrás
+                            <i className="bi bi-arrow-left"></i> Anterior
                         </button>
                         <button type="submit" className="btn btn-primary" disabled={!voiceId}>
                             Siguiente paso <i className="bi bi-arrow-right"></i>

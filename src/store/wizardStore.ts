@@ -33,6 +33,9 @@ export interface WizardState {
 
     // Step 3: Voice Selection
     voiceId: string;
+    voiceName: string;
+    voiceProvider: string;
+    voiceDescription: string;
     voiceSpeed: number;
     voiceTemperature: number;
 
@@ -108,6 +111,9 @@ export const useWizardStore = create<WizardState>((set) => ({
     prompt: 'Eres un asistente útil.',
 
     voiceId: '11labs-Adrian',
+    voiceName: 'Sofia',
+    voiceProvider: 'retell',
+    voiceDescription: 'Voz profesional española',
     voiceSpeed: 1.0,
     voiceTemperature: 1.0,
 
@@ -167,7 +173,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
         model: 'gpt-4.1', prompt: 'Eres un asistente útil.',
-        voiceId: '11labs-Adrian', voiceSpeed: 1.0, voiceTemperature: 1.0,
+        voiceId: '11labs-Adrian', voiceName: 'Sofia', voiceProvider: 'retell', voiceDescription: 'Voz profesional española', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 1.0,
         enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
         boostedKeywords: [], normalizeForSpeech: true,
