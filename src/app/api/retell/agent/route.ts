@@ -61,15 +61,17 @@ export async function POST(request: Request) {
             general_prompt: payload.prompt || "Eres un asistente amable.",
         });
 
-        // 5. Create the Voice Agent in Retell
+        // 5. Create the Voice Agent in Retell (with webhook configured)
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
         const agentResponse = await retellClient.agent.create({
             response_engine: { type: "retell-llm", llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
             voice_id: payload.voiceId || "11labs-Adrian",
             language: payload.language || "es-ES",
             responsiveness: payload.responsiveness || 1,
-            interruption_sensitivity: payload.interruptionSensitivity || 1,
             enable_backchannel: payload.enableBackchannel || false,
+            // Register our webhook so Retell sends call data after every call
+            webhook_url: `${siteUrl}/api/retell/webhook`,
         });
 
         // 6. Store the new agent in Supabase

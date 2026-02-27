@@ -17,6 +17,20 @@ interface Agent {
     created_at: string;
 }
 
+interface Call {
+    id: string;
+    retell_call_id: string;
+    retell_agent_id: string;
+    call_status: string;
+    duration_ms: number | null;
+    transcript: string | null;
+    recording_url: string | null;
+    call_cost: number | null;
+    disconnection_reason: string | null;
+    call_analysis: { user_sentiment?: string; call_successful?: boolean } | null;
+    created_at: string;
+}
+
 interface UserProfile {
     full_name: string | null;
     email: string | null;
@@ -46,17 +60,19 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function DashboardPage() {
     const router = useRouter();
-    const supabase = createClient();
 
     const [user, setUser] = useState<UserProfile | null>(null);
     const [agents, setAgents] = useState<Agent[]>([]);
+    const [calls, setCalls] = useState<Call[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [activeNav, setActiveNav] = useState('dashboard');
+    const [expandedCallId, setExpandedCallId] = useState<string | null>(null);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
+            const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) { router.push('/login'); return; }
 
@@ -77,15 +93,25 @@ export default function DashboardPage() {
                     .eq('workspace_id', profile.workspace_id)
                     .order('created_at', { ascending: false });
                 setAgents(agentList ?? []);
+
+                // Load recent calls (last 50)
+                const { data: callList } = await supabase
+                    .from('calls')
+                    .select('*')
+                    .eq('workspace_id', profile.workspace_id)
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                setCalls(callList ?? []);
             }
         } finally {
             setIsLoading(false);
         }
-    }, [supabase, router]);
+    }, [router]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
     const handleLogout = async () => {
+        const supabase = createClient();
         await supabase.auth.signOut();
         router.push('/login');
     };
@@ -93,12 +119,33 @@ export default function DashboardPage() {
     const handleDeleteAgent = async (agentId: string) => {
         if (!confirm('¿Eliminar este agente? Esta acción no se puede deshacer.')) return;
         setDeletingId(agentId);
+        const supabase = createClient();
         const { error } = await supabase.from('agents').delete().eq('id', agentId);
         if (!error) setAgents(prev => prev.filter(a => a.id !== agentId));
         setDeletingId(null);
     };
 
     const activeCount = agents.filter(a => a.status === 'active').length;
+    const successCount = calls.filter(c => c.call_analysis?.call_successful).length;
+    const successRate = calls.length > 0 ? Math.round((successCount / calls.length) * 100) : null;
+    const formatDuration = (ms: number | null) => {
+        if (!ms) return '—';
+        const s = Math.floor(ms / 1000);
+        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    };
+    const getSentimentBadge = (sentiment: string | undefined) => {
+        const map: Record<string, { bg: string; color: string; label: string }> = {
+            positive: { bg: '#dbeafe', color: '#2563eb', label: '😊 Positivo' },
+            neutral: { bg: '#f3f4f6', color: '#6b7280', label: '😐 Neutral' },
+            negative: { bg: '#fef3c7', color: '#d97706', label: '😞 Negativo' },
+        };
+        const c = map[sentiment?.toLowerCase() ?? ''] || { bg: '#f3f4f6', color: '#6b7280', label: '—' };
+        return <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600, background: c.bg, color: c.color }}>{c.label}</span>;
+    };
+    const getAgentName = (retellAgentId: string) => {
+        const agent = agents.find(a => a.retell_agent_id === retellAgentId);
+        return agent?.name ?? retellAgentId.slice(0, 12) + '...';
+    };
 
     return (
         <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: '#f5f5f5', minHeight: '100vh', display: 'flex' }}>
@@ -189,10 +236,10 @@ export default function DashboardPage() {
                     {/* Stats Cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
                         {[
-                            { title: 'Agentes creados', value: agents.length.toString(), icon: '🤖', color: '#eff6fb', trend: '' },
-                            { title: 'Agentes activos', value: activeCount.toString(), icon: '✅', color: '#f0fdf4', trend: '' },
-                            { title: 'Llamadas recientes', value: '—', icon: '📞', color: '#faf5ff', trend: 'próximamente' },
-                            { title: 'Tasa de éxito', value: '—', icon: '📈', color: '#fff7ed', trend: 'próximamente' },
+                            { title: 'Agentes creados', value: agents.length.toString(), icon: '🤖', color: '#eff6fb' },
+                            { title: 'Agentes activos', value: activeCount.toString(), icon: '✅', color: '#f0fdf4' },
+                            { title: 'Total llamadas', value: calls.length.toString(), icon: '📞', color: '#faf5ff' },
+                            { title: 'Tasa de éxito', value: successRate !== null ? `${successRate}%` : '—', icon: '📈', color: '#fff7ed' },
                         ].map(stat => (
                             <div key={stat.title} style={{
                                 background: '#ffffff', borderRadius: '12px', padding: '24px',
@@ -207,9 +254,6 @@ export default function DashboardPage() {
                                 <div style={{ fontSize: '32px', fontWeight: 700, color: '#1a1a1a', marginBottom: '8px' }}>
                                     {isLoading ? '...' : stat.value}
                                 </div>
-                                {stat.trend && (
-                                    <span style={{ fontSize: '12px', color: '#9ca3af' }}>{stat.trend}</span>
-                                )}
                             </div>
                         ))}
                     </div>
@@ -324,18 +368,93 @@ export default function DashboardPage() {
                         )}
                     </div>
 
-                    {/* Recent Calls placeholder */}
+                    {/* Recent Calls */}
                     <div style={{ background: '#ffffff', borderRadius: '12px', padding: '24px', border: '1px solid #e5e7eb' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#1a1a1a', margin: 0 }}>Llamadas recientes</h3>
-                            <span style={{ padding: '4px 12px', background: '#eff6fb', color: '#267ab0', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>Próximamente</span>
+                            <span style={{ padding: '4px 12px', background: '#f3f4f6', color: '#6b7280', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
+                                {calls.length} registradas
+                            </span>
                         </div>
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
-                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📞</div>
-                            <p style={{ fontSize: '14px', margin: 0 }}>
-                                El historial de llamadas estará disponible cuando configures el Webhook de Retell AI.
-                            </p>
-                        </div>
+                        {isLoading ? (
+                            <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                                <div style={{ width: '32px', height: '32px', border: '3px solid #f3f4f6', borderTopColor: '#267ab0', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+                                Cargando llamadas...
+                            </div>
+                        ) : calls.length === 0 ? (
+                            <div style={{ padding: '40px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '40px', marginBottom: '12px' }}>📞</div>
+                                <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+                                    Las llamadas aparecerán aquí automáticamente una vez que Retell envíe los webhooks tras cada conversación.
+                                </p>
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                                        <tr>
+                                            {['Fecha', 'Agente', 'Duración', 'Sentimiento', 'Estado', 'Coste', ''].map(col => (
+                                                <th key={col} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{col}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {calls.map(call => (
+                                            <>
+                                                <tr key={call.id}
+                                                    style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', transition: 'background 0.15s' }}
+                                                    onClick={() => setExpandedCallId(expandedCallId === call.id ? null : call.id)}
+                                                    onMouseEnter={e => (e.currentTarget.style.background = '#f9fafb')}
+                                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                                                    <td style={{ padding: '14px 16px', fontSize: '13px', color: '#6b7280' }}>
+                                                        {new Date(call.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                    </td>
+                                                    <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 500, color: '#1a1a1a' }}>
+                                                        {getAgentName(call.retell_agent_id)}
+                                                    </td>
+                                                    <td style={{ padding: '14px 16px', fontSize: '13px', color: '#6b7280' }}>
+                                                        {formatDuration(call.duration_ms)}
+                                                    </td>
+                                                    <td style={{ padding: '14px 16px' }}>
+                                                        {getSentimentBadge(call.call_analysis?.user_sentiment)}
+                                                    </td>
+                                                    <td style={{ padding: '14px 16px' }}>
+                                                        <span style={{
+                                                            padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600,
+                                                            background: call.call_analysis?.call_successful ? '#dcfce7' : '#fee2e2',
+                                                            color: call.call_analysis?.call_successful ? '#16a34a' : '#dc2626'
+                                                        }}>
+                                                            {call.call_analysis?.call_successful ? '✓ Éxito' : '✗ Sin resolver'}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ padding: '14px 16px', fontSize: '13px', color: '#6b7280' }}>
+                                                        {call.call_cost ? `€${call.call_cost.toFixed(4)}` : '—'}
+                                                    </td>
+                                                    <td style={{ padding: '14px 16px', fontSize: '18px', color: '#9ca3af' }}>
+                                                        {expandedCallId === call.id ? '▲' : '▼'}
+                                                    </td>
+                                                </tr>
+                                                {expandedCallId === call.id && (
+                                                    <tr key={`${call.id}-detail`}>
+                                                        <td colSpan={7} style={{ padding: '0 16px 16px', background: '#f9fafb' }}>
+                                                            <div style={{ padding: '16px', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                                                                <p style={{ fontSize: '13px', fontWeight: 600, color: '#6b7280', margin: '0 0 8px 0' }}>TRANSCRIPCIÓN</p>
+                                                                <p style={{ fontSize: '13px', color: '#1a1a1a', lineHeight: 1.6, margin: '0 0 12px 0', whiteSpace: 'pre-wrap' }}>
+                                                                    {call.transcript || 'Sin transcripción disponible.'}
+                                                                </p>
+                                                                {call.recording_url && (
+                                                                    <audio controls src={call.recording_url} style={{ width: '100%', marginTop: '8px' }} />
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
 
                 </div>
