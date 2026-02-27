@@ -6,7 +6,7 @@ import { useWizardStore } from '../../../store/wizardStore';
 export const Step2_CompanyInfo: React.FC = () => {
     const {
         companyAddress, companyPhone, companyWebsite, companyDescription, businessHours,
-        kbFiles, kbUsageInstructions, kbRetrievalChunks, kbSimilarityThreshold,
+        kbFiles, kbUsageInstructions,
         updateField, prevStep, nextStep
     } = useWizardStore();
 
@@ -223,32 +223,6 @@ export const Step2_CompanyInfo: React.FC = () => {
                                 value={kbUsageInstructions}
                                 onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
                             />
-                        </div>
-
-                        {/* CONFIGURACIÓN AVANZADA DE RETRIEVAL */}
-                        <div className="row mt-4">
-                            <div className="col-md-6 mb-3">
-                                <label className="form-label small fw-bold">Retrieval chunks</label>
-                                <div className="d-flex align-items-center gap-2">
-                                    <span className="slider-value-mini">{kbRetrievalChunks}</span>
-                                    <input
-                                        type="range" className="form-range" min="1" max="10" step="1"
-                                        value={kbRetrievalChunks}
-                                        onChange={(e) => updateField('kbRetrievalChunks', parseInt(e.target.value))}
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <label className="form-label small fw-bold">Similarity threshold</label>
-                                <div className="d-flex align-items-center gap-2">
-                                    <span className="slider-value-mini">{kbSimilarityThreshold}</span>
-                                    <input
-                                        type="range" className="form-range" min="0.1" max="1.0" step="0.1"
-                                        value={kbSimilarityThreshold}
-                                        onChange={(e) => updateField('kbSimilarityThreshold', parseFloat(e.target.value))}
-                                    />
-                                </div>
-                            </div>
                         </div>
                     </div>
 
