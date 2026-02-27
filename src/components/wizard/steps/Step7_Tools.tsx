@@ -7,7 +7,7 @@ export const Step7_Tools: React.FC = () => {
     const {
         enableCalBooking, calUrl, calApiKey, calEventId,
         enableTransfer, transferDestinations,
-        enableCustomTools,
+        enableCustomTools, customTools,
         extractionVariables, webhookInbound,
         updateField, prevStep, nextStep
     } = useWizardStore();
@@ -23,6 +23,10 @@ export const Step7_Tools: React.FC = () => {
 
     const addVariable = () => {
         updateField('extractionVariables', [...extractionVariables, { name: '', type: 'string', description: '' }]);
+    };
+
+    const addCustomTool = () => {
+        updateField('customTools', [...customTools, { name: '', url: '', description: '', speakDuring: false, speakAfter: false }]);
     };
 
     return (
@@ -178,12 +182,105 @@ export const Step7_Tools: React.FC = () => {
                                 onChange={(e) => updateField('enableCustomTools', e.target.checked)}
                             />
                             <div style={{ flex: 1 }}>
-                                <label htmlFor="enableCustomTools" style={{ fontWeight: 700, fontSize: '16px', cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    Añadir herramienta personalizada
-                                </label>
-                                <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Añade webhooks personalizados o herramientas adicionales</p>
                             </div>
                         </div>
+
+                        {enableCustomTools && (
+                            <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                                {customTools.map((tool, idx) => (
+                                    <div key={idx} style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                            <h5 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: 0 }}>Herramienta #{idx + 1}</h5>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm text-danger"
+                                                style={{ padding: 0 }}
+                                                onClick={() => updateField('customTools', customTools.filter((_, i) => i !== idx))}
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">Nombre de la herramienta</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control form-control-sm"
+                                                    placeholder="Ej: consultar_inventario"
+                                                    value={tool.name}
+                                                    onChange={(e) => {
+                                                        const newTools = [...customTools];
+                                                        newTools[idx].name = e.target.value;
+                                                        updateField('customTools', newTools);
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">URL del Webhook</label>
+                                                <input
+                                                    type="url"
+                                                    className="form-control form-control-sm"
+                                                    placeholder="https://api.empresa.com/endpoint"
+                                                    value={tool.url}
+                                                    onChange={(e) => {
+                                                        const newTools = [...customTools];
+                                                        newTools[idx].url = e.target.value;
+                                                        updateField('customTools', newTools);
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="form-group mb-0" style={{ gridColumn: '1 / -1' }}>
+                                                <label className="form-label small">Descripción de uso (Prompt para el agente)</label>
+                                                <textarea
+                                                    className="form-control form-control-sm"
+                                                    rows={2}
+                                                    placeholder="Ej: Usa esta herramienta cuando el cliente pregunte por la disponibilidad de un producto."
+                                                    value={tool.description}
+                                                    onChange={(e) => {
+                                                        const newTools = [...customTools];
+                                                        newTools[idx].description = e.target.value;
+                                                        updateField('customTools', newTools);
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '24px' }}>
+                                            <div className="form-check custom-check mb-0">
+                                                <input
+                                                    className="form-check-input" type="checkbox" id={`speakDuring_${idx}`}
+                                                    checked={tool.speakDuring}
+                                                    onChange={(e) => {
+                                                        const newTools = [...customTools];
+                                                        newTools[idx].speakDuring = e.target.checked;
+                                                        updateField('customTools', newTools);
+                                                    }}
+                                                />
+                                                <label className="form-check-label small" htmlFor={`speakDuring_${idx}`}>
+                                                    Agente habla mientras consulta
+                                                </label>
+                                            </div>
+                                            <div className="form-check custom-check mb-0">
+                                                <input
+                                                    className="form-check-input" type="checkbox" id={`speakAfter_${idx}`}
+                                                    checked={tool.speakAfter}
+                                                    onChange={(e) => {
+                                                        const newTools = [...customTools];
+                                                        newTools[idx].speakAfter = e.target.checked;
+                                                        updateField('customTools', newTools);
+                                                    }}
+                                                />
+                                                <label className="form-check-label small" htmlFor={`speakAfter_${idx}`}>
+                                                    Agente habla al terminar
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button type="button" className="btn btn-sm btn-outline-primary" onClick={addCustomTool}>
+                                    <i className="bi bi-plus"></i> Añadir herramienta
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* DATA EXTRACTION */}

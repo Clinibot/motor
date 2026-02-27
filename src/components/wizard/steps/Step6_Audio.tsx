@@ -6,7 +6,7 @@ import { useWizardStore } from '../../../store/wizardStore';
 export const Step6_Audio: React.FC = () => {
     const {
         volume, enableAmbientSound, ambientSound, ambientSoundVolume,
-        sttMode, enableTranscriptionFormatting,
+        sttMode,
         updateField, nextStep, prevStep
     } = useWizardStore();
 
@@ -57,7 +57,7 @@ export const Step6_Audio: React.FC = () => {
                                     <div className="form-group">
                                         <label className="form-label">Tipo de ambiente</label>
                                         <select
-                                            className="form-select"
+                                            className="form-select premium-select"
                                             value={ambientSound}
                                             onChange={(e) => updateField('ambientSound', e.target.value)}
                                         >
@@ -110,19 +110,6 @@ export const Step6_Audio: React.FC = () => {
                                 {sttMode === 'accurate' ? 'Ideal para capturar nombres y datos complejos.' : 'Ideal para conversaciones muy fluidas con baja latencia.'}
                             </div>
                         </div>
-
-                        <div className="form-group mb-0">
-                            <div className="form-check custom-check">
-                                <input
-                                    className="form-check-input" type="checkbox" id="formatTranscription"
-                                    checked={enableTranscriptionFormatting}
-                                    onChange={(e) => updateField('enableTranscriptionFormatting', e.target.checked)}
-                                />
-                                <label className="form-check-label" htmlFor="formatTranscription">
-                                    Formatear transcripción (Puntuación automática)
-                                </label>
-                            </div>
-                        </div>
                     </div>
 
                     <div className="wizard-actions mt-5">
@@ -150,6 +137,16 @@ export const Step6_Audio: React.FC = () => {
                 .custom-check { display: flex; align-items: center; gap: 8px; }
                 .custom-check .form-check-input { width: 1.25em; height: 1.25em; margin-top: 0; cursor: pointer; }
                 .custom-check .form-check-label { cursor: pointer; font-weight: 500; font-size: 14px; }
+                .form-select.premium-select {
+                    background-color: #f1f5f9;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 10px;
+                    padding: 12px 16px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #1e293b;
+                    appearance: none;
+                }
             `}</style>
         </div>
     );
