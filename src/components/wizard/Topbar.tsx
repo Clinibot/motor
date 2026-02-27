@@ -22,10 +22,14 @@ export const Topbar: React.FC = () => {
 
     return (
         <div className="topbar">
-            <div className="d-flex align-items-center justify-content-between mb-3">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <div className="progress-text">Paso {currentStep} de 9 - {currentName}</div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://www.netelip.com/wp-content/themes/netelip-2024/assets/images/netelip-logo.svg" alt="netelip" style={{ height: '30px' }} />
+                <img
+                    src="/netelip-logo.png"
+                    alt="Netelip"
+                    style={{ height: '28px', objectFit: 'contain' }}
+                />
             </div>
             <div className="progress-bar-container" style={{ marginBottom: 0 }}>
                 <div className="progress-bar-fill" style={{ width: `${percentage}%` }}></div>
