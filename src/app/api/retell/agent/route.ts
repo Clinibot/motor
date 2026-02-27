@@ -40,9 +40,40 @@ export async function POST(request: Request) {
                 .single();
 
             if (!userProfile || !userProfile.workspace_id) {
-                return NextResponse.json({ success: false, error: "Tu usuario no tiene un workspace asignado automáticamente. Visita el Dashboard de Agentes para que se te asigne uno." }, { status: 400 });
+                // Intentar auto-asignar un workspace libre
+                const { data: usersWithWorkspaces } = await supabaseAdmin
+                    .from('users')
+                    .select('workspace_id')
+                    .not('workspace_id', 'is', null);
+
+                const assignedIds = (usersWithWorkspaces || []).map((u: { workspace_id: string }) => u.workspace_id);
+
+                let freeWorkspaceQuery = supabaseAdmin
+                    .from('workspaces')
+                    .select('id')
+                    .order('created_at', { ascending: true })
+                    .limit(1);
+
+                if (assignedIds.length > 0) {
+                    freeWorkspaceQuery = freeWorkspaceQuery.not('id', 'in', `(${assignedIds.join(',')})`);
+                }
+
+                const { data: freeWorkspaces } = await freeWorkspaceQuery;
+
+                if (!freeWorkspaces || freeWorkspaces.length === 0) {
+                    return NextResponse.json({ success: false, error: "No hay workspaces disponibles. Contacta con el administrador." }, { status: 400 });
+                }
+
+                const newWorkspaceId = freeWorkspaces[0].id;
+                await supabaseAdmin
+                    .from('users')
+                    .update({ workspace_id: newWorkspaceId })
+                    .eq('id', userId);
+
+                workspaceId = newWorkspaceId;
+            } else {
+                workspaceId = userProfile.workspace_id;
             }
-            workspaceId = userProfile.workspace_id;
         }
 
         // 2. Fetch the Retell API Key for this workspace
