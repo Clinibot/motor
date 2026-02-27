@@ -170,7 +170,7 @@ export const useWizardStore = create<WizardState>((set) => ({
 
     beginMessageDelayMs: 200,
     endCallAfterSilenceMs: 59000,
-    maxCallDurationMs: 601000,
+    maxCallDurationMs: 600000,
     reminderTriggerMs: 30000,
     reminderMaxCount: 1,
     ringDurationMs: 30000,
@@ -219,7 +219,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 1.0,
         enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
         boostedKeywords: [], normalizeForSpeech: true,
-        beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 601000,
+        beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 600000,
         reminderTriggerMs: 30000, reminderMaxCount: 1, ringDurationMs: 30000,
         enableVoicemailDetection: false, voicemailDetectionTimeoutMs: 5000, voicemailMessage: '',
         volume: 1.0, enableAmbientSound: false, ambientSound: 'none', ambientSoundVolume: 0.2,
