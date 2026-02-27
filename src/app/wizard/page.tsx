@@ -29,12 +29,12 @@ export default function WizardPage() {
     const renderStep = () => {
         switch (currentStep) {
             case 1: return <Step1_Type />;
-            case 2: return <Step2_CompanyInfo />;
-            case 3: return <Step3_Voice />;
-            case 4: return <Step4_Conversation />;
-            case 5: return <Step5_Timings />;
-            case 6: return <Step7_Tools />;
-            case 7: return <Step2_LLM />;
+            case 2: return <Step2_LLM />;
+            case 3: return <Step2_CompanyInfo />;
+            case 4: return <Step3_Voice />;
+            case 5: return <Step4_Conversation />;
+            case 6: return <Step5_Timings />;
+            case 7: return <Step7_Tools />;
             case 8: return <Step8_Summary />;
             default: return <Step1_Type />;
         }

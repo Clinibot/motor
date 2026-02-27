@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 
 export const Step2_CompanyInfo: React.FC = () => {
     const {
         companyAddress, companyPhone, companyWebsite, companyDescription, businessHours,
-        knowledgeBaseFiles, knowledgeBaseUsage, retrievalChunks, similarityThreshold,
         updateField, prevStep, nextStep
     } = useWizardStore();
-
-    const [isDragging, setIsDragging] = useState(false);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,24 +15,10 @@ export const Step2_CompanyInfo: React.FC = () => {
     };
 
     const updateHour = (index: number, field: 'open' | 'close' | 'closed', value: string | boolean) => {
-        const newHours = [...businessHours];
-        newHours[index] = { ...newHours[index], [field]: value };
+        const newHours = businessHours.map((h, i) =>
+            i === index ? { ...h, [field]: value } : h
+        );
         updateField('businessHours', newHours);
-    };
-
-    const simulateUpload = () => {
-        if (knowledgeBaseFiles.length >= 3) {
-            alert("Límite máximo de 3 archivos alcanzado.");
-            return;
-        }
-        const fileName = `documento_conocimiento_${knowledgeBaseFiles.length + 1}.pdf`;
-        updateField('knowledgeBaseFiles', [...knowledgeBaseFiles, fileName]);
-    };
-
-    const removeFile = (index: number) => {
-        const newFiles = [...knowledgeBaseFiles];
-        newFiles.splice(index, 1);
-        updateField('knowledgeBaseFiles', newFiles);
     };
 
     return (
@@ -51,7 +34,7 @@ export const Step2_CompanyInfo: React.FC = () => {
                     </div>
                 </h1>
                 <p className="section-subtitle">
-                    Configura los detalles de contacto, horarios y base de conocimientos.
+                    Configura los detalles de contacto y horarios comerciales.
                 </p>
 
                 <form onSubmit={handleNext}>
@@ -152,127 +135,6 @@ export const Step2_CompanyInfo: React.FC = () => {
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-
-                    <hr className="my-5" />
-
-                    {/* SECCIÓN 3: BASE DE CONOCIMIENTOS */}
-                    <div className="knowledge-base-section">
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                            <i className="bi bi-book" style={{ color: 'var(--netelip-azul)' }}></i>
-                            Base de conocimientos
-                        </h3>
-                        <p style={{ fontSize: '14px', color: 'var(--gris-texto)', marginBottom: '24px' }}>
-                            Sube documentos que tu agente podrá consultar para responder con información precisa. Recomendado: formato Markdown (.md) o texto plano (.txt).
-                        </p>
-
-                        <div className="alert alert-warning mb-4" style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px' }}>
-                            <div className="d-flex gap-3">
-                                <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', fontSize: '20px' }}></i>
-                                <div style={{ fontSize: '13px', color: '#92400e' }}>
-                                    <strong style={{ display: 'block', marginBottom: '4px' }}>Importante: Datos Tratados</strong>
-                                    Recomendamos que los datos estén estructurados, preferiblemente en formato de <strong>Preguntas Frecuentes (FAQ)</strong> o <strong>Problema/Solución</strong>.
-                                    Esto permitirá que la IA interprete mejor la información.
-                                    <br /><br />
-                                    <em>Tip: Si la información es muy breve, es mejor añadirla directamente en el paso de Configuración LLM (Prompt).</em>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* DROPZONE DESIGN */}
-                        <div
-                            onClick={simulateUpload}
-                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                            onDragLeave={() => setIsDragging(false)}
-                            style={{
-                                border: `2px dashed ${isDragging ? 'var(--netelip-azul)' : '#cbd5e1'}`,
-                                borderRadius: '12px',
-                                padding: '40px 20px',
-                                textAlign: 'center',
-                                background: isDragging ? '#f0f9ff' : 'white',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                marginBottom: '20px'
-                            }}
-                        >
-                            <i className="bi bi-cloud-arrow-up" style={{ fontSize: '48px', color: 'var(--netelip-azul)', display: 'block', marginBottom: '16px' }}></i>
-                            <strong style={{ fontSize: '16px', display: 'block', marginBottom: '4px' }}>Arrastra archivos aquí o haz clic para seleccionar</strong>
-                            <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>
-                                Formatos soportados: .md, .txt, .pdf, .docx | Máximo 10 MB por archivo (Límite 3)
-                            </p>
-                        </div>
-
-                        {/* FILE LIST */}
-                        {knowledgeBaseFiles.length > 0 && (
-                            <div className="mb-4">
-                                {knowledgeBaseFiles.map((file, idx) => (
-                                    <div key={idx} style={{ background: '#f1f5f9', padding: '10px 15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <div className="d-flex align-items-center gap-2">
-                                            <i className="bi bi-file-earmark-text text-primary"></i>
-                                            <span style={{ fontSize: '13px', fontWeight: 600 }}>{file}</span>
-                                        </div>
-                                        <button type="button" className="btn btn-sm text-danger" onClick={() => removeFile(idx)}>
-                                            <i className="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* USAGE INSTRUCTIONS */}
-                        <div className="form-group mb-4">
-                            <label className="form-label">¿Cuándo debe usarse esta base de conocimiento?</label>
-                            <textarea
-                                className="form-control"
-                                rows={3}
-                                value={knowledgeBaseUsage}
-                                onChange={(e) => updateField('knowledgeBaseUsage', e.target.value)}
-                                placeholder="Ej: Usa esta información solo cuando el cliente pregunte por detalles técnicos específicos de los implantes o garantías..."
-                            />
-                        </div>
-
-                        {/* ADVANCED RETRIEVAL SETTINGS */}
-                        <div className="retrieval-settings" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-                            <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <i className="bi bi-sliders"></i> Configuración avanzada de retrieval
-                                <i className="bi bi-info-circle text-muted" style={{ fontSize: '14px' }}></i>
-                            </h4>
-
-                            <div className="row">
-                                <div className="col-md-6">
-                                    <div className="form-group">
-                                        <div className="d-flex justify-content-between mb-2">
-                                            <label className="form-label mb-0">Retrieval chunks</label>
-                                            <span className="badge bg-primary">{retrievalChunks}</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            className="form-range"
-                                            min="1" max="10" step="1"
-                                            value={retrievalChunks}
-                                            onChange={(e) => updateField('retrievalChunks', parseInt(e.target.value))}
-                                        />
-                                        <p style={{ fontSize: '11px', color: 'var(--gris-texto)', marginTop: '8px' }}>Número de fragmentos a recuperar por consulta</p>
-                                    </div>
-                                </div>
-                                <div className="col-md-6">
-                                    <div className="form-group">
-                                        <div className="d-flex justify-content-between mb-2">
-                                            <label className="form-label mb-0">Similarity threshold</label>
-                                            <span className="badge bg-primary">{similarityThreshold}</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            className="form-range"
-                                            min="0.1" max="1.0" step="0.1"
-                                            value={similarityThreshold}
-                                            onChange={(e) => updateField('similarityThreshold', parseFloat(e.target.value))}
-                                        />
-                                        <p style={{ fontSize: '11px', color: 'var(--gris-texto)', marginTop: '8px' }}>Umbral de similitud mínimo (0.1 - 1.0)</p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 

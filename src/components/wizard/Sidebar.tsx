@@ -6,12 +6,12 @@ import { useWizardStore } from '../../store/wizardStore';
 
 const stepsMeta = [
     { id: 1, name: 'Información básica', desc: 'Nombre y sector' },
-    { id: 2, name: 'Información de la empresa', desc: 'Horarios y contacto' },
-    { id: 3, name: 'Selección de voz', desc: 'Voz y personalidad' },
-    { id: 4, name: 'Conversación', desc: 'Idioma y respuestas' },
-    { id: 5, name: 'Tiempos', desc: 'Duraciones y delays' },
-    { id: 6, name: 'Configuración avanzada', desc: 'Integraciones' },
-    { id: 7, name: 'Configuración LLM', desc: 'Modelo y prompt' },
+    { id: 2, name: 'Configuración LLM', desc: 'Modelo y conocimiento' },
+    { id: 3, name: 'Información de la empresa', desc: 'Horarios y contacto' },
+    { id: 4, name: 'Selección de voz', desc: 'Voz y personalidad' },
+    { id: 5, name: 'Conversación', desc: 'Idioma y respuestas' },
+    { id: 6, name: 'Tiempos', desc: 'Duraciones y delays' },
+    { id: 7, name: 'Configuración avanzada', desc: 'Integraciones' },
     { id: 8, name: 'Resumen', desc: 'Revisar y crear' },
 ];
 

@@ -5,12 +5,12 @@ import { useWizardStore } from '../../store/wizardStore';
 
 const stepNames = [
     'Información básica',
+    'Configuración LLM',
     'Información de la empresa',
     'Selección de voz',
     'Conversación',
     'Tiempos',
     'Configuración avanzada',
-    'Configuración LLM',
     'Resumen y Creación',
 ];
 

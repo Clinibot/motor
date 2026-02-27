@@ -42,6 +42,12 @@ export interface WizardState {
 
     // Step 2: LLM Config
     model: string;
+    temperature: number;
+    highPriority: boolean;
+    whoFirst: 'agent' | 'user';
+    beginMessage: string;
+    personality: string[];
+    tone: string;
     prompt: string;
 
     // Step 3: Voice Selection
@@ -139,6 +145,12 @@ export const useWizardStore = create<WizardState>((set) => ({
     similarityThreshold: 0.7,
 
     model: 'gpt-4.1',
+    temperature: 0.7,
+    highPriority: false,
+    whoFirst: 'agent',
+    beginMessage: '',
+    personality: ['profesional'],
+    tone: 'semiformal',
     prompt: 'Eres un asistente útil.',
 
     voiceId: '11labs-Adrian',
@@ -203,7 +215,14 @@ export const useWizardStore = create<WizardState>((set) => ({
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
-        model: 'gpt-4.1', prompt: 'Eres un asistente útil.',
+        model: 'gpt-4.1',
+        temperature: 0.7,
+        highPriority: false,
+        whoFirst: 'agent',
+        beginMessage: '',
+        personality: ['profesional'],
+        tone: 'semiformal',
+        prompt: 'Eres un asistente útil.',
         voiceId: '11labs-Adrian', voiceName: 'Sofia', voiceProvider: 'retell', voiceDescription: 'Voz profesional española', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 1.0,
         enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],

@@ -1,145 +1,52 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 
 export const Step2_LLM: React.FC = () => {
     const {
-        agentName, companyName, agentType,
-        model, prompt,
-        enableCalBooking, calUrl,
-        enableTransfer, transferDestinations,
-        extractionVariables,
-        companyAddress, companyPhone, companyWebsite, companyDescription, businessHours,
-        knowledgeBaseFiles, knowledgeBaseUsage,
+        model, temperature, highPriority, whoFirst, beginMessage, personality, tone,
+        knowledgeBaseFiles, knowledgeBaseUsage, retrievalChunks, similarityThreshold,
         updateField, prevStep, nextStep
     } = useWizardStore();
+
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
         nextStep();
     };
 
-    const generateInstructions = () => {
-        const name = agentName || "Sofía";
-        const company = companyName || "nuestra empresa";
-
-        // Format business hours for the prompt
-        const formattedHours = businessHours
-            .map(h => `- ${h.day}: ${h.closed ? 'Cerrado' : `de las ${h.open.replace(':', ' y ')} hasta las ${h.close.replace(':', ' y ')}`}`)
-            .join('\n');
-
-        // Base structure that applies to all
-        const pronunciationRules = `### Cómo pronunciar los números de teléfono
-No repitas nunca el teléfono del usuario, solo pregunta si es desde el que llama. Pero si debes darle un número de teléfono es muy importante que lo pronuncies siguiendo esta regla:
-El teléfono debe pronunciarse los 3 primeros números, luego un espacio, dos más, dos más y los dos últimos. Por ejemplo: seis seis seis - cinco dos - dos dos - dos dos.
-
-### Cómo pronunciar los emails
-Siempre que tengas que dar un email al usuario, dile que esta parte te cuesta un poco así que lo harás poco a poco. Primero le dirás lo que va antes de la arroba y después lo que va después de la arroba.
-Por ejemplo: pepe - arroba - pepe punto com.
-
-### Cómo pronunciar las fechas
-Las fechas debes darlas siempre de forma muy coloquial: "mañana", "dentro de 3 días", etc. 
-Recuerda que la fecha y hora actual es: {{current_time_Europe/Madrid}}`;
-
-        const styleRules = `## Tu Estilo de Comunicación
-Hablas siempre de forma natural, amable y muy humana. Frases cortas, muy directas. Un toque de humor suave, sin pasarte.
-
-- Nada de listas, nada de enumeraciones.
-- Nunca repitas lo que dice el usuario.
-- Mucha empatía, curiosidad y escucha.
-- Adapta el idioma al paciente/cliente según sea necesario.
-- Nunca hagas más de una pregunta en tu turno, busca el diálogo terminando la mayoría de veces con una pregunta.
-- Sé lo más breve y concisa posible.
-- REGLA CRÍTICA DE AVANCE: ESTÁ PROHIBIDO confirmar o repetir datos que el usuario ya ha dicho. Pasa INMEDIATAMENTE a la siguiente tarea o pregunta.`;
-
-        const conversationRules = `## REGLAS DE CONVERSACIÓN
-- REGLA CRÍTICA DE AVANCE: Está prohibido repetir datos ya dichos. Prioriza la rapidez.
-- REGLA CRÍTICA DE FORMATO DE HORAS: NUNCA digas horas en formato numérico (15:00). SIEMPRE lenguaje coloquial ("las tres de la tarde").
-- IMPORTANTE: Si el teléfono no está disponible, solicita el email para identificar al usuario de forma segura.`;
-
-        const terminationRules = `## TERMINACIÓN DE LLAMADA
-Si el usuario se despide o indica que quiere terminar, usa la herramienta 'end_call' INMEDIATAMENTE. No preguntes si quiere algo más, simplemente despídete y cuelga.`;
-
-        let specificTasks = "";
-        let toolRules = "";
-
-        if (agentType === 'transferencia') {
-            specificTasks = `### Primera tarea: Identificar necesidad
-Presentate como ${name} de ${company}. Entiende por qué llama el usuario y busca la mejor solución.
-
-### Segunda tarea: Proceder a la transferencia
-Si el usuario necesita hablar con un departamento específico, informa que vas a transferir la llamada. No hagas esperar al usuario innecesariamente.
-${enableTransfer ? `\nDestinos disponibles: ${transferDestinations.map(d => `${d.name} (${d.number})`).join(', ')}.` : ''}`;
-        } else if (agentType === 'agendamiento') {
-            specificTasks = `### Primera tarea: Consultar disponibilidad
-Informa sobre los servicios de ${company}. Si el usuario quiere una cita, verifica disponibilidad.
-
-### Segunda tarea: Agendar cita
-Usa las herramientas correspondientes para agendar. Pide nombre completo, email y motivo de la cita.
-${enableCalBooking ? `\nLink de reserva: ${calUrl || 'Integrado automáticamente'}.` : ''}`;
-
-            toolRules = `## GESTIÓN DE CITAS (Cal.com)
-Tienes acceso a Cal.com para gestionar citas.
-1. Consultar disponibilidad: Verifica horarios libres.
-2. Agendar: Pide datos y confirma.
-3. SIEMPRE verifica disponibilidad ANTES de agendar.`;
-        } else {
-            // Cualificación y atención
-            specificTasks = `### Primera tarea: Resolución de dudas
-Resuelve dudas sobre ${company} de forma sencilla y humana. Usa la información de contacto y horarios:
-- Dirección: ${companyAddress || 'No especificada'}
-- Teléfono: ${companyPhone || 'No especificado'}
-- Web: ${companyWebsite || 'No especificada'}
-- Info adicional: ${companyDescription || 'No especificada'}
-
-### Segunda tarea: Cualificación (Contexto)
-Interésate por qué necesita el usuario, si ya es cliente y qué busca exactamente. No hagas más de una pregunta por turno.
-${extractionVariables.length > 0 ? `\nVariables a extraer: ${extractionVariables.map(v => v.name).join(', ')}.` : ''}`;
+    const simulateUpload = () => {
+        if (knowledgeBaseFiles.length >= 3) {
+            alert("Límite máximo de 3 archivos alcanzado.");
+            return;
         }
-
-        const fullPrompt = `# Idioma
-Habla siempre en español.
-
-# Rol
-Eres ${name} de ${company}, la voz cercana y amable que atiende las llamadas. Tu misión es ayudar al usuario con un tono humano, cálido y fácil. Hablas como una persona real, sin sonar a robot.
-
-${styleRules}
-
-${pronunciationRules}
-
-## Tus Tareas Principales
-${specificTasks}
-
-### Tarea de despedida
-Antes de cerrar, pregunta si puedes ayudar con algo más. Si no, despídete con un "¡Que tengas un día bien bonito!".
-
-${knowledgeBaseFiles.length > 0 ? `
-## CONTEXTO Y CONOCIMIENTO ADICIONAL
-Tienes acceso a una base de conocimientos con información detallada sobre ${company}.
-### Cuándo usar esta información:
-${knowledgeBaseUsage || 'Usa esta información para responder preguntas específicas que no estén cubiertas en tus instrucciones principales.'}
-` : ''}
-
-## Reglas Especiales
-- Nunca des precios si no están confirmados.
-- Nunca des teléfonos completos de terceros; dilos en bloques.
-- Si preguntan por temas técnicos o IA, responde: "Prefiero que vayamos al grano, ¿en qué te ayudo con ${company}?"
-
-${conversationRules}
-
-${toolRules}
-
-# Horario de Atención
-Este es el horario comercial de ${company}. Informa al usuario si pregunta por los horarios o si intenta agendar una cita fuera de estos periodos. SIEMPRE en horario de España.
-
-${formattedHours}
-
-${terminationRules}
-`;
-
-        updateField('prompt', fullPrompt);
+        const fileName = `documento_conocimiento_${knowledgeBaseFiles.length + 1}.pdf`;
+        updateField('knowledgeBaseFiles', [...knowledgeBaseFiles, fileName]);
     };
+
+    const removeFile = (index: number) => {
+        const newFiles = [...knowledgeBaseFiles];
+        newFiles.splice(index, 1);
+        updateField('knowledgeBaseFiles', newFiles);
+    };
+
+    const togglePersonality = (trait: string) => {
+        const newPersonality = personality.includes(trait)
+            ? personality.filter(p => p !== trait)
+            : [...personality, trait];
+        updateField('personality', newPersonality);
+    };
+
+    const personalityOptions = [
+        { id: 'profesional', label: 'Profesional' },
+        { id: 'amigable', label: 'Amigable / Cercano' },
+        { id: 'empatico', label: 'Empático' },
+        { id: 'divertido', label: 'Divertido / Humor' },
+        { id: 'directo', label: 'Directo / Conciso' },
+        { id: 'persuasivo', label: 'Persuasivo' }
+    ];
 
     return (
         <div className="content-area">
@@ -149,82 +56,349 @@ ${terminationRules}
                     <div className="custom-tooltip">
                         <i className="bi bi-info-circle tooltip-icon"></i>
                         <div className="tooltip-content">
-                            El Cerebro de tu agente. Aquí defines qué modelo de lenguaje usará y cuáles serán sus instrucciones específicas de comportamiento.
+                            El Cerebro de tu agente. Aquí defines qué modelo de lenguaje usará y cuáles serán sus rasgos de personalidad y base de conocimientos.
                         </div>
                     </div>
                 </h1>
                 <p className="section-subtitle">
-                    Define las instrucciones y el modelo de lenguaje para tu agente.
+                    Define las instrucciones, el modelo de lenguaje y el conocimiento de tu agente.
                 </p>
 
-                <div style={{ marginBottom: '24px', padding: '16px', background: '#f0f9ff', border: '1px solid #bfdbfe', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ fontSize: '24px' }}>✨</div>
-                        <div>
-                            <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--netelip-azul)' }}>Generador de prompts con IA</h4>
-                            <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Crea instrucciones optimizadas basadas en tus pasos anteriores.</p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={generateInstructions}
-                        style={{ background: 'var(--netelip-azul)', border: 'none', padding: '8px 16px', fontSize: '13px' }}
-                    >
-                        <i className="bi bi-magic me-2"></i> Generar instrucciones
-                    </button>
-                </div>
-
                 <form onSubmit={handleNext}>
-                    <div className="form-group">
-                        <label className="form-label">
-                            Modelo LLM <span className="required">*</span>
-                        </label>
-                        <select
-                            className="form-control"
-                            value={model}
-                            onChange={(e) => updateField('model', e.target.value)}
-                            required
-                        >
-                            <option value="gpt-4o">GPT-4o (Recomendado)</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Rápido)</option>
-                            <option value="claude-3-opus">Claude 3 Opus</option>
-                            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                        </select>
-                    </div>
+                    {/* SECCIÓN 1: CONFIGURACIÓN DEL MODELO */}
+                    <div className="section-group mb-5">
+                        <h3 className="section-group-title mb-4">
+                            <i className="bi bi-cpu me-2"></i> Configuración del Modelo
+                        </h3>
 
-                    <div className="form-group">
-                        <label className="form-label">
-                            Prompt / Instrucciones del Sistema <span className="required">*</span>
-                            <div className="custom-tooltip">
-                                <i className="bi bi-info-circle tooltip-icon"></i>
-                                <div className="tooltip-content">
-                                    Define la personalidad, el tono y las reglas que debe seguir el agente. Puedes usar el botón de arriba para generar una base sólida.
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="form-label">Modelo LLM</label>
+                                    <select
+                                        className="form-control"
+                                        value={model}
+                                        onChange={(e) => updateField('model', e.target.value)}
+                                    >
+                                        <option value="gpt-4.1">GPT-4.1 (Recomendado)</option>
+                                        <option value="gpt-4o">GPT-4o (Omni)</option>
+                                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                        <option value="claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                                    </select>
                                 </div>
                             </div>
-                        </label>
-                        <textarea
-                            className="form-control"
-                            rows={15}
-                            value={prompt}
-                            onChange={(e) => updateField('prompt', e.target.value)}
-                            placeholder="Escribe las instrucciones detalladas para tu agente..."
-                            required
-                            style={{ fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.6', background: '#f8fafc' }}
-                        />
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <div className="d-flex justify-content-between mb-2">
+                                        <label className="form-label mb-0">Temperatura</label>
+                                        <span className="badge bg-primary">{temperature}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        className="form-range"
+                                        min="0" max="1" step="0.1"
+                                        value={temperature}
+                                        onChange={(e) => updateField('temperature', parseFloat(e.target.value))}
+                                    />
+                                    <p className="text-muted small mt-1">Valores bajos son más deterministas, valores altos más creativos.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-check form-switch mt-3">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="highPriority"
+                                checked={highPriority}
+                                onChange={(e) => updateField('highPriority', e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="highPriority">
+                                Activar modelo de alta prioridad
+                                <span className="text-muted small ms-2">(Reduce latencia, coste superior)</span>
+                            </label>
+                        </div>
                     </div>
 
-                    <div className="wizard-actions">
+                    <hr className="my-5" />
+
+                    {/* SECCIÓN 2: MENSAJE Y COMPORTAMIENTO */}
+                    <div className="section-group mb-5">
+                        <h3 className="section-group-title mb-4">
+                            <i className="bi bi-chat-quote me-2"></i> Mensaje y Comportamiento
+                        </h3>
+
+                        <div className="form-group mb-4">
+                            <label className="form-label d-block mb-3">¿Quién inicia la conversación?</label>
+                            <div className="d-flex gap-4">
+                                <div className="form-check">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="whoFirst"
+                                        id="firstAgent"
+                                        checked={whoFirst === 'agent'}
+                                        onChange={() => updateField('whoFirst', 'agent')}
+                                    />
+                                    <label className="form-check-label" htmlFor="firstAgent">
+                                        El Agente
+                                    </label>
+                                </div>
+                                <div className="form-check">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="whoFirst"
+                                        id="firstUser"
+                                        checked={whoFirst === 'user'}
+                                        onChange={() => updateField('whoFirst', 'user')}
+                                    />
+                                    <label className="form-check-label" htmlFor="firstUser">
+                                        El Usuario
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {whoFirst === 'agent' && (
+                            <div className="form-group mb-4 animate-fade-in">
+                                <label className="form-label">Mensaje de inicio</label>
+                                <textarea
+                                    className="form-control"
+                                    rows={3}
+                                    value={beginMessage}
+                                    onChange={(e) => updateField('beginMessage', e.target.value)}
+                                    placeholder="Ej: Hola, soy Sofía de DentaDent. ¿En qué puedo ayudarte hoy?"
+                                />
+                                <div className="alert alert-info mt-2 py-2 px-3 border-0 bg-light-blue" style={{ fontSize: '12px' }}>
+                                    <i className="bi bi-info-circle me-1"></i>
+                                    Este mensaje será lo primero que diga el agente al descolgar la llamada.
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="row">
+                            <div className="col-md-7">
+                                <div className="form-group">
+                                    <label className="form-label mb-3">Personalidad del Agente</label>
+                                    <div className="d-grid gap-2" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                                        {personalityOptions.map(opt => (
+                                            <div key={opt.id} className="form-check custom-checkbox-card">
+                                                <input
+                                                    className="form-check-input d-none"
+                                                    type="checkbox"
+                                                    id={`trait-${opt.id}`}
+                                                    checked={personality.includes(opt.id)}
+                                                    onChange={() => togglePersonality(opt.id)}
+                                                />
+                                                <label
+                                                    className={`personality-pill ${personality.includes(opt.id) ? 'active' : ''}`}
+                                                    htmlFor={`trait-${opt.id}`}
+                                                >
+                                                    {opt.label}
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-5">
+                                <div className="form-group">
+                                    <label className="form-label mb-3">Tono de comunicación</label>
+                                    <div className="tone-selector">
+                                        <button
+                                            type="button"
+                                            className={`tone-btn ${tone === 'formal' ? 'active' : ''}`}
+                                            onClick={() => updateField('tone', 'formal')}
+                                        >
+                                            Formal
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`tone-btn ${tone === 'semiformal' ? 'active' : ''}`}
+                                            onClick={() => updateField('tone', 'semiformal')}
+                                        >
+                                            Semiformal
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`tone-btn ${tone === 'casual' ? 'active' : ''}`}
+                                            onClick={() => updateField('tone', 'casual')}
+                                        >
+                                            Casual
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr className="my-5" />
+
+                    {/* SECCIÓN 3: BASE DE CONOCIMIENTOS */}
+                    <div className="section-group mb-5">
+                        <h1 className="section-title mb-8" style={{ fontSize: '20px', fontWeight: 700 }}>
+                            <i className="bi bi-book me-2"></i> Base de conocimientos
+                        </h1>
+                        <p className="section-subtitle">
+                            Sube documentos que tu agente podrá consultar para responder con información precisa.
+                        </p>
+
+                        <div className="alert alert-warning mb-4" style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px' }}>
+                            <div className="d-flex gap-3">
+                                <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', fontSize: '20px' }}></i>
+                                <div style={{ fontSize: '13px', color: '#92400e' }}>
+                                    <strong style={{ display: 'block', marginBottom: '4px' }}>Importante: Datos Tratados</strong>
+                                    Recomendamos documentos estructurados en formato <strong>Preguntas Frecuentes (FAQ)</strong> o <strong>Problema/Solución</strong>.
+                                    <br />
+                                    <em>Límite máximo de 3 archivos (máx 10 MB/cada uno).</em>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            onClick={simulateUpload}
+                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                            onDragLeave={() => setIsDragging(false)}
+                            className={`dropzone ${isDragging ? 'dragging' : ''}`}
+                            style={{
+                                border: `2px dashed ${isDragging ? 'var(--netelip-azul)' : '#cbd5e1'}`,
+                                borderRadius: '12px',
+                                padding: '30px 20px',
+                                textAlign: 'center',
+                                background: isDragging ? '#f0f9ff' : 'white',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                marginBottom: '20px'
+                            }}
+                        >
+                            <i className="bi bi-cloud-arrow-up h1 text-primary mb-3 d-block"></i>
+                            <strong>Arrastra archivos aquí o haz clic para subir</strong>
+                            <p className="text-muted small m-0">Formatos: .md, .txt, .pdf, .docx</p>
+                        </div>
+
+                        {knowledgeBaseFiles.length > 0 && (
+                            <div className="file-list mb-4">
+                                {knowledgeBaseFiles.map((file, idx) => (
+                                    <div key={idx} className="file-item d-flex justify-content-between align-items-center p-2 bg-light rounded mb-2 border">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <i className="bi bi-file-earmark-text text-primary"></i>
+                                            <span className="small fw-bold">{file}</span>
+                                        </div>
+                                        <button type="button" className="btn btn-link btn-sm text-danger p-0" onClick={() => removeFile(idx)}>
+                                            <i className="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="form-group mb-4">
+                            <label className="form-label">Instrucciones de uso de la base</label>
+                            <textarea
+                                className="form-control"
+                                rows={2}
+                                value={knowledgeBaseUsage}
+                                onChange={(e) => updateField('knowledgeBaseUsage', e.target.value)}
+                                placeholder="Ej: Consulta esta información solo para dudas técnicas sobre implantes..."
+                            />
+                        </div>
+
+                        {/* CONFIGURACIÓN AVANZADA KB */}
+                        <div className="advanced-kb-config p-3 border rounded bg-light">
+                            <h4 className="small fw-bold mb-3"><i className="bi bi-sliders me-1"></i> Configuración avanzada del retrieval</h4>
+                            <div className="row g-3">
+                                <div className="col-md-6">
+                                    <label className="small fw-bold d-block mb-1">Fragmentos (Chunks): {retrievalChunks}</label>
+                                    <input
+                                        type="range"
+                                        className="form-range"
+                                        min="1" max="10" step="1"
+                                        value={retrievalChunks}
+                                        onChange={(e) => updateField('retrievalChunks', parseInt(e.target.value))}
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="small fw-bold d-block mb-1">Umbral Similitud: {similarityThreshold}</label>
+                                    <input
+                                        type="range"
+                                        className="form-range"
+                                        min="0.1" max="1" step="0.1"
+                                        value={similarityThreshold}
+                                        onChange={(e) => updateField('similarityThreshold', parseFloat(e.target.value))}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="wizard-actions mt-5">
                         <button type="button" className="btn btn-secondary" onClick={prevStep}>
                             <i className="bi bi-arrow-left"></i> Anterior
                         </button>
-                        <button type="submit" className="btn btn-primary" disabled={!model || !prompt}>
+                        <button type="submit" className="btn btn-primary">
                             Siguiente paso <i className="bi bi-arrow-right"></i>
                         </button>
                     </div>
                 </form>
             </div>
+
+            <style jsx>{`
+                .personality-pill {
+                    display: block;
+                    padding: 8px 12px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    background: white;
+                }
+                .personality-pill:hover {
+                    background: #f8fafc;
+                    border-color: #cbd5e1;
+                }
+                .personality-pill.active {
+                    background: var(--netelip-azul);
+                    color: white;
+                    border-color: var(--netelip-azul);
+                }
+                .tone-selector {
+                    display: flex;
+                    gap: 8px;
+                    background: #f1f5f9;
+                    padding: 4px;
+                    border-radius: 8px;
+                }
+                .tone-btn {
+                    flex: 1;
+                    padding: 6px 12px;
+                    border: none;
+                    background: transparent;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .tone-btn.active {
+                    background: white;
+                    color: var(--netelip-azul);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    font-weight: 600;
+                }
+                .bg-light-blue {
+                    background-color: #f0f9ff;
+                    color: #0369a1;
+                }
+                .animate-fade-in {
+                    animation: fadeIn 0.3s ease-out;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </div>
     );
 };
