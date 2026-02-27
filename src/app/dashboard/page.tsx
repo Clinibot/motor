@@ -85,12 +85,6 @@ export default function DashboardPage() {
 
             setUser(profile ?? { full_name: session.user.email ?? null, email: session.user.email ?? null, role: 'user', workspace_id: null });
 
-            // Superadmin: redirect to admin panel
-            if (profile?.role === 'superadmin') {
-                router.push('/admin');
-                return;
-            }
-
             // Load agents for this workspace
             if (profile?.workspace_id) {
                 const { data: agentList } = await supabase
