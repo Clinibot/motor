@@ -16,21 +16,20 @@ interface Voice {
 
 const VOICES_DATA: Voice[] = [
     // Español
-    { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España', previewUrl: 'https://cdn.openai.com/api/audio/voices/alloy.wav' },
-    { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable', previewUrl: 'https://cdn.openai.com/api/audio/voices/fable.wav' },
-    { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
-    // Cartesia
-    { id: 'cartesia-Elena', name: 'Elena', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Voz madura y profesional (Cartesia)' },
-    { id: 'cartesia-Isabel', name: 'Isabel', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Voz femenina natural (Cartesia)' },
-    { id: 'cartesia-Manuel', name: 'Manuel', provider: 'cartesia', language: 'es', gender: 'male', accent: 'spain', description: 'Voz masculina madura (Cartesia)' },
+    { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/adrian.mp3' },
+    { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/fable.mp3' },
+    { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/shimmer.mp3' },
+    { id: 'openai-Nova', name: 'Isabela', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz profesional y articulada', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/nova.mp3' },
+    { id: 'cartesia-Elena', name: 'Elena (Beta)', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Voz suave para atención al cliente', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/shimmer.mp3' },
+    { id: 'cartesia-Isabel', name: 'Isabel (Beta)', provider: 'cartesia', language: 'es', gender: 'female', accent: 'latam', description: 'Voz clara y jovial', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/nova.mp3' },
+    { id: 'cartesia-Manuel', name: 'Manuel (Beta)', provider: 'cartesia', language: 'es', gender: 'male', accent: 'spain', description: 'Voz confiable y segura', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/fable.mp3' },
+
     // Inglés
-    { id: 'openai-Nova', name: 'Rachel', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Professional American voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/nova.wav' },
-    { id: 'openai-Onyx', name: 'George', provider: 'retell', language: 'en', gender: 'male', accent: 'uk', description: 'British professional voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/onyx.wav' },
-    { id: 'openai-Alloy', name: 'Charlotte', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Clear and pleasant voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/alloy.wav' },
-    { id: 'openai-Echo', name: 'Charlie', provider: 'retell', language: 'en', gender: 'male', accent: 'usa', description: 'Young American male voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/echo.wav' },
+    { id: '11labs-Adrian', name: 'Thomas', provider: 'retell', language: 'en', gender: 'male', accent: 'american', description: 'Clear American deep voice', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/adrian.mp3' },
+    { id: 'openai-Shimmer', name: 'Charlie', provider: 'retell', language: 'en', gender: 'female', accent: 'american', description: 'Warm and professional', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/shimmer.mp3' },
+
     // Francés
-    { id: 'openai-Echo', name: 'Thomas', provider: 'retell', language: 'fr', gender: 'male', accent: 'france', description: 'Voix française professionnelle', previewUrl: 'https://cdn.openai.com/api/audio/voices/echo.wav' },
-    { id: 'openai-Shimmer', name: 'Marie', provider: 'retell', language: 'fr', gender: 'female', accent: 'france', description: 'Voix douce et élégante', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
+    { id: 'openai-Fable', name: 'Pierre', provider: 'retell', language: 'fr', gender: 'male', accent: 'french', description: 'Voz elegante de París', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/fable.mp3' },
 ];
 
 export const Step3_Voice: React.FC = () => {
@@ -41,6 +40,16 @@ export const Step3_Voice: React.FC = () => {
     const [filterAccent, setFilterAccent] = useState('');
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+    // Limpieza de audio al desmontar
+    React.useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
 
     const filteredVoices = useMemo(() => {
         return VOICES_DATA.filter(v => {
@@ -66,6 +75,35 @@ export const Step3_Voice: React.FC = () => {
     const getAccentName = (accent: string) => {
         const names: Record<string, string> = { spain: 'España', latam: 'Latam', usa: 'USA', uk: 'UK', brazil: 'Brasil', france: 'Francia' };
         return names[accent] || accent;
+    };
+
+    const togglePlay = (v: Voice) => {
+        if (playingId === v.id) {
+            audioRef.current?.pause();
+            setPlayingId(null);
+            return;
+        }
+
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+
+        const previewUrl = v.previewUrl || 'https://retell-utils-public.s3.us-west-2.amazonaws.com/adrian.mp3';
+        const newAudio = new Audio(previewUrl);
+
+        newAudio.onplay = () => setPlayingId(v.id);
+        newAudio.onended = () => setPlayingId(null);
+        newAudio.onpause = () => setPlayingId(null);
+        newAudio.onerror = (e) => {
+            console.error("Error playing audio preview:", e);
+            setPlayingId(null);
+        };
+
+        audioRef.current = newAudio;
+        newAudio.play().catch(err => {
+            console.error("Audio playback error:", err);
+            setPlayingId(null);
+        });
     };
 
     return (
@@ -128,7 +166,7 @@ export const Step3_Voice: React.FC = () => {
                     <div className="voices-grid">
                         {filteredVoices.map((v) => (
                             <div
-                                key={v.id}
+                                key={`${v.id}-${v.language}`}
                                 className={`voice-card ${voiceId === v.id ? 'selected' : ''}`}
                                 onClick={() => {
                                     updateField('voiceId', v.id);
@@ -152,18 +190,7 @@ export const Step3_Voice: React.FC = () => {
                                     className="btn-play"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (audioRef.current) {
-                                            audioRef.current.pause();
-                                        }
-                                        if (playingId === v.id && !audioRef.current?.paused) {
-                                            setPlayingId(null);
-                                            return;
-                                        }
-                                        const newAudio = new Audio(v.previewUrl || 'https://actions.google.com/sounds/v1/speech/text_to_speech_chime.ogg');
-                                        audioRef.current = newAudio;
-                                        newAudio.play();
-                                        setPlayingId(v.id);
-                                        newAudio.onended = () => setPlayingId(null);
+                                        togglePlay(v);
                                     }}
                                 >
                                     {playingId === v.id ? (
