@@ -182,6 +182,10 @@ export const Step7_Tools: React.FC = () => {
                                 onChange={(e) => updateField('enableCustomTools', e.target.checked)}
                             />
                             <div style={{ flex: 1 }}>
+                                <label htmlFor="enableCustomTools" style={{ fontWeight: 700, fontSize: '16px', cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    Añadir herramienta personalizada
+                                </label>
+                                <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Define webhooks o APIs externas para que el agente consulte durante la llamada</p>
                             </div>
                         </div>
 
@@ -244,8 +248,8 @@ export const Step7_Tools: React.FC = () => {
                                                 />
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '24px' }}>
-                                            <div className="form-check custom-check mb-0">
+                                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                                            <div className="form-check custom-check mb-0" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <input
                                                     className="form-check-input" type="checkbox" id={`speakDuring_${idx}`}
                                                     checked={tool.speakDuring}
@@ -254,12 +258,13 @@ export const Step7_Tools: React.FC = () => {
                                                         newTools[idx].speakDuring = e.target.checked;
                                                         updateField('customTools', newTools);
                                                     }}
+                                                    style={{ marginTop: 0 }}
                                                 />
-                                                <label className="form-check-label small" htmlFor={`speakDuring_${idx}`}>
+                                                <label className="form-check-label small" htmlFor={`speakDuring_${idx}`} style={{ cursor: 'pointer' }}>
                                                     Agente habla mientras consulta
                                                 </label>
                                             </div>
-                                            <div className="form-check custom-check mb-0">
+                                            <div className="form-check custom-check mb-0" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <input
                                                     className="form-check-input" type="checkbox" id={`speakAfter_${idx}`}
                                                     checked={tool.speakAfter}
@@ -268,8 +273,9 @@ export const Step7_Tools: React.FC = () => {
                                                         newTools[idx].speakAfter = e.target.checked;
                                                         updateField('customTools', newTools);
                                                     }}
+                                                    style={{ marginTop: 0 }}
                                                 />
-                                                <label className="form-check-label small" htmlFor={`speakAfter_${idx}`}>
+                                                <label className="form-check-label small" htmlFor={`speakAfter_${idx}`} style={{ cursor: 'pointer' }}>
                                                     Agente habla al terminar
                                                 </label>
                                             </div>
