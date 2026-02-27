@@ -149,28 +149,9 @@ export async function POST(request: Request) {
             finalVoiceId = cartesiaMapping[finalVoiceId];
         }
 
-        // Si es una voz ElevenLabs externa (no built-in), intentar importarla.
-        // Si falla, usar la voz de fallback.
-        if (finalVoiceId.startsWith('11labs-') && finalVoiceId !== '11labs-Adrian') {
-            try {
-                const voiceProviderId = finalVoiceId.replace('11labs-', '');
-                console.log(`Importing ElevenLabs voice ${voiceProviderId}...`);
-                await retellClient.voice.addResource({
-                    provider_voice_id: voiceProviderId,
-                    voice_name: payload.voiceName || 'Custom Voice',
-                    voice_provider: 'elevenlabs'
-                });
-                console.log(`ElevenLabs voice imported successfully.`);
-            } catch (err: unknown) {
-                // Si ya existe (409) continúa, si no (404/error) hace fallback a Adrian
-                const errMsg = err instanceof Error ? err.message : String(err);
-                if (errMsg.includes('409') || errMsg.toLowerCase().includes('already')) {
-                    console.log(`Voice already imported, proceeding.`);
-                } else {
-                    console.log(`Voice import failed (${errMsg}), falling back to 11labs-Adrian.`);
-                    finalVoiceId = '11labs-Adrian';
-                }
-            }
+        // Si la voz elegida ya no existe o es problemática por ID externo, forzamos Adrián
+        if (finalVoiceId.includes('11labs-') && finalVoiceId !== '11labs-Adrian') {
+            finalVoiceId = '11labs-Adrian';
         }
 
 

@@ -16,7 +16,6 @@ interface Voice {
 
 const VOICES_DATA: Voice[] = [
     // Español
-    { id: '11labs-UOIqAnmS11Reiei1Ytkc', name: 'Carolina', provider: 'elevenlabs', language: 'es', gender: 'female', accent: 'spain', description: 'Voz dulce y natural de España', previewUrl: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/UOIqAnmS11Reiei1Ytkc/df6788f9-5c96-470d-8312-e5223fe8009f.mp3' },
     { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España', previewUrl: 'https://cdn.openai.com/api/audio/voices/alloy.wav' },
     { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable', previewUrl: 'https://cdn.openai.com/api/audio/voices/fable.wav' },
     { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
