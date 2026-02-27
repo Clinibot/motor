@@ -355,7 +355,7 @@ export const Step8_Summary: React.FC = () => {
                     <SummaryCard icon="bi-info-circle-fill" color="#267ab0" title="Paso 1: Información básica" step={1} onEdit={setStep}>
                         <SummaryRow label="Nombre del agente" value={wizardData.agentName || '—'} />
                         <SummaryRow label="Tipo de agente" value={getAgentTypeName(wizardData.agentType)} />
-                        <SummaryRow label="Nombre del agente" value={wizardData.agentName || '—'} last />
+                        <SummaryRow label="Empresa" value={wizardData.companyName || '—'} last />
                     </SummaryCard>
 
                     {/* Paso 2 */}
