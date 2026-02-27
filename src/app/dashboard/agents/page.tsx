@@ -115,11 +115,11 @@ export default function AgentsPage() {
                     }),
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
                 const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `Error HTTP: ${response.status}`);
+                }
 
                 if (data.success && data.access_token) {
                     await retellWebClient.startCall({ accessToken: data.access_token });
@@ -129,7 +129,7 @@ export default function AgentsPage() {
             } catch (error) {
                 console.error("Error starting call:", error);
                 setCallStatus("inactive");
-                alert("Error al iniciar la llamada. Por favor intenta de nuevo.");
+                alert(`Error al iniciar la llamada: ${error instanceof Error ? error.message : 'Error desconocido'}`);
             }
         }
     };
