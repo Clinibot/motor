@@ -12,6 +12,7 @@ export const Step8_Summary: React.FC = () => {
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(false);
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
@@ -83,6 +84,30 @@ ${wizardData.agentType === 'transferencia' ? `
 3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural.
 `}
 
+${wizardData.enableTransfer && wizardData.transferDestinations.length > 0 ? `
+### Política de Transferencias
+Puedes transferir la llamada si el usuario lo solicita explícitamente o si no puedes resolver el problema.
+Destinos disponibles:
+${wizardData.transferDestinations.map(d => `- **${d.name}**: ${d.description || 'Soporte especializado'} (usa la herramienta transfer_call a ${d.number})`).join('\n')}
+` : ''}
+
+${wizardData.extractionVariables.length > 0 ? `
+### Datos a Extraer
+Asegúrate de conseguir la siguiente información durante la conversación de forma conversacional:
+${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.description}`).join('\n')}
+` : ''}
+
+${wizardData.enableCustomTools && wizardData.customTools.length > 0 ? `
+### API y Herramientas Externas
+Tienes acceso a las siguientes herramientas personalizadas. Úsalas cuando la conversación lo requiera:
+${wizardData.customTools.map(t => `- **${t.name}**: ${t.description}`).join('\n')}
+` : ''}
+
+${wizardData.enableCalBooking ? `
+### Agendamiento Autónomo (Cal.com)
+Tienes acceso a tu calendario para reservar citas de los clientes en base a sus disponibilidades. Úsalo siempre que sugieran una reunión.
+` : ''}
+
 ### Despedida
 Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete cordialmente.
 
@@ -100,12 +125,13 @@ ${wizardData.kbUsageInstructions || 'Usa la información de tus documentos subid
 ${formattedHours}
 
 # Reglas de Terminación
-Si el usuario se despide o no necesita nada más, usa la herramienta 'end_call' inmediatamente.
+Si el usuario se despide o no necesita nada más, despídete y usa la herramienta 'end_call' inmediatamente.
 `;
 
         setTimeout(() => {
             updateField('prompt', baseInstructions);
             setIsGenerating(false);
+            setHasGeneratedPrompt(true);
         }, 1500);
     };
 
@@ -270,20 +296,22 @@ Si el usuario se despide o no necesita nada más, usa la herramienta 'end_call' 
                         </p>
                     </div>
 
-                    <div className="form-group mb-5">
-                        <label className="form-label d-flex justify-content-between align-items-center">
-                            <span>Prompt Maestro del Agente</span>
-                            {wizardData.prompt && <span className="small text-success fw-bold"><i className="bi bi-check-lg"></i> Listo para revisión</span>}
-                        </label>
-                        <textarea
-                            className="form-control bg-light"
-                            rows={15}
-                            value={wizardData.prompt}
-                            onChange={(e) => updateField('prompt', e.target.value)}
-                            placeholder="Haz clic en el botón superior para generar las instrucciones..."
-                            style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.6' }}
-                        />
-                    </div>
+                    {hasGeneratedPrompt && (
+                        <div className="form-group mb-5 mt-4">
+                            <label className="form-label d-flex justify-content-between align-items-center">
+                                <span>Prompt Maestro del Agente</span>
+                                {wizardData.prompt && <span className="small text-success fw-bold"><i className="bi bi-check-lg"></i> Listo para revisión</span>}
+                            </label>
+                            <textarea
+                                className="form-control bg-light"
+                                rows={15}
+                                value={wizardData.prompt}
+                                onChange={(e) => updateField('prompt', e.target.value)}
+                                placeholder="Haz clic en el botón superior para generar las instrucciones..."
+                                style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.6' }}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="d-flex gap-3 pt-4">
