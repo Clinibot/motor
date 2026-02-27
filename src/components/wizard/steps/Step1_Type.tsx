@@ -21,7 +21,7 @@ export const Step1_Type: React.FC = () => {
                         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--oscuro)', marginBottom: '8px' }}>
                             Información básica del agente
                         </h2>
-                        <p style={{ fontSize: '14px', color: 'var(--gris-texto)', marginBottom: '32px', line-height: '1.6' }}>
+                        <p style={{ fontSize: '14px', color: 'var(--gris-texto)', marginBottom: '32px', lineHeight: '1.6' }}>
                             Empecemos con los datos fundamentales. Esta información personaliza todo el comportamiento de tu agente.
                         </p>
 
@@ -98,7 +98,7 @@ export const Step1_Type: React.FC = () => {
                         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--oscuro)', marginBottom: '8px' }}>
                             ¿Qué tipo de agente necesitas?
                         </h2>
-                        <p style={{ fontSize: '14px', color: 'var(--gris-texto)', marginBottom: '32px', line-height: '1.6' }}>
+                        <p style={{ fontSize: '14px', color: 'var(--gris-texto)', marginBottom: '32px', lineHeight: '1.6' }}>
                             Selecciona el tipo de agente según la función principal que necesites. Cada uno tiene capacidades optimizadas para su propósito.
                         </p>
 
@@ -110,9 +110,9 @@ export const Step1_Type: React.FC = () => {
                             >
                                 <div className="agent-type-icon">
                                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M3 5C3 3.89543 3.89543 3 5 3H8.27924C8.70967 3 9.09181 3.27543 9.22792 3.68377L10.7257 8.17721C10.8831 8.64932 10.6694 9.16531 10.2243 9.38787L7.96701 10.5165C9.06925 12.9612 11.0388 14.9308 13.4835 16.033L14.6121 13.7757C14.8347 13.3306 15.3507 13.1169 15.8228 13.2743L20.3162 14.7721C20.7246 14.9082 21 15.2903 21 15.7208V19C21 20.1046 20.1046 21 19 21H18C9.71573 21 3 14.2843 3 6V5Z" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M14 3L16 5L14 7" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M20 3L18 5L20 7" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M3 5C3 3.89543 3.89543 3 5 3H8.27924C8.70967 3 9.09181 3.27543 9.22792 3.68377L10.7257 8.17721C10.8831 8.64932 10.6694 9.16531 10.2243 9.38787L7.96701 10.5165C9.06925 12.9612 11.0388 14.9308 13.4835 16.033L14.6121 13.7757C14.8347 13.3306 15.3507 13.1169 15.8228 13.2743L20.3162 14.7721C20.7246 14.9082 21 15.2903 21 15.7208V19C21 20.1046 20.1046 21 19 21H18C9.71573 21 3 14.2843 3 6V5Z" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M14 3L16 5L14 7" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M20 3L18 5L20 7" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </div>
                                 <div className="agent-type-name">Transferencia de llamadas</div>
@@ -135,12 +135,12 @@ export const Step1_Type: React.FC = () => {
                             >
                                 <div className="agent-type-icon">
                                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect x="3" y="6" width="18" height="15" rx="2" stroke="#267ab0" strokeWidth="1.5"/>
-                                        <path d="M3 10H21" stroke="#267ab0" strokeWidth="1.5"/>
-                                        <path d="M7 3V6M17 3V6" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round"/>
-                                        <circle cx="9" cy="14" r="1" fill="#267ab0"/>
-                                        <circle cx="15" cy="14" r="1" fill="#267ab0"/>
-                                        <circle cx="12" cy="17" r="1" fill="#267ab0"/>
+                                        <rect x="3" y="6" width="18" height="15" rx="2" stroke="#267ab0" strokeWidth="1.5" />
+                                        <path d="M3 10H21" stroke="#267ab0" strokeWidth="1.5" />
+                                        <path d="M7 3V6M17 3V6" stroke="#267ab0" strokeWidth="1.5" strokeLinecap="round" />
+                                        <circle cx="9" cy="14" r="1" fill="#267ab0" />
+                                        <circle cx="15" cy="14" r="1" fill="#267ab0" />
+                                        <circle cx="12" cy="17" r="1" fill="#267ab0" />
                                     </svg>
                                 </div>
                                 <div className="agent-type-name">Agendamiento de citas</div>
@@ -163,9 +163,9 @@ export const Step1_Type: React.FC = () => {
                             >
                                 <div className="agent-type-icon">
                                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" stroke="#267ab0" strokeWidth="1.5"/>
-                                        <path d="M12 11V12M12 15H12.01" stroke="#267ab0" strokeWidth="2" strokeLinecap="round"/>
-                                        <circle cx="12" cy="8" r="1.5" fill="#267ab0"/>
+                                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" stroke="#267ab0" strokeWidth="1.5" />
+                                        <path d="M12 11V12M12 15H12.01" stroke="#267ab0" strokeWidth="2" strokeLinecap="round" />
+                                        <circle cx="12" cy="8" r="1.5" fill="#267ab0" />
                                     </svg>
                                 </div>
                                 <div className="agent-type-name">Cualificación y atención</div>
@@ -186,8 +186,8 @@ export const Step1_Type: React.FC = () => {
                                 <div className="coming-soon-badge">Próximamente</div>
                                 <div className="agent-type-icon" style={{ opacity: 0.5 }}>
                                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M3 5C3 3.89543 3.89543 3 5 3H8.27924C8.70967 3 9.09181 3.27543 9.22792 3.68377L10.7257 8.17721C10.8831 8.64932 10.6694 9.16531 10.2243 9.38787L7.96701 10.5165C9.06925 12.9612 11.0388 14.9308 13.4835 16.033L14.6121 13.7757C14.8347 13.3306 15.3507 13.1169 15.8228 13.2743L20.3162 14.7721C20.7246 14.9082 21 15.2903 21 15.7208V19C21 20.1046 20.1046 21 19 21H18C9.71573 21 3 14.2843 3 6V5Z" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M16 3L21 8M21 3L16 8" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M3 5C3 3.89543 3.89543 3 5 3H8.27924C8.70967 3 9.09181 3.27543 9.22792 3.68377L10.7257 8.17721C10.8831 8.64932 10.6694 9.16531 10.2243 9.38787L7.96701 10.5165C9.06925 12.9612 11.0388 14.9308 13.4835 16.033L14.6121 13.7757C14.8347 13.3306 15.3507 13.1169 15.8228 13.2743L20.3162 14.7721C20.7246 14.9082 21 15.2903 21 15.7208V19C21 20.1046 20.1046 21 19 21H18C9.71573 21 3 14.2843 3 6V5Z" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M16 3L21 8M21 3L16 8" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </div>
                                 <div className="agent-type-name" style={{ color: '#6c757d' }}>Campañas Outbound</div>
@@ -229,7 +229,7 @@ export const Step1_Type: React.FC = () => {
                 </form >
             </div >
 
-    <style jsx>{`
+            <style jsx>{`
                 .agent-types-grid {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

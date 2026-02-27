@@ -37,7 +37,7 @@ export interface WizardState {
     // Knowledge Base (Moved to Step 2)
     kbFiles: { name: string; size: string; type: string }[];
     kbUsageInstructions: string;
-    kbRetrievalChars: number;
+    kbRetrievalChunks: number;
     kbSimilarityThreshold: number;
 
     // Step 2: LLM Config
@@ -140,7 +140,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     ],
     kbFiles: [],
     kbUsageInstructions: '',
-    kbRetrievalChars: 3,
+    kbRetrievalChunks: 3,
     kbSimilarityThreshold: 0.7,
 
     model: 'gpt-4.1',
@@ -238,7 +238,7 @@ export const useWizardStore = create<WizardState>((set) => ({
             { day: 'Sábado', open: '09:00', close: '14:00', closed: true },
             { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
         ],
-        kbFiles: [], kbUsageInstructions: '', kbRetrievalChars: 3, kbSimilarityThreshold: 0.7,
+        kbFiles: [], kbUsageInstructions: '', kbRetrievalChunks: 3, kbSimilarityThreshold: 0.7,
         currentStep: 1
     })
 }));
