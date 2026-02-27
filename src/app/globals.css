@@ -1004,63 +1004,74 @@ select.form-control {
   font-weight: 600;
 }
 
-/* ===== RADIO PILL BUTTONS ===== */
+/* ===== RADIO / CHECKBOX CARD BUTTONS ===== */
 .radio-pill-group {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .radio-pill-group-grid {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
+/* Botón tipo card rectangular (Tono / Quién habla primero) */
 .pill-btn {
-  padding: 9px 20px;
-  border: 2px solid var(--gris-borde);
-  border-radius: 50px;
+  flex: 1;
+  min-width: 100px;
+  padding: 14px 20px;
+  border: 1.5px solid var(--gris-borde);
+  border-radius: 8px;
   background: white;
-  color: var(--gris-texto);
+  color: var(--oscuro);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  text-align: center;
 }
 
 .pill-btn:hover {
   border-color: var(--netelip-azul);
   color: var(--netelip-azul);
+  background: #f0f7ff;
 }
 
 .pill-btn.active {
-  background: var(--netelip-azul);
+  background: #eff6ff;
   border-color: var(--netelip-azul);
-  color: white;
+  border-width: 2px;
+  color: var(--netelip-azul);
 }
 
+/* Botón tipo card rectangular (Personalidad — grid 4 columnas) */
 .pill-btn-small {
-  padding: 6px 16px;
-  border: 2px solid var(--gris-borde);
-  border-radius: 50px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--gris-borde);
+  border-radius: 8px;
   background: white;
-  color: var(--gris-texto);
-  font-size: 13px;
+  color: var(--oscuro);
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  text-align: center;
+  width: 100%;
 }
 
 .pill-btn-small:hover {
   border-color: var(--netelip-azul);
   color: var(--netelip-azul);
+  background: #f0f7ff;
 }
 
 .pill-btn-small.active {
-  background: var(--netelip-azul);
+  background: #eff6ff;
   border-color: var(--netelip-azul);
-  color: white;
+  border-width: 2px;
+  color: var(--netelip-azul);
 }
 
 /* ===== START MESSAGE AREA ===== */
