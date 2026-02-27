@@ -105,12 +105,28 @@ export async function POST(request: Request) {
 
         const llmResponse = await retellClient.llm.create(llmCreateParams);
 
+        // 6.5 Import Voice if it's the external ElevenLabs one (Carolina)
+        const finalVoiceId = payload.voiceId || "11labs-Adrian";
+        if (finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
+            try {
+                console.log(`Ensuring Carolina ElevenLabs voice (UOIqAnmS11Reiei1Ytkc) is imported...`);
+                await retellClient.voice.addResource({
+                    provider_voice_id: 'UOIqAnmS11Reiei1Ytkc',
+                    voice_name: 'Carolina',
+                    voice_provider: 'elevenlabs'
+                });
+            } catch (err: unknown) {
+                // If it already exists, Retell might throw a 400 or 409 error. We can safely ignore it.
+                console.log(`AddResource notice (likely already imported):`, err instanceof Error ? err.message : String(err));
+            }
+        }
+
         // 7. Create the Voice Agent in Retell
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
         const agentResponse = await retellClient.agent.create({
             response_engine: { type: "retell-llm", llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
-            voice_id: payload.voiceId || "11labs-Adrian",
+            voice_id: finalVoiceId,
             language: payload.language || "es-ES",
             responsiveness: payload.responsiveness || 1,
             enable_backchannel: payload.enableBackchannel || false,
