@@ -314,6 +314,12 @@ export default function DashboardPage() {
                             <h1>Dashboard principal</h1>
                         </div>
                         <div className="topbar-right">
+                            <Link href="/wizard" className="btn-primary">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                </svg>
+                                Crear nuevo agente
+                            </Link>
                             <div className="balance">
                                 <span>Balance:</span>
                                 <span className="balance-amount">€{totalCost.toFixed(2)}</span>
@@ -431,12 +437,6 @@ export default function DashboardPage() {
                                                 </svg>
                                                 Exportar
                                             </button>
-                                            <Link href="/wizard" className="btn-primary">
-                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                                                </svg>
-                                                Crear nuevo agente
-                                            </Link>
                                         </div>
                                     </div>
                                     {calls.length === 0 ? (
