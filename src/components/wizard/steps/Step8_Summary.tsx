@@ -297,12 +297,22 @@ Si el usuario se despide o no necesita nada más, usa la herramienta 'end_call' 
                     </button>
                     <button
                         type="button"
-                        className="btn btn-lg btn-success flex-grow-1"
+                        className="btn btn-lg flex-grow-1"
                         onClick={handleCreateAgent}
                         disabled={isCreating || !wizardData.prompt}
-                        style={{ fontWeight: 700, background: 'var(--netelip-verde)', border: 'none' }}
+                        style={{
+                            fontWeight: 700,
+                            background: 'var(--netelip-azul)',
+                            color: 'white',
+                            border: 'none',
+                            boxShadow: '0 4px 12px rgba(38, 122, 176, 0.25)'
+                        }}
                     >
-                        {isCreating ? 'Finalizando...' : 'Crear Agente IA Ahora'}
+                        {isCreating ? (
+                            <><span className="spinner-border spinner-border-sm me-2"></span> Finalizando...</>
+                        ) : (
+                            <><i className="bi bi-robot me-2"></i> Crear Agente IA Ahora</>
+                        )}
                     </button>
                 </div>
             </div>
