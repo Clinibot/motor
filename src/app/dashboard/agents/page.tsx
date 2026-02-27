@@ -4,6 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
+import { RetellWebClient } from "retell-client-js-sdk";
+
+const retellWebClient = new RetellWebClient();
 
 interface Agent {
     id: string;
@@ -28,6 +31,10 @@ export default function AgentsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
+    // Testing State
+    const [testAgent, setTestAgent] = useState<Agent | null>(null);
+    const [callStatus, setCallStatus] = useState<"inactive" | "active" | "connecting">("inactive");
+
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -42,7 +49,6 @@ export default function AgentsPage() {
             let currentWorkspaceId = profile?.workspace_id;
 
             if (profile && !currentWorkspaceId && profile.role !== 'superadmin') {
-                // Try to auto-assign a free workspace
                 try {
                     const assignRes = await fetch('/api/admin/workspaces/auto-assign', { method: 'POST' });
                     const assignData = await assignRes.json();
@@ -71,6 +77,62 @@ export default function AgentsPage() {
     }, [router]);
 
     useEffect(() => { loadData(); }, [loadData]);
+
+    // Retell Event Listeners Setup
+    useEffect(() => {
+        retellWebClient.on("call_started", () => setCallStatus("active"));
+        retellWebClient.on("call_ended", () => setCallStatus("inactive"));
+        retellWebClient.on("agent_start_talking", () => console.log("Agent started talking"));
+        retellWebClient.on("agent_stop_talking", () => console.log("Agent stopped talking"));
+        retellWebClient.on("error", (error) => {
+            console.error("Retell Web Client error:", error);
+            setCallStatus("inactive");
+            retellWebClient.stopCall();
+            alert("Ocurrió un error en la llamada. Por favor intenta nuevamente.");
+        });
+
+        // Cleanup
+        return () => {
+            retellWebClient.stopCall();
+        };
+    }, []);
+
+    const toggleCall = async () => {
+        if (!testAgent || !user?.workspace_id) return;
+
+        if (callStatus === "active" || callStatus === "connecting") {
+            retellWebClient.stopCall();
+            setCallStatus("inactive");
+        } else {
+            try {
+                setCallStatus("connecting");
+                const response = await fetch("/api/retell/web-call", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        agent_id: testAgent.retell_agent_id,
+                        workspace_id: user.workspace_id
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.access_token) {
+                    await retellWebClient.startCall({ accessToken: data.access_token });
+                } else {
+                    throw new Error(data.error || "Failed to get access token");
+                }
+            } catch (error) {
+                console.error("Error starting call:", error);
+                setCallStatus("inactive");
+                alert("Error al iniciar la llamada. Por favor intenta de nuevo.");
+            }
+        }
+    };
 
     const handleLogout = async () => {
         const supabase = createClient();
@@ -158,6 +220,26 @@ export default function AgentsPage() {
                 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
                 .empty-state{padding:80px 40px;text-align:center;color:#6b7280;background:#fff;border-radius:12px;border:1px dashed #d1d5db}
                 .empty-icon{font-size:48px;color:#9ca3af;margin-bottom:16px}
+                .btn-test{flex:1;padding:8px;border:1px solid #e5e7eb;background:#267ab0;border-radius:8px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+                .btn-test:hover{background:#1e5a87;border-color:#1e5a87}
+                .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+                .modal-content{background:#fff;border-radius:24px;width:100%;max-width:480px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);overflow:hidden;animation:modal-enter 0.3s cubic-bezier(0.16,1,0.3,1)}
+                .modal-header{padding:24px 32px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;background:#f9fafb}
+                .modal-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#f3f4f6;border:none;cursor:pointer;color:#6b7280;transition:all .2s}
+                .modal-close:hover{background:#e5e7eb;color:#1a1a1a}
+                .modal-body{padding:40px 32px;display:flex;flex-direction:column;align-items:center;text-align:center}
+                .voice-waves{width:120px;height:120px;border-radius:50%;background:#eff6fb;display:flex;align-items:center;justify-content:center;margin-bottom:24px;position:relative}
+                .voice-waves.active::before,.voice-waves.active::after{content:'';position:absolute;inset:-10px;border-radius:50%;border:2px solid #267ab0;animation:ripple 2s linear infinite;opacity:0}
+                .voice-waves.active::after{animation-delay:1s}
+                .voice-waves svg{width:48px;height:48px;color:#267ab0}
+                @keyframes ripple{0%{transform:scale(0.8);opacity:0.5}100%{transform:scale(1.5);opacity:0}}
+                @keyframes modal-enter{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+                .call-btn{width:100%;padding:16px;border-radius:16px;border:none;font-size:16px;font-weight:600;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:32px;transition:all .2s}
+                .call-btn.start{background:#16a34a}
+                .call-btn.start:hover{background:#15803d;transform:translateY(-1px);box-shadow:0 10px 15px -3px rgba(22,163,74,0.3)}
+                .call-btn.stop{background:#ef4444}
+                .call-btn.stop:hover{background:#dc2626;transform:translateY(-1px);box-shadow:0 10px 15px -3px rgba(239,68,68,0.3)}
+                .call-btn.connecting{background:#ca8a04;cursor:wait;opacity:0.8}
             `}</style>
 
             {/* SIDEBAR */}
@@ -272,8 +354,18 @@ export default function AgentsPage() {
                                     </div>
 
                                     <div className="agent-actions">
-                                        <Link href={`/wizard?editId=${agent.id}`} className="btn-edit">
-                                            Editar Configuración
+                                        <button className="btn-test" onClick={() => setTestAgent(agent)}>
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Probar
+                                        </button>
+                                        <Link href={`/wizard?editId=${agent.id}`} className="btn-edit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ marginRight: '6px' }}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                            Editar
                                         </Link>
                                         <button
                                             className="btn-delete"
@@ -296,6 +388,65 @@ export default function AgentsPage() {
                     )}
                 </div>
             </main>
+
+            {/* Test Modal Overlay */}
+            {testAgent && (
+                <div className="modal-overlay" onClick={() => { if (callStatus === 'inactive') setTestAgent(null) }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div>
+                                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>{testAgent.name}</h3>
+                                <p style={{ fontSize: '13px', color: '#6b7280', margin: '4px 0 0 0' }}>Prueba de agente por voz</p>
+                            </div>
+                            {callStatus === "inactive" && (
+                                <button className="modal-close" onClick={() => setTestAgent(null)}>
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="modal-body">
+                            <div className={`voice-waves ${callStatus === "active" ? "active" : ""}`}>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                                </svg>
+                            </div>
+
+                            <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', maxWidth: '300px' }}>
+                                {callStatus === "inactive" ? "Pulsa el botón de abajo, autoriza el uso de tu micrófono y empieza a hablar con tu agente." :
+                                    callStatus === "connecting" ? "Estableciendo conexión segura..." :
+                                        "Escuchando y respondiendo..."}
+                            </p>
+
+                            <button
+                                className={`call-btn ${callStatus === "inactive" ? "start" : callStatus === "active" ? "stop" : "connecting"}`}
+                                onClick={toggleCall}
+                                disabled={callStatus === "connecting"}
+                            >
+                                {callStatus === "inactive" ? (
+                                    <>
+                                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                        </svg>
+                                        Iniciar llamada
+                                    </>
+                                ) : callStatus === "active" ? (
+                                    <>
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 8v8H8V8h8z" />
+                                        </svg>
+                                        Finalizar llamada
+                                    </>
+                                ) : (
+                                    <>Conectando...</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
