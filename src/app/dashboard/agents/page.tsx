@@ -176,7 +176,7 @@ export default function AgentsPage() {
     };
 
     return (
-        <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <style>{`
                 *{margin:0;padding:0;box-sizing:border-box}
                 body{font-family:'Inter',-apple-system,sans-serif;background:#f5f5f5;color:#1a1a1a}
