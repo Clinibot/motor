@@ -355,7 +355,7 @@ export const Step8_Summary: React.FC = () => {
                     <SummaryCard icon="bi-info-circle-fill" color="#267ab0" title="Paso 1: Información básica" step={1} onEdit={setStep}>
                         <SummaryRow label="Nombre del agente" value={wizardData.agentName || '—'} />
                         <SummaryRow label="Tipo de agente" value={getAgentTypeName(wizardData.agentType)} />
-                        <SummaryRow label="Sector" value={wizardData.industry || '—'} last />
+                        <SummaryRow label="Nombre del agente" value={wizardData.agentName || '—'} last />
                     </SummaryCard>
 
                     {/* Paso 2 */}
@@ -387,8 +387,8 @@ export const Step8_Summary: React.FC = () => {
 
                     {/* Paso 6 */}
                     <SummaryCard icon="bi-clock-fill" color="#f59e0b" title="Paso 6: Tiempos" step={6} onEdit={setStep}>
-                        <SummaryRow label="Tiempo máx. silencio" value={`${wizardData.maxSilenceTime ?? '—'}s`} />
-                        <SummaryRow label="Tiempo máx. llamada" value={`${wizardData.maxCallDuration ?? '—'}s`} last />
+                        <SummaryRow label="Tiempo máx. silencio" value={`${Math.round((wizardData.endCallAfterSilenceMs ?? 0) / 1000)}s`} />
+                        <SummaryRow label="Tiempo máx. llamada" value={`${Math.round((wizardData.maxCallDurationMs ?? 0) / 60000)} min`} last />
                     </SummaryCard>
 
                     {/* Paso 7 Full Width */}

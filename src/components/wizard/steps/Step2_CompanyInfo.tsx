@@ -12,6 +12,7 @@ export const Step2_CompanyInfo: React.FC = () => {
     } = useWizardStore();
 
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,9 +36,11 @@ export const Step2_CompanyInfo: React.FC = () => {
         inputElement.value = '';
 
         if (kbFiles.length + files.length > 3) {
-            alert("Máximo 3 archivos permitidos en la base de conocimientos.");
+            setUploadError('Máximo 3 archivos permitidos en la base de conocimientos.');
             return;
         }
+
+        setUploadError(null);
 
         setIsUploading(true);
         const newFiles = [...kbFiles];
@@ -72,12 +75,12 @@ export const Step2_CompanyInfo: React.FC = () => {
                         type: data.type
                     });
                 } else {
-                    console.error("Upload error:", data.error);
-                    alert("Error al subir archivo " + f.name + ": " + data.error);
+                    console.error('Upload error:', data.error);
+                    setUploadError('Error al subir archivo ' + f.name + ': ' + data.error);
                 }
             } catch (error) {
-                console.error("Fetch error uploading file:", error);
-                alert("Error de conexión al subir archivo " + f.name);
+                console.error('Fetch error uploading file:', error);
+                setUploadError('Error de conexión al subir archivo ' + f.name);
             }
         }
 
@@ -238,6 +241,17 @@ export const Step2_CompanyInfo: React.FC = () => {
                                     </div>
                                 </div>
 
+                                {uploadError && (
+                                    <div style={{
+                                        background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px',
+                                        padding: '12px 16px', marginBottom: '12px', display: 'flex',
+                                        alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+                                        fontSize: '13px', color: '#ef4444', fontWeight: 500,
+                                    }}>
+                                        <span><i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '8px' }} />{uploadError}</span>
+                                        <button onClick={() => setUploadError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '16px', lineHeight: 1 }}>×</button>
+                                    </div>
+                                )}
                                 <div className={`kb-upload-area ${isUploading ? 'opacity-50' : ''}`} onClick={() => { if (!isUploading) document.getElementById('kb-upload')?.click() }}>
                                     {isUploading ? (
                                         <div className="py-3">

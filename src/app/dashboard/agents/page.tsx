@@ -34,6 +34,8 @@ export default function AgentsPage() {
     // Testing State
     const [testAgent, setTestAgent] = useState<Agent | null>(null);
     const [callStatus, setCallStatus] = useState<"inactive" | "active" | "connecting">("inactive");
+    const [callError, setCallError] = useState<string | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -88,7 +90,7 @@ export default function AgentsPage() {
             console.error("Retell Web Client error:", error);
             setCallStatus("inactive");
             retellWebClient.stopCall();
-            alert("Ocurrió un error en la llamada. Por favor intenta nuevamente.");
+            setCallError("Ocurrió un error en la llamada. Por favor intenta nuevamente.");
         });
 
         // Cleanup
@@ -129,7 +131,7 @@ export default function AgentsPage() {
             } catch (error) {
                 console.error("Error starting call:", error);
                 setCallStatus("inactive");
-                alert(`Error al iniciar la llamada: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+                setCallError(`Error al iniciar la llamada: ${error instanceof Error ? error.message : 'Error desconocido'}`);
             }
         }
     };
@@ -154,11 +156,11 @@ export default function AgentsPage() {
             if (data.success) {
                 setAgents(agents.filter(a => a.id !== id));
             } else {
-                alert(`Error: ${data.error}`);
+                setDeleteError(`Error al eliminar: ${data.error}`);
             }
         } catch (error) {
             console.error("Error deleting agent:", error);
-            alert("Ocurrió un error al intentar eliminar el agente.");
+            setDeleteError("Ocurrió un error al intentar eliminar el agente.");
         } finally {
             setIsDeletingId(null);
         }
@@ -307,7 +309,23 @@ export default function AgentsPage() {
                     </div>
                 </header>
 
-                <div className="content">
+                <div className="content" style={{ position: 'relative' }}>
+                    {deleteError && (
+                        <div style={{
+                            background: '#fff1f2', border: '1px solid #fca5a5', borderRadius: '10px',
+                            padding: '14px 20px', marginBottom: '20px', display: 'flex',
+                            alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                            fontSize: '14px', color: '#dc2626', fontWeight: 500,
+                        }}>
+                            <span>
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '8px', verticalAlign: '-2px' }}>
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                                {deleteError}
+                            </span>
+                            <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: '18px', lineHeight: 1 }}>×</button>
+                        </div>
+                    )}
                     {isLoading ? (
                         <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
                             <div className="spinner" />
@@ -414,6 +432,17 @@ export default function AgentsPage() {
                                 </svg>
                             </div>
 
+                            {callError && (
+                                <div style={{
+                                    background: '#fff1f2', border: '1px solid #fca5a5', borderRadius: '8px',
+                                    padding: '12px 16px', marginBottom: '12px', display: 'flex',
+                                    alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+                                    fontSize: '13px', color: '#dc2626', fontWeight: 500, width: '100%', textAlign: 'left',
+                                }}>
+                                    <span>{callError}</span>
+                                    <button onClick={() => setCallError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: '16px', lineHeight: 1 }}>×</button>
+                                </div>
+                            )}
                             <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', maxWidth: '300px' }}>
                                 {callStatus === "inactive" ? "Pulsa el botón de abajo, autoriza el uso de tu micrófono y empieza a hablar con tu agente." :
                                     callStatus === "connecting" ? "Estableciendo conexión segura..." :
