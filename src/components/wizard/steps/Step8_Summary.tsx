@@ -258,8 +258,9 @@ export const Step8_Summary: React.FC = () => {
 <!-- AUTO_TOOLS_START -->
 ### Política de Transferencias
 Puedes transferir si el usuario lo solicita o si no puedes resolver el problema.
-${wizardData.transferDestinations.filter(d => d.number).map(d => {
-            const toolName = `transfer_call_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent'}`;
+${wizardData.transferDestinations.filter(d => d.number).map((d, idx) => {
+            const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
+            const toolName = `transfer_call_${cleanName}_${idx}`;
             return `- **${d.name}**: ${d.description || d.number} (llama a la función \`${toolName}\`)`;
         }).join('\n')}
 <!-- AUTO_TOOLS_END -->` : '';

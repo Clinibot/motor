@@ -89,20 +89,17 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
 
     // 4. Call Transfer
     if (p.enableTransfer && p.transferDestinations.length > 0) {
-        p.transferDestinations.forEach((dest) => {
+        p.transferDestinations.forEach((dest, idx) => {
             if (!dest.number) return;
-            // Use a clean name for the tool, but keep it unique if multiple destinations exist
-            const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-            const toolName = `transfer_call_${cleanName || 'agent'}`;
+            // Use a clean, unique name for the tool
+            const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
+            const toolName = `transfer_call_${cleanName}_${idx}`;
 
             tools.push({
                 type: 'transfer_call',
                 name: toolName,
                 description: dest.description || `Transfiere la llamada a ${dest.name}.`,
-                number: dest.number,
-                speak_during_execution: false,
-                speak_after_execution: false,
-                execution_message_description: `Di algo como "Ahora te voy a transferir con ${dest.name}, un momento por favor."`,
+                number: dest.number
             });
         });
     }
@@ -171,8 +168,9 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     if (p.enableTransfer && p.transferDestinations.length > 0) {
         const destList = p.transferDestinations
             .filter(d => d.number)
-            .map(d => {
-                const toolName = `transfer_call_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent'}`;
+            .map((d, idx) => {
+                const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
+                const toolName = `transfer_call_${cleanName}_${idx}`;
                 return `- **${d.name}**: ${d.description || d.number} (llama a la función \`${toolName}\`)`;
             })
             .join('\n');

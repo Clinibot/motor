@@ -107,7 +107,7 @@ export async function POST(request: Request) {
             payload
         );
 
-        console.log(`Tools configured: ${retellTools.length}`, retellTools.map(t => t.type || t.name));
+        console.log(`Tools configured for ${payload.agentName}: ${retellTools.length}`, JSON.stringify(retellTools, null, 2));
 
         // Usar el modelo directamente (gpt-4.1, gpt-5.1, gpt-5.2)
         const retellModel = payload.model || "gpt-4.1";
