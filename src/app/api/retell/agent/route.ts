@@ -109,7 +109,7 @@ export async function POST(request: Request) {
 
         console.log(`Tools configured: ${retellTools.length}`, retellTools.map(t => t.type || t.name));
 
-        // Usar el modelo directamente (Retell ahora soporta los nombres comerciales del wizard)
+        // Usar el modelo directamente (gpt-4.1, gpt-5.1, gpt-5.2)
         const retellModel = payload.model || "gpt-4.1";
 
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
