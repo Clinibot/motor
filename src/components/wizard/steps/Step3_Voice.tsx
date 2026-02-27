@@ -20,6 +20,10 @@ const VOICES_DATA: Voice[] = [
     { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España', previewUrl: 'https://cdn.openai.com/api/audio/voices/alloy.wav' },
     { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable', previewUrl: 'https://cdn.openai.com/api/audio/voices/fable.wav' },
     { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
+    // Cartesia
+    { id: 'cartesia-Elena', name: 'Elena', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Voz madura y profesional (Cartesia)' },
+    { id: 'cartesia-Isabel', name: 'Isabel', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Voz femenina natural (Cartesia)' },
+    { id: 'cartesia-Manuel', name: 'Manuel', provider: 'cartesia', language: 'es', gender: 'male', accent: 'spain', description: 'Voz masculina madura (Cartesia)' },
     // Inglés
     { id: 'openai-Nova', name: 'Rachel', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Professional American voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/nova.wav' },
     { id: 'openai-Onyx', name: 'George', provider: 'retell', language: 'en', gender: 'male', accent: 'uk', description: 'British professional voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/onyx.wav' },

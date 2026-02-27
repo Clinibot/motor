@@ -13,6 +13,7 @@ export const Step8_Summary: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(false);
+    const editingAgentId = wizardData.editingAgentId;
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
@@ -54,8 +55,20 @@ export const Step8_Summary: React.FC = () => {
 
         const toneStr = `Tu tono de comunicación es ${wizardData.tone}.`;
 
+        const langMap: Record<string, string> = {
+            'es-ES': 'español de España',
+            'es-MX': 'español con acento mexicano',
+            'es-AR': 'español con acento argentino',
+            'es-419': 'español latinoamericano neutro',
+            'en-US': 'inglés americano',
+            'en-GB': 'inglés británico',
+            'pt-BR': 'portugués de Brasil',
+            'fr-FR': 'francés'
+        };
+        const langStr = langMap[wizardData.language] || 'español';
+
         const baseInstructions = `# Idioma
-Habla siempre en español.
+Habla siempre en ${langStr}. No cambies de idioma a menos que el usuario lo solicite explícitamente.
 
 # Rol
 Eres ${name} de ${company}. ${personalityStr} ${toneStr}
@@ -151,10 +164,13 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         setIsCreating(true);
 
         try {
+            const method = editingAgentId ? 'PATCH' : 'POST';
+            const bodyObj = editingAgentId ? { ...wizardData, id: editingAgentId } : wizardData;
+
             const response = await fetch('/api/retell/agent', {
-                method: 'POST',
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(wizardData)
+                body: JSON.stringify(bodyObj)
             });
 
             const data = await response.json();
@@ -175,9 +191,9 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                     <div className="mb-4">
                         <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '64px' }}></i>
                     </div>
-                    <h2 className="mb-3">¡Agente IA creado con éxito!</h2>
+                    <h2 className="mb-3">¡Agente IA {editingAgentId ? 'actualizado' : 'creado'} con éxito!</h2>
                     <p className="text-muted mb-4">
-                        Tu agente <strong>{wizardData.agentName}</strong> está configurado y listo.
+                        Tu agente <strong>{wizardData.agentName}</strong> {editingAgentId ? 'se ha guardado correctamente' : 'está configurado y listo'}.
                     </p>
                     <button className="btn btn-primary btn-lg" onClick={() => window.location.href = '/dashboard'}>
                         Ir al Dashboard
@@ -348,16 +364,16 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                                 disabled={isCreating}
                                 style={{
                                     fontWeight: 700,
-                                    background: 'var(--exito)',
+                                    background: editingAgentId ? 'var(--bs-primary)' : 'var(--exito)',
                                     color: 'white',
                                     border: 'none',
-                                    boxShadow: '0 4px 12px rgba(32, 201, 151, 0.3)'
+                                    boxShadow: editingAgentId ? '0 4px 12px rgba(13, 110, 253, 0.3)' : '0 4px 12px rgba(32, 201, 151, 0.3)'
                                 }}
                             >
                                 {isCreating ? (
-                                    <><span className="spinner-border spinner-border-sm me-2"></span> Creando servidor y agente...</>
+                                    <><span className="spinner-border spinner-border-sm me-2"></span> {editingAgentId ? 'Guardando cambios...' : 'Creando servidor y agente...'}</>
                                 ) : (
-                                    <><i className="bi bi-rocket-takeoff me-2"></i> Crear Agente IA Ahora</>
+                                    <><i className={editingAgentId ? "bi bi-floppy me-2" : "bi bi-rocket-takeoff me-2"}></i> {editingAgentId ? 'Guardar Cambios' : 'Crear Agente IA Ahora'}</>
                                 )}
                             </button>
                         </div>

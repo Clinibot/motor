@@ -107,6 +107,9 @@ export interface WizardState {
     webhookUrl: string;
     webhookInbound: string;
 
+    // Edit Mode
+    editingAgentId: string | null;
+
     // Global Progress
     currentStep: number;
     isSidebarOpen: boolean;
@@ -116,6 +119,7 @@ export interface WizardState {
     nextStep: () => void;
     prevStep: () => void;
     setStep: (step: number) => void;
+    setEditingAgent: (agentId: string, agentData: Partial<WizardState>) => void;
     resetWizard: () => void;
     toggleSidebar: () => void;
 }
@@ -203,6 +207,9 @@ export const useWizardStore = create<WizardState>((set) => ({
     webhookUrl: '',
     webhookInbound: '',
 
+    // Edit Mode
+    editingAgentId: null,
+
     currentStep: 1,
     isSidebarOpen: false,
 
@@ -210,6 +217,13 @@ export const useWizardStore = create<WizardState>((set) => ({
     nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 9), isSidebarOpen: false })),
     prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1), isSidebarOpen: false })),
     setStep: (step) => set({ currentStep: step, isSidebarOpen: false }),
+    setEditingAgent: (agentId, agentData) => set((state) => ({
+        ...state,
+        ...agentData,
+        editingAgentId: agentId,
+        currentStep: 9, // Go straight to summary
+        isSidebarOpen: false
+    })),
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
@@ -239,6 +253,7 @@ export const useWizardStore = create<WizardState>((set) => ({
             { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
         ],
         kbFiles: [], kbUsageInstructions: '', kbRetrievalChunks: 3, kbSimilarityThreshold: 0.7,
+        editingAgentId: null,
         currentStep: 1
     })
 }));
