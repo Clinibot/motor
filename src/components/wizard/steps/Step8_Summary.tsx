@@ -203,74 +203,64 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                     </div>
                 )}
 
-                <div className="row g-4 mb-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                     {/* BÁSICO */}
-                    <div className="col-md-6">
-                        <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h6 className="fw-bold m-0"><i className="bi bi-person-circle me-2 text-primary"></i>Datos Agente</h6>
-                                <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(1)}>Editar</button>
-                            </div>
-                            <div className="small">
-                                <p className="mb-1"><strong>Nombre:</strong> {wizardData.agentName}</p>
-                                <p className="mb-0"><strong>Tipo:</strong> {getAgentTypeName(wizardData.agentType)}</p>
-                            </div>
+                    <div className="p-3 border rounded bg-white shadow-sm">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="fw-bold m-0"><i className="bi bi-person-circle me-2 text-primary"></i>Datos Agente</h6>
+                            <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(1)}>Editar</button>
+                        </div>
+                        <div className="small">
+                            <p className="mb-1"><strong>Nombre:</strong> {wizardData.agentName}</p>
+                            <p className="mb-0"><strong>Tipo:</strong> {getAgentTypeName(wizardData.agentType)}</p>
                         </div>
                     </div>
 
                     {/* LLM */}
-                    <div className="col-md-6">
-                        <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h6 className="fw-bold m-0"><i className="bi bi-cpu me-2 text-primary"></i>LLM & Conocimiento</h6>
-                                <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(2)}>Editar</button>
-                            </div>
-                            <div className="small">
-                                <p className="mb-1"><strong>Modelo:</strong> {wizardData.model} (Temp: {wizardData.temperature})</p>
-                                <p className="mb-0"><strong>KB:</strong> {wizardData.kbFiles.length} archivos subidos</p>
-                            </div>
+                    <div className="p-3 border rounded bg-white shadow-sm">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="fw-bold m-0"><i className="bi bi-cpu me-2 text-primary"></i>LLM & Conocimiento</h6>
+                            <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(2)}>Editar</button>
+                        </div>
+                        <div className="small">
+                            <p className="mb-1"><strong>Modelo:</strong> {wizardData.model} (Temp: {wizardData.temperature})</p>
+                            <p className="mb-0"><strong>KB:</strong> {wizardData.kbFiles.length} archivos subidos</p>
                         </div>
                     </div>
 
                     {/* EMPRESA */}
-                    <div className="col-md-6">
-                        <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h6 className="fw-bold m-0"><i className="bi bi-building me-2 text-primary"></i>Empresa</h6>
-                                <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(3)}>Editar</button>
-                            </div>
-                            <div className="small">
-                                <p className="mb-1"><strong>Web:</strong> {wizardData.companyWebsite || '—'}</p>
-                                <p className="mb-0"><strong>Horario:</strong> {wizardData.businessHours.filter(h => !h.closed).length} días activos</p>
-                            </div>
+                    <div className="p-3 border rounded bg-white shadow-sm">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="fw-bold m-0"><i className="bi bi-building me-2 text-primary"></i>Empresa</h6>
+                            <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(3)}>Editar</button>
+                        </div>
+                        <div className="small">
+                            <p className="mb-1"><strong>Web:</strong> {wizardData.companyWebsite || '—'}</p>
+                            <p className="mb-0"><strong>Horario:</strong> {wizardData.businessHours.filter(h => !h.closed).length} días activos</p>
                         </div>
                     </div>
 
                     {/* VOZ */}
-                    <div className="col-md-6">
-                        <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h6 className="fw-bold m-0"><i className="bi bi-mic me-2 text-primary"></i>Voz</h6>
-                                <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(4)}>Editar</button>
-                            </div>
-                            <div className="small">
-                                <p className="mb-1"><strong>Voz:</strong> {wizardData.voiceName}</p>
-                                <p className="mb-0"><strong>Velocidad:</strong> {wizardData.voiceSpeed}x</p>
-                            </div>
+                    <div className="p-3 border rounded bg-white shadow-sm">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="fw-bold m-0"><i className="bi bi-mic me-2 text-primary"></i>Voz</h6>
+                            <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(4)}>Editar</button>
+                        </div>
+                        <div className="small">
+                            <p className="mb-1"><strong>Voz:</strong> {wizardData.voiceName}</p>
+                            <p className="mb-0"><strong>Velocidad:</strong> {wizardData.voiceSpeed}x</p>
                         </div>
                     </div>
 
                     {/* CONVERSACIÓN */}
-                    <div className="col-md-12">
-                        <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h6 className="fw-bold m-0"><i className="bi bi-chat-dots me-2 text-primary"></i>Conversación</h6>
-                                <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(5)}>Editar</button>
-                            </div>
-                            <div className="small">
-                                <p className="mb-1"><strong>Idioma:</strong> {getLanguageName(wizardData.language)}</p>
-                                <p className="mb-0"><strong>Ambiente:</strong> {wizardData.enableAmbientSound ? 'Activo' : 'No'}</p>
-                            </div>
+                    <div className="md:col-span-2 p-3 border rounded bg-white shadow-sm">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="fw-bold m-0"><i className="bi bi-chat-dots me-2 text-primary"></i>Conversación</h6>
+                            <button className="btn btn-sm btn-outline-secondary py-0" onClick={() => setStep(5)}>Editar</button>
+                        </div>
+                        <div className="small">
+                            <p className="mb-1"><strong>Idioma:</strong> {getLanguageName(wizardData.language)}</p>
+                            <p className="mb-0"><strong>Ambiente:</strong> {wizardData.enableAmbientSound ? 'Activo' : 'No'}</p>
                         </div>
                     </div>
                 </div>
@@ -358,7 +348,7 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                                 disabled={isCreating}
                                 style={{
                                     fontWeight: 700,
-                                    background: 'var(--netelip-verde)',
+                                    background: 'var(--exito)',
                                     color: 'white',
                                     border: 'none',
                                     boxShadow: '0 4px 12px rgba(32, 201, 151, 0.3)'
