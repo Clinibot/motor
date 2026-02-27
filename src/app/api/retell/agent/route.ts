@@ -252,11 +252,13 @@ export async function PATCH(request: Request) {
 
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
-        console.log("Updating agent via Retell AI for:", payload.agentName);
+        console.log("PATCH Payload received:", JSON.stringify(payload, null, 2));
 
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
         const finalPrompt = injectToolInstructions(payload.prompt || 'Eres un asistente amable.', payload);
+
+        console.log(`Tools mapped for PATCH (${payload.agentName}):`, JSON.stringify(retellTools, null, 2));
 
         const retellModel = payload.model || "gpt-4.1";
 
@@ -288,9 +290,11 @@ export async function PATCH(request: Request) {
 
         let llmId = currentAgent.retell_llm_id;
         if (llmId) {
-            await retellClient.llm.update(llmId, llmUpdateParams);
+            console.log(`Updating LLM ${llmId} with tools count:`, (llmUpdateParams as any).tools?.length || 0);
+            const updatedLlm = await retellClient.llm.update(llmId, llmUpdateParams) as any;
+            console.log("Retell LLM Update Response tools count:", updatedLlm.tools?.length || 0);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            console.log("Creating new LLM because agent had no LLM ID assigned.");
             const createdLlm = await retellClient.llm.create(llmUpdateParams as any);
             llmId = createdLlm.llm_id;
         }

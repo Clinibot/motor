@@ -102,9 +102,6 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                 name: toolName,
                 description: dest.description || `Transfiere la llamada a ${dest.name}.`,
                 number: dest.number,
-                speak_during_execution: false,
-                speak_after_execution: false,
-                execution_message_description: `Un momento por favor, transfiriendo con ${dest.name}...`
             });
         });
     }
@@ -150,6 +147,12 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
  * This ensures the LLM knows when and how to call each tool.
  */
 export function injectToolInstructions(basePrompt: string, p: ToolsPayload): string {
+    // Si el prompt ya tiene los marcadores de AUTO_TOOLS o AUTO_KB del frontend, 
+    // no añadimos nada más en el backend para evitar redundancia y "ensuciar" el prompt.
+    if (basePrompt.includes('<!-- AUTO_TOOLS_START -->') || basePrompt.includes('<!-- AUTO_KB_START -->')) {
+        return basePrompt;
+    }
+
     const blocks: string[] = [];
 
     if (p.enableEndCall) {
@@ -158,6 +161,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         );
     }
 
+    // ... rest of the existing code for blocks ...
     if (p.enableCalBooking && p.calUrl) {
         blocks.push(
             `## Reservar cita\nSi el usuario quiere programar una cita o reunión, usa la herramienta \`book_appointment\` para registrarla en el calendario. Recoge siempre: nombre completo, email, número de teléfono y horario deseado antes de confirmar.`
