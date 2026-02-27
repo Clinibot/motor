@@ -126,31 +126,6 @@ export const Step6_Audio: React.FC = () => {
                 </form>
             </div>
 
-            <style jsx>{`
-                .step-section { margin-bottom: 24px; }
-                .step-section-title { font-size: 18px; font-weight: 700; color: var(--oscuro); margin-bottom: 8px; display: flex; align-items: center; }
-                .section-divider { height: 2px; background: var(--gris-borde); margin: 40px 0; }
-                .slider-wrapper { display: flex; align-items: center; gap: 15px; }
-                .slider-value { background: var(--netelip-azul); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; min-width: 55px; text-align: center; font-size: 13px; }
-                .custom-range { flex-grow: 1; }
-                .radio-cards { display: flex; gap: 12px; }
-                .radio-card-option { flex: 1; border: 2px solid var(--gris-borde); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; font-weight: 600; font-size: 14px; }
-                .radio-card-option.active { border-color: var(--netelip-azul); background: #f0f9ff; color: var(--netelip-azul); }
-                .radio-card-option input { display: none; }
-                .custom-check { display: flex; align-items: center; gap: 8px; }
-                .custom-check .form-check-input { width: 1.25em; height: 1.25em; margin-top: 0; cursor: pointer; }
-                .custom-check .form-check-label { cursor: pointer; font-weight: 500; font-size: 14px; }
-                .form-select.premium-select {
-                    background-color: #f1f5f9;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 10px;
-                    padding: 12px 16px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #1e293b;
-                    appearance: none;
-                }
-            `}</style>
         </div>
     );
 };

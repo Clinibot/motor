@@ -179,15 +179,6 @@ export const Step4_Conversation: React.FC = () => {
                 </form>
             </div>
 
-            <style jsx>{`
-                .section-divider { margin: 40px 0 24px 0; border-top: 2px solid var(--gris-borde); pt: 30px; }
-                .section-divider h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-                .section-divider p { font-size: 14px; color: var(--gris-texto); margin-bottom: 20px; }
-                .slider-wrapper { display: flex; align-items: center; gap: 15px; }
-                .slider-value { background: var(--netelip-azul); color: white; padding: 2px 10px; border-radius: 6px; font-weight: 700; min-width: 45px; text-align: center; font-size: 13px; }
-                .custom-range { flex-grow: 1; }
-                .badge { padding: 6px 12px; font-weight: 500; font-size: 13px; }
-            `}</style>
         </div>
     );
 };

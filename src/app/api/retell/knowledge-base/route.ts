@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
-import Retell, { toFile } from 'retell-sdk';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +41,6 @@ export async function POST(request: Request) {
                 .single();
 
             if (!userProfile || !userProfile.workspace_id) {
-                // Intentar auto-asignar un workspace libre
                 const { data: usersWithWorkspaces } = await supabaseAdmin
                     .from('users')
                     .select('workspace_id')
@@ -63,7 +61,7 @@ export async function POST(request: Request) {
                 const { data: freeWorkspaces } = await freeWorkspaceQuery;
 
                 if (!freeWorkspaces || freeWorkspaces.length === 0) {
-                    return NextResponse.json({ success: false, error: "No hay workspaces disponibles. Contacta con el administrador." }, { status: 400 });
+                    return NextResponse.json({ success: false, error: "No hay workspaces disponibles." }, { status: 400 });
                 }
 
                 const newWorkspaceId = freeWorkspaces[0].id;
@@ -86,28 +84,47 @@ export async function POST(request: Request) {
 
         if (wsError || !workspace || !workspace.retell_api_key) {
             return NextResponse.json(
-                { success: false, error: "Workspace not found or missing Retell API Key." },
+                { success: false, error: "Workspace no encontrado o sin Retell API Key." },
                 { status: 400 }
             );
         }
 
-        const retellClient = new Retell({
-            apiKey: workspace.retell_api_key,
-        });
+        // Usar fetch directo a la API de Retell (evita incompatibilidades del SDK con Node.js en Vercel)
+        const retellFormData = new FormData();
+        const knowledgeBaseName = file.name.split('.').slice(0, -1).join('.') || file.name;
+        retellFormData.append('knowledge_base_name', knowledgeBaseName);
 
-        // Convert File to Buffer → toFile() para compatibilidad con Node.js y el SDK de Retell
+        // Convertir File a Blob para asegurar compatibilidad
         const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const uploadable = await toFile(buffer, file.name, { type: file.type || 'application/octet-stream' });
+        const blob = new Blob([bytes], { type: file.type || 'application/octet-stream' });
+        retellFormData.append('knowledge_base_files', blob, file.name);
 
-        const response = await retellClient.knowledgeBase.create({
-            knowledge_base_name: file.name.split('.').slice(0, -1).join('.') || file.name,
-            knowledge_base_files: [uploadable]
+        const retellResponse = await fetch('https://api.retellai.com/v2/knowledge-base', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${workspace.retell_api_key}`,
+            },
+            body: retellFormData,
         });
+
+        if (!retellResponse.ok) {
+            const errorText = await retellResponse.text();
+            let errorMessage = `Retell API error ${retellResponse.status}`;
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.message || errorJson.error || errorMessage;
+            } catch {
+                errorMessage = errorText || errorMessage;
+            }
+            console.error('Retell KB create error:', retellResponse.status, errorText);
+            return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });
+        }
+
+        const responseData = await retellResponse.json();
 
         return NextResponse.json({
             success: true,
-            knowledge_base_id: response.knowledge_base_id,
+            knowledge_base_id: responseData.knowledge_base_id,
             name: file.name,
             size: (file.size / 1024).toFixed(1) + " KB",
             type: file.name.split('.').pop() || 'unknown'
