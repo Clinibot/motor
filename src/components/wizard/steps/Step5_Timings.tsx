@@ -178,7 +178,7 @@ export const Step5_Timings: React.FC = () => {
                             onChange={(e) => updateField('enableVoicemailDetection', e.target.checked)}
                         />
                         <label htmlFor="enableVoicemailDetection" style={{ fontWeight: 600, cursor: 'pointer', margin: 0 }}>
-                            Activar detección de voicemail
+                            Activar detección de buzón de voz
                         </label>
                     </div>
 
@@ -200,7 +200,7 @@ export const Step5_Timings: React.FC = () => {
                             </div>
 
                             <div className="form-group mb-0">
-                                <label className="form-label">Mensaje para voicemail</label>
+                                <label className="form-label">Mensaje para buzón de voz</label>
                                 <textarea
                                     className="form-control"
                                     rows={3}
