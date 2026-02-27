@@ -47,6 +47,7 @@ body {
 
 .sidebar-header {
   padding: 20px;
+  border-bottom: 1px solid var(--gris-borde);
 }
 
 .back-link {
@@ -172,6 +173,7 @@ body {
 .topbar {
   background: white;
   padding: 20px 32px;
+  border-bottom: 1px solid var(--gris-borde);
   position: sticky;
   top: 0;
   z-index: 999;
