@@ -247,13 +247,112 @@ export const Step8_Summary: React.FC = () => {
         };
         const langStr = langMap[wizardData.language] || 'español';
 
-        const baseInstructions = `# Idioma\nHabla siempre en ${langStr}. No cambies de idioma a menos que el usuario lo solicite explícitamente.\n\n# Rol\nEres ${name} de ${company}.\nTu misión es atender las llamadas de forma humana, cálida y eficiente, evitando sonar como un robot.\n\n## Estilo de Comunicación\n- ${personalityStr}\n- ${toneStr}\n- Frases cortas y directas.\n- Empatía y escucha activa.\n- Nunca hagas más de una pregunta a la vez.\n- REGLA CRÍTICA: No repitas datos que el usuario ya ha dicho. Pasa a la siguiente tarea.\n\n## Tareas Principales\n${wizardData.agentType === 'transferencia' ? `### Identificación y Transferencia\n1. Entiende el motivo de la llamada.\n2. Si es necesario, informa que vas a transferir la llamada a un compañero.\n` : wizardData.agentType === 'agendamiento' ? `### Agendamiento\n1. Resuelve dudas sobre los servicios.\n2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas.\n3. Pide nombre y datos necesarios para confirmar.\n` : `### Resolución y Cualificación\n1. Resuelve dudas sobre ${company}.\n2. Interésate por las necesidades del cliente.\n3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural.\n`}\n${wizardData.enableTransfer && wizardData.transferDestinations.length > 0 ? `### Política de Transferencias\nPuedes transferir si el usuario lo solicita o si no puedes resolver el problema.\n${wizardData.transferDestinations.filter(d => d.number).map(d => {
+        // Bloque de herramientas
+        const toolsContent = (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) ? `
+<!-- AUTO_TOOLS_START -->
+### Política de Transferencias
+Puedes transferir si el usuario lo solicita o si no puedes resolver el problema.
+${wizardData.transferDestinations.filter(d => d.number).map(d => {
             const toolName = `transfer_call_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent'}`;
             return `- **${d.name}**: ${d.description || d.number} (llama a la función \`${toolName}\`)`;
-        }).join('\n')}\n` : ''}\n${wizardData.extractionVariables.length > 0 ? `### Datos a Extraer\n${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.description}`).join('\n')}\n` : ''}\n\n### Despedida\nAntes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete cordialmente.\n\n${wizardData.kbFiles.length > 0 ? `## CONTEXTO ADICIONAL (Base de Conocimientos)\n${wizardData.kbUsageInstructions || 'Usa la información de tus documentos para responder preguntas específicas sobre servicios o productos.'}\n` : ''}\n# Información de Contacto y Horarios\n- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono: ${wizardData.companyPhone || 'No especificado'}\n- Web: ${wizardData.companyWebsite || 'No especificada'}\n\n### Horarios comerciales:\n${formattedHours}\n\n# Reglas de Terminación\nSi el usuario se despide o no necesita nada más, despídete y usa la herramienta 'end_call' inmediatamente.\n`;
+        }).join('\n')}
+<!-- AUTO_TOOLS_END -->` : '';
+
+        // Bloque de KB
+        const kbContent = (wizardData.kbFiles.length > 0) ? `
+<!-- AUTO_KB_START -->
+## CONTEXTO ADICIONAL (Base de Conocimientos)
+${wizardData.kbUsageInstructions || 'Usa la información de tus documentos para responder preguntas específicas sobre servicios o productos.'}
+<!-- AUTO_KB_END -->` : '';
+
+        let finalPrompt = '';
+        const currentPrompt = wizardData.prompt || '';
+
+        // Si ya hay un prompt y no es el por defecto, intentamos "Smart Update"
+        if (currentPrompt && currentPrompt !== 'Eres un asistente útil.') {
+            finalPrompt = currentPrompt;
+
+            // 1. Actualizar o insertar bloque de herramientas
+            const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/;
+            if (toolsRegex.test(finalPrompt)) {
+                finalPrompt = finalPrompt.replace(toolsRegex, toolsContent.trim());
+            } else if (toolsContent) {
+                // Insertar antes de Despedida o al final
+                if (finalPrompt.includes('### Despedida')) {
+                    finalPrompt = finalPrompt.replace('### Despedida', `${toolsContent}\n\n### Despedida`);
+                } else {
+                    finalPrompt += `\n\n${toolsContent}`;
+                }
+            }
+
+            // 2. Actualizar o insertar bloque de KB
+            const kbRegex = /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/;
+            if (kbRegex.test(finalPrompt)) {
+                finalPrompt = finalPrompt.replace(kbRegex, kbContent.trim());
+            } else if (kbContent) {
+                if (finalPrompt.includes('# Información de Contacto')) {
+                    finalPrompt = finalPrompt.replace('# Información de Contacto', `${kbContent}\n\n# Información de Contacto`);
+                } else {
+                    finalPrompt += `\n\n${kbContent}`;
+                }
+            }
+        } else {
+            // Generación completa desde cero
+            finalPrompt = `
+# Idioma
+Habla siempre en ${langStr}. No cambies de idioma a menos que el usuario lo solicite explícitamente.
+
+# Rol
+Eres ${name} de ${company}.
+Tu misión es atender las llamadas de forma humana, cálida y eficiente, evitando sonar como un robot.
+
+## Estilo de Comunicación
+- ${personalityStr}
+- ${toneStr}
+- Frases cortas y directas.
+- Empatía y escucha activa.
+- Nunca hagas más de una pregunta a la vez.
+- REGLA CRÍTICA: No repitas datos que el usuario ya ha dicho. Pasa a la siguiente tarea.
+
+## Tareas Principales
+${wizardData.agentType === 'transferencia' ? `### Identificación y Transferencia
+1. Entiende el motivo de la llamada.
+2. Si es necesario, informa que vas a transferir la llamada a un compañero.
+` : wizardData.agentType === 'agendamiento' ? `### Agendamiento
+1. Resuelve dudas sobre los servicios.
+2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas.
+3. Pide nombre y datos necesarios para confirmar.
+` : `### Resolución y Cualificación
+1. Resuelve dudas sobre ${company}.
+2. Interésate por las necesidades del cliente.
+3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural.
+`}
+${toolsContent}
+
+${wizardData.extractionVariables.length > 0 ? `### Datos a Extraer
+${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.description}`).join('\n')}
+` : ''}
+
+### Despedida
+Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete cordialmente.
+
+${kbContent}
+
+# Información de Contacto y Horarios
+- Dirección: ${wizardData.companyAddress || 'No especificada'}
+- Teléfono: ${wizardData.companyPhone || 'No especificado'}
+- Web: ${wizardData.companyWebsite || 'No especificada'}
+
+### Horarios comerciales:
+${formattedHours}
+
+# Reglas de Terminación
+Si el usuario se despide o no necesita nada más, despídete y usa la herramienta 'end_call' inmediatamente.
+`.trim();
+        }
 
         setTimeout(() => {
-            updateField('prompt', baseInstructions);
+            updateField('prompt', finalPrompt);
             setIsGenerating(false);
             setHasGeneratedPrompt(true);
         }, 1500);
