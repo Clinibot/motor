@@ -9,7 +9,6 @@ import { Step2_LLM } from '../../components/wizard/steps/Step2_LLM';
 import { Step3_Voice } from '../../components/wizard/steps/Step3_Voice';
 import { Step4_Conversation } from '../../components/wizard/steps/Step4_Conversation';
 import { Step5_Timings } from '../../components/wizard/steps/Step5_Timings';
-import { Step6_Audio } from '../../components/wizard/steps/Step6_Audio';
 import { Step7_Tools } from '../../components/wizard/steps/Step7_Tools';
 import { Step8_Summary } from '../../components/wizard/steps/Step8_Summary';
 
@@ -30,10 +29,8 @@ export default function WizardPage() {
             case 2: return <Step2_LLM />;
             case 3: return <Step3_Voice />;
             case 4: return <Step4_Conversation />;
-            case 5: return <Step5_Timings />;
-            case 6: return <Step6_Audio />;
-            case 7: return <Step7_Tools />;
-            case 8: return <Step8_Summary />;
+            case 6: return <Step7_Tools />;
+            case 7: return <Step8_Summary />;
             default: return <Step1_Type />;
         }
     };

@@ -10,9 +10,8 @@ const stepsMeta = [
     { id: 3, name: 'Selección de voz', desc: 'Voz y personalidad' },
     { id: 4, name: 'Conversación', desc: 'Idioma y respuestas' },
     { id: 5, name: 'Tiempos', desc: 'Duraciones y delays' },
-    { id: 6, name: 'Audio y STT', desc: 'Sonido ambiente' },
-    { id: 7, name: 'Herramientas', desc: 'Integraciones' },
-    { id: 8, name: 'Resumen', desc: 'Revisar y crear' },
+    { id: 6, name: 'Herramientas', desc: 'Integraciones' },
+    { id: 7, name: 'Resumen', desc: 'Revisar y crear' },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -26,7 +25,7 @@ export const Sidebar: React.FC = () => {
                     <i className="bi bi-arrow-left"></i> Volver al dashboard
                 </Link>
                 <h2 className="wizard-title">Crear agente IA</h2>
-                <p className="wizard-subtitle">Sigue los 8 pasos para configurar tu agente</p>
+                <p className="wizard-subtitle">Sigue los 7 pasos para configurar tu agente</p>
             </div>
 
             <div className="steps-container">

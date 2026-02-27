@@ -7,6 +7,7 @@ export const Step4_Conversation: React.FC = () => {
     const {
         language, responsiveness, interruptionSensitivity,
         enableBackchannel, backchannelFrequency, backchannelWords,
+        enableAmbientSound, ambientSound, ambientSoundVolume,
         updateField, prevStep, nextStep
     } = useWizardStore();
 
@@ -31,8 +32,6 @@ export const Step4_Conversation: React.FC = () => {
     const removeBackchannelWord = (wordToRemove: string) => {
         updateField('backchannelWords', backchannelWords.filter(w => w !== wordToRemove));
     };
-
-
 
     return (
         <div className="content-area">
@@ -59,6 +58,58 @@ export const Step4_Conversation: React.FC = () => {
                             <option value="en-US">English (USA)</option>
                         </select>
                     </div>
+
+                    {/* SONIDO AMBIENTE - RESCATADO DEL PASO 6 */}
+                    <div className="section-divider">
+                        <h3>Sonido ambiente</h3>
+                        <p>Añade un sonido de fondo para hacer las llamadas más naturales.</p>
+                    </div>
+
+                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <input
+                            type="checkbox"
+                            id="enableAmbientSound"
+                            style={{ width: '24px', height: '24px', cursor: 'pointer' }}
+                            checked={enableAmbientSound}
+                            onChange={(e) => updateField('enableAmbientSound', e.target.checked)}
+                        />
+                        <label htmlFor="enableAmbientSound" style={{ fontWeight: 600, cursor: 'pointer', margin: 0 }}>
+                            Activar sonido ambiente
+                        </label>
+                    </div>
+
+                    {enableAmbientSound && (
+                        <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '20px', marginTop: '16px' }}>
+                            <div className="form-group">
+                                <label className="form-label">Tipo de sonido ambiente</label>
+                                <select
+                                    className="form-control"
+                                    value={ambientSound}
+                                    onChange={(e) => updateField('ambientSound', e.target.value)}
+                                >
+                                    <option value="none">Sin sonido (none)</option>
+                                    <option value="office">Oficina (office)</option>
+                                    <option value="cafe">Cafetería (cafe)</option>
+                                    <option value="call_center">Centro de llamadas (call center)</option>
+                                </select>
+                            </div>
+
+                            {ambientSound !== 'none' && (
+                                <div className="form-group mb-0">
+                                    <label className="form-label">Volumen del ambiente</label>
+                                    <div className="slider-container">
+                                        <div className="slider-value">{ambientSoundVolume.toFixed(1)}</div>
+                                        <input
+                                            type="range"
+                                            min="0" max="1" step="0.1"
+                                            value={ambientSoundVolume}
+                                            onChange={(e) => updateField('ambientSoundVolume', parseFloat(e.target.value))}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="section-divider">
                         <h3>Backchannel</h3>
