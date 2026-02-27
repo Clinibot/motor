@@ -275,74 +275,104 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                     </div>
                 </div>
 
-                {/* GENERADOR DE PROMPT */}
-                <div className="prompt-generator-section border-top pt-5">
-                    <div className="text-center mb-5">
+                {/* GENERADOR DE PROMPT O ESTADO VACÍO */}
+                {!hasGeneratedPrompt ? (
+                    <div className="prompt-empty-state text-center mt-5 mb-4 p-5 rounded-4" style={{ background: 'linear-gradient(145deg, #f8f9fa, #e9ecef)', border: '1px dashed #ced4da' }}>
+                        <div className="mb-4">
+                            <i className="bi bi-robot text-primary" style={{ fontSize: '48px', opacity: 0.8 }}></i>
+                        </div>
+                        <h3 className="fw-bold mb-3">¡Casi listo!</h3>
+                        <p className="text-muted mb-4 mx-auto" style={{ maxWidth: '500px' }}>
+                            Solo queda un paso crucial: generar el &quot;Prompt&quot; (las instrucciones maestras) basándose en toda la configuración que has seleccionado.
+                        </p>
                         <button
                             type="button"
-                            className={`btn btn-lg ${isGenerating ? 'btn-secondary' : 'btn-primary'} px-5`}
+                            className={`btn btn-lg ${isGenerating ? 'btn-secondary' : 'btn-primary'} px-5 py-3`}
                             onClick={generateAllInstructions}
                             disabled={isGenerating}
-                            style={{ borderRadius: '30px', fontWeight: 700 }}
+                            style={{ borderRadius: '30px', fontWeight: 700, fontSize: '18px', boxShadow: '0 8px 20px rgba(38, 122, 176, 0.3)' }}
                         >
                             {isGenerating ? (
-                                <><span className="spinner-border spinner-border-sm me-2"></span> Generando...</>
+                                <><span className="spinner-border spinner-border-sm me-2"></span> Redactando instrucciones...</>
                             ) : (
-                                <><i className="bi bi-magic me-2"></i> Generar Prompt con IA</>
+                                <><i className="bi bi-magic me-2"></i> Generar Prompt Mágico</>
                             )}
                         </button>
-                        <p className="text-muted small mt-3">
-                            Esto construirá automáticamente las instrucciones del sistema usando todos tus datos anteriores.
-                        </p>
-                    </div>
 
-                    {hasGeneratedPrompt && (
-                        <div className="form-group mb-5 mt-4">
-                            <label className="form-label d-flex justify-content-between align-items-center">
-                                <span>Prompt Maestro del Agente</span>
-                                {wizardData.prompt && <span className="small text-success fw-bold"><i className="bi bi-check-lg"></i> Listo para revisión</span>}
-                            </label>
+                        <div className="mt-5 text-start">
+                            <button type="button" className="btn btn-outline-secondary" onClick={prevStep} disabled={isCreating}>
+                                <i className="bi bi-arrow-left"></i> Volver a revisar
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="prompt-generated-state mt-5 animation-fade-in">
+                        <div className="d-flex justify-content-between align-items-end mb-3">
+                            <div>
+                                <h4 className="fw-bold mb-1"><i className="bi bi-terminal me-2 text-dark"></i>Instrucciones del Agente</h4>
+                                <p className="text-success small fw-bold mb-0"><i className="bi bi-check-circle-fill me-1"></i> Generadas correctamente. Puedes editarlas si lo deseas.</p>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={generateAllInstructions}
+                                disabled={isGenerating}
+                            >
+                                {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise"></i> Regenerar</>}
+                            </button>
+                        </div>
+
+                        <div className="form-group mb-5">
                             <textarea
-                                className="form-control bg-light"
-                                rows={15}
+                                className="form-control"
+                                rows={18}
                                 value={wizardData.prompt}
                                 onChange={(e) => updateField('prompt', e.target.value)}
-                                placeholder="Haz clic en el botón superior para generar las instrucciones..."
-                                style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.6' }}
+                                style={{
+                                    fontFamily: 'monospace',
+                                    fontSize: '13.5px',
+                                    lineHeight: '1.6',
+                                    backgroundColor: '#272822',
+                                    color: '#f8f8f2',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '16px',
+                                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)'
+                                }}
                             />
                         </div>
-                    )}
-                </div>
 
-                <div className="d-flex gap-3 pt-4">
-                    <button
-                        type="button"
-                        className="btn btn-lg btn-secondary px-4"
-                        onClick={prevStep}
-                        disabled={isCreating}
-                    >
-                        Anterior
-                    </button>
-                    <button
-                        type="button"
-                        className="btn btn-lg flex-grow-1"
-                        onClick={handleCreateAgent}
-                        disabled={isCreating || !wizardData.prompt}
-                        style={{
-                            fontWeight: 700,
-                            background: 'var(--netelip-azul)',
-                            color: 'white',
-                            border: 'none',
-                            boxShadow: '0 4px 12px rgba(38, 122, 176, 0.25)'
-                        }}
-                    >
-                        {isCreating ? (
-                            <><span className="spinner-border spinner-border-sm me-2"></span> Finalizando...</>
-                        ) : (
-                            <><i className="bi bi-robot me-2"></i> Crear Agente IA Ahora</>
-                        )}
-                    </button>
-                </div>
+                        <div className="wizard-actions d-flex gap-3 pt-4 border-top">
+                            <button
+                                type="button"
+                                className="btn btn-lg btn-secondary px-4"
+                                onClick={prevStep}
+                                disabled={isCreating}
+                            >
+                                <i className="bi bi-arrow-left"></i> Atrás
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-lg flex-grow-1"
+                                onClick={handleCreateAgent}
+                                disabled={isCreating}
+                                style={{
+                                    fontWeight: 700,
+                                    background: 'var(--netelip-verde)',
+                                    color: 'white',
+                                    border: 'none',
+                                    boxShadow: '0 4px 12px rgba(32, 201, 151, 0.3)'
+                                }}
+                            >
+                                {isCreating ? (
+                                    <><span className="spinner-border spinner-border-sm me-2"></span> Creando servidor y agente...</>
+                                ) : (
+                                    <><i className="bi bi-rocket-takeoff me-2"></i> Crear Agente IA Ahora</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
