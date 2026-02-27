@@ -31,15 +31,15 @@ export const Step2_LLM: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card shadow-sm">
-                <div className="mb-4">
-                    <p className="text-muted small mb-4">Define las instrucciones, el modelo de lenguaje y el conocimiento de tu agente.</p>
+                <div className="step-header-compact mb-4">
+                    <span className="step-count">Paso 2 de 8 - Configuración LLM</span>
                 </div>
 
                 <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
                     {/* SECCIÓN 1: CONFIGURACIÓN DEL MODELO */}
                     <div className="step-section">
                         <h3 className="section-title-icon">
-                            <i className="bi bi-cpu"></i>
+                            <i className="bi bi-cpu" style={{ color: '#267ab0' }}></i>
                             Configuración del modelo
                         </h3>
                         <p className="section-description">
@@ -48,9 +48,8 @@ export const Step2_LLM: React.FC = () => {
 
                         <div className="form-group mb-4">
                             <label className="form-label">
-                                Modelo de IA
-                                <span className="required">*</span>
-                                <div className="custom-tooltip ms-2">
+                                Modelo de IA <span className="required">*</span>
+                                <div className="custom-tooltip ms-1">
                                     <i className="bi bi-question-circle-fill tooltip-icon"></i>
                                     <div className="tooltip-content shadow">
                                         <strong>GPT-4.1:</strong> El modelo más avanzado de OpenAI. Ofrece la mejor comprensión contextual, razonamiento y generación de respuestas naturales.
@@ -58,7 +57,7 @@ export const Step2_LLM: React.FC = () => {
                                 </div>
                             </label>
                             <select
-                                className="form-select"
+                                className="form-select premium-select"
                                 value={model}
                                 onChange={(e) => updateField('model', e.target.value)}
                             >
@@ -70,16 +69,16 @@ export const Step2_LLM: React.FC = () => {
                                 <option value="claude-4.5-sonnet">Claude 3.5 Sonnet</option>
                                 <option value="gemini-3.0-flash">Gemini 1.5 Flash</option>
                             </select>
-                            <div className="form-text mt-2">
-                                <i className="bi bi-cpu me-1"></i>
-                                Modelo seleccionado para máxima calidad en las respuestas
+                            <div className="form-text mt-2 d-flex align-items-center">
+                                <i className="bi bi-gear me-2 icon-soft"></i>
+                                <span>Modelo seleccionado por defecto para máxima calidad</span>
                             </div>
                         </div>
 
                         <div className="form-group mb-4">
                             <label className="form-label">
                                 Temperature
-                                <div className="custom-tooltip ms-2">
+                                <div className="custom-tooltip ms-1">
                                     <i className="bi bi-question-circle-fill tooltip-icon"></i>
                                     <div className="tooltip-content shadow">
                                         <strong>Controla la creatividad:</strong><br />
@@ -89,19 +88,19 @@ export const Step2_LLM: React.FC = () => {
                                     </div>
                                 </div>
                             </label>
-                            <div className="slider-wrapper">
-                                <div className="slider-value-badge">{temperature}</div>
+                            <div className="slider-wrapper-premium">
+                                <div className="slider-value-badge-v2">{temperature}</div>
                                 <input
                                     type="range"
-                                    className="form-range"
+                                    className="form-range custom-range"
                                     min="0" max="1" step="0.1"
                                     value={temperature}
                                     onChange={(e) => updateField('temperature', parseFloat(e.target.value))}
                                 />
                             </div>
-                            <div className="form-text mt-2">
-                                <i className="bi bi-thermometer-half me-1"></i>
-                                Mayor valor = respuestas más creativas y variadas
+                            <div className="form-text mt-2 d-flex align-items-center">
+                                <i className="bi bi-thermometer-half me-2 icon-soft"></i>
+                                <span>Mayor valor = respuestas más creativas y variadas</span>
                             </div>
                         </div>
 
@@ -116,7 +115,7 @@ export const Step2_LLM: React.FC = () => {
                                 />
                                 <label className="form-check-label fw-600" htmlFor="highPriority">
                                     Activar modelo de alta prioridad
-                                    <div className="custom-tooltip ms-2">
+                                    <div className="custom-tooltip ms-1">
                                         <i className="bi bi-question-circle-fill tooltip-icon"></i>
                                         <div className="tooltip-content shadow">
                                             Reduce la latencia garantizando recursos dedicados. Recomendado para tráfico alto.
@@ -124,9 +123,9 @@ export const Step2_LLM: React.FC = () => {
                                     </div>
                                 </label>
                             </div>
-                            <div className="form-text ms-4">
-                                <i className="bi bi-lightning-charge me-1"></i>
-                                Garantiza respuestas más rápidas en momentos de alto tráfico
+                            <div className="form-text ms-4 d-flex align-items-center">
+                                <i className="bi bi-lightning-charge me-2 icon-soft"></i>
+                                <span>Garantiza respuestas más rápidas en momentos de alto tráfico</span>
                             </div>
                         </div>
                     </div>
@@ -136,7 +135,7 @@ export const Step2_LLM: React.FC = () => {
                     {/* SECCIÓN 2: MENSAJE Y COMPORTAMIENTO */}
                     <div className="step-section">
                         <h3 className="section-title-icon">
-                            <i className="bi bi-chat-dots"></i>
+                            <i className="bi bi-chat-dots" style={{ color: '#267ab0' }}></i>
                             Mensaje y comportamiento
                         </h3>
                         <p className="section-description">
@@ -145,53 +144,59 @@ export const Step2_LLM: React.FC = () => {
 
                         <div className="form-group mb-4">
                             <label className="form-label">
-                                ¿Quién habla primero?
-                                <span className="required">*</span>
+                                ¿Quién habla primero? <span className="required">*</span>
+                                <div className="custom-tooltip ms-1">
+                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
+                                    <div className="tooltip-content shadow">
+                                        Indica si el agente debe iniciar el saludo o esperar a que el usuario hable.
+                                    </div>
+                                </div>
                             </label>
-                            <div className="radio-card-group">
-                                <div className={`radio-card ${whoFirst === 'agent' ? 'active' : ''}`} onClick={() => updateField('whoFirst', 'agent')}>
-                                    <input type="radio" checked={whoFirst === 'agent'} readOnly />
-                                    <span>Agente habla primero</span>
-                                </div>
-                                <div className={`radio-card ${whoFirst === 'user' ? 'active' : ''}`} onClick={() => updateField('whoFirst', 'user')}>
-                                    <input type="radio" checked={whoFirst === 'user'} readOnly />
-                                    <span>Usuario habla primero</span>
-                                </div>
+                            <div className="radio-pill-group">
+                                <button type="button"
+                                    className={`pill-btn ${whoFirst === 'agent' ? 'active' : ''}`}
+                                    onClick={() => updateField('whoFirst', 'agent')}>
+                                    Agente habla primero
+                                </button>
+                                <button type="button"
+                                    className={`pill-btn ${whoFirst === 'user' ? 'active' : ''}`}
+                                    onClick={() => updateField('whoFirst', 'user')}>
+                                    Usuario habla primero
+                                </button>
                             </div>
                         </div>
 
                         {whoFirst === 'agent' && (
                             <div className="form-group mb-4">
                                 <label className="form-label">
-                                    Mensaje de inicio
-                                    <span className="required">*</span>
-                                    <div className="custom-tooltip ms-2">
+                                    Mensaje de inicio <span className="required">*</span>
+                                    <div className="custom-tooltip ms-1">
                                         <i className="bi bi-question-circle-fill tooltip-icon"></i>
                                         <div className="tooltip-content shadow">
-                                            La primera frase que dirá tu agente al contestar. Sé breve y presenta al agente.
+                                            La primera frase que dirá tu agente al contestar.
                                         </div>
                                     </div>
                                 </label>
                                 <textarea
                                     className="form-control start-message-area"
-                                    rows={3}
+                                    rows={4}
                                     placeholder="Ej: Hola, soy Elio, tu asistente de voz creado con inteligencia artificial de Netelip - ¿Con quién tengo el gusto de hablar?"
                                     value={beginMessage}
                                     onChange={(e) => updateField('beginMessage', e.target.value)}
                                     required
                                 />
 
-                                <div className="legal-warning-box mt-3">
+                                <div className="legal-warning-banner mt-3">
                                     <i className="bi bi-exclamation-triangle-fill"></i>
-                                    <div className="legal-warning-content">
+                                    <div className="banner-content">
                                         <strong>Obligatorio por ley española (RGPD y LOPD):</strong>
                                         <p>Debes informar que es un asistente de voz con IA y que la llamada está siendo grabada. Incluye siempre: <strong>&quot;Asistente de voz creado con inteligencia artificial&quot;</strong> y <strong>&quot;Esta llamada está siendo grabada&quot;</strong> (si aplica).</p>
                                     </div>
                                 </div>
 
-                                <div className="form-text mt-2">
-                                    <i className="bi bi-chat-dots me-1"></i>
-                                    Primera frase que dirá el agente al contestar
+                                <div className="form-text mt-2 d-flex align-items-center">
+                                    <i className="bi bi-chat-left-text me-2 icon-soft"></i>
+                                    <span>Primera frase que dirá el agente al contestar</span>
                                 </div>
                             </div>
                         )}
@@ -199,109 +204,85 @@ export const Step2_LLM: React.FC = () => {
                         <div className="form-group mb-4">
                             <label className="form-label">
                                 Personalidad del agente
-                                <div className="custom-tooltip ms-2">
+                                <div className="custom-tooltip ms-1">
                                     <i className="bi bi-question-circle-fill tooltip-icon"></i>
                                     <div className="tooltip-content shadow">
-                                        Selecciona los rasgos que definen el comportamiento de tu agente.
+                                        Rasgos que definen el comportamiento de tu agente.
                                     </div>
                                 </div>
                             </label>
-                            <div className="traits-grid">
+                            <div className="radio-pill-group-grid">
                                 {['Profesional', 'Amigable', 'Empático', 'Proactivo'].map(trait => (
-                                    <div key={trait}
-                                        className={`trait-card ${personality.includes(trait) ? 'active' : ''}`}
+                                    <button key={trait} type="button"
+                                        className={`pill-btn-small ${personality.includes(trait) ? 'active' : ''}`}
                                         onClick={() => handlePersonalityToggle(trait)}>
                                         {trait}
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
-                            <div className="form-text mt-2">
-                                <i className="bi bi-emoji-smile me-1"></i>
-                                Selecciona al menos un rasgo de personalidad
+                            <div className="form-text mt-2 d-flex align-items-center">
+                                <i className="bi bi-emoji-smile me-2 icon-soft"></i>
+                                <span>Selecciona al menos un rasgo de personalidad</span>
                             </div>
                         </div>
 
                         <div className="form-group mb-0">
                             <label className="form-label">
-                                Tono de comunicación
-                                <span className="required">*</span>
-                                <div className="custom-tooltip ms-2">
+                                Tono de comunicación <span className="required">*</span>
+                                <div className="custom-tooltip ms-1">
                                     <i className="bi bi-question-circle-fill tooltip-icon"></i>
                                     <div className="tooltip-content shadow">
-                                        Elige el nivel de formalidad en el lenguaje.
+                                        Nivel de formalidad en el lenguaje.
                                     </div>
                                 </div>
                             </label>
-                            <div className="tone-radio-group">
+                            <div className="radio-pill-group">
                                 {['Formal', 'Semiformal', 'Casual'].map(t => (
-                                    <div key={t}
-                                        className={`tone-card ${tone === t ? 'active' : ''}`}
+                                    <button key={t} type="button"
+                                        className={`pill-btn ${tone === t ? 'active' : ''}`}
                                         onClick={() => updateField('tone', t)}>
                                         {t}
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    <div className="section-divider"></div>
-
-                    {/* SECCIÓN 3: PROMPT DEL AGENTE */}
-                    <div className="step-section">
-                        <h3 className="section-title-icon">
-                            <i className="bi bi-code-square"></i>
-                            Prompt del agente
-                        </h3>
-                        <p className="section-description">
-                            El prompt es el cerebro de tu agente. Define su personalidad, conocimientos y reglas de comportamiento.
-                        </p>
-
-                        <div className="form-group mb-0">
-                            <label className="form-label">
-                                Prompt general
-                                <span className="required">*</span>
-                            </label>
-
-                            <button type="button" className="btn btn-magic mb-3" onClick={() => window.open('https://generador-agentes.netelip.com', '_blank')}>
-                                <i className="bi bi-magic"></i> Usar generador de prompts
-                            </button>
-
-                            <div className="info-box-blue mb-3">
-                                <i className="bi bi-lightbulb-fill"></i>
-                                <p><strong>Recomendación:</strong> El Generador de Prompts te permite crear un prompt profesional optimizado paso a paso. Una vez generado, puedes copiarlo aquí.</p>
-                            </div>
-
-                            <textarea
-                                className="form-control prompt-textarea"
-                                rows={15}
-                                placeholder="Usa el Generador de Prompts para crear un prompt profesional optimizado, o escribe el tuyo propio aquí..."
-                                value={useWizardStore.getState().prompt}
-                                onChange={(e) => updateField('prompt', e.target.value)}
-                                required
-                            />
-                            <div className="form-text mt-2">
-                                <i className="bi bi-magic me-1"></i>
-                                Este prompt define todo el comportamiento de tu agente
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="wizard-actions mt-5">
-                        <button type="button" className="btn btn-secondary" onClick={prevStep}>
-                            <i className="bi bi-arrow-left"></i> Anterior
+                    <div className="wizard-actions mt-5 pt-4">
+                        <button type="button" className="btn btn-secondary-wizard" onClick={prevStep}>
+                            Anterior
                         </button>
-                        <button type="submit" className="btn btn-primary">
-                            Siguiente paso <i className="bi bi-arrow-right"></i>
+                        <button type="submit" className="btn btn-primary-wizard">
+                            Siguiente paso
                         </button>
                     </div>
                 </form>
             </div>
 
             <style jsx>{`
+                .content-area {
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+                .form-card {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 32px;
+                    border: 1px solid #e2e8f0;
+                }
+                .step-header-compact {
+                    border-bottom: 1px solid #f1f5f9;
+                    padding-bottom: 16px;
+                }
+                .step-count {
+                    font-size: 14px;
+                    color: #64748b;
+                    font-weight: 500;
+                }
                 .section-title-icon {
                     font-size: 18px;
                     font-weight: 700;
-                    color: var(--oscuro);
+                    color: #1e293b;
                     margin-bottom: 8px;
                     display: flex;
                     align-items: center;
@@ -309,17 +290,16 @@ export const Step2_LLM: React.FC = () => {
                 }
                 .section-description {
                     font-size: 14px;
-                    color: var(--gris-texto);
+                    color: #64748b;
                     margin-bottom: 24px;
                 }
                 .section-divider {
-                    margin: 48px 0 32px 0;
-                    border-top: 2px solid var(--gris-borde);
-                    padding-top: 32px;
+                    margin: 40px 0;
+                    border-top: 1px solid #f1f5f9;
                 }
                 .form-label {
                     font-weight: 600;
-                    color: var(--oscuro);
+                    color: #1e293b;
                     margin-bottom: 8px;
                     display: flex;
                     align-items: center;
@@ -327,153 +307,158 @@ export const Step2_LLM: React.FC = () => {
                 }
                 .required {
                     color: #ef4444;
-                    margin-left: 4px;
+                    margin-left: 2px;
                 }
                 .tooltip-icon {
-                    color: var(--netelip-azul);
+                    color: #267ab0;
                     cursor: help;
-                    font-size: 16px;
+                    font-size: 15px;
                 }
                 .custom-tooltip {
                     position: relative;
-                    display: inline-block;
+                    display: flex;
+                    align-items: center;
                 }
                 .tooltip-content {
                     visibility: hidden;
-                    width: 280px;
-                    background: var(--oscuro);
+                    width: 260px;
+                    background: #1e293b;
                     color: white;
                     border-radius: 8px;
-                    padding: 12px 16px;
+                    padding: 12px;
                     position: absolute;
                     z-index: 2000;
                     bottom: 125%;
                     left: 50%;
                     transform: translateX(-50%);
                     opacity: 0;
-                    transition: all 0.3s;
+                    transition: all 0.2s;
                     font-size: 12px;
-                    line-height: 1.5;
-                }
-                .tooltip-content::after {
-                    content: "";
-                    position: absolute;
-                    top: 100%;
-                    left: 50%;
-                    margin-left: -6px;
-                    border-width: 6px;
-                    border-style: solid;
-                    border-color: var(--oscuro) transparent transparent transparent;
                 }
                 .custom-tooltip:hover .tooltip-content {
                     visibility: visible;
                     opacity: 1;
                 }
-
-                .slider-wrapper {
+                
+                .form-select.premium-select {
+                    background-color: #f1f5f9;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 10px;
+                    padding: 12px 16px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #1e293b;
+                    appearance: none;
+                }
+                
+                .slider-wrapper-premium {
                     display: flex;
-                    align-items: center;
+                    flex-direction: column;
                     gap: 12px;
                 }
-                .slider-value-badge {
-                    background: var(--netelip-azul);
+                .slider-value-badge-v2 {
+                    background: #267ab0;
                     color: white;
-                    padding: 4px 10px;
+                    padding: 4px 12px;
                     border-radius: 6px;
                     font-weight: 700;
-                    font-size: 14px;
-                    min-width: 38px;
-                    text-align: center;
+                    font-size: 13px;
+                    width: fit-content;
+                }
+                .custom-range {
+                    height: 6px;
+                    background: #f1f5f9;
+                    border-radius: 5px;
+                    -webkit-appearance: none;
+                }
+                .custom-range::-webkit-slider-thumb {
+                    width: 18px;
+                    height: 18px;
+                    background: #267ab0;
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    -webkit-appearance: none;
+                    cursor: pointer;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
 
-                .radio-card-group, .tone-radio-group {
+                .radio-pill-group {
                     display: flex;
                     gap: 12px;
                 }
-                .radio-card, .tone-card {
-                    flex: 1;
-                    border: 2px solid var(--gris-borde);
-                    border-radius: 8px;
-                    padding: 14px;
-                    text-align: center;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    background: white;
+                .radio-pill-group-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 12px;
                 }
-                .radio-card:hover, .tone-card:hover { border-color: var(--netelip-azul); background: #eff6ff; }
-                .radio-card.active, .tone-card.active { border-color: var(--netelip-azul); background: #eff6ff; color: var(--netelip-azul); }
-                .radio-card input { display: none; }
+                .pill-btn, .pill-btn-small {
+                    flex: 1;
+                    padding: 12px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    background: white;
+                    color: #64748b;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: all 0.2s;
+                }
+                .pill-btn.active, .pill-btn-small.active {
+                    background: #eff6ff;
+                    border-color: #267ab0;
+                    color: #267ab0;
+                }
+                .pill-btn:hover, .pill-btn-small:hover {
+                    border-color: #267ab0;
+                }
 
                 .start-message-area {
-                    min-height: 100px;
+                    border: 1px solid #e2e8f0;
                     border-radius: 8px;
-                    padding: 12px;
+                    padding: 16px;
                     font-size: 14px;
+                    color: #1e293b;
                 }
 
-                .legal-warning-box {
+                .legal-warning-banner {
                     background: #fffbeb;
                     border: 1px solid #fef3c7;
-                    border-radius: 10px;
-                    padding: 16px 20px;
+                    border-radius: 8px;
+                    padding: 16px;
                     display: flex;
-                    gap: 16px;
+                    gap: 12px;
                     align-items: flex-start;
                 }
-                .legal-warning-box i { color: #f59e0b; font-size: 20px; }
-                .legal-warning-content strong { color: #92400e; font-size: 13px; display: block; margin-bottom: 4px; }
-                .legal-warning-content p { margin: 0; font-size: 12px; color: #78350f; line-height: 1.5; }
+                .legal-warning-banner i { color: #f59e0b; font-size: 18px; }
+                .banner-content strong { color: #92400e; font-size: 13px; display: block; margin-bottom: 4px; }
+                .banner-content p { margin: 0; font-size: 12px; color: #78350f; line-height: 1.5; }
 
-                .traits-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 12px;
+                .form-text {
+                    font-size: 12px;
+                    color: #94a3b8;
                 }
-                .trait-card {
-                    border: 2px solid var(--gris-borde);
-                    border-radius: 8px;
-                    padding: 12px;
-                    text-align: center;
-                    cursor: pointer;
-                    font-weight: 600;
+                .icon-soft {
+                    color: #cbd5e1;
                     font-size: 14px;
-                    transition: all 0.2s;
-                    background: white;
-                }
-                .trait-card:hover { border-color: var(--netelip-azul); background: #eff6ff; }
-                .trait-card.active { border-color: var(--netelip-azul); background: #eff6ff; color: var(--netelip-azul); }
-
-                .btn-magic {
-                    background: linear-gradient(135deg, #10b981, #059669);
-                    color: white;
-                    border: none;
-                    font-weight: 700;
-                    transition: all 0.3s;
-                }
-                .btn-magic:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); color: white; }
-
-                .info-box-blue {
-                    background: #eff6ff;
-                    border: 1px solid #bfdbfe;
-                    border-radius: 8px;
-                    padding: 14px;
-                    display: flex;
-                    gap: 12px;
-                    font-size: 13px;
-                }
-                .info-box-blue i { color: var(--netelip-azul); font-size: 18px; }
-                .info-box-blue p { margin: 0; color: var(--oscuro); }
-
-                .prompt-textarea {
-                    font-family: 'Monaco', 'Courier New', monospace;
-                    font-size: 13px;
-                    line-height: 1.6;
-                    border-radius: 12px;
-                    padding: 20px;
                 }
                 .fw-600 { font-weight: 600; }
+                
+                .btn-secondary-wizard {
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    background: #f1f5f9;
+                    border: 1px solid #e2e8f0;
+                    color: #64748b;
+                    font-weight: 600;
+                }
+                .btn-primary-wizard {
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    background: #267ab0;
+                    border: none;
+                    color: white;
+                    font-weight: 600;
+                    margin-left: 12px;
+                }
             `}</style>
         </div>
     );
