@@ -104,7 +104,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     companyName: '',
     agentType: 'cualificacion', // transfer, booking, etc.
 
-    model: 'gpt-4o',
+    model: 'gpt-4.1',
     prompt: 'Eres un asistente útil.',
 
     voiceId: '11labs-Adrian',
@@ -166,7 +166,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     setStep: (step) => set({ currentStep: step }),
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
-        model: 'gpt-4o', prompt: 'Eres un asistente útil.',
+        model: 'gpt-4.1', prompt: 'Eres un asistente útil.',
         voiceId: '11labs-Adrian', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 1.0,
         enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],

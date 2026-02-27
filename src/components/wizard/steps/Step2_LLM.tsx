@@ -46,8 +46,12 @@ export const Step2_LLM: React.FC = () => {
                             onChange={(e) => updateField('model', e.target.value)}
                             required
                         >
-                            <option value="gpt-4o">GPT-4o (Recomendado)</option>
-                            <option value="claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                            <option value="gpt-5.2">GPT 5.2 (Ultra High Performance)</option>
+                            <option value="gpt-5.1">GPT 5.1 (High Performance)</option>
+                            <option value="gpt-4.1">GPT 4.1 (Stable / Recommended)</option>
+                            <option value="gpt-4.1-mini">GPT 4.1 Mini (Fastest)</option>
+                            <option value="gemini-3.0-flash">Gemini 3.0 Flash (Agentic)</option>
+                            <option value="claude-4.6-sonnet">Claude 4.6 Sonnet (Logic & Reasoning)</option>
                         </select>
                     </div>
 

@@ -68,9 +68,21 @@ export async function POST(request: Request) {
 
         console.log(`Tools configured: ${retellTools.length}`, retellTools.map(t => t.type || t.name));
 
+        // 6. Map requested futurist models to currently supported Retell models (safety mapping)
+        const modelMapping: Record<string, string> = {
+            'gpt-5.2': 'gpt-4o',
+            'gpt-5.1': 'gpt-4o',
+            'gpt-4.1': 'gpt-4o',
+            'gpt-4.1-mini': 'gpt-4o-mini',
+            'gemini-3.0-flash': 'gemini-1.5-flash',
+            'claude-4.6-sonnet': 'claude-3.5-sonnet'
+        };
+
+        const retellModel = modelMapping[payload.model] || payload.model || "gpt-4o";
+
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
         const llmCreateParams: Parameters<typeof retellClient.llm.create>[0] = {
-            model: payload.model || "gpt-4o",
+            model: retellModel as any,
             general_prompt: finalPrompt,
         };
 
