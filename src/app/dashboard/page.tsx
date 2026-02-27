@@ -85,6 +85,12 @@ export default function DashboardPage() {
 
             setUser(profile ?? { full_name: session.user.email ?? null, email: session.user.email ?? null, role: 'user', workspace_id: null });
 
+            // Superadmin: redirect to admin panel
+            if (profile?.role === 'superadmin') {
+                router.push('/admin');
+                return;
+            }
+
             // Load agents for this workspace
             if (profile?.workspace_id) {
                 const { data: agentList } = await supabase
@@ -167,7 +173,6 @@ export default function DashboardPage() {
                 <nav style={{ flex: 1, padding: '20px 0', overflowY: 'auto' }}>
                     {[
                         { key: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: 'M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z' },
-                        { key: 'agents', label: 'Mis agentes IA', href: '/dashboard', icon: 'M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z' },
                         { key: 'wizard', label: 'Crear agente', href: '/wizard', icon: 'M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' },
                     ].map(item => (
                         <Link key={item.key} href={item.href}
@@ -185,6 +190,31 @@ export default function DashboardPage() {
                             {item.label}
                         </Link>
                     ))}
+
+                    {/* Superadmin-only section */}
+                    {user?.role === 'superadmin' && (
+                        <>
+                            <div style={{ margin: '16px 20px 8px', borderTop: '1px solid #e5e7eb', paddingTop: '16px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                                    Administración
+                                </span>
+                            </div>
+                            <Link href="/admin"
+                                onClick={() => setActiveNav('admin')}
+                                style={{
+                                    display: 'flex', alignItems: 'center', padding: '12px 20px',
+                                    color: activeNav === 'admin' ? '#7c3aed' : '#7c3aed',
+                                    textDecoration: 'none', transition: 'all 0.2s', fontSize: '14px', fontWeight: 600,
+                                    background: activeNav === 'admin' ? '#f5f3ff' : 'transparent',
+                                    borderRight: activeNav === 'admin' ? '3px solid #7c3aed' : '3px solid transparent'
+                                }}>
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '12px', flexShrink: 0 }}>
+                                    <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clipRule="evenodd" />
+                                </svg>
+                                Panel de Admin
+                            </Link>
+                        </>
+                    )}
                 </nav>
 
                 {/* Logout */}

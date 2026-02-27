@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { createClient } from '../../lib/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, Bot } from 'lucide-react';
+import { createClient } from '../../lib/supabase/client';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -17,11 +16,9 @@ export default function LoginPage() {
         e.preventDefault();
         setError('');
         setIsLoading(true);
-
         try {
             const supabase = createClient();
             const { error } = await supabase.auth.signInWithPassword({ email, password });
-
             if (error) {
                 setError(error.message);
                 return;
@@ -35,51 +32,53 @@ export default function LoginPage() {
 
     return (
         <div style={{
-            minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
-            fontFamily: "'Inter', sans-serif"
+            fontFamily: "'Inter', -apple-system, sans-serif",
+            background: '#f5f6f8',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '32px 16px'
         }}>
-            <div style={{
-                width: '100%', maxWidth: '420px', padding: '20px',
-                display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center'
-            }}>
+            <div style={{ width: '100%', maxWidth: '440px' }}>
+
                 {/* Logo */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                        width: '56px', height: '56px', borderRadius: '16px',
-                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 8px 32px rgba(99,102,241,0.4)'
-                    }}>
-                        <Bot size={28} color="white" />
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <h1 style={{ color: 'white', fontSize: '22px', fontWeight: 700, margin: 0 }}>Fábrica de Agentes</h1>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px', margin: '4px 0 0 0' }}>Inicia sesión en tu cuenta</p>
-                    </div>
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <svg width="140" height="36" viewBox="0 0 140 36">
+                        <text x="5" y="28" fontFamily="Inter, sans-serif" fontSize="26" fontWeight="700" fill="#267ab0">netelip</text>
+                    </svg>
+                    <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6c757d', fontWeight: 500 }}>
+                        Fábrica de Agentes IA
+                    </p>
                 </div>
 
                 {/* Card */}
                 <div style={{
-                    width: '100%', borderRadius: '20px',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(20px)',
-                    padding: '32px'
+                    background: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    padding: '40px'
                 }}>
+                    <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#1a2428', margin: '0 0 6px 0' }}>
+                        Iniciar sesión
+                    </h1>
+                    <p style={{ fontSize: '14px', color: '#6c757d', margin: '0 0 32px 0' }}>
+                        Accede a tu panel de control
+                    </p>
+
                     {error && (
                         <div style={{
-                            background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
-                            borderRadius: '10px', padding: '12px 16px', color: '#fca5a5',
-                            fontSize: '14px', marginBottom: '20px'
+                            background: '#fef2f2', border: '1px solid #fecaca',
+                            borderRadius: '8px', padding: '12px 16px',
+                            fontSize: '14px', color: '#dc2626', marginBottom: '20px'
                         }}>
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div>
-                            <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>
+                    <form onSubmit={handleLogin}>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#1a2428', marginBottom: '6px' }}>
                                 Email
                             </label>
                             <input
@@ -89,14 +88,19 @@ export default function LoginPage() {
                                 onChange={e => setEmail(e.target.value)}
                                 placeholder="tu@empresa.com"
                                 style={{
-                                    width: '100%', padding: '11px 14px', borderRadius: '10px',
-                                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                                    color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
+                                    width: '100%', padding: '10px 14px',
+                                    border: '1px solid #e5e7eb', borderRadius: '8px',
+                                    fontSize: '14px', color: '#1a2428',
+                                    outline: 'none', boxSizing: 'border-box',
+                                    fontFamily: 'inherit', background: 'white'
                                 }}
+                                onFocus={e => e.target.style.borderColor = '#267ab0'}
+                                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
                             />
                         </div>
-                        <div>
-                            <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>
+
+                        <div style={{ marginBottom: '28px' }}>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#1a2428', marginBottom: '6px' }}>
                                 Contraseña
                             </label>
                             <input
@@ -106,10 +110,14 @@ export default function LoginPage() {
                                 onChange={e => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 style={{
-                                    width: '100%', padding: '11px 14px', borderRadius: '10px',
-                                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                                    color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
+                                    width: '100%', padding: '10px 14px',
+                                    border: '1px solid #e5e7eb', borderRadius: '8px',
+                                    fontSize: '14px', color: '#1a2428',
+                                    outline: 'none', boxSizing: 'border-box',
+                                    fontFamily: 'inherit', background: 'white'
                                 }}
+                                onFocus={e => e.target.style.borderColor = '#267ab0'}
+                                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
                             />
                         </div>
 
@@ -117,25 +125,32 @@ export default function LoginPage() {
                             type="submit"
                             disabled={isLoading}
                             style={{
-                                marginTop: '8px', padding: '12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                color: 'white', fontWeight: 600, fontSize: '15px',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                opacity: isLoading ? 0.7 : 1, transition: 'opacity 0.2s'
+                                width: '100%', padding: '12px',
+                                background: isLoading ? '#6b9fc7' : '#267ab0',
+                                color: 'white', border: 'none', borderRadius: '8px',
+                                fontSize: '15px', fontWeight: 600, cursor: isLoading ? 'not-allowed' : 'pointer',
+                                transition: 'background 0.2s', fontFamily: 'inherit'
                             }}
+                            onMouseEnter={e => { if (!isLoading) (e.target as HTMLButtonElement).style.background = '#1e6291'; }}
+                            onMouseLeave={e => { if (!isLoading) (e.target as HTMLButtonElement).style.background = '#267ab0'; }}
                         >
-                            {isLoading && <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />}
                             {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
                         </button>
                     </form>
 
-                    <p style={{ textAlign: 'center', marginTop: '24px', color: 'rgba(255,255,255,0.45)', fontSize: '14px' }}>
-                        ¿No tienes cuenta?{' '}
-                        <Link href="/register" style={{ color: '#a78bfa', fontWeight: 600, textDecoration: 'none' }}>
-                            Regístrate
-                        </Link>
-                    </p>
+                    <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #e5e7eb', textAlign: 'center' }}>
+                        <span style={{ fontSize: '14px', color: '#6c757d' }}>
+                            ¿No tienes cuenta?{' '}
+                            <Link href="/register" style={{ color: '#267ab0', fontWeight: 600, textDecoration: 'none' }}>
+                                Regístrate
+                            </Link>
+                        </span>
+                    </div>
                 </div>
+
+                <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '12px', color: '#9ca3af' }}>
+                    © 2025 Netelip · Fábrica de Agentes IA
+                </p>
             </div>
         </div>
     );
