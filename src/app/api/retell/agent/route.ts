@@ -290,9 +290,10 @@ export async function PATCH(request: Request) {
 
         let llmId = currentAgent.retell_llm_id;
         if (llmId) {
-            console.log(`Updating LLM ${llmId} with tools count:`, (llmUpdateParams as any).tools?.length || 0);
-            const updatedLlm = await retellClient.llm.update(llmId, llmUpdateParams) as any;
-            console.log("Retell LLM Update Response tools count:", updatedLlm.tools?.length || 0);
+            console.log(`Updating LLM ${llmId}`);
+            // Usamos un log más simple para evitar problemas de tipos/any con el SDK
+            const updatedLlm = await retellClient.llm.update(llmId, llmUpdateParams);
+            console.log("Retell LLM Update executed successfully for LLM:", updatedLlm.llm_id);
         } else {
             console.log("Creating new LLM because agent had no LLM ID assigned.");
             const createdLlm = await retellClient.llm.create(llmUpdateParams as any);
