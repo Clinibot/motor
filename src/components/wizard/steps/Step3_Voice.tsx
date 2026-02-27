@@ -17,17 +17,17 @@ interface Voice {
 const VOICES_DATA: Voice[] = [
     // Español
     { id: '11labs-UOIqAnmS11Reiei1Ytkc', name: 'Carolina', provider: 'elevenlabs', language: 'es', gender: 'female', accent: 'spain', description: 'Voz dulce y natural de España', previewUrl: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/UOIqAnmS11Reiei1Ytkc/df6788f9-5c96-470d-8312-e5223fe8009f.mp3' },
-    { id: 'retell-11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España', previewUrl: 'https://cdn.openai.com/api/audio/voices/alloy.wav' },
-    { id: 'retell-Cimo', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable', previewUrl: 'https://cdn.openai.com/api/audio/voices/fable.wav' },
-    { id: 'retell-11labs-Serena', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
+    { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España', previewUrl: 'https://cdn.openai.com/api/audio/voices/alloy.wav' },
+    { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable', previewUrl: 'https://cdn.openai.com/api/audio/voices/fable.wav' },
+    { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
     // Inglés
-    { id: 'retell-11labs-Rachel', name: 'Rachel', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Professional American voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
-    { id: 'retell-11labs-George', name: 'George', provider: 'retell', language: 'en', gender: 'male', accent: 'uk', description: 'British professional voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/onyx.wav' },
-    { id: 'retell-11labs-Charlotte', name: 'Charlotte', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Clear and pleasant voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/nova.wav' },
-    { id: 'retell-11labs-Charlie', name: 'Charlie', provider: 'retell', language: 'en', gender: 'male', accent: 'usa', description: 'Young American male voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/echo.wav' },
+    { id: 'openai-Nova', name: 'Rachel', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Professional American voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/nova.wav' },
+    { id: 'openai-Onyx', name: 'George', provider: 'retell', language: 'en', gender: 'male', accent: 'uk', description: 'British professional voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/onyx.wav' },
+    { id: 'openai-Alloy', name: 'Charlotte', provider: 'retell', language: 'en', gender: 'female', accent: 'usa', description: 'Clear and pleasant voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/alloy.wav' },
+    { id: 'openai-Echo', name: 'Charlie', provider: 'retell', language: 'en', gender: 'male', accent: 'usa', description: 'Young American male voice', previewUrl: 'https://cdn.openai.com/api/audio/voices/echo.wav' },
     // Francés
-    { id: 'retell-11labs-Thomas', name: 'Thomas', provider: 'retell', language: 'fr', gender: 'male', accent: 'france', description: 'Voix française professionnelle', previewUrl: 'https://cdn.openai.com/api/audio/voices/onyx.wav' },
-    { id: 'retell-11labs-Marie', name: 'Marie', provider: 'retell', language: 'fr', gender: 'female', accent: 'france', description: 'Voix douce et élégante', previewUrl: 'https://cdn.openai.com/api/audio/voices/nova.wav' },
+    { id: 'openai-Echo', name: 'Thomas', provider: 'retell', language: 'fr', gender: 'male', accent: 'france', description: 'Voix française professionnelle', previewUrl: 'https://cdn.openai.com/api/audio/voices/echo.wav' },
+    { id: 'openai-Shimmer', name: 'Marie', provider: 'retell', language: 'fr', gender: 'female', accent: 'france', description: 'Voix douce et élégante', previewUrl: 'https://cdn.openai.com/api/audio/voices/shimmer.wav' },
 ];
 
 export const Step3_Voice: React.FC = () => {
