@@ -280,14 +280,6 @@ export const Step2_CompanyInfo: React.FC = () => {
                                 <div className="alert alert-info mt-3 d-flex align-items-center" role="alert" style={{ fontSize: '0.9rem' }}>
                                     <i className="bi bi-info-circle-fill me-2" style={{ fontSize: '1.2rem' }}></i>
                                     <div>
-                                        {/* This is where the first part of the change goes */}
-                                        {/* The original content here was: "Si la información que quieres añadir no es muy extensa, es recomendable añadirla en las instrucciones finales que se generarán para el agente en lugar de subir un archivo." */}
-                                        {/* The instruction implies replacing this text with the code snippet, but that would break the JSX. */}
-                                        {/* The instruction is to "capturarlo en el store", which means adding it to the `newFiles.push` object. */}
-                                        {/* The provided snippet for the first part of the change is actually a code block that should be inside the handleFileUpload function. */}
-                                        {/* I will assume the user meant to show the context for the `newFiles.push` modification, not to place that code block here. */}
-                                        {/* The actual change for the `newFiles.push` is already handled by the instruction's snippet. */}
-                                        {/* I will keep the original text content of this div and apply the `newFiles.push` change within the `handleFileUpload` function. */}
                                         Si la información que quieres añadir no es muy extensa, es recomendable añadirla en las instrucciones finales que se generarán para el agente en lugar de subir un archivo.
                                     </div>
                                 </div>
