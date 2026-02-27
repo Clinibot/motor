@@ -17,22 +17,15 @@ const stepNames = [
 
 export const Topbar: React.FC = () => {
     const currentStep = useWizardStore((state) => state.currentStep);
-    const toggleSidebar = useWizardStore((state) => state.toggleSidebar);
     const percentage = (currentStep / 9) * 100;
     const currentName = stepNames[currentStep - 1] || '';
 
     return (
         <div className="topbar">
             <div className="d-flex align-items-center justify-content-between mb-3">
-                <button
-                    className="btn btn-sm d-md-none p-0 border-0"
-                    onClick={toggleSidebar}
-                    style={{ background: 'transparent' }}
-                >
-                    <i className="bi bi-list" style={{ fontSize: '24px', color: 'var(--netelip-azul)' }}></i>
-                </button>
                 <div className="progress-text">Paso {currentStep} de 9 - {currentName}</div>
-                <div className="d-md-none" style={{ width: '24px' }}></div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://www.netelip.com/wp-content/themes/netelip-2024/assets/images/netelip-logo.svg" alt="netelip" style={{ height: '30px' }} />
             </div>
             <div className="progress-bar-container" style={{ marginBottom: 0 }}>
                 <div className="progress-bar-fill" style={{ width: `${percentage}%` }}></div>

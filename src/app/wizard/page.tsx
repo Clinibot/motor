@@ -57,6 +57,20 @@ function WizardContent() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams, router]);
 
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+
+        // Also attempt to scroll the main scrolling container if the layout absorbs the scroll
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.scrollTo({ top: 0, behavior: 'instant' });
+        }
+
+        // As a fallback for deep flex-box layouts
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+    }, [currentStep]);
+
     // Prevent hydration errors — do not render until client-side mounted
     if (!mounted) return null;
 

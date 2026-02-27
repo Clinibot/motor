@@ -35,7 +35,7 @@ export interface WizardState {
     businessHours: { day: string; open: string; close: string; closed: boolean }[];
 
     // Knowledge Base (Moved to Step 2)
-    kbFiles: { name: string; size: string; type: string }[];
+    kbFiles: { id: string; name: string; size: string; type: string }[];
     kbUsageInstructions: string;
     kbRetrievalChunks: number;
     kbSimilarityThreshold: number;

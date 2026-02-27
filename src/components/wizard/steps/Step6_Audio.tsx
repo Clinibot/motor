@@ -62,9 +62,12 @@ export const Step6_Audio: React.FC = () => {
                                             onChange={(e) => updateField('ambientSound', e.target.value)}
                                         >
                                             <option value="none">Ninguno</option>
-                                            <option value="office">Oficina (Teclado, murmullos)</option>
                                             <option value="coffee-shop">Cafetería (Platos, ambiente)</option>
-                                            <option value="street">Calle (Tráfico suave)</option>
+                                            <option value="convention-hall">Centro de convenciones (Murmullos altos)</option>
+                                            <option value="summer-outdoor">Exterior de verano (Naturaleza, insectos)</option>
+                                            <option value="mountain-outdoor">Montaña (Viento, naturaleza)</option>
+                                            <option value="call-center">Call Center (Voces de fondo, teclados)</option>
+                                            <option value="static-noise">Ruido estático (TV antigua, interferencia)</option>
                                         </select>
                                     </div>
                                 </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '../../../../lib/retell/toolMapper';
 
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !supabaseServiceKey) {
         throw new Error('Supabase environment variables are not configured.');
     }
@@ -16,23 +17,32 @@ function getSupabaseAdmin() {
 
 export async function POST(request: Request) {
     try {
-        const supabaseAdmin = getSupabaseAdmin();
         const payload = await request.json();
 
-        // 1. Get the workspace ID from the request
+        const supabase = await createLocalClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+            return NextResponse.json({ success: false, error: "Unauthorized. Please log in first." }, { status: 401 });
+        }
+
+        const userId = session.user.id;
+        const supabaseAdmin = getSupabaseAdmin();
+
+        // 1. Get the workspace ID from the user's profile
         let workspaceId = payload.workspace_id;
 
         if (!workspaceId) {
-            const { data: firstWorkspace } = await supabaseAdmin
-                .from('workspaces')
-                .select('id')
-                .limit(1)
+            const { data: userProfile } = await supabaseAdmin
+                .from('users')
+                .select('workspace_id')
+                .eq('id', userId)
                 .single();
 
-            if (!firstWorkspace) {
-                return NextResponse.json({ success: false, error: "No workspaces available." }, { status: 400 });
+            if (!userProfile || !userProfile.workspace_id) {
+                return NextResponse.json({ success: false, error: "Tu usuario no tiene un workspace asignado automáticamente. Visita el Dashboard de Agentes para que se te asigne uno." }, { status: 400 });
             }
-            workspaceId = firstWorkspace.id;
+            workspaceId = userProfile.workspace_id;
         }
 
         // 2. Fetch the Retell API Key for this workspace
@@ -72,9 +82,11 @@ export async function POST(request: Request) {
         const modelMapping: Record<string, string> = {
             'gpt-5.2': 'gpt-4o',
             'gpt-5.1': 'gpt-4o',
+            'gpt-5': 'gpt-4o',
             'gpt-4.1': 'gpt-4o',
             'gpt-4.1-mini': 'gpt-4o-mini',
             'gemini-3.0-flash': 'gemini-1.5-flash',
+            'claude-4.5-sonnet': 'claude-3.5-sonnet',
             'claude-4.6-sonnet': 'claude-3.5-sonnet'
         };
 
@@ -93,21 +105,25 @@ export async function POST(request: Request) {
             (llmCreateParams as any).tools = retellTools;
         }
 
-        if (postCallAnalysis && postCallAnalysis.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmCreateParams as any).post_call_analysis_data = postCallAnalysis;
-        }
-
-        // Analysis model
-        if (payload.enableAnalysis && payload.analysisModel) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmCreateParams as any).post_call_analysis_model = payload.analysisModel;
+        if (payload.kbFiles && payload.kbFiles.length > 0) {
+            const kbIds = payload.kbFiles.map((f: { id?: string }) => f.id).filter(Boolean);
+            if (kbIds.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (llmCreateParams as any).knowledge_base_ids = kbIds;
+            }
         }
 
         const llmResponse = await retellClient.llm.create(llmCreateParams);
 
-        // 6.5 Import Voice if it's the external ElevenLabs one (Carolina)
-        const finalVoiceId = payload.voiceId || "11labs-Adrian";
+        // 6.5 Verify and Alias Voice ID (fake Cartesia -> Carolina)
+        let finalVoiceId = payload.voiceId || "11labs-Adrian";
+
+        // Intercept fake Cartesia UI placeholders and force them into Carolina (Spanish Female)
+        // to prevent Retell from crashing and defaulting to a random American English voice.
+        if (finalVoiceId.startsWith('cartesia-')) {
+            finalVoiceId = '11labs-UOIqAnmS11Reiei1Ytkc'; // Carolina
+        }
+
         if (finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
             try {
                 console.log(`Ensuring Carolina ElevenLabs voice (UOIqAnmS11Reiei1Ytkc) is imported...`);
@@ -144,7 +160,8 @@ export async function POST(request: Request) {
             volume: payload.volume,
             ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
             ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
-            normalize_for_speech: payload.normalizeForSpeech
+            normalize_for_speech: payload.normalizeForSpeech,
+            post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined
         });
 
         // 8. Store the new agent in Supabase (including tools config)
@@ -227,9 +244,11 @@ export async function PATCH(request: Request) {
         const modelMapping: Record<string, string> = {
             'gpt-5.2': 'gpt-4o',
             'gpt-5.1': 'gpt-4o',
+            'gpt-5': 'gpt-4o',
             'gpt-4.1': 'gpt-4o',
             'gpt-4.1-mini': 'gpt-4o-mini',
             'gemini-3.0-flash': 'gemini-1.5-flash',
+            'claude-4.5-sonnet': 'claude-3.5-sonnet',
             'claude-4.6-sonnet': 'claude-3.5-sonnet'
         };
         const retellModel = modelMapping[payload.model] || payload.model || "gpt-4o";
@@ -249,17 +268,15 @@ export async function PATCH(request: Request) {
             (llmUpdateParams as any).tools = []; // clear tools if empty
         }
 
-        if (postCallAnalysis && postCallAnalysis.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmUpdateParams as any).post_call_analysis_data = postCallAnalysis;
+        if (payload.kbFiles && payload.kbFiles.length > 0) {
+            const kbIds = payload.kbFiles.map((f: { id?: string }) => f.id).filter(Boolean);
+            if (kbIds.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (llmUpdateParams as any).knowledge_base_ids = kbIds;
+            }
         } else {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmUpdateParams as any).post_call_analysis_data = [];
-        }
-
-        if (payload.enableAnalysis && payload.analysisModel) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmUpdateParams as any).post_call_analysis_model = payload.analysisModel;
+            (llmUpdateParams as any).knowledge_base_ids = [];
         }
 
         let llmId = currentAgent.retell_llm_id;
@@ -271,7 +288,21 @@ export async function PATCH(request: Request) {
             llmId = createdLlm.llm_id;
         }
 
-        const finalVoiceId = payload.voiceId || "11labs-Adrian";
+        const finalVoiceId = payload.voiceId || currentAgent?.configuration?.voiceId || "11labs-Adrian";
+
+        // Import Voice if it's the external ElevenLabs one (Carolina)
+        if (finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
+            try {
+                console.log(`Ensuring Carolina ElevenLabs voice (UOIqAnmS11Reiei1Ytkc) is imported...`);
+                await retellClient.voice.addResource({
+                    provider_voice_id: 'UOIqAnmS11Reiei1Ytkc',
+                    voice_name: 'Carolina',
+                    voice_provider: 'elevenlabs'
+                });
+            } catch (err: unknown) {
+                console.log(`AddResource notice (likely already imported):`, err instanceof Error ? err.message : String(err));
+            }
+        }
 
         const retellAgentId = currentAgent.retell_agent_id;
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
@@ -297,7 +328,8 @@ export async function PATCH(request: Request) {
                 volume: payload.volume,
                 ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
-                normalize_for_speech: payload.normalizeForSpeech
+                normalize_for_speech: payload.normalizeForSpeech,
+                post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : []
             });
         }
 

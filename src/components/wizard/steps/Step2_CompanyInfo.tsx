@@ -1,7 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { createClient } from '../../../lib/supabase/client';
 
 export const Step2_CompanyInfo: React.FC = () => {
     const {
@@ -9,6 +10,8 @@ export const Step2_CompanyInfo: React.FC = () => {
         kbFiles, kbUsageInstructions,
         updateField, prevStep, nextStep
     } = useWizardStore();
+
+    const [isUploading, setIsUploading] = useState(false);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,20 +25,64 @@ export const Step2_CompanyInfo: React.FC = () => {
         updateField('businessHours', newHours);
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const files = Array.from(e.target.files);
+
+        // Reset the input immediately (synchronously) so the user can re-upload the same file later if deleted
+        const inputElement = e.target;
+        inputElement.value = '';
+
         if (kbFiles.length + files.length > 3) {
             alert("Máximo 3 archivos permitidos en la base de conocimientos.");
             return;
         }
 
-        const newFiles = files.map(f => ({
-            name: f.name,
-            size: (f.size / 1024).toFixed(1) + " KB",
-            type: f.name.split('.').pop() || 'unknown'
-        }));
+        setIsUploading(true);
+        const newFiles = [...kbFiles];
 
-        updateField('kbFiles', [...kbFiles, ...newFiles]);
+        for (const f of files) {
+            const formData = new FormData();
+            formData.append('file', f);
+
+            try {
+                // Try reading workspace ID to attach to the upload
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    const { data: user } = await supabase.from('users').select('workspace_id').eq('id', session.user.id).single();
+                    if (user && user.workspace_id) {
+                        formData.append('workspace_id', user.workspace_id);
+                    }
+                }
+
+                const res = await fetch('/api/retell/knowledge-base', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (data.success && data.knowledge_base_id) {
+                    newFiles.push({
+                        id: data.knowledge_base_id,
+                        name: data.name,
+                        size: data.size,
+                        type: data.type
+                    });
+                } else {
+                    console.error("Upload error:", data.error);
+                    alert("Error al subir archivo " + f.name + ": " + data.error);
+                }
+            } catch (error) {
+                console.error("Fetch error uploading file:", error);
+                alert("Error de conexión al subir archivo " + f.name);
+            }
+        }
+
+        updateField('kbFiles', newFiles);
+        setIsUploading(false);
     };
 
     const removeFile = (index: number) => {
@@ -46,7 +93,7 @@ export const Step2_CompanyInfo: React.FC = () => {
 
     return (
         <div className="content-area">
-            <div className="form-card shadow-sm">
+            <div className="form-card">
                 <h1 className="section-title">Información de la empresa</h1>
                 <p className="section-subtitle">Configura los detalles comerciales y proporciona la base de conocimientos de tu negocio.</p>
 
@@ -126,42 +173,47 @@ export const Step2_CompanyInfo: React.FC = () => {
                             Horarios de atención
                         </h3>
 
-                        <div className="hours-container">
-                            {businessHours.map((item, index) => (
-                                <div key={item.day} className={`hour-row ${item.closed ? 'is-closed' : ''}`}>
-                                    <div className="day-name">{item.day}</div>
-                                    <div className="time-inputs">
-                                        <input
-                                            type="time"
-                                            className="form-control form-control-sm"
-                                            value={item.open}
-                                            disabled={item.closed}
-                                            onChange={(e) => updateHour(index, 'open', e.target.value)}
-                                        />
-                                        <span className="separator">a</span>
-                                        <input
-                                            type="time"
-                                            className="form-control form-control-sm"
-                                            value={item.close}
-                                            disabled={item.closed}
-                                            onChange={(e) => updateHour(index, 'close', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="status-toggle">
-                                        <span className={`status-label ${item.closed ? 'text-danger' : 'text-success'}`}>
-                                            {item.closed ? 'Cerrado' : 'Abierto'}
-                                        </span>
-                                        <div className="form-check form-switch m-0">
-                                            <input
-                                                className="form-check-input"
-                                                type="checkbox"
-                                                checked={!item.closed}
-                                                onChange={(e) => updateHour(index, 'closed', !e.target.checked)}
-                                            />
+                        <div className="row">
+                            <div className="col-md-12">
+
+                                <div className="hours-container">
+                                    {businessHours.map((item, index) => (
+                                        <div key={item.day} className={`hour-row ${item.closed ? 'is-closed' : ''}`}>
+                                            <div className="day-name">{item.day}</div>
+                                            <div className="time-inputs">
+                                                <input
+                                                    type="time"
+                                                    className="form-control form-control-sm"
+                                                    value={item.open}
+                                                    disabled={item.closed}
+                                                    onChange={(e) => updateHour(index, 'open', e.target.value)}
+                                                />
+                                                <span className="separator">a</span>
+                                                <input
+                                                    type="time"
+                                                    className="form-control form-control-sm"
+                                                    value={item.close}
+                                                    disabled={item.closed}
+                                                    onChange={(e) => updateHour(index, 'close', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="status-toggle">
+                                                <span className={`status-label ${item.closed ? 'text-danger' : 'text-success'}`}>
+                                                    {item.closed ? 'Cerrado' : 'Abierto'}
+                                                </span>
+                                                <div className="form-check form-switch m-0">
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        checked={!item.closed}
+                                                        onChange={(e) => updateHour(index, 'closed', !e.target.checked)}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
 
@@ -173,56 +225,78 @@ export const Step2_CompanyInfo: React.FC = () => {
                             <i className="bi bi-book-fill me-2" style={{ color: '#64748b' }}></i>
                             Base de conocimientos
                         </h3>
-                        <p className="text-muted small mb-4">Sube documentos que tu agente podrá consultar para responder con información precisa.</p>
 
-                        <div className="warning-box mb-4">
-                            <i className="bi bi-exclamation-triangle-fill me-3"></i>
-                            <div>
-                                <strong className="d-block mb-1">Importante: Datos Tratados</strong>
-                                <p className="mb-0">Recomendamos documentos estructurados en formato <strong>Preguntas Frecuentes (FAQ)</strong> o <strong>Problema/Solución</strong>. Límite máximo de 3 archivos (máx 10 MB/cada uno).</p>
-                            </div>
-                        </div>
+                        <div className="row">
+                            <div className="col-md-12">
+                                <p className="text-muted small mb-4">Sube documentos que tu agente podrá consultar para responder con información precisa.</p>
 
-                        <div className="kb-upload-area" onClick={() => document.getElementById('kb-upload')?.click()}>
-                            <i className="bi bi-cloud-arrow-up-fill mb-2" style={{ fontSize: '30px', color: '#cbd5e1' }}></i>
-                            <div className="fw-bold">Arrastra archivos aquí o haz clic para subir</div>
-                            <div className="text-muted small">Formatos: .md, .txt, .pdf, .docx</div>
-                            <input
-                                type="file"
-                                id="kb-upload"
-                                className="d-none"
-                                multiple
-                                accept=".md,.txt,.pdf,.docx"
-                                onChange={handleFileUpload}
-                            />
-                        </div>
-
-                        {kbFiles.length > 0 && (
-                            <div className="kb-file-list mt-3">
-                                {kbFiles.map((file, idx) => (
-                                    <div key={idx} className="kb-file-item">
-                                        <div className="d-flex align-items-center">
-                                            <i className="bi bi-file-earmark-text me-2 text-primary"></i>
-                                            <span className="file-name">{file.name}</span>
-                                            <span className="file-size ms-2">({file.size})</span>
-                                        </div>
-                                        <button type="button" className="btn-remove" onClick={() => removeFile(idx)}>
-                                            <i className="bi bi-trash"></i>
-                                        </button>
+                                <div className="warning-box mb-4">
+                                    <i className="bi bi-exclamation-triangle-fill me-3"></i>
+                                    <div>
+                                        <strong className="d-block mb-1">Importante: Datos Tratados</strong>
+                                        <p className="mb-0">Recomendamos documentos estructurados en formato <strong>Preguntas Frecuentes (FAQ)</strong> o <strong>Problema/Solución</strong>. Límite máximo de 3 archivos (máx 10 MB/cada uno).</p>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                </div>
 
-                        <div className="form-group mt-4">
-                            <label className="form-label fw-bold">Instrucciones de uso de la base</label>
-                            <textarea
-                                className="form-control"
-                                rows={3}
-                                placeholder="Eje: Consulta esta información solo para dudas técnicas sobre implantes..."
-                                value={kbUsageInstructions}
-                                onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
-                            />
+                                <div className={`kb-upload-area ${isUploading ? 'opacity-50' : ''}`} onClick={() => { if (!isUploading) document.getElementById('kb-upload')?.click() }}>
+                                    {isUploading ? (
+                                        <div className="py-3">
+                                            <div className="spinner-border text-primary mb-2" role="status"></div>
+                                            <div className="fw-bold">Subiendo archivo(s)...</div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <i className="bi bi-cloud-arrow-up-fill mb-2" style={{ fontSize: '30px', color: '#cbd5e1' }}></i>
+                                            <div className="fw-bold">Arrastra archivos aquí o haz clic para subir</div>
+                                            <div className="text-muted small">Formatos: .md, .txt, .pdf, .docx</div>
+                                        </>
+                                    )}
+                                    <input
+                                        type="file"
+                                        id="kb-upload"
+                                        className="d-none"
+                                        multiple
+                                        accept=".md,.txt,.pdf,.docx"
+                                        onChange={handleFileUpload}
+                                        disabled={isUploading}
+                                    />
+                                </div>
+
+                                <div className="alert alert-info mt-3 d-flex align-items-center" role="alert" style={{ fontSize: '0.9rem' }}>
+                                    <i className="bi bi-info-circle-fill me-2" style={{ fontSize: '1.2rem' }}></i>
+                                    <div>
+                                        Si la información que quieres añadir no es muy extensa, es recomendable añadirla en las instrucciones finales que se generarán para el agente en lugar de subir un archivo.
+                                    </div>
+                                </div>
+
+                                {kbFiles.length > 0 && (
+                                    <div className="kb-file-list mt-3">
+                                        {kbFiles.map((file, idx) => (
+                                            <div key={idx} className="kb-file-item">
+                                                <div className="d-flex align-items-center">
+                                                    <i className="bi bi-file-earmark-text me-2 text-primary"></i>
+                                                    <span className="file-name">{file.name}</span>
+                                                    <span className="file-size ms-2">({file.size})</span>
+                                                </div>
+                                                <button type="button" className="btn-remove" onClick={() => removeFile(idx)}>
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="form-group mt-4">
+                                    <label className="form-label fw-bold">Instrucciones de uso de la base</label>
+                                    <textarea
+                                        className="form-control"
+                                        rows={3}
+                                        placeholder="Eje: Consulta esta información solo para dudas técnicas sobre implantes..."
+                                        value={kbUsageInstructions}
+                                        onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
