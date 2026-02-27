@@ -266,10 +266,11 @@ ${wizardData.transferDestinations.filter(d => d.number).map((d, idx) => {
 <!-- AUTO_TOOLS_END -->` : '';
 
         // Bloque de KB
+        const fileNames = wizardData.kbFiles.map(f => f.name.toLowerCase().replace(/\s+/g, '_')).join(', ');
         const kbContent = (wizardData.kbFiles.length > 0) ? `
 <!-- AUTO_KB_START -->
 ## CONTEXTO ADICIONAL (Base de Conocimientos)
-${wizardData.kbUsageInstructions || 'Usa la información de tus documentos para responder preguntas específicas sobre servicios o productos.'}
+Si el usuario te pregunta sobre ${wizardData.kbUsageInstructions || 'servicios o productos'}, consulta la base de conocimientos ${fileNames}.
 <!-- AUTO_KB_END -->` : '';
 
         let finalPrompt = '';

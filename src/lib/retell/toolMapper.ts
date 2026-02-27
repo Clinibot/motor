@@ -29,6 +29,8 @@ export interface ToolsPayload {
     analysisModel: string;
     webhookUrl: string;
     webhookInbound: string;
+    kbFiles?: { name: string }[];
+    kbUsageInstructions?: string;
 }
 
 // ---- Retell SDK tool types ----
@@ -187,7 +189,14 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         blocks.push(`## Herramientas personalizadas\n${toolList}`);
     }
 
+    if (p.kbFiles && p.kbFiles.length > 0) {
+        const fileNames = p.kbFiles.map(f => f.name.toLowerCase().replace(/\s+/g, '_')).join(', ');
+        blocks.push(
+            `## Base de Conocimientos\nSi el usuario te pregunta sobre ${p.kbUsageInstructions || 'servicios o productos'}, consulta la base de conocimientos ${fileNames}.`
+        );
+    }
+
     if (blocks.length === 0) return basePrompt;
 
-    return `${basePrompt}\n\n---\n\n# Instrucciones de uso de herramientas\n\n${blocks.join('\n\n')}`;
+    return `${basePrompt}\n\n---\n\n# Instrucciones de uso de herramientas y base de conocimientos\n\n${blocks.join('\n\n')}`;
 }
