@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
-import Retell from 'retell-sdk';
+import Retell, { toFile } from 'retell-sdk';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,10 +95,14 @@ export async function POST(request: Request) {
             apiKey: workspace.retell_api_key,
         });
 
-        // Retell accepts a Fetch Flow File object, which Node's File object loosely matches.
+        // Convert File to Buffer → toFile() para compatibilidad con Node.js y el SDK de Retell
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const uploadable = await toFile(buffer, file.name, { type: file.type || 'application/octet-stream' });
+
         const response = await retellClient.knowledgeBase.create({
-            knowledge_base_name: file.name,
-            knowledge_base_files: [file]
+            knowledge_base_name: file.name.split('.').slice(0, -1).join('.') || file.name,
+            knowledge_base_files: [uploadable]
         });
 
         return NextResponse.json({
