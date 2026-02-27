@@ -135,28 +135,44 @@ export async function POST(request: Request) {
 
         const llmResponse = await retellClient.llm.create(llmCreateParams);
 
-        // 6.5 Verify and Alias Voice ID (fake Cartesia -> Carolina)
+        // 6.5 Verify and Alias Voice ID
         let finalVoiceId = payload.voiceId || "11labs-Adrian";
 
-        // Intercept fake Cartesia UI placeholders and force them into Carolina (Spanish Female)
-        // to prevent Retell from crashing and defaulting to a random American English voice.
-        if (finalVoiceId.startsWith('cartesia-')) {
-            finalVoiceId = '11labs-UOIqAnmS11Reiei1Ytkc'; // Carolina
+        // Mapear voces Cartesia (placeholders UI) a voces OpenAI disponibles en Retell
+        const cartesiaMapping: Record<string, string> = {
+            'cartesia-Elena': 'openai-Shimmer',
+            'cartesia-Isabel': 'openai-Shimmer',
+            'cartesia-Manuel': 'openai-Fable',
+        };
+
+        if (cartesiaMapping[finalVoiceId]) {
+            finalVoiceId = cartesiaMapping[finalVoiceId];
         }
 
-        if (finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
+        // Si es una voz ElevenLabs externa (no built-in), intentar importarla.
+        // Si falla, usar la voz de fallback.
+        if (finalVoiceId.startsWith('11labs-') && finalVoiceId !== '11labs-Adrian') {
             try {
-                console.log(`Ensuring Carolina ElevenLabs voice (UOIqAnmS11Reiei1Ytkc) is imported...`);
+                const voiceProviderId = finalVoiceId.replace('11labs-', '');
+                console.log(`Importing ElevenLabs voice ${voiceProviderId}...`);
                 await retellClient.voice.addResource({
-                    provider_voice_id: 'UOIqAnmS11Reiei1Ytkc',
-                    voice_name: 'Carolina',
+                    provider_voice_id: voiceProviderId,
+                    voice_name: payload.voiceName || 'Custom Voice',
                     voice_provider: 'elevenlabs'
                 });
+                console.log(`ElevenLabs voice imported successfully.`);
             } catch (err: unknown) {
-                // If it already exists, Retell might throw a 400 or 409 error. We can safely ignore it.
-                console.log(`AddResource notice (likely already imported):`, err instanceof Error ? err.message : String(err));
+                // Si ya existe (409) continúa, si no (404/error) hace fallback a Adrian
+                const errMsg = err instanceof Error ? err.message : String(err);
+                if (errMsg.includes('409') || errMsg.toLowerCase().includes('already')) {
+                    console.log(`Voice already imported, proceeding.`);
+                } else {
+                    console.log(`Voice import failed (${errMsg}), falling back to 11labs-Adrian.`);
+                    finalVoiceId = '11labs-Adrian';
+                }
             }
         }
+
 
         // 7. Create the Voice Agent in Retell
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
