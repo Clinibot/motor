@@ -55,7 +55,7 @@ export async function POST(request: Request) {
                     .limit(1);
 
                 if (assignedIds.length > 0) {
-                    freeWorkspaceQuery = freeWorkspaceQuery.not('id', 'in', `(${assignedIds.join(',')})`);
+                    freeWorkspaceQuery = freeWorkspaceQuery.not('id', 'in', assignedIds);
                 }
 
                 const { data: freeWorkspaces } = await freeWorkspaceQuery;
@@ -149,11 +149,11 @@ export async function POST(request: Request) {
             finalVoiceId = cartesiaMapping[finalVoiceId];
         }
 
-        // Si la voz elegida ya no existe o es problemática por ID externo, forzamos Adrián
-        if (finalVoiceId.includes('11labs-') && finalVoiceId !== '11labs-Adrian') {
+        // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA
+        if (finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc' || (finalVoiceId.includes('11labs-') && finalVoiceId !== '11labs-Adrian')) {
+            console.log("Forzando fallback de voz a 11labs-Adrian (Voz Carolina o desconocida detectada)");
             finalVoiceId = '11labs-Adrian';
         }
-
 
         // 7. Create the Voice Agent in Retell
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
@@ -297,18 +297,11 @@ export async function PATCH(request: Request) {
 
         const finalVoiceId = payload.voiceId || currentAgent?.configuration?.voiceId || "11labs-Adrian";
 
-        // Import Voice if it's the external ElevenLabs one (Carolina)
-        if (finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
-            try {
-                console.log(`Ensuring Carolina ElevenLabs voice (UOIqAnmS11Reiei1Ytkc) is imported...`);
-                await retellClient.voice.addResource({
-                    provider_voice_id: 'UOIqAnmS11Reiei1Ytkc',
-                    voice_name: 'Carolina',
-                    voice_provider: 'elevenlabs'
-                });
-            } catch (err: unknown) {
-                console.log(`AddResource notice (likely already imported):`, err instanceof Error ? err.message : String(err));
-            }
+        // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA EN EDICIÓN
+        let cleanVoiceId = finalVoiceId;
+        if (cleanVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc' || (cleanVoiceId.includes('11labs-') && cleanVoiceId !== '11labs-Adrian')) {
+            console.log("Forzando fallback de voz en edición a 11labs-Adrian");
+            cleanVoiceId = '11labs-Adrian';
         }
 
         const retellAgentId = currentAgent.retell_agent_id;
@@ -318,7 +311,7 @@ export async function PATCH(request: Request) {
             await retellClient.agent.update(retellAgentId, {
                 response_engine: { type: "retell-llm", llm_id: llmId },
                 agent_name: payload.agentName || "Updated Agent",
-                voice_id: finalVoiceId,
+                voice_id: cleanVoiceId,
                 language: payload.language || "es-ES",
                 responsiveness: payload.responsiveness || 1,
                 interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
