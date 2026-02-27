@@ -201,6 +201,7 @@ body {
 .content-area {
   padding: 32px;
   max-width: 1000px;
+  width: 100%;
 }
 
 .form-card {
