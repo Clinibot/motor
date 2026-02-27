@@ -89,9 +89,16 @@ export async function POST(request: Request) {
             );
         }
 
-        // Usar fetch directo a la API de Retell (evita incompatibilidades del SDK con Node.js en Vercel)
+        // Sanitizar el nombre para Retell (máx 40 chars, sin caracteres especiales, espacios -> _)
+        let knowledgeBaseName = file.name.split('.').slice(0, -1).join('.') || file.name;
+        knowledgeBaseName = knowledgeBaseName
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+            .replace(/[^a-zA-Z0-9\s-_]/g, '') // Quitar caracteres especiales
+            .trim()
+            .replace(/\s+/g, '_') // Espacios a guiones bajos
+            .substring(0, 40); // Límite de 40 caracteres
+
         const retellFormData = new FormData();
-        const knowledgeBaseName = file.name.split('.').slice(0, -1).join('.') || file.name;
         retellFormData.append('knowledge_base_name', knowledgeBaseName);
 
         // Convertir File a Blob para asegurar compatibilidad
@@ -126,6 +133,7 @@ export async function POST(request: Request) {
             success: true,
             knowledge_base_id: responseData.knowledge_base_id,
             name: file.name,
+            retell_name: knowledgeBaseName,
             size: (file.size / 1024).toFixed(1) + " KB",
             type: file.name.split('.').pop() || 'unknown'
         });

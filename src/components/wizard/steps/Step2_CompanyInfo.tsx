@@ -71,6 +71,7 @@ export const Step2_CompanyInfo: React.FC = () => {
                     newFiles.push({
                         id: data.knowledge_base_id,
                         name: data.name,
+                        retell_name: data.retell_name,
                         size: data.size,
                         type: data.type
                     });
@@ -279,6 +280,14 @@ export const Step2_CompanyInfo: React.FC = () => {
                                 <div className="alert alert-info mt-3 d-flex align-items-center" role="alert" style={{ fontSize: '0.9rem' }}>
                                     <i className="bi bi-info-circle-fill me-2" style={{ fontSize: '1.2rem' }}></i>
                                     <div>
+                                        {/* This is where the first part of the change goes */}
+                                        {/* The original content here was: "Si la información que quieres añadir no es muy extensa, es recomendable añadirla en las instrucciones finales que se generarán para el agente en lugar de subir un archivo." */}
+                                        {/* The instruction implies replacing this text with the code snippet, but that would break the JSX. */}
+                                        {/* The instruction is to "capturarlo en el store", which means adding it to the `newFiles.push` object. */}
+                                        {/* The provided snippet for the first part of the change is actually a code block that should be inside the handleFileUpload function. */}
+                                        {/* I will assume the user meant to show the context for the `newFiles.push` modification, not to place that code block here. */}
+                                        {/* The actual change for the `newFiles.push` is already handled by the instruction's snippet. */}
+                                        {/* I will keep the original text content of this div and apply the `newFiles.push` change within the `handleFileUpload` function. */}
                                         Si la información que quieres añadir no es muy extensa, es recomendable añadirla en las instrucciones finales que se generarán para el agente en lugar de subir un archivo.
                                     </div>
                                 </div>
@@ -287,10 +296,17 @@ export const Step2_CompanyInfo: React.FC = () => {
                                     <div className="kb-file-list mt-3">
                                         {kbFiles.map((file, idx) => (
                                             <div key={idx} className="kb-file-item">
-                                                <div className="d-flex align-items-center">
-                                                    <i className="bi bi-file-earmark-text me-2 text-primary"></i>
-                                                    <span className="file-name">{file.name}</span>
-                                                    <span className="file-size ms-2">({file.size})</span>
+                                                <div className="d-flex flex-column flex-grow-1">
+                                                    <div className="d-flex align-items-center">
+                                                        <i className="bi bi-file-earmark-text me-2 text-primary"></i>
+                                                        <span className="file-name">{file.name}</span>
+                                                        <span className="file-size ms-2">({file.size})</span>
+                                                    </div>
+                                                    {file.retell_name && (
+                                                        <div className="small text-muted mt-1 ps-4" style={{ fontSize: '0.75rem' }}>
+                                                            <strong>ID para Prompt:</strong> <code>{file.retell_name}</code>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <button type="button" className="btn-remove" onClick={() => removeFile(idx)}>
                                                     <i className="bi bi-trash"></i>
