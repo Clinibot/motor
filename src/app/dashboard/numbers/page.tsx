@@ -84,8 +84,9 @@ export default function NumbersPage() {
             setNewNumber({ phone: '', nickname: '', termination_uri: '', username: '', password: '', transport: 'tcp' });
             setShowAddModal(false);
             alert("¡Número SIP conectado con éxito!");
-        } catch (error: any) {
-            alert(`Error: ${error.message}`);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado";
+            alert(`Error: ${errorMessage}`);
         } finally {
             setIsSaving(false);
         }

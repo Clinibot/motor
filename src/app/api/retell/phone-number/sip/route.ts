@@ -62,13 +62,10 @@ export async function POST(request: Request) {
             // Basado en el modal: termination_uri es clave.
             // Nota: Algunos SDKs de Retell manejan SIP trunking a través de un objeto específico.
             // Asumimos estructura estándar para SIP Trunking en Retell:
-            // @ts-ignore
+            // @ts-expect-error - Campo SIP puede no estar en la definición oficial del SDK todavía
             sip_termination_uri: termination_uri,
-            // @ts-ignore
             sip_trunk_username: sip_trunk_username || undefined,
-            // @ts-ignore
             sip_trunk_password: sip_trunk_password || undefined,
-            // @ts-ignore
             outbound_transport: outbound_transport || 'tcp'
         });
 
@@ -84,11 +81,12 @@ export async function POST(request: Request) {
             retell_response: retellResponse
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to register SIP number";
         console.error("Error registering SIP number:", error);
         return NextResponse.json({
             success: false,
-            error: error.message || "Failed to register SIP number"
+            error: errorMessage
         }, { status: 500 });
     }
 }
