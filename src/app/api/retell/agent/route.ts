@@ -82,6 +82,7 @@ export async function POST(request: Request) {
 
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
         const llmCreateParams: Parameters<typeof retellClient.llm.create>[0] = {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             model: retellModel as any,
             general_prompt: finalPrompt,
         };
