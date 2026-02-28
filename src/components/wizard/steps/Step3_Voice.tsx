@@ -32,6 +32,7 @@ export const Step3_Voice: React.FC = () => {
     const [isProcessingCustom, setIsProcessingCustom] = useState(false);
     const [showCustomModal, setShowCustomModal] = useState(false);
     const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
+    const [activeProvider, setActiveProvider] = useState('retell');
 
     // Form states
     const [customName, setCustomName] = useState('');
@@ -53,23 +54,45 @@ export const Step3_Voice: React.FC = () => {
             if (data.success && data.voices && data.voices.length > 0) {
                 // Normalizar datos de Retell
                 const normalized = data.voices.map((v: any) => {
-                    let lang = (v.language || '').toLowerCase();
-                    if (lang.startsWith('es')) lang = 'es';
-                    if (lang.startsWith('en')) lang = 'en';
-                    if (lang.startsWith('pt')) lang = 'pt';
-                    if (lang.startsWith('fr')) lang = 'fr';
+                    const voiceName = (v.voice_name || '').toLowerCase();
+                    const voiceLangAttr = (v.language || '').toLowerCase();
+                    const voiceAccentAttr = (v.accent || '').toLowerCase();
 
-                    let accent = (v.accent || '').toLowerCase();
-                    if (accent.includes('spain')) accent = 'spain';
-                    if (accent.includes('latam') || accent.includes('mexico') || accent.includes('colombia')) accent = 'latam';
-                    if (accent.includes('usa') || accent.includes('american')) accent = 'usa';
-                    if (accent.includes('uk') || accent.includes('british')) accent = 'uk';
+                    // Detección flexible de español
+                    let lang = voiceLangAttr;
+                    if (lang.startsWith('es') ||
+                        lang.includes('spanish') ||
+                        voiceName.includes('spanish') ||
+                        voiceName.includes('español')) {
+                        lang = 'es';
+                    } else if (lang.startsWith('en') || lang.includes('english')) {
+                        lang = 'en';
+                    } else if (lang.startsWith('pt') || lang.includes('portuguese')) {
+                        lang = 'pt';
+                    } else if (lang.startsWith('fr') || lang.includes('french')) {
+                        lang = 'fr';
+                    }
+
+                    // Detección flexible de acento
+                    let accent = voiceAccentAttr;
+                    if (accent.includes('spain') || accent.includes('españa')) accent = 'spain';
+                    else if (accent.includes('latam') || accent.includes('mexico') || accent.includes('colombia') || accent.includes('latino')) accent = 'latam';
+                    else if (accent.includes('usa') || accent.includes('american') || accent.includes('eeuu')) accent = 'usa';
+                    else if (accent.includes('uk') || accent.includes('british') || accent.includes('británico')) accent = 'uk';
+
+                    // Normalizar proveedor
+                    let provider = (v.provider || '').toLowerCase();
+                    const id = (v.voice_id || '').toLowerCase();
+                    if (id.includes('11labs') || id.includes('elevenlabs') || provider === '11labs') provider = 'elevenlabs';
+                    else if (id.includes('openai') || provider === 'openai') provider = 'openai';
+                    else if (id.includes('cartesia') || provider === 'cartesia') provider = 'cartesia';
+                    else if (!provider) provider = 'retell';
 
                     return {
                         ...v,
                         language: lang,
                         accent: accent,
-                        provider: (v.provider || '').toLowerCase()
+                        provider: provider
                     };
                 });
                 setVoices(normalized);
@@ -102,12 +125,16 @@ export const Step3_Voice: React.FC = () => {
 
     const filteredVoices = useMemo(() => {
         return voices.filter(v => {
+            const matchesProvider = activeProvider === 'retell'
+                ? (v.provider === 'retell' || v.provider === 'openai') // Agrupar Retell y OpenAI como en la captura
+                : v.provider === activeProvider;
+
             const matchesLang = !filterLang || v.language === filterLang;
             const matchesGender = !filterGender || v.gender === filterGender;
             const matchesAccent = !filterAccent || v.accent === filterAccent;
-            return matchesLang && matchesGender && matchesAccent;
+            return matchesProvider && matchesLang && matchesGender && matchesAccent;
         });
-    }, [voices, filterLang, filterGender, filterAccent]);
+    }, [voices, activeProvider, filterLang, filterGender, filterAccent]);
 
     const handleCustomVoiceSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -246,19 +273,68 @@ export const Step3_Voice: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleNext}>
+                    {/* PESTAÑAS DE PROVEEDORES */}
+                    <div className="provider-tabs" style={{
+                        display: 'flex',
+                        gap: '24px',
+                        borderBottom: '1px solid #edf2f7',
+                        marginBottom: '24px',
+                        paddingBottom: '2px'
+                    }}>
+                        {[
+                            { id: 'retell', name: 'Retell AI', icon: 'bi-cpu-fill' },
+                            { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
+                            { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' }
+                        ].map(p => (
+                            <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => setActiveProvider(p.id)}
+                                style={{
+                                    padding: '12px 4px',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    color: activeProvider === p.id ? 'var(--color-primario)' : '#718096',
+                                    borderBottom: `2px solid ${activeProvider === p.id ? 'var(--color-primario)' : 'transparent'}`,
+                                    background: 'none',
+                                    borderTop: 'none',
+                                    borderLeft: 'none',
+                                    borderRight: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <i className={`bi ${p.icon}`}></i>
+                                {p.name}
+                            </button>
+                        ))}
+                    </div>
+
                     {/* FILTROS */}
-                    <div className="filters-row">
+                    <div className="filters-row" style={{
+                        background: '#f8fafc',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '16px'
+                    }}>
                         <div>
-                            <label className="form-label">Idioma</label>
+                            <label className="form-label" style={{ fontSize: '13px', fontWeight: 600 }}>Idioma</label>
                             <select className="form-control" value={filterLang} onChange={(e) => setFilterLang(e.target.value)}>
                                 <option value="">Todos</option>
                                 <option value="es">Español</option>
                                 <option value="en">Inglés</option>
                                 <option value="fr">Francés</option>
+                                <option value="pt">Portugués</option>
                             </select>
                         </div>
                         <div>
-                            <label className="form-label">Género</label>
+                            <label className="form-label" style={{ fontSize: '13px', fontWeight: 600 }}>Género</label>
                             <select className="form-control" value={filterGender} onChange={(e) => setFilterGender(e.target.value)}>
                                 <option value="">Todos</option>
                                 <option value="female">Femenino</option>
@@ -266,9 +342,9 @@ export const Step3_Voice: React.FC = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="form-label">Acento</label>
+                            <label className="form-label" style={{ fontSize: '13px', fontWeight: 600 }}>Acento</label>
                             <select className="form-control" value={filterAccent} onChange={(e) => setFilterAccent(e.target.value)}>
-                                <option value="">Todos</option>
+                                <option value="">Todos los acentos</option>
                                 <option value="spain">España</option>
                                 <option value="latam">Latinoamérica</option>
                                 <option value="usa">USA</option>
@@ -278,92 +354,105 @@ export const Step3_Voice: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* GALERÍA DE VOCES AGRUPADAS */}
+                    {/* GALERÍA DE VOCES */}
                     {isLoadingVoices ? (
                         <div style={{ textAlign: 'center', padding: '60px' }}>
                             <div style={{ marginBottom: '16px' }}>Cargando voces de alta calidad...</div>
                             <div className="spinner-border text-primary" role="status"></div>
                         </div>
                     ) : (
-                        <div className="voices-container">
-                            {(() => {
-                                // Agrupar voces por proveedor
-                                const groups: Record<string, Voice[]> = {};
-                                filteredVoices.forEach(v => {
-                                    let p = (v.provider || 'otros').toLowerCase();
-                                    if (p === '11labs') p = 'elevenlabs';
-                                    if (!groups[p]) groups[p] = [];
-                                    groups[p].push(v);
-                                });
+                        <div className="voices-grid" style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                            gap: '20px'
+                        }}>
+                            {filteredVoices.map((v: Voice) => (
+                                <div
+                                    key={`${v.voice_id}-${v.language}-${v.voice_name}`}
+                                    className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
+                                    style={{
+                                        border: voiceId === v.voice_id ? '2px solid var(--color-primario)' : '1px solid #edf2f7',
+                                        borderRadius: '16px',
+                                        padding: '24px',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                        background: voiceId === v.voice_id ? '#f0f7ff' : '#fff',
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        position: 'relative'
+                                    }}
+                                    onClick={() => {
+                                        updateField('voiceId', v.voice_id);
+                                        updateField('voiceName', v.voice_name);
+                                        updateField('voiceProvider', v.provider);
+                                        updateField('voiceDescription', v.accent || 'Voz de alta calidad');
+                                    }}
+                                >
+                                    <div className="voice-avatar" style={{
+                                        width: '64px',
+                                        height: '64px',
+                                        borderRadius: '50%',
+                                        background: '#f1f5f9',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '32px',
+                                        margin: '0 auto 16px'
+                                    }}>
+                                        {v.gender === 'female' ? '👩' : '👨'}
+                                    </div>
+                                    <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>{v.voice_name}</div>
+                                    <div className="voice-desc" style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
+                                        Voz {v.gender === 'female' ? 'femenina' : 'masculina'} {v.accent ? getAccentName(v.accent).toLowerCase() : 'profesional'}
+                                    </div>
 
-                                const orderedProviders = ['elevenlabs', 'openai', 'cartesia'];
-                                const allProviders = Array.from(new Set([...orderedProviders, ...Object.keys(groups)]));
+                                    <div className="voice-tags" style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '20px' }}>
+                                        <span style={{
+                                            background: '#f1f5f9',
+                                            padding: '2px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                            color: '#475569'
+                                        }}>{getLanguageName(v.language)}</span>
+                                        <span style={{
+                                            background: v.provider === 'elevenlabs' ? '#f0f9ff' : '#f8fafc',
+                                            color: v.provider === 'elevenlabs' ? '#0369a1' : '#64748b',
+                                            padding: '2px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '11px',
+                                            fontWeight: 700
+                                        }}>{v.provider === 'elevenlabs' ? 'HD' : 'Pro'}</span>
+                                    </div>
 
-                                return allProviders.map(provider => {
-                                    const providerVoices = groups[provider] || [];
-                                    if (providerVoices.length === 0) return null;
-
-                                    return (
-                                        <div key={provider} className="provider-group" style={{ marginBottom: '32px' }}>
-                                            <h3 className="provider-title" style={{
-                                                fontSize: '14px',
-                                                fontWeight: 700,
-                                                textTransform: 'uppercase',
-                                                color: 'var(--gris-texto)',
-                                                marginBottom: '16px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                borderBottom: '1px solid #eee',
-                                                paddingBottom: '8px'
-                                            }}>
-                                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: provider === 'elevenlabs' ? '#267ab0' : '#6c757d' }}></span>
-                                                {provider === 'elevenlabs' ? 'ElevenLabs (Premium)' : provider.toUpperCase()}
-                                            </h3>
-                                            <div className="voices-grid">
-                                                {providerVoices.map((v: Voice) => (
-                                                    <div
-                                                        key={`${v.voice_id}-${v.language}-${v.voice_name}`}
-                                                        className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
-                                                        onClick={() => {
-                                                            updateField('voiceId', v.voice_id);
-                                                            updateField('voiceName', v.voice_name);
-                                                            updateField('voiceProvider', v.provider || provider);
-                                                            updateField('voiceDescription', v.accent || 'Voz de alta calidad');
-                                                        }}
-                                                    >
-                                                        <div className="voice-icon">
-                                                            {v.gender === 'female' ? '👩' : '👨'}
-                                                        </div>
-                                                        <div className="voice-name">{v.voice_name}</div>
-                                                        <div style={{ fontSize: '11px', color: 'var(--gris-texto)', marginBottom: '8px' }}>
-                                                            {v.accent ? getAccentName(v.accent) : 'Voz Profesional'}
-                                                        </div>
-                                                        <div className="voice-tags">
-                                                            <span className="voice-tag">{getLanguageName(v.language)}</span>
-                                                            <span className="voice-tag" style={{ background: '#f0f9ff', color: '#0369a1' }}>{v.provider === 'elevenlabs' ? 'HD' : 'Pro'}</span>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            className="btn-play"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                togglePlay(v);
-                                                            }}
-                                                        >
-                                                            {playingId === v.voice_id ? (
-                                                                <><i className="bi bi-pause-circle"></i> Pausar</>
-                                                            ) : (
-                                                                <><i className="bi bi-play-circle"></i> Escuchar</>
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                });
-                            })()}
+                                    <button
+                                        type="button"
+                                        className="btn-play"
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e2e8f0',
+                                            background: 'white',
+                                            fontSize: '13px',
+                                            fontWeight: 600,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px'
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            togglePlay(v);
+                                        }}
+                                    >
+                                        {playingId === v.voice_id ? (
+                                            <><i className="bi bi-pause-fill"></i> Pausar</>
+                                        ) : (
+                                            <><i className="bi bi-play-fill"></i> Escuchar</>
+                                        )}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     )}
 
