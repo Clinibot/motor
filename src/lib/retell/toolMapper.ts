@@ -95,7 +95,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             if (!dest.number) return;
             // Use a clean, unique name for the tool
             const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
-            const toolName = `transfer_call_${cleanName}_${idx}`;
+            const toolName = `transfer_to_${cleanName}`;
 
             tools.push({
                 type: 'transfer_call',
@@ -179,8 +179,8 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             .filter(d => d.number)
             .map((d, idx) => {
                 const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
-                const toolName = `transfer_call_${cleanName}_${idx}`;
-                return `- **${d.name}**: ${d.description || d.number} (llama a la función \`${toolName}\`)`;
+                const toolName = `transfer_to_${cleanName}`;
+                return `- **${d.name}**: ${d.description || d.number} (llamar a la herramienta \`${toolName}\`)`;
             })
             .join('\n');
         blocks.push(

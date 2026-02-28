@@ -233,9 +233,14 @@ export const Step8_Summary: React.FC = () => {
 Puedes transferir si el usuario lo solicita o si no puedes resolver el problema.
 ${wizardData.transferDestinations.filter(d => d.number).map((d, idx) => {
             const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
-            const toolName = `transfer_call_${cleanName}_${idx}`;
-            return `- **${d.name}**: ${d.description || d.number} (llama a la función \`${toolName}\`)`;
+            const toolName = `transfer_to_${cleanName}`;
+            return `- **${d.name}**: ${d.description || d.number} (llamar a la herramienta \`${toolName}\`)`;
         }).join('\n')}
+<REGLA_TRANSFERENCIA>
+Cuando el usuario pida hablar con una de estas personas o departamentos:
+1. Anuncia que vas a transferir la llamada de forma amable.
+2. Ejecuta inmediatamente la herramienta correspondiente. NO esperes a que el usuario diga nada más.
+</REGLA_TRANSFERENCIA>
 <!-- AUTO_TOOLS_END -->` : '';
 
         // Bloque de KB
