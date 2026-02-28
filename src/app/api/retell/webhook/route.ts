@@ -82,33 +82,44 @@ export async function POST(request: NextRequest) {
             ? callData.end_timestamp - callData.start_timestamp
             : null;
 
-        // Build the call record
+        // 1. Fetch existing call data to avoid overwriting enriched info
+        const { data: existingCall } = await supabaseAdmin
+            .from('calls')
+            .select('*')
+            .eq('retell_call_id', callData.call_id)
+            .single();
+
+        // 2. Build the call record, merging with existing data if present
         const callRecord = {
+            id: existingCall?.id, // Keep same ID if exists
             workspace_id: workspaceId,
             agent_id: internalAgentId,
             retell_agent_id: retellAgentId,
             retell_call_id: callData.call_id,
             call_status: callData.call_status || eventType,
-            transcript: callData.transcript ?? null,
-            recording_url: callData.recording_url ?? null,
-            start_timestamp: callData.start_timestamp ?? null,
-            end_timestamp: callData.end_timestamp ?? null,
-            duration_ms: durationMs,
-            call_cost: callData.call_cost?.combined_cost ?? null,
-            disconnection_reason: callData.disconnection_reason ?? null,
-            call_analysis: callData.call_analysis ?? {},
+            transcript: callData.transcript || existingCall?.transcript || null,
+            recording_url: callData.recording_url || existingCall?.recording_url || null,
+            start_timestamp: callData.start_timestamp || existingCall?.start_timestamp || null,
+            end_timestamp: callData.end_timestamp || existingCall?.end_timestamp || null,
+            duration_ms: durationMs || existingCall?.duration_ms || null,
+            call_cost: callData.call_cost?.combined_cost || existingCall?.call_cost || null,
+            disconnection_reason: callData.disconnection_reason || existingCall?.disconnection_reason || null,
+            call_analysis: (callData.call_analysis && Object.keys(callData.call_analysis).length > 0)
+                ? callData.call_analysis
+                : (existingCall?.call_analysis || {}),
             raw_payload: payload,
-            // --- NUEVOS CAMPOS ENRIQUECIDOS ---
-            customer_number: callData.from_number || (callData.call_type === 'web_call' ? 'Web Call' : 'Unknown'),
-            customer_name: callData.call_analysis?.custom_variables?.name || null, // Fallback si hay variables de extracción
-            call_type: callData.call_type || 'web_call',
-            cost_breakdown: callData.call_cost || null,
+            customer_number: callData.from_number || existingCall?.customer_number || (callData.call_type === 'web_call' ? 'Web Call' : 'Unknown'),
+            customer_name: callData.call_analysis?.custom_variables?.name || existingCall?.customer_name || null,
+            call_type: callData.call_type || existingCall?.call_type || 'web_call',
+            cost_breakdown: (callData.call_cost && Object.keys(callData.call_cost).length > 0)
+                ? callData.call_cost
+                : (existingCall?.cost_breakdown || null),
         };
 
-        // Upsert to handle both call_ended and call_analyzed events for the same call
+        // 3. Upsert to handle both call_ended and call_analyzed events for the same call
         const { error: upsertError } = await supabaseAdmin
             .from('calls')
-            .upsert(callRecord, { onConflict: 'retell_call_id', ignoreDuplicates: false });
+            .upsert(callRecord, { onConflict: 'retell_call_id' });
 
         if (upsertError) {
             console.error('Error saving call to DB:', upsertError);
