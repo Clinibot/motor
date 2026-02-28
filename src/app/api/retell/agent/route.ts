@@ -154,7 +154,10 @@ export async function POST(request: Request) {
         }
 
         // 7. Create the Voice Agent in Retell
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
+        const protocol = request.headers.get('x-forwarded-proto') || 'https';
+        const host = request.headers.get('host');
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://fabrica-agentes.vercel.app');
+
         const agentResponse = await retellClient.agent.create({
             response_engine: { type: "retell-llm", llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
@@ -307,7 +310,9 @@ export async function PATCH(request: Request) {
         }
 
         const retellAgentId = currentAgent.retell_agent_id;
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabrica-agentes.vercel.app';
+        const protocol = request.headers.get('x-forwarded-proto') || 'https';
+        const host = request.headers.get('host');
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://fabrica-agentes.vercel.app');
 
         if (retellAgentId) {
             await retellClient.agent.update(retellAgentId, {
