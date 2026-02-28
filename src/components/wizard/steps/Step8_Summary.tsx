@@ -234,10 +234,11 @@ export const Step8_Summary: React.FC = () => {
 <!-- AUTO_TOOLS_START -->
 ### Política de Transferencias
 Puedes transferir si el usuario lo solicita o si no puedes resolver el problema.
-${wizardData.transferDestinations.filter(d => d.number).map((d) => {
+${wizardData.transferDestinations.filter(d => d.number || d.agentId).map((d) => {
             const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
             const toolName = `transfer_to_${cleanName}`;
-            return `- **${d.name}**: ${d.description || d.number} (llamar a la herramienta \`${toolName}\`)`;
+            const destinationDisplay = d.destination_type === 'agent' ? `Agente ID: ${d.agentId}` : d.number;
+            return `- **${d.name}**: ${d.description || destinationDisplay} (llamar a la herramienta \`${toolName}\`)`;
         }).join('\n')}
 <REGLA_TRANSFERENCIA>
 Cuando el usuario pida hablar con una de estas personas o departamentos:
