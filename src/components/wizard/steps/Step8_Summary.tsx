@@ -207,45 +207,8 @@ export const Step8_Summary: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const editingAgentId = wizardData.editingAgentId;
-    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(
-        !!editingAgentId || (!!wizardData.prompt && wizardData.prompt !== '' && wizardData.prompt !== 'Eres un asistente útil.')
-    );
 
-    // Efecto para asegurar que en modo edición el prompt sea visible directamente
-    // y se mantenga sincronizado con los cambios de herramientas/KB
-    React.useEffect(() => {
-        if (editingAgentId || (wizardData.prompt && wizardData.prompt !== 'Eres un asistente útil.')) {
-            setHasGeneratedPrompt(true);
-        }
-
-        if (editingAgentId) {
-            const updated = getUpdatedPrompt();
-            if (updated !== wizardData.prompt) {
-                updateField('prompt', updated);
-            }
-        }
-    }, [editingAgentId, wizardData.prompt, wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions]);
-
-    const getAgentTypeName = (type: string) => {
-        const types: Record<string, string> = {
-            'transferencia': 'Transferencia de llamadas',
-            'agendamiento': 'Agendamiento de citas',
-            'cualificacion': 'Cualificación y atención',
-        };
-        return types[type] || type || 'No definido';
-    };
-
-    const getLanguageName = (lang: string) => {
-        const names: Record<string, string> = {
-            'es-ES': 'Español (España)', 'es-MX': 'Español (México)',
-            'es-AR': 'Español (Argentina)', 'es-419': 'Español (Latam)',
-            'en-US': 'Inglés (USA)', 'en-GB': 'Inglés (UK)',
-            'pt-BR': 'Portugués (Brasil)', 'fr-FR': 'Francés',
-        };
-        return names[lang] || lang || 'No definido';
-    };
-
-    const getUpdatedPrompt = () => {
+    const getUpdatedPrompt = React.useCallback(() => {
         const name = wizardData.agentName || 'Sofía';
         const company = wizardData.companyName || 'nuestra empresa';
         const formattedHours = wizardData.businessHours
@@ -365,6 +328,51 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
 `.trim();
         }
         return finalPrompt;
+    }, [
+        wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
+        wizardData.kbUsageInstructions, wizardData.kbFiles, wizardData.enableTransfer,
+        wizardData.transferDestinations, wizardData.prompt, wizardData.businessHours,
+        wizardData.personality, wizardData.tone, wizardData.extractionVariables,
+        wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite
+    ]);
+
+    // Asegurar visibilidad del prompt
+    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(
+        !!editingAgentId || (!!wizardData.prompt && wizardData.prompt !== '' && wizardData.prompt !== 'Eres un asistente útil.')
+    );
+
+    // Efecto para asegurar que en modo edición el prompt sea visible directamente
+    // y se mantenga sincronizado con los cambios de herramientas/KB
+    React.useEffect(() => {
+        if (editingAgentId || (wizardData.prompt && wizardData.prompt !== 'Eres un asistente útil.')) {
+            setHasGeneratedPrompt(true);
+        }
+
+        if (editingAgentId) {
+            const updated = getUpdatedPrompt();
+            if (updated !== wizardData.prompt) {
+                updateField('prompt', updated);
+            }
+        }
+    }, [editingAgentId, wizardData.prompt, getUpdatedPrompt, updateField]);
+
+    const getAgentTypeName = (type: string) => {
+        const types: Record<string, string> = {
+            'transferencia': 'Transferencia de llamadas',
+            'agendamiento': 'Agendamiento de citas',
+            'cualificacion': 'Cualificación y atención',
+        };
+        return types[type] || type || 'No definido';
+    };
+
+    const getLanguageName = (lang: string) => {
+        const names: Record<string, string> = {
+            'es-ES': 'Español (España)', 'es-MX': 'Español (México)',
+            'es-AR': 'Español (Argentina)', 'es-419': 'Español (Latam)',
+            'en-US': 'Inglés (USA)', 'en-GB': 'Inglés (UK)',
+            'pt-BR': 'Portugués (Brasil)', 'fr-FR': 'Francés',
+        };
+        return names[lang] || lang || 'No definido';
     };
 
     const generateAllInstructions = () => {

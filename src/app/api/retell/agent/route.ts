@@ -122,14 +122,14 @@ export async function POST(request: Request) {
 
         if (retellTools.length > 0) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmCreateParams as any).tools = retellTools;
+            // @ts-expect-error - Retell SDK types
+            llmCreateParams.tools = retellTools;
         }
 
         if (payload.kbFiles && payload.kbFiles.length > 0) {
             const kbIds = payload.kbFiles.map((f: { id?: string }) => f.id).filter(Boolean);
             if (kbIds.length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (llmCreateParams as any).knowledge_base_ids = kbIds;
+                llmCreateParams.knowledge_base_ids = kbIds;
             }
         }
 
@@ -181,8 +181,9 @@ export async function POST(request: Request) {
             enable_voicemail_detection: payload.enableVoicemailDetection || false,
             voicemail_message: payload.voicemailMessage,
             voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs,
+            // @ts-expect-error - Retell SDK types
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined
-        } as any);
+        });
 
         // 8. Store the new agent in Supabase (including tools config)
         const { error: insertError } = await supabaseAdmin
@@ -265,41 +266,38 @@ export async function PATCH(request: Request) {
 
         const retellModel = payload.model || "gpt-4.1";
 
-        const llmUpdateParams: Parameters<typeof retellClient.llm.update>[1] = {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            model: retellModel as any,
+        // @ts-expect-error - Type for smart update
+        const llmUpdateParams: { model: string, general_prompt: string, begin_message: string, tools?: unknown[], knowledge_base_ids?: string[] } = {
+            model: retellModel,
             general_prompt: finalPrompt,
             begin_message: payload.beginMessage,
         };
 
         if (retellTools.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmUpdateParams as any).tools = retellTools;
+            llmUpdateParams.tools = retellTools;
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmUpdateParams as any).tools = []; // clear tools if empty
+            llmUpdateParams.tools = [];
         }
 
         if (payload.kbFiles && payload.kbFiles.length > 0) {
             const kbIds = payload.kbFiles.map((f: { id?: string }) => f.id).filter(Boolean);
             if (kbIds.length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (llmUpdateParams as any).knowledge_base_ids = kbIds;
+                llmUpdateParams.knowledge_base_ids = kbIds;
             }
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (llmUpdateParams as any).knowledge_base_ids = [];
+            llmUpdateParams.knowledge_base_ids = [];
         }
 
         let llmId = currentAgent.retell_llm_id;
         if (llmId) {
             console.log(`Updating LLM ${llmId}`);
-            // Usamos un log más simple para evitar problemas de tipos/any con el SDK
+            // @ts-expect-error - Retell SDK types
             const updatedLlm = await retellClient.llm.update(llmId, llmUpdateParams);
             console.log("Retell LLM Update executed successfully for LLM:", updatedLlm.llm_id);
         } else {
             console.log("Creating new LLM because agent had no LLM ID assigned.");
-            const createdLlm = await retellClient.llm.create(llmUpdateParams as any);
+            // @ts-expect-error - Retell SDK types
+            const createdLlm = await retellClient.llm.create(llmUpdateParams);
             llmId = createdLlm.llm_id;
         }
 
@@ -340,8 +338,9 @@ export async function PATCH(request: Request) {
                 enable_voicemail_detection: payload.enableVoicemailDetection !== undefined ? payload.enableVoicemailDetection : currentAgent.configuration?.enableVoicemailDetection,
                 voicemail_message: payload.voicemailMessage !== undefined ? payload.voicemailMessage : currentAgent.configuration?.voicemailMessage,
                 voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs !== undefined ? payload.voicemailDetectionTimeoutMs : currentAgent.configuration?.voicemailDetectionTimeoutMs,
+                // @ts-expect-error - Retell SDK types
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : []
-            } as any);
+            });
         }
 
         // Update Supabase

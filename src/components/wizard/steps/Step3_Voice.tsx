@@ -4,14 +4,13 @@ import React, { useState, useMemo } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 
 interface Voice {
-    id: string;
-    name: string;
-    provider: 'retell' | 'elevenlabs' | 'cartesia';
+    voice_id: string;
+    voice_name: string;
+    provider: string;
     language: string;
     gender: 'male' | 'female';
     accent: string;
-    description: string;
-    previewUrl?: string;
+    preview_audio_url?: string;
 }
 
 // VOICES_DATA ya no se usa de forma estática, se cargan de la API
@@ -45,11 +44,13 @@ export const Step3_Voice: React.FC = () => {
                 } else {
                     console.warn("Failed to fetch voices from API, using fallback data");
                     // Fallback para no dejar la lista vacía si falla la API
-                    setVoices(DEFAULT_ES_VOICES as any);
+                    // @ts-expect-error - Fallback data format
+                    setVoices(DEFAULT_ES_VOICES);
                 }
             } catch (error) {
                 console.error("Error loading voices:", error);
-                setVoices(DEFAULT_ES_VOICES as any);
+                // @ts-expect-error - Fallback data format
+                setVoices(DEFAULT_ES_VOICES);
             } finally {
                 setIsLoadingVoices(false);
             }
@@ -97,7 +98,8 @@ export const Step3_Voice: React.FC = () => {
         return names[accent] || accent;
     };
 
-    const togglePlay = (v: any) => {
+    // @ts-expect-error - Retell voice object type
+    const togglePlay = (v) => {
         if (playingId === v.voice_id) {
             audioRef.current?.pause();
             setPlayingId(null);
@@ -194,22 +196,22 @@ export const Step3_Voice: React.FC = () => {
                                 <div style={{ marginBottom: '16px' }}>Cargando voces de Retell...</div>
                                 <div className="spinner-border text-primary" role="status"></div>
                             </div>
-                        ) : filteredVoices.map((v: any) => (
+                        ) : (filteredVoices as Voice[]).map((v: Voice) => (
                             <div
                                 key={`${v.voice_id}-${v.language}`}
                                 className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
                                 onClick={() => {
                                     updateField('voiceId', v.voice_id);
                                     updateField('voiceName', v.voice_name);
-                                    updateField('voiceProvider', (v as any).provider || 'retell');
-                                    updateField('voiceDescription', (v as any).accent || 'Voz de alta calidad');
+                                    updateField('voiceProvider', v.provider || 'retell');
+                                    updateField('voiceDescription', v.accent || 'Voz de alta calidad');
                                 }}
                             >
                                 <div className="voice-icon">
                                     {v.gender === 'female' ? '👩' : '👨'}
                                 </div>
                                 <div className="voice-name">{v.voice_name}</div>
-                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{(v as any).accent || 'Voz de Retell'}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{v.accent || 'Voz de Retell'}</div>
                                 <div className="voice-tags">
                                     <span className="voice-tag">{getLanguageName(v.language)}</span>
                                     <span className="voice-tag">{getGenderName(v.gender)}</span>
