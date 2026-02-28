@@ -15,7 +15,20 @@ export interface TransferDestination {
     destination_type: 'number' | 'agent';
     transfer_mode?: 'cold' | 'warm';
 }
-export interface CustomTool { name: string; url: string; description: string; speakDuring: boolean; speakAfter: boolean; }
+export interface ToolParameter {
+    name: string;
+    type: 'string' | 'number' | 'boolean';
+    description: string;
+    required: boolean;
+}
+export interface CustomTool {
+    name: string;
+    url: string;
+    description: string;
+    speakDuring: boolean;
+    speakAfter: boolean;
+    parameters: ToolParameter[];
+}
 export interface ExtractionVariable { name: string; type: string; description: string; }
 
 export interface ToolsPayload {
@@ -123,6 +136,23 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     if (p.enableCustomTools && p.customTools.length > 0) {
         p.customTools.forEach((tool) => {
             if (!tool.url || !tool.name) return;
+            // Build JSON Schema for parameters
+            const properties: Record<string, any> = {};
+            const required: string[] = [];
+
+            if (tool.parameters && tool.parameters.length > 0) {
+                tool.parameters.forEach(param => {
+                    if (!param.name) return;
+                    properties[param.name] = {
+                        type: param.type,
+                        description: param.description
+                    };
+                    if (param.required) {
+                        required.push(param.name);
+                    }
+                });
+            }
+
             tools.push({
                 type: 'custom',
                 name: tool.name,
@@ -133,6 +163,11 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                 execution_message_description: tool.speakDuring
                     ? 'Informa al usuario que estás procesando su solicitud.'
                     : undefined,
+                parameters: {
+                    type: 'object',
+                    properties: properties,
+                    required: required.length > 0 ? required : undefined
+                }
             });
         });
     }

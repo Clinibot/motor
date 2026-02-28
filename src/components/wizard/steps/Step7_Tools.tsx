@@ -80,7 +80,7 @@ export const Step7_Tools: React.FC = () => {
     };
 
     const addCustomTool = () => {
-        updateField('customTools', [...customTools, { name: '', url: '', description: '', speakDuring: false, speakAfter: false }]);
+        updateField('customTools', [...customTools, { name: '', url: '', description: '', speakDuring: false, speakAfter: false, parameters: [] }]);
     };
 
     return (
@@ -370,7 +370,7 @@ export const Step7_Tools: React.FC = () => {
                                                 />
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '16px' }}>
                                             <div className="form-check custom-check mb-0" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <input
                                                     className="form-check-input" type="checkbox" id={`speakDuring_${idx}`}
@@ -401,6 +401,86 @@ export const Step7_Tools: React.FC = () => {
                                                     Agente habla al terminar
                                                 </label>
                                             </div>
+                                        </div>
+
+                                        {/* Parameters Section */}
+                                        <div style={{ background: '#f1f5f9', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                <h6 style={{ fontSize: '13px', fontWeight: 600, color: '#475569', margin: 0 }}>Parámetros de la herramienta</h6>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-xs btn-outline-primary"
+                                                    style={{ fontSize: '11px', padding: '2px 8px' }}
+                                                    onClick={() => {
+                                                        const newTools = [...customTools];
+                                                        if (!newTools[idx].parameters) newTools[idx].parameters = [];
+                                                        newTools[idx].parameters.push({ name: '', type: 'string', description: '', required: true });
+                                                        updateField('customTools', newTools);
+                                                    }}
+                                                >
+                                                    <i className="bi bi-plus"></i> Añadir parámetro
+                                                </button>
+                                            </div>
+
+                                            {(!tool.parameters || tool.parameters.length === 0) ? (
+                                                <p style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic', margin: 0 }}>No hay parámetros definidos.</p>
+                                            ) : (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    {tool.parameters.map((param, pIdx) => (
+                                                        <div key={pIdx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 2fr auto', gap: '8px', alignItems: 'center' }}>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control form-control-xs"
+                                                                style={{ fontSize: '12px' }}
+                                                                placeholder="Nombre (ej: id_pedido)"
+                                                                value={param.name}
+                                                                onChange={(e) => {
+                                                                    const newTools = [...customTools];
+                                                                    newTools[idx].parameters[pIdx].name = e.target.value;
+                                                                    updateField('customTools', newTools);
+                                                                }}
+                                                            />
+                                                            <select
+                                                                className="form-control form-control-xs"
+                                                                style={{ fontSize: '12px' }}
+                                                                value={param.type}
+                                                                onChange={(e) => {
+                                                                    const newTools = [...customTools];
+                                                                    newTools[idx].parameters[pIdx].type = e.target.value as any;
+                                                                    updateField('customTools', newTools);
+                                                                }}
+                                                            >
+                                                                <option value="string">Texto</option>
+                                                                <option value="number">Número</option>
+                                                                <option value="boolean">Boolean</option>
+                                                            </select>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control form-control-xs"
+                                                                style={{ fontSize: '12px' }}
+                                                                placeholder="¿Para qué sirve?"
+                                                                value={param.description}
+                                                                onChange={(e) => {
+                                                                    const newTools = [...customTools];
+                                                                    newTools[idx].parameters[pIdx].description = e.target.value;
+                                                                    updateField('customTools', newTools);
+                                                                }}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-link text-danger p-0"
+                                                                onClick={() => {
+                                                                    const newTools = [...customTools];
+                                                                    newTools[idx].parameters = newTools[idx].parameters.filter((_, i) => i !== pIdx);
+                                                                    updateField('customTools', newTools);
+                                                                }}
+                                                            >
+                                                                <i className="bi bi-x-circle"></i>
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

@@ -10,12 +10,20 @@ export interface TransferDestination {
     transfer_mode?: 'cold' | 'warm';
 }
 
+export interface ToolParameter {
+    name: string;
+    type: 'string' | 'number' | 'boolean';
+    description: string;
+    required: boolean;
+}
+
 export interface CustomTool {
     name: string;
     url: string;
     description: string;
     speakDuring: boolean;
     speakAfter: boolean;
+    parameters: ToolParameter[];
 }
 
 export interface ExtractionVariable {
