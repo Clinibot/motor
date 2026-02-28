@@ -14,32 +14,48 @@ interface Voice {
     previewUrl?: string;
 }
 
-const VOICES_DATA: Voice[] = [
-    // Español
-    { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/adrian.mp3' },
-    { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/fable.mp3' },
-    { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/shimmer.mp3' },
-    { id: 'openai-Nova', name: 'Isabela', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz profesional y articulada', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/nova.mp3' },
-    { id: 'cartesia-Elena', name: 'Elena (Beta)', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain', description: 'Voz suave para atención al cliente', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/shimmer.mp3' },
-    { id: 'cartesia-Isabel', name: 'Isabel (Beta)', provider: 'cartesia', language: 'es', gender: 'female', accent: 'latam', description: 'Voz clara y jovial', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/nova.mp3' },
-    { id: 'cartesia-Manuel', name: 'Manuel (Beta)', provider: 'cartesia', language: 'es', gender: 'male', accent: 'spain', description: 'Voz confiable y segura', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/fable.mp3' },
-
-    // Inglés
-    { id: '11labs-Adrian', name: 'Thomas', provider: 'retell', language: 'en', gender: 'male', accent: 'american', description: 'Clear American deep voice', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/adrian.mp3' },
-    { id: 'openai-Shimmer', name: 'Charlie', provider: 'retell', language: 'en', gender: 'female', accent: 'american', description: 'Warm and professional', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/shimmer.mp3' },
-
-    // Francés
-    { id: 'openai-Fable', name: 'Pierre', provider: 'retell', language: 'fr', gender: 'male', accent: 'french', description: 'Voz elegante de París', previewUrl: 'https://retell-utils-public.s3.us-west-2.amazonaws.com/fable.mp3' },
+// VOICES_DATA ya no se usa de forma estática, se cargan de la API
+const DEFAULT_ES_VOICES = [
+    { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España' },
+    { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable' },
+    { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural' },
+    { id: 'openai-Nova', name: 'Isabela', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz profesional y articulada' },
 ];
 
 export const Step3_Voice: React.FC = () => {
     const { voiceId, voiceSpeed, voiceTemperature, updateField, prevStep, nextStep } = useWizardStore();
 
+    const [voices, setVoices] = useState<Voice[]>([]);
+    const [isLoadingVoices, setIsLoadingVoices] = useState(true);
     const [filterLang, setFilterLang] = useState('es');
     const [filterGender, setFilterGender] = useState('');
     const [filterAccent, setFilterAccent] = useState('');
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+    // Cargar voces desde la API
+    React.useEffect(() => {
+        async function fetchVoices() {
+            setIsLoadingVoices(true);
+            try {
+                const response = await fetch('/api/retell/voices');
+                const data = await response.json();
+                if (data.success && data.voices) {
+                    setVoices(data.voices);
+                } else {
+                    console.warn("Failed to fetch voices from API, using fallback data");
+                    // Fallback para no dejar la lista vacía si falla la API
+                    setVoices(DEFAULT_ES_VOICES as any);
+                }
+            } catch (error) {
+                console.error("Error loading voices:", error);
+                setVoices(DEFAULT_ES_VOICES as any);
+            } finally {
+                setIsLoadingVoices(false);
+            }
+        }
+        fetchVoices();
+    }, []);
 
     // Limpieza de audio al desmontar
     React.useEffect(() => {
@@ -52,12 +68,16 @@ export const Step3_Voice: React.FC = () => {
     }, []);
 
     const filteredVoices = useMemo(() => {
-        return VOICES_DATA.filter(v => {
-            return (!filterLang || v.language === filterLang) &&
+        return voices.filter(v => {
+            // Adaptamos el filtrado para los campos de Retell que pueden variar
+            const lang = v.language?.toLowerCase() || '';
+            const targetLang = filterLang.toLowerCase();
+
+            return (!filterLang || lang.startsWith(targetLang)) &&
                 (!filterGender || v.gender === filterGender) &&
-                (!filterAccent || v.accent === filterAccent);
+                (!filterAccent || (v.accent || '').includes(filterAccent));
         });
-    }, [filterLang, filterGender, filterAccent]);
+    }, [voices, filterLang, filterGender, filterAccent]);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -77,8 +97,8 @@ export const Step3_Voice: React.FC = () => {
         return names[accent] || accent;
     };
 
-    const togglePlay = (v: Voice) => {
-        if (playingId === v.id) {
+    const togglePlay = (v: any) => {
+        if (playingId === v.voice_id) {
             audioRef.current?.pause();
             setPlayingId(null);
             return;
@@ -88,10 +108,15 @@ export const Step3_Voice: React.FC = () => {
             audioRef.current.pause();
         }
 
-        const previewUrl = v.previewUrl || 'https://retell-utils-public.s3.us-west-2.amazonaws.com/adrian.mp3';
+        const previewUrl = v.preview_audio_url;
+        if (!previewUrl) {
+            alert("Esta voz no tiene previsualización de audio disponible.");
+            return;
+        }
+
         const newAudio = new Audio(previewUrl);
 
-        newAudio.onplay = () => setPlayingId(v.id);
+        newAudio.onplay = () => setPlayingId(v.voice_id);
         newAudio.onended = () => setPlayingId(null);
         newAudio.onpause = () => setPlayingId(null);
         newAudio.onerror = (e) => {
@@ -164,22 +189,27 @@ export const Step3_Voice: React.FC = () => {
 
                     {/* GALERÍA DE VOCES */}
                     <div className="voices-grid">
-                        {filteredVoices.map((v) => (
+                        {isLoadingVoices ? (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px' }}>
+                                <div style={{ marginBottom: '16px' }}>Cargando voces de Retell...</div>
+                                <div className="spinner-border text-primary" role="status"></div>
+                            </div>
+                        ) : filteredVoices.map((v: any) => (
                             <div
-                                key={`${v.id}-${v.language}`}
-                                className={`voice-card ${voiceId === v.id ? 'selected' : ''}`}
+                                key={`${v.voice_id}-${v.language}`}
+                                className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
                                 onClick={() => {
-                                    updateField('voiceId', v.id);
-                                    updateField('voiceName', v.name);
-                                    updateField('voiceProvider', v.provider);
-                                    updateField('voiceDescription', v.description);
+                                    updateField('voiceId', v.voice_id);
+                                    updateField('voiceName', v.voice_name);
+                                    updateField('voiceProvider', (v as any).provider || 'retell');
+                                    updateField('voiceDescription', (v as any).accent || 'Voz de alta calidad');
                                 }}
                             >
                                 <div className="voice-icon">
                                     {v.gender === 'female' ? '👩' : '👨'}
                                 </div>
-                                <div className="voice-name">{v.name}</div>
-                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{v.description}</div>
+                                <div className="voice-name">{v.voice_name}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{(v as any).accent || 'Voz de Retell'}</div>
                                 <div className="voice-tags">
                                     <span className="voice-tag">{getLanguageName(v.language)}</span>
                                     <span className="voice-tag">{getGenderName(v.gender)}</span>
@@ -193,7 +223,7 @@ export const Step3_Voice: React.FC = () => {
                                         togglePlay(v);
                                     }}
                                 >
-                                    {playingId === v.id ? (
+                                    {playingId === v.voice_id ? (
                                         <><i className="bi bi-pause-circle"></i> Pausar</>
                                     ) : (
                                         <><i className="bi bi-play-circle"></i> Escuchar</>
