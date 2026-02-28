@@ -229,31 +229,10 @@ export const Step8_Summary: React.FC = () => {
         };
         const langStr = langMap[wizardData.language] || 'español';
 
-        // Bloque de herramientas
-        const toolsContent = (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) ? `
-<!-- AUTO_TOOLS_START -->
-### Política de Transferencias
-Puedes transferir si el usuario lo solicita o si no puedes resolver el problema.
-${wizardData.transferDestinations.filter(d => d.number || d.agentId).map((d) => {
-            const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
-            const toolName = `transfer_to_${cleanName}`;
-            const destinationDisplay = d.destination_type === 'agent' ? `Agente ID: ${d.agentId}` : d.number;
-            return `- **${d.name}**: ${d.description || destinationDisplay} (llamar a la herramienta \`${toolName}\`)`;
-        }).join('\n')}
-<REGLA_TRANSFERENCIA>
-Cuando el usuario pida hablar con una de estas personas o departamentos:
-1. Anuncia que vas a transferir la llamada de forma amable.
-2. Ejecuta inmediatamente la herramienta correspondiente. NO esperes a que el usuario diga nada más.
-</REGLA_TRANSFERENCIA>
-<!-- AUTO_TOOLS_END -->` : '';
-
-        // Bloque de KB
-        const fileNames = wizardData.kbFiles.map(f => f.name.toLowerCase().replace(/\s+/g, '_')).join(', ');
-        const kbContent = (wizardData.kbFiles.length > 0) ? `
-<!-- AUTO_KB_START -->
-## CONTEXTO ADICIONAL (Base de Conocimientos)
-Si el usuario te pregunta sobre ${wizardData.kbUsageInstructions || 'servicios o productos'}, consulta la base de conocimientos ${fileNames}.
-<!-- AUTO_KB_END -->` : '';
+        // Los bloques de herramientas y KB se inyectan ahora exclusivamente en el backend (toolMapper.ts)
+        // para asegurar una única fuente de verdad y evitar duplicados si el usuario regenera el prompt.
+        const toolsContent = '';
+        const kbContent = '';
 
         let finalPrompt = '';
         const currentPrompt = wizardData.prompt || '';
@@ -308,12 +287,6 @@ ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferenci
 1. Resuelve dudas sobre los servicios.
 2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas.
 3. Pide nombre y datos necesarios para confirmar.
-${wizardData.enableCalBooking ? `
-### Gestión de Citas (Cal.com)
-Si el usuario quiere agendar una cita:
-1. Usa **siempre** primero \`check_availability\` para ver los huecos libres.
-2. Una vez confirmado el horario, usa \`book_appointment\` para realizar la reserva.
-Recoge siempre: nombre completo, email y teléfono antes de la reserva final.` : ''}
 ` : `### Resolución y Cualificación
 1. Resuelve dudas sobre ${company}.
 2. Interésate por las necesidades del cliente.

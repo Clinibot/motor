@@ -61,8 +61,11 @@ type RetellTool = Record<string, unknown>;
 export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     const tools: RetellTool[] = [];
 
+    // Helper to handle both boolean true and string "true" from Supabase JSON
+    const parseBool = (val: unknown): boolean => val === true || val === 'true';
+
     // 1. End Call
-    if (p.enableEndCall) {
+    if (parseBool(p.enableEndCall)) {
         tools.push({
             type: 'end_call',
             name: 'end_call',
@@ -72,10 +75,10 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     }
 
     // 2. Cal.com Booking & Availability (Both required for a good flow)
-    if (p.enableCalBooking && p.calApiKey) {
+    if (parseBool(p.enableCalBooking) && p.calApiKey && p.calEventId) {
         const calSettings = {
             cal_api_key: p.calApiKey,
-            event_type_id: parseInt(p.calEventId || '0', 10),
+            event_type_id: parseInt(p.calEventId, 10),
             timezone: 'Europe/Madrid',
         };
 
@@ -85,9 +88,6 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             name: 'check_availability',
             description: 'Consulta los horarios disponibles en el calendario antes de proponer una cita.',
             ...calSettings,
-            speak_during_execution: false,
-            speak_after_execution: true,
-            execution_message_description: 'Di algo como "Déjame revisar los horarios disponibles…"',
         });
 
         // Booking tool
@@ -96,14 +96,11 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             name: 'book_appointment',
             description: 'Reserva una cita en el calendario una vez el usuario ha elegido un horario.',
             ...calSettings,
-            speak_during_execution: false,
-            speak_after_execution: true,
-            execution_message_description: 'Di algo como "Un momento, estoy reservando tu cita…"',
         });
     }
 
     // 4. Call Transfer
-    if (p.enableTransfer && p.transferDestinations.length > 0) {
+    if (parseBool(p.enableTransfer) && p.transferDestinations.length > 0) {
         p.transferDestinations.forEach((dest) => {
             if (dest.destination_type === 'number' && !dest.number) return;
             if (dest.destination_type === 'agent' && !dest.agentId) return;
@@ -128,11 +125,11 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     }
 
     // 5. Custom webhook tools
-    if (p.enableCustomTools && p.customTools.length > 0) {
+    if (parseBool(p.enableCustomTools) && p.customTools.length > 0) {
         p.customTools.forEach((tool) => {
             if (!tool.url || !tool.name) return;
             // Build JSON Schema for parameters
-            const properties: Record<string, any> = {};
+            const properties: Record<string, { type: string; description: string }> = {};
             const required: string[] = [];
 
             if (tool.parameters && tool.parameters.length > 0) {
@@ -190,34 +187,27 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
  * This ensures the LLM knows when and how to call each tool.
  */
 export function injectToolInstructions(basePrompt: string, p: ToolsPayload): string {
-    // Definimos los marcadores para poder limpiar el prompt si es necesario
     const START_MARKER = '### INSTRUCCIONES_HERRAMIENTAS_START ###';
     const END_MARKER = '### INSTRUCCIONES_HERRAMIENTAS_END ###';
 
-    // Limpiamos cualquier bloque previo de instrucciones automáticas para evitar duplicados
     let cleanPrompt = basePrompt;
     const regex = new RegExp(`\\n?\\n?${START_MARKER}[\\s\\S]*?${END_MARKER}`, 'g');
     cleanPrompt = cleanPrompt.replace(regex, '').trim();
 
-    // Si el prompt ya tiene los marcadores de AUTO_TOOLS o AUTO_KB del frontend, 
-    // no añadimos nada más en el backend para evitar redundancia.
-    if (cleanPrompt.includes('<!-- AUTO_TOOLS_START -->') || cleanPrompt.includes('<!-- AUTO_KB_START -->')) {
-        return cleanPrompt;
-    }
+    // Limpiar marcadores antiguos del frontend si existen
+    const feToolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/g;
+    const feKbRegex = /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g;
+    cleanPrompt = cleanPrompt.replace(feToolsRegex, '').replace(feKbRegex, '').trim();
 
     const blocks: string[] = [];
+    const lowerPrompt = cleanPrompt.toLowerCase();
 
-    if (p.enableEndCall) {
-        blocks.push(
-            `## Finalizar llamada\nCuando el usuario indique que ya no necesita nada más, o tras confirmar una gestión exitosa, usa la herramienta \`end_call\` para cerrar la llamada de forma amable.`
-        );
+    if (p.enableEndCall && !lowerPrompt.includes('end_call')) {
+        blocks.push(`## Finalizar llamada\nUsa la herramienta \`end_call\` para cerrar la llamada de forma cordial cuando termines.`);
     }
 
-    // ... rest of the existing code for blocks ...
-    if (p.enableCalBooking && p.calApiKey) {
-        blocks.push(
-            `## Gestión de Citas (Cal.com)\nSi el usuario quiere agendar una cita o reunión:\n1. Usa **siempre** primero la herramienta \`check_availability\` para ver los huecos libres.\n2. Presenta las opciones al usuario y pídele que elija una.\n3. Una vez confirmado el horario, usa \`book_appointment\` para realizar la reserva.\nRecoge siempre: nombre completo, email y número de teléfono antes de confirmar la reserva final.`
-        );
+    if (p.enableCalBooking && p.calApiKey && !lowerPrompt.includes('check_availability')) {
+        blocks.push(`## Gestión de Citas (Cal.com)\nSi el usuario quiere agendar una cita:\n1. Usa primero \`check_availability\` para ver huecos.\n2. Pide datos (nombre, email, tel) y usa \`book_appointment\` para confirmar.`);
     }
 
     if (p.enableTransfer && p.transferDestinations.length > 0) {
@@ -226,33 +216,36 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             .map((d) => {
                 const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
                 const toolName = `transfer_to_${cleanName}`;
-                const destInfo = d.destination_type === 'number' ? `número ${d.number}` : `agente con ID ${d.agentId}`;
-                return `- **${d.name}**: ${d.description || `Transferir a ${destInfo}`} (llamar a la herramienta \`${toolName}\`)`;
+                if (lowerPrompt.includes(toolName)) return null;
+                return `- **${d.name}**: ${d.description || `Transferir`} (llamar a \`${toolName}\`)`;
             })
+            .filter(Boolean)
             .join('\n');
-        blocks.push(
-            `## Transferir llamada\nPuedes transferir la llamada en los siguientes casos:\n${destList}\nAnuncia siempre la transferencia al usuario antes de ejecutar la función correspondiente.`
-        );
+
+        if (destList && !lowerPrompt.includes('transferir llamada')) {
+            blocks.push(`## Transferir llamada\nCasos:\n${destList}`);
+        }
     }
 
     if (p.enableCustomTools && p.customTools.length > 0) {
         const toolList = p.customTools
             .filter(t => t.name && t.url)
-            .map(t => `- **${t.name}**: ${t.description}`)
+            .map(t => {
+                const tName = t.name.toLowerCase();
+                if (lowerPrompt.includes(tName)) return null;
+                return `- **${t.name}**: ${t.description}`;
+            })
+            .filter(Boolean)
             .join('\n');
-        blocks.push(`## Herramientas personalizadas\n${toolList}`);
+
+        if (toolList) blocks.push(`## Herramientas personalizadas\n${toolList}`);
     }
 
-    if (p.kbFiles && p.kbFiles.length > 0) {
-        const fileNames = p.kbFiles.map(f => f.name.toLowerCase().replace(/\s+/g, '_')).join(', ');
-        blocks.push(
-            `## Base de Conocimientos\nSi el usuario te pregunta sobre ${p.kbUsageInstructions || 'servicios o productos'}, consulta la base de conocimientos ${fileNames}.`
-        );
+    if (p.kbFiles && p.kbFiles.length > 0 && !lowerPrompt.includes('base de conocimientos')) {
+        blocks.push(`## Base de Conocimientos\nConsulta los documentos si el usuario tiene dudas sobre los servicios.`);
     }
 
     if (blocks.length === 0) return cleanPrompt;
 
-    const toolInstructions = `\n\n${START_MARKER}\n# Instrucciones de uso de herramientas y base de conocimientos\n\n${blocks.join('\n\n')}\n${END_MARKER}`;
-
-    return `${cleanPrompt}${toolInstructions}`;
+    return `${cleanPrompt}\n\n${START_MARKER}\n# Instrucciones de Herramientas\n\n${blocks.join('\n\n')}\n${END_MARKER}`;
 }

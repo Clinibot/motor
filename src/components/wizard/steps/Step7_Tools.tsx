@@ -446,7 +446,7 @@ export const Step7_Tools: React.FC = () => {
                                                                 value={param.type}
                                                                 onChange={(e) => {
                                                                     const newTools = [...customTools];
-                                                                    newTools[idx].parameters[pIdx].type = e.target.value as any;
+                                                                    newTools[idx].parameters[pIdx].type = e.target.value as 'string' | 'number' | 'boolean';
                                                                     updateField('customTools', newTools);
                                                                 }}
                                                             >

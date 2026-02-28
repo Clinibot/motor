@@ -108,6 +108,7 @@ export async function POST(request: Request) {
         );
 
         console.log(`Tools configured for ${payload.agentName}: ${retellTools.length}`, JSON.stringify(retellTools, null, 2));
+        console.log(`Knowledge base configuration:`, payload.kbFiles?.length || 0, "files");
 
         // Usar el modelo directamente (gpt-4.1, gpt-5.1, gpt-5.2)
         const retellModel = payload.model || "gpt-4.1";
