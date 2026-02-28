@@ -265,7 +265,7 @@ export const Step7_Tools: React.FC = () => {
                                                             </option>
                                                         ))}
                                                         {availableAgents.length === 0 && !isLoadingAgents && (
-                                                            <option disabled>No tienes otros agentes activos</option>
+                                                            <option disabled>No tienes más agentes</option>
                                                         )}
                                                     </select>
                                                 ) : (
