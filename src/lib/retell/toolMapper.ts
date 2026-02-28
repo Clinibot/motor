@@ -71,39 +71,34 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
         });
     }
 
-    // 2. Cal.com Booking
-    if (p.enableCalBooking && p.calUrl && p.calApiKey) {
-        tools.push({
-            type: 'book_appointment_cal',
-            name: 'book_appointment',
-            description: 'Reserva una cita en el calendario del cliente a través de Cal.com.',
-            cal: {
-                cal_api_key: p.calApiKey,
-                event_type_id: parseInt(p.calEventId || '0', 10),
-                timezone: 'Europe/Madrid',
-            },
-            speak_during_execution: false,
-            speak_after_execution: true,
-            execution_message_description:
-                'Di algo como "Un momento, estoy comprobando la disponibilidad…"',
-        });
-    }
+    // 2. Cal.com Booking & Availability (Both required for a good flow)
+    if (p.enableCalBooking && p.calApiKey) {
+        const calSettings = {
+            cal_api_key: p.calApiKey,
+            event_type_id: parseInt(p.calEventId || '0', 10),
+            timezone: 'Europe/Madrid',
+        };
 
-    // 3. Cal.com Availability check
-    if (p.enableCalAvailability && p.calApiKey) {
+        // Availability tool
         tools.push({
             type: 'check_availability_cal',
             name: 'check_availability',
-            description: `Consulta la disponibilidad del calendario para los próximos ${p.calAvailabilityDays} días.`,
-            cal: {
-                cal_api_key: p.calApiKey,
-                event_type_id: parseInt(p.calEventId || '0', 10),
-                timezone: 'Europe/Madrid',
-            },
+            description: 'Consulta los horarios disponibles en el calendario antes de proponer una cita.',
+            ...calSettings,
             speak_during_execution: false,
             speak_after_execution: true,
-            execution_message_description:
-                'Di algo como "Déjame revisar los horarios disponibles…"',
+            execution_message_description: 'Di algo como "Déjame revisar los horarios disponibles…"',
+        });
+
+        // Booking tool
+        tools.push({
+            type: 'book_appointment_cal',
+            name: 'book_appointment',
+            description: 'Reserva una cita en el calendario una vez el usuario ha elegido un horario.',
+            ...calSettings,
+            speak_during_execution: false,
+            speak_after_execution: true,
+            execution_message_description: 'Di algo como "Un momento, estoy reservando tu cita…"',
         });
     }
 
@@ -219,15 +214,9 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     }
 
     // ... rest of the existing code for blocks ...
-    if (p.enableCalBooking && p.calUrl) {
+    if (p.enableCalBooking && p.calApiKey) {
         blocks.push(
-            `## Reservar cita\nSi el usuario quiere programar una cita o reunión, usa la herramienta \`book_appointment\` para registrarla en el calendario. Recoge siempre: nombre completo, email, número de teléfono y horario deseado antes de confirmar.`
-        );
-    }
-
-    if (p.enableCalAvailability) {
-        blocks.push(
-            `## Consultar disponibilidad\nAntes de proponer fechas concretas, usa \`check_availability\` para verificar los huecos libres en el calendario. Presenta al usuario 2 o 3 opciones de las disponibles.`
+            `## Gestión de Citas (Cal.com)\nSi el usuario quiere agendar una cita o reunión:\n1. Usa **siempre** primero la herramienta \`check_availability\` para ver los huecos libres.\n2. Presenta las opciones al usuario y pídele que elija una.\n3. Una vez confirmado el horario, usa \`book_appointment\` para realizar la reserva.\nRecoge siempre: nombre completo, email y número de teléfono antes de confirmar la reserva final.`
         );
     }
 

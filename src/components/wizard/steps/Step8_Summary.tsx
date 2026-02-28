@@ -308,6 +308,12 @@ ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferenci
 1. Resuelve dudas sobre los servicios.
 2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas.
 3. Pide nombre y datos necesarios para confirmar.
+${wizardData.enableCalBooking ? `
+### Gestión de Citas (Cal.com)
+Si el usuario quiere agendar una cita:
+1. Usa **siempre** primero \`check_availability\` para ver los huecos libres.
+2. Una vez confirmado el horario, usa \`book_appointment\` para realizar la reserva.
+Recoge siempre: nombre completo, email y teléfono antes de la reserva final.` : ''}
 ` : `### Resolución y Cualificación
 1. Resuelve dudas sobre ${company}.
 2. Interésate por las necesidades del cliente.
