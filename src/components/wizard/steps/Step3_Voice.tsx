@@ -55,7 +55,7 @@ export const Step3_Voice: React.FC = () => {
             const data = await response.json();
             if (data.success && data.voices && data.voices.length > 0) {
                 // Normalizar datos de Retell
-                const normalized = data.voices.map((v: any) => {
+                const normalized = data.voices.map((v: Voice) => {
                     const voiceName = (v.voice_name || '').toLowerCase();
                     const voiceLangAttr = (v.language || '').toLowerCase();
                     const voiceAccentAttr = (v.accent || '').toLowerCase();
@@ -123,7 +123,7 @@ export const Step3_Voice: React.FC = () => {
                         raw_accent: v.accent
                     };
                 });
-                console.log("Voces normalizadas:", normalized.length, normalized.filter((v: any) => v.language === 'es').length, "en español");
+                console.log("Voces normalizadas:", normalized.length, normalized.filter((v: Voice) => v.language === 'es').length, "en español");
                 setVoices(normalized);
             } else {
                 console.warn("API returned empty voices or failed, using fallback data");
@@ -226,15 +226,13 @@ export const Step3_Voice: React.FC = () => {
         return names[lang] || lang;
     };
 
-    const getGenderName = (gender: string) => gender === 'female' ? 'Femenino' : 'Masculino';
 
     const getAccentName = (accent: string) => {
         const names: Record<string, string> = { spain: 'España', latam: 'Latam', usa: 'USA', uk: 'UK', brazil: 'Brasil', france: 'Francia' };
         return names[accent] || accent;
     };
 
-    // @ts-expect-error - Retell voice object type
-    const togglePlay = (v) => {
+    const togglePlay = (v: Voice) => {
         if (playingId === v.voice_id) {
             audioRef.current?.pause();
             setPlayingId(null);
