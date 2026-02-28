@@ -42,11 +42,10 @@ export const Step3_Voice: React.FC = () => {
             try {
                 const response = await fetch('/api/retell/voices');
                 const data = await response.json();
-                if (data.success && data.voices) {
+                if (data.success && data.voices && data.voices.length > 0) {
                     setVoices(data.voices);
                 } else {
-                    console.warn("Failed to fetch voices from API, using fallback data");
-                    // Fallback para no dejar la lista vacía si falla la API
+                    console.warn("API returned empty voices or failed, using fallback data");
                     setVoices(DEFAULT_VOICES);
                 }
             } catch (error) {
@@ -72,6 +71,7 @@ export const Step3_Voice: React.FC = () => {
     const filteredVoices = useMemo(() => {
         return voices.filter(v => {
             const voiceLang = (v.language || '').toLowerCase();
+            const voiceName = (v.voice_name || '').toLowerCase();
             const voiceGender = (v.gender || '').toLowerCase();
             const voiceAccent = (v.accent || '').toLowerCase();
 
@@ -79,7 +79,11 @@ export const Step3_Voice: React.FC = () => {
             const filterGenderLower = filterGender.toLowerCase();
             const filterAccentLower = filterAccent.toLowerCase();
 
-            const matchesLang = !filterLang || voiceLang.startsWith(filterLangLower);
+            const matchesLang = !filterLang ||
+                voiceLang.startsWith(filterLangLower) ||
+                voiceLang.includes(filterLangLower) ||
+                (filterLangLower === 'es' && (voiceLang.includes('spanish') || voiceName.includes('spanish')));
+
             const matchesGender = !filterGender || voiceGender === filterGenderLower;
             const matchesAccent = !filterAccent || voiceAccent.includes(filterAccentLower);
 
@@ -205,10 +209,15 @@ export const Step3_Voice: React.FC = () => {
                     ) : (
                         <div className="voices-container">
                             {['elevenlabs', 'openai', 'cartesia'].map(provider => {
-                                const providerVoices = filteredVoices.filter(v =>
-                                    (v.provider || '').toLowerCase() === provider ||
-                                    (v.voice_id || '').toLowerCase().includes(provider)
-                                );
+                                const providerVoices = filteredVoices.filter(v => {
+                                    const p = (v.provider || '').toLowerCase();
+                                    const id = (v.voice_id || '').toLowerCase();
+
+                                    if (provider === 'elevenlabs') {
+                                        return p === 'elevenlabs' || p === '11labs' || id.includes('11labs') || id.includes('eleven');
+                                    }
+                                    return p === provider || id.includes(provider);
+                                });
 
                                 if (providerVoices.length === 0) return null;
 
