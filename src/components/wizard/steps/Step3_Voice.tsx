@@ -135,6 +135,8 @@ export const Step3_Voice: React.FC = () => {
                     if (id.includes('11labs') || id.includes('elevenlabs') || provider.includes('eleven') || provider.includes('11')) provider = 'elevenlabs';
                     else if (id.includes('openai') || provider.includes('openai')) provider = 'openai';
                     else if (id.includes('cartesia') || provider.includes('cartesia')) provider = 'cartesia';
+                    else if (id.includes('minimax') || provider.includes('minimax')) provider = 'minimax';
+                    else if (id.includes('fish') || provider.includes('fish')) provider = 'fish_audio';
                     else provider = 'retell';
 
                     return {
@@ -191,9 +193,7 @@ export const Step3_Voice: React.FC = () => {
         const filtered = list.filter(v => {
             const matchesProvider = activeProvider === 'all'
                 ? true
-                : (activeProvider === 'retell'
-                    ? (v.provider === 'retell' || v.provider === 'openai')
-                    : v.provider === activeProvider);
+                : v.provider === activeProvider;
 
             const matchesLang = !filterLang || v.language === filterLang;
             const matchesGender = !filterGender || v.gender === filterGender;
@@ -363,6 +363,8 @@ export const Step3_Voice: React.FC = () => {
                             { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' },
                             { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
                             { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
+                            { id: 'minimax', name: 'MiniMax', icon: 'bi-mic-fill' },
+                            { id: 'fish_audio', name: 'Fish Audio', icon: 'bi-water' },
                             { id: 'retell', name: 'Retell AI', icon: 'bi-cpu-fill' }
                         ].map(p => (
                             <button
