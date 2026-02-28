@@ -429,7 +429,7 @@ export const Step3_Voice: React.FC = () => {
                                             {v.gender === 'female' ? '👩' : '👨'}
                                         </div>
                                         <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>{v.voice_name}</div>
-                                        <div className="voice-desc" style={{ fontSize: '11px', color: '#64748b', marginBottom: '16px', minHeight: '32px' }}>
+                                        <div className="voice-desc" style={{ fontSize: '11px', color: '#64748b', marginBottom: '16px', minHeight: '32px', textTransform: 'capitalize' }}>
                                             Voz {v.gender === 'female' ? 'femenina' : 'masculina'} {v.accent ? getAccentName(v.accent).toLowerCase() : 'profesional'}
                                         </div>
 
@@ -457,16 +457,19 @@ export const Step3_Voice: React.FC = () => {
                                             className="btn-play"
                                             style={{
                                                 width: '100%',
-                                                padding: '8px',
-                                                borderRadius: '8px',
+                                                padding: '10px',
+                                                borderRadius: '10px',
                                                 border: '1px solid #e2e8f0',
-                                                background: 'white',
+                                                background: playingId === v.voice_id ? '#3182ce' : 'white',
+                                                color: playingId === v.voice_id ? 'white' : '#1a202c',
                                                 fontSize: '13px',
-                                                fontWeight: 600,
+                                                fontWeight: 700,
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                gap: '6px'
+                                                gap: '8px',
+                                                transition: 'all 0.2s ease',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                                             }}
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -474,9 +477,9 @@ export const Step3_Voice: React.FC = () => {
                                             }}
                                         >
                                             {playingId === v.voice_id ? (
-                                                <><i className="bi bi-pause-fill"></i> Pausar</>
+                                                <><i className="bi bi-pause-fill" style={{ fontSize: '16px' }}></i> Pausar</>
                                             ) : (
-                                                <><i className="bi bi-play-fill"></i> Escuchar</>
+                                                <><i className="bi bi-play-fill" style={{ fontSize: '16px' }}></i> Escuchar</>
                                             )}
                                         </button>
                                     </div>
