@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
+import { useWizardStore } from '../../../store/wizardStore';
 import { RetellWebClient } from "retell-client-js-sdk";
 
 const retellWebClient = new RetellWebClient();
@@ -26,6 +27,7 @@ interface UserProfile {
 
 export default function AgentsPage() {
     const router = useRouter();
+    const { resetWizard } = useWizardStore();
     const [user, setUser] = useState<UserProfile | null>(null);
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +38,12 @@ export default function AgentsPage() {
     const [callStatus, setCallStatus] = useState<"inactive" | "active" | "connecting">("inactive");
     const [callError, setCallError] = useState<string | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+
+    const handleCreateAgent = (e: React.MouseEvent) => {
+        e.preventDefault();
+        resetWizard();
+        router.push('/wizard');
+    };
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -291,12 +299,12 @@ export default function AgentsPage() {
                         <h1>Mis agentes IA</h1>
                     </div>
                     <div className="topbar-right">
-                        <Link href="/wizard" className="btn-primary">
+                        <button onClick={handleCreateAgent} className="btn-primary">
                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                             </svg>
                             Crear nuevo agente
-                        </Link>
+                        </button>
                         <button className="notification-bell">
                             <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
@@ -336,9 +344,9 @@ export default function AgentsPage() {
                             <div className="empty-icon">🤖</div>
                             <h3 style={{ fontSize: '20px', color: '#1a1a1a', marginBottom: '8px', fontWeight: 600 }}>Aún no tienes agentes</h3>
                             <p style={{ marginBottom: '24px' }}>Crea tu primer agente conversacional impulsado por IA para automatizar tus llamadas.</p>
-                            <Link href="/wizard" className="btn-primary" style={{ display: 'inline-flex', margin: '0 auto' }}>
+                            <button onClick={handleCreateAgent} className="btn-primary" style={{ display: 'inline-flex', margin: '0 auto' }}>
                                 Crear mi primer agente
-                            </Link>
+                            </button>
                         </div>
                     ) : (
                         <div className="agents-grid">

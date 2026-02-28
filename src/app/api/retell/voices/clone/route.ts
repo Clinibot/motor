@@ -68,11 +68,11 @@ export async function POST(req: Request) {
             voice: voice
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error cloning voice in Retell:", error);
         return NextResponse.json({
             success: false,
-            error: error.message || "Failed to clone voice"
+            error: error instanceof Error ? error.message : "Failed to clone voice"
         }, { status: 500 });
     }
 }

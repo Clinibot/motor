@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
+import { useWizardStore } from '../../store/wizardStore';
 import Script from 'next/script';
 
 interface Call {
@@ -37,6 +38,7 @@ interface UserProfile {
 
 export default function DashboardPage() {
     const router = useRouter();
+    const { resetWizard } = useWizardStore();
     const [user, setUser] = useState<UserProfile | null>(null);
     const [calls, setCalls] = useState<Call[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
@@ -92,6 +94,12 @@ export default function DashboardPage() {
     }, [router]);
 
     useEffect(() => { loadData(); }, [loadData]);
+
+    const handleCreateAgent = (e: React.MouseEvent) => {
+        e.preventDefault();
+        resetWizard();
+        router.push('/wizard');
+    };
 
     // Build charts when both data and Chart.js are ready
     useEffect(() => {
@@ -330,12 +338,12 @@ export default function DashboardPage() {
                             <h1>Dashboard principal</h1>
                         </div>
                         <div className="topbar-right">
-                            <Link href="/wizard" className="btn-primary">
+                            <button onClick={handleCreateAgent} className="btn-primary">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                                 </svg>
                                 Crear nuevo agente
-                            </Link>
+                            </button>
                             <div className="balance">
                                 <span>Balance:</span>
                                 <span className="balance-amount">€{totalCost.toFixed(2)}</span>

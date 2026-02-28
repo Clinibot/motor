@@ -69,11 +69,11 @@ export async function POST(req: Request) {
             voice: voice
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error importing voice to Retell:", error);
         return NextResponse.json({
             success: false,
-            error: error.message || "Failed to import voice"
+            error: error instanceof Error ? error.message : "Failed to import voice"
         }, { status: 500 });
     }
 }
