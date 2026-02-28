@@ -1,7 +1,14 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { createClient } from '../../../lib/supabase/client';
+
+interface AvailableAgent {
+    id: string;
+    name: string;
+    retell_agent_id: string | null;
+}
 
 export const Step7_Tools: React.FC = () => {
     const {
@@ -9,8 +16,49 @@ export const Step7_Tools: React.FC = () => {
         enableTransfer, transferDestinations,
         enableCustomTools, customTools,
         extractionVariables, webhookInbound,
-        updateField, prevStep, nextStep
+        updateField, prevStep, nextStep, editingAgentId
     } = useWizardStore();
+
+    const [availableAgents, setAvailableAgents] = useState<AvailableAgent[]>([]);
+    const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+
+    useEffect(() => {
+        const fetchAgents = async () => {
+            setIsLoadingAgents(true);
+            try {
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('workspace_id')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profile?.workspace_id) {
+                    const { data: agentList } = await supabase
+                        .from('agents')
+                        .select('id, name, retell_agent_id')
+                        .eq('workspace_id', profile.workspace_id)
+                        .not('retell_agent_id', 'is', null)
+                        .order('name', { ascending: true });
+
+                    // Filtrar el agente actual si estamos editando para evitar transferencias a sí mismo
+                    const filteredList = (agentList || []).filter(a => a.retell_agent_id !== editingAgentId);
+                    setAvailableAgents(filteredList);
+                }
+            } catch (error) {
+                console.error("Error fetching agents for transfer:", error);
+            } finally {
+                setIsLoadingAgents(false);
+            }
+        };
+
+        if (enableTransfer) {
+            fetchAgents();
+        }
+    }, [enableTransfer, editingAgentId]);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -198,23 +246,42 @@ export const Step7_Tools: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div className="form-group mb-0">
-                                                <label className="form-label small">{dest.destination_type === 'agent' ? "ID del Agente de Retell" : "Número de teléfono"}</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
-                                                    placeholder={dest.destination_type === 'agent' ? "ag_123..." : "+34..."}
-                                                    value={dest.destination_type === 'agent' ? dest.agentId : dest.number}
-                                                    onChange={(e) => {
-                                                        const newDests = [...transferDestinations];
-                                                        if (dest.destination_type === 'agent') {
+                                                <label className="form-label small">{dest.destination_type === 'agent' ? "Seleccionar Agente de Retell" : "Número de teléfono"}</label>
+                                                {dest.destination_type === 'agent' ? (
+                                                    <select
+                                                        className="form-control"
+                                                        style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
+                                                        value={dest.agentId || ''}
+                                                        onChange={(e) => {
+                                                            const newDests = [...transferDestinations];
                                                             newDests[idx].agentId = e.target.value;
-                                                        } else {
+                                                            updateField('transferDestinations', newDests);
+                                                        }}
+                                                    >
+                                                        <option value="">Selecciona un agente...</option>
+                                                        {availableAgents.map(a => (
+                                                            <option key={a.id} value={a.retell_agent_id!}>
+                                                                {a.name}
+                                                            </option>
+                                                        ))}
+                                                        {availableAgents.length === 0 && !isLoadingAgents && (
+                                                            <option disabled>No tienes otros agentes activos</option>
+                                                        )}
+                                                    </select>
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
+                                                        placeholder="+34..."
+                                                        value={dest.number}
+                                                        onChange={(e) => {
+                                                            const newDests = [...transferDestinations];
                                                             newDests[idx].number = e.target.value;
-                                                        }
-                                                        updateField('transferDestinations', newDests);
-                                                    }}
-                                                />
+                                                            updateField('transferDestinations', newDests);
+                                                        }}
+                                                    />
+                                                )}
                                             </div>
                                         </div>
                                     </div>
