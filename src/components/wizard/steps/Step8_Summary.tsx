@@ -206,17 +206,25 @@ export const Step8_Summary: React.FC = () => {
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
-    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(
-        !!wizardData.editingAgentId || (!!wizardData.prompt && wizardData.prompt !== 'Eres un asistente útil.')
-    );
     const editingAgentId = wizardData.editingAgentId;
+    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(
+        !!editingAgentId || (!!wizardData.prompt && wizardData.prompt !== '' && wizardData.prompt !== 'Eres un asistente útil.')
+    );
 
     // Efecto para asegurar que en modo edición el prompt sea visible directamente
+    // y se mantenga sincronizado con los cambios de herramientas/KB
     React.useEffect(() => {
-        if (editingAgentId) {
+        if (editingAgentId || (wizardData.prompt && wizardData.prompt !== 'Eres un asistente útil.')) {
             setHasGeneratedPrompt(true);
         }
-    }, [editingAgentId]);
+
+        if (editingAgentId) {
+            const updated = getUpdatedPrompt();
+            if (updated !== wizardData.prompt) {
+                updateField('prompt', updated);
+            }
+        }
+    }, [editingAgentId, wizardData.prompt, wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions]);
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
@@ -523,7 +531,7 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                 </div>
 
                 {/* PROMPT */}
-                {!hasGeneratedPrompt ? (
+                {(!hasGeneratedPrompt && !editingAgentId) ? (
                     <div style={{
                         background: 'linear-gradient(145deg, #f8f9fa, #e9ecef)',
                         border: '1px dashed #ced4da',
