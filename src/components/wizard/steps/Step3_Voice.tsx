@@ -29,32 +29,43 @@ export const Step3_Voice: React.FC = () => {
 
     const [voices, setVoices] = useState<Voice[]>([]);
     const [isLoadingVoices, setIsLoadingVoices] = useState(true);
+    const [isProcessingCustom, setIsProcessingCustom] = useState(false);
+    const [showCustomModal, setShowCustomModal] = useState(false);
+    const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
+
+    // Form states
+    const [customName, setCustomName] = useState('');
+    const [importVoiceId, setImportVoiceId] = useState('');
+    const [publicUserId, setPublicUserId] = useState('');
+    const [cloneFiles, setCloneFiles] = useState<FileList | null>(null);
+
     const [filterLang, setFilterLang] = useState('es');
     const [filterGender, setFilterGender] = useState('');
     const [filterAccent, setFilterAccent] = useState('');
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
+    const fetchVoices = async () => {
+        setIsLoadingVoices(true);
+        try {
+            const response = await fetch('/api/retell/voices');
+            const data = await response.json();
+            if (data.success && data.voices && data.voices.length > 0) {
+                setVoices(data.voices);
+            } else {
+                console.warn("API returned empty voices or failed, using fallback data");
+                setVoices(DEFAULT_VOICES);
+            }
+        } catch (error) {
+            console.error("Error loading voices:", error);
+            setVoices(DEFAULT_VOICES);
+        } finally {
+            setIsLoadingVoices(false);
+        }
+    };
+
     // Cargar voces desde la API
     React.useEffect(() => {
-        async function fetchVoices() {
-            setIsLoadingVoices(true);
-            try {
-                const response = await fetch('/api/retell/voices');
-                const data = await response.json();
-                if (data.success && data.voices && data.voices.length > 0) {
-                    setVoices(data.voices);
-                } else {
-                    console.warn("API returned empty voices or failed, using fallback data");
-                    setVoices(DEFAULT_VOICES);
-                }
-            } catch (error) {
-                console.error("Error loading voices:", error);
-                setVoices(DEFAULT_VOICES);
-            } finally {
-                setIsLoadingVoices(false);
-            }
-        }
         fetchVoices();
     }, []);
 
@@ -90,6 +101,56 @@ export const Step3_Voice: React.FC = () => {
             return matchesLang && matchesGender && matchesAccent;
         });
     }, [voices, filterLang, filterGender, filterAccent]);
+
+    const handleCustomVoiceSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsProcessingCustom(true);
+
+        try {
+            let res;
+            if (customTab === 'import') {
+                res = await fetch('/api/retell/voices/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        voice_name: customName,
+                        provider_voice_id: importVoiceId,
+                        public_user_id: publicUserId
+                    })
+                });
+            } else {
+                const formData = new FormData();
+                formData.append('voice_name', customName);
+                if (cloneFiles) {
+                    for (let i = 0; i < cloneFiles.length; i++) {
+                        formData.append('files', cloneFiles[i]);
+                    }
+                }
+                res = await fetch('/api/retell/voices/clone', {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+
+            const data = await res.json();
+            if (data.success) {
+                alert(customTab === 'import' ? "Voz importada con éxito" : "Voz clonada con éxito");
+                setShowCustomModal(false);
+                setCustomName('');
+                setImportVoiceId('');
+                setPublicUserId('');
+                setCloneFiles(null);
+                fetchVoices(); // Refrescar lista
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (error) {
+            console.error("Error processing custom voice:", error);
+            alert("Ocurrió un error inesperado.");
+        } finally {
+            setIsProcessingCustom(false);
+        }
+    };
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -160,11 +221,21 @@ export const Step3_Voice: React.FC = () => {
                     Elige la voz que mejor represente la personalidad de tu agente.
                 </p>
 
-                <div className="alert-info">
-                    <i className="bi bi-lightbulb-fill"></i>
-                    <div>
-                        <strong>Tip:</strong> Escucha varias voces antes de decidir. La voz transmite la personalidad de tu marca.
+                <div className="alert-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <i className="bi bi-lightbulb-fill"></i>
+                        <div>
+                            <strong>Tip:</strong> Escucha varias voces antes de decidir. La voz transmite la personalidad de tu marca.
+                        </div>
                     </div>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ padding: '8px 16px', fontSize: '13px', background: 'var(--oscuro)' }}
+                        onClick={() => setShowCustomModal(true)}
+                    >
+                        <i className="bi bi-plus-circle"></i> Añadir Voz Personalizada
+                    </button>
                 </div>
 
                 <form onSubmit={handleNext}>
@@ -416,6 +487,131 @@ export const Step3_Voice: React.FC = () => {
                     </div>
                 </form>
             </div>
+
+            {/* MODAL PARA VOZ PERSONALIZADA */}
+            {showCustomModal && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 3000,
+                    backdropFilter: 'blur(4px)'
+                }}>
+                    <div className="modal-content" style={{
+                        background: 'white',
+                        width: '100%',
+                        maxWidth: '500px',
+                        borderRadius: '16px',
+                        padding: '32px',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0 }}>Añadir Voz Personalizada</h2>
+                            <button type="button" onClick={() => setShowCustomModal(false)} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--gris-texto)' }}>&times;</button>
+                        </div>
+
+                        <div style={{ display: 'flex', background: 'var(--gris-claro)', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
+                            <button
+                                type="button"
+                                onClick={() => setCustomTab('import')}
+                                style={{
+                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
+                                    background: customTab === 'import' ? 'white' : 'transparent',
+                                    color: customTab === 'import' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
+                                    boxShadow: customTab === 'import' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                }}
+                            >
+                                Importar ElevenLabs
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCustomTab('clone')}
+                                style={{
+                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
+                                    background: customTab === 'clone' ? 'white' : 'transparent',
+                                    color: customTab === 'clone' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
+                                    boxShadow: customTab === 'clone' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                }}
+                            >
+                                Clonar Voz (Upload)
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCustomVoiceSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Nombre de la voz</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Ej: Voz Corporativa Juan"
+                                    value={customName}
+                                    onChange={(e) => setCustomName(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            {customTab === 'import' ? (
+                                <>
+                                    <div className="form-group">
+                                        <label className="form-label">Provider Voice ID (ElevenLabs)</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Pega el ID de ElevenLabs aquí"
+                                            value={importVoiceId}
+                                            onChange={(e) => setImportVoiceId(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Public User ID (Opcional)</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Solo si es una voz de la comunidad"
+                                            value={publicUserId}
+                                            onChange={(e) => setPublicUserId(e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="form-group">
+                                    <label className="form-label">Archivos de audio (WAV/MP3)</label>
+                                    <input
+                                        type="file"
+                                        className="form-control"
+                                        multiple
+                                        accept="audio/*"
+                                        onChange={(e) => setCloneFiles(e.target.files)}
+                                        required
+                                    />
+                                    <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '8px' }}>
+                                        Sube entre 1 y 25 archivos para una mejor calidad. Retell procesará la clonación.
+                                    </p>
+                                </div>
+                            )}
+
+                            <div style={{ marginTop: '32px' }}>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    style={{ width: '100%', justifyContent: 'center' }}
+                                    disabled={isProcessingCustom}
+                                >
+                                    {isProcessingCustom ? (
+                                        <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: '16px', height: '16px' }}></span> Procesando...</>
+                                    ) : (
+                                        customTab === 'import' ? 'Importar Voz' : 'Comenzar Clonación'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
