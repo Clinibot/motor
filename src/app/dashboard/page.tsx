@@ -57,6 +57,8 @@ export default function DashboardPage() {
     const [expandedCallId, setExpandedCallId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [agentFilter, setAgentFilter] = useState('all');
+    const [timeFilter, setTimeFilter] = useState('7d');
+    const [customDateRange, setCustomDateRange] = useState({ start: '', end: '' });
     const [chartJsReady, setChartJsReady] = useState(false);
     const callsChartRef = useRef<HTMLCanvasElement>(null);
     const sentimentChartRef = useRef<HTMLCanvasElement>(null);
@@ -97,17 +99,49 @@ export default function DashboardPage() {
             setUser(profile ?? { full_name: session.user.email ?? null, email: session.user.email ?? null, role: 'user', workspace_id: currentWorkspaceId });
 
             if (currentWorkspaceId) {
-                const [{ data: agentList }, { data: callList }] = await Promise.all([
-                    supabase.from('agents').select('*').eq('workspace_id', currentWorkspaceId).order('created_at', { ascending: false }),
-                    supabase.from('calls').select('*').eq('workspace_id', currentWorkspaceId).order('created_at', { ascending: false }).limit(100),
-                ]);
+                const { data: agentList } = await supabase.from('agents').select('*').eq('workspace_id', currentWorkspaceId).order('created_at', { ascending: false });
+
+                let query = supabase.from('calls').select('*').eq('workspace_id', currentWorkspaceId).order('created_at', { ascending: false });
+
+                const now = new Date();
+                if (timeFilter === 'today') {
+                    const start = new Date(now.setHours(0, 0, 0, 0));
+                    query = query.gte('created_at', start.toISOString());
+                } else if (timeFilter === 'yesterday') {
+                    const start = new Date(now);
+                    start.setDate(start.getDate() - 1);
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date(now);
+                    end.setDate(end.getDate() - 1);
+                    end.setHours(23, 59, 59, 999);
+                    query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+                } else if (timeFilter === '7d') {
+                    const start = new Date(now);
+                    start.setDate(start.getDate() - 7);
+                    query = query.gte('created_at', start.toISOString());
+                } else if (timeFilter === '30d') {
+                    const start = new Date(now);
+                    start.setDate(start.getDate() - 30);
+                    query = query.gte('created_at', start.toISOString());
+                } else if (timeFilter === 'custom' && customDateRange.start && customDateRange.end) {
+                    const start = new Date(customDateRange.start);
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date(customDateRange.end);
+                    end.setHours(23, 59, 59, 999);
+                    query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+                } else if (timeFilter !== 'custom') {
+                    query = query.limit(100);
+                }
+
+                const { data: callList } = await query;
+
                 setAgents(agentList ?? []);
                 setCalls(callList ?? []);
             }
         } finally {
             setIsLoading(false);
         }
-    }, [router]);
+    }, [router, timeFilter, customDateRange.start, customDateRange.end]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
@@ -130,14 +164,14 @@ export default function DashboardPage() {
 
         // ── 1. Calls timeline (line) ──
         if (callsChartRef.current) {
-            const last7 = getLast7DaysData(calls);
+            const chartData = getChartDataTimeline(calls, timeFilter, customDateRange);
             const c = new Chart(callsChartRef.current, {
                 type: 'line',
                 data: {
-                    labels: last7.labels,
+                    labels: chartData.labels,
                     datasets: [{
                         label: 'Llamadas',
-                        data: last7.data,
+                        data: chartData.data,
                         borderColor: '#267ab0',
                         backgroundColor: 'rgba(38,122,176,0.08)',
                         borderWidth: 2,
@@ -453,6 +487,30 @@ export default function DashboardPage() {
                     </header>
 
                     <div className="content">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1a1a1a' }}>Vista general</h2>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <select
+                                    value={timeFilter}
+                                    onChange={(e) => setTimeFilter(e.target.value)}
+                                    style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '14px', outline: 'none', cursor: 'pointer', fontWeight: 500, color: '#4b5563' }}
+                                >
+                                    <option value="today">Hoy</option>
+                                    <option value="yesterday">Ayer</option>
+                                    <option value="7d">Últimos 7 días</option>
+                                    <option value="30d">Últimos 30 días</option>
+                                    <option value="custom">Personalizado</option>
+                                </select>
+                                {timeFilter === 'custom' && (
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <input type="date" value={customDateRange.start} onChange={e => setCustomDateRange({ ...customDateRange, start: e.target.value })} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '14px', outline: 'none', color: '#4b5563' }} />
+                                        <span style={{ color: '#6b7280' }}>-</span>
+                                        <input type="date" value={customDateRange.end} onChange={e => setCustomDateRange({ ...customDateRange, end: e.target.value })} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '14px', outline: 'none', color: '#4b5563' }} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {isLoading ? (
                             <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
                                 <div className="spinner" />
@@ -502,11 +560,6 @@ export default function DashboardPage() {
                                     <div className="chart-card">
                                         <div className="chart-header">
                                             <h3 className="chart-title">Llamadas en el tiempo</h3>
-                                            <div className="chart-filters">
-                                                <button className="filter-btn active">7D</button>
-                                                <button className="filter-btn">30D</button>
-                                                <button className="filter-btn">90D</button>
-                                            </div>
                                         </div>
                                         <div className="chart-container">
                                             <canvas ref={callsChartRef} />
@@ -728,19 +781,47 @@ function formatDuration(ms: number | null): string {
 }
 
 
-function getLast7DaysData(calls: Call[]) {
-    const days: { label: string; count: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date();
+function getChartDataTimeline(calls: Call[], timeFilter: string, customDateRange: { start: string, end: string }) {
+    if (timeFilter === 'today' || timeFilter === 'yesterday') {
+        const hours: { label: string; count: number }[] = [];
+        for (let i = 0; i <= 23; i++) {
+            const hStr = `${String(i).padStart(2, '0')}:00`;
+            const count = calls.filter(c => {
+                const cd = new Date(c.created_at);
+                // Adjust per timezone if needed, this uses local timezone
+                return cd.getHours() === i;
+            }).length;
+            hours.push({ label: hStr, count });
+        }
+        return { labels: hours.map(h => h.label), data: hours.map(h => h.count) };
+    }
+
+    let days = 7;
+    let endDate = new Date();
+
+    if (timeFilter === '30d') days = 30;
+    if (timeFilter === 'custom') {
+        if (customDateRange.start && customDateRange.end) {
+            const start = new Date(customDateRange.start);
+            const end = new Date(customDateRange.end);
+            days = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            endDate = new Date(end);
+        }
+    }
+    if (days > 90) days = 90;
+
+    const daysData: { label: string; count: number }[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(endDate);
         d.setDate(d.getDate() - i);
         const label = `${d.getDate()}/${d.getMonth() + 1}`;
         const count = calls.filter(c => {
             const cd = new Date(c.created_at);
             return cd.getDate() === d.getDate() && cd.getMonth() === d.getMonth() && cd.getFullYear() === d.getFullYear();
         }).length;
-        days.push({ label, count });
+        daysData.push({ label, count });
     }
-    return { labels: days.map(d => d.label), data: days.map(d => d.count) };
+    return { labels: daysData.map(d => d.label), data: daysData.map(d => d.count) };
 }
 
 function getSentimentCounts(calls: Call[]) {
