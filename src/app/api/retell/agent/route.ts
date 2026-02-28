@@ -113,15 +113,17 @@ export async function POST(request: Request) {
         const retellModel = payload.model || "gpt-4.1";
 
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
-        const llmCreateParams: Parameters<typeof retellClient.llm.create>[0] = {
+        const llmCreateParams: any = {
             model: retellModel,
             general_prompt: finalPrompt,
-            begin_message: payload.beginMessage
+            begin_message: payload.beginMessage,
+            model_temperature: payload.temperature,
+            model_high_priority: payload.highPriority,
+            start_speaker: payload.whoFirst || 'agent',
         };
 
         if (retellTools.length > 0) {
-            // @ts-expect-error - Retell SDK types
-            llmCreateParams.tools = retellTools;
+            llmCreateParams.general_tools = retellTools;
         }
 
         if (payload.kbFiles && payload.kbFiles.length > 0) {
@@ -147,9 +149,9 @@ export async function POST(request: Request) {
             finalVoiceId = cartesiaMapping[finalVoiceId];
         }
 
-        // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA
-        if (finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc' || (finalVoiceId.includes('11labs-') && finalVoiceId !== '11labs-Adrian')) {
-            console.log("Forzando fallback de voz a 11labs-Adrian (Voz Carolina o desconocida detectada)");
+        // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA (Solo si es carolina o vacía)
+        if (!finalVoiceId || finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
+            console.log("Forzando fallback de voz a 11labs-Adrian");
             finalVoiceId = '11labs-Adrian';
         }
 
@@ -266,16 +268,19 @@ export async function PATCH(request: Request) {
 
         const retellModel = payload.model || "gpt-4.1";
 
-        const llmUpdateParams: { model: string, general_prompt: string, begin_message: string, tools?: unknown[], knowledge_base_ids?: string[] } = {
+        const llmUpdateParams: any = {
             model: retellModel,
             general_prompt: finalPrompt,
             begin_message: payload.beginMessage,
+            model_temperature: payload.temperature,
+            model_high_priority: payload.highPriority,
+            start_speaker: payload.whoFirst || 'agent',
         };
 
         if (retellTools.length > 0) {
-            llmUpdateParams.tools = retellTools;
+            llmUpdateParams.general_tools = retellTools;
         } else {
-            llmUpdateParams.tools = [];
+            llmUpdateParams.general_tools = [];
         }
 
         if (payload.kbFiles && payload.kbFiles.length > 0) {
@@ -290,22 +295,30 @@ export async function PATCH(request: Request) {
         let llmId = currentAgent.retell_llm_id;
         if (llmId) {
             console.log(`Updating LLM ${llmId}`);
-            // @ts-expect-error - Retell SDK types
             const updatedLlm = await retellClient.llm.update(llmId, llmUpdateParams);
             console.log("Retell LLM Update executed successfully for LLM:", updatedLlm.llm_id);
         } else {
             console.log("Creating new LLM because agent had no LLM ID assigned.");
-            // @ts-expect-error - Retell SDK types
             const createdLlm = await retellClient.llm.create(llmUpdateParams);
             llmId = createdLlm.llm_id;
         }
 
+        // Mapear voces Cartesia (placeholders UI) a voces OpenAI disponibles en Retell
+        const cartesiaMapping: Record<string, string> = {
+            'cartesia-Elena': 'openai-Shimmer',
+            'cartesia-Isabel': 'openai-Shimmer',
+            'cartesia-Manuel': 'openai-Fable',
+        };
+
         const finalVoiceId = payload.voiceId || currentAgent?.configuration?.voiceId || "11labs-Adrian";
+        let cleanVoiceId = finalVoiceId;
+        if (cartesiaMapping[cleanVoiceId]) {
+            cleanVoiceId = cartesiaMapping[cleanVoiceId];
+        }
 
         // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA EN EDICIÓN
-        let cleanVoiceId = finalVoiceId;
-        if (cleanVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc' || (cleanVoiceId.includes('11labs-') && cleanVoiceId !== '11labs-Adrian')) {
-            console.log("Forzando fallback de voz en edición a 11labs-Adrian");
+        if (!cleanVoiceId || cleanVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
+            console.log("Forzando fallback de voz en edición a 11labs-Adrian (Voz Carolina o vacía detectada)");
             cleanVoiceId = '11labs-Adrian';
         }
 

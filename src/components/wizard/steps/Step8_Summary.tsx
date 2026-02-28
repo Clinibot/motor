@@ -201,6 +201,9 @@ export const Step8_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const { setStep, prevStep, updateField } = wizardData;
 
+    const [mounted, setMounted] = useState(false);
+    React.useEffect(() => { setMounted(true); }, []);
+
     const [isCreating, setIsCreating] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [showError, setShowError] = useState(false);
@@ -459,6 +462,16 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
             </div>
         );
     }
+
+    if (!mounted) return (
+        <div className="content-area">
+            <div className="form-card" style={{ textAlign: 'center', padding: '100px 40px' }}>
+                <div role="status" style={{ border: '4px solid #f3f3f3', borderTop: '4px solid #267ab0', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
+                <p style={{ color: '#6c757d', fontSize: '16px' }}>Cargando resumen...</p>
+                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            </div>
+        </div>
+    );
 
     return (
         <div className="content-area">

@@ -3,8 +3,11 @@ import { create } from 'zustand';
 // Types for the Wizard State
 export interface TransferDestination {
     name: string;
-    number: string;
     description: string;
+    number?: string; // Para humanos
+    agentId?: string; // Para otros agentes de Retell
+    destination_type: 'number' | 'agent';
+    transfer_mode?: 'cold' | 'warm';
 }
 
 export interface CustomTool {

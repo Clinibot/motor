@@ -16,14 +16,33 @@ interface Voice {
 }
 
 // VOICES_DATA ya no se usa de forma estática, se cargan de la API
+// Lista de IDs de voces seleccionadas para mostrar una lista "Premium" curada
+const CURATED_VOICE_IDS = [
+    '11labs-Adrian',
+    '11labs-Paloma',
+    '11labs-Alvaro',
+    'cartesia-Elena',
+    'cartesia-Manuel',
+    'cartesia-Isabel',
+    'cartesia-Teresa',
+    'cartesia-Dario',
+    'cartesia-Ines',
+    'openai-Shimmer',
+    'openai-Fable',
+    'openai-Nova',
+    'openai-Alloy',
+    'retell-Rosa',
+    'retell-Alberto',
+    'retell-Sergio',
+    '11labs-George',
+    '11labs-Alice'
+];
+
 const DEFAULT_VOICES: Voice[] = [
     { voice_id: '11labs-Adrian', voice_name: 'Adrián', provider: 'elevenlabs', language: 'es', gender: 'male', accent: 'spain', preview_audio_url: 'https://storage.googleapis.com/retell-api/11labs-Adrian.mp3' },
     { voice_id: 'openai-Fable', voice_name: 'Cimo', provider: 'openai', language: 'es', gender: 'male', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Fable.mp3' },
     { voice_id: 'openai-Shimmer', voice_name: 'Serena', provider: 'openai', language: 'es', gender: 'female', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Shimmer.mp3' },
     { voice_id: 'cartesia-Elena', voice_name: 'Elena', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain' },
-    { voice_id: '11labs-George', voice_name: 'George', provider: 'elevenlabs', language: 'en', gender: 'male', accent: 'usa' },
-    { voice_id: '11labs-Alice', voice_name: 'Alice', provider: 'elevenlabs', language: 'en', gender: 'female', accent: 'uk' },
-    { voice_id: '11labs-Jean', voice_name: 'Jean', provider: 'elevenlabs', language: 'fr', gender: 'male', accent: 'france' },
 ];
 
 export const Step3_Voice: React.FC = () => {
@@ -80,15 +99,19 @@ export const Step3_Voice: React.FC = () => {
                         lang = 'fr';
                     }
 
-                    // Detección flexible de acento
+                    // Detección flexible de acento (Prioridad España)
                     let accent = voiceAccentAttr;
                     if (accent.includes('spain') ||
                         accent.includes('españa') ||
                         accent.includes('castilian') ||
                         accent.includes('castellano') ||
+                        accent.includes('castellana') ||
+                        voiceName.includes('español (españa)') ||
                         voiceName.includes('española') ||
                         voiceName.includes('madrid') ||
-                        voiceName.includes('barcelona')) {
+                        voiceName.includes('barcelona') ||
+                        voiceName.includes('sevilla') ||
+                        voiceName.includes('valencia')) {
                         accent = 'spain';
                     } else if (accent.includes('latam') ||
                         accent.includes('mexico') ||
@@ -119,7 +142,7 @@ export const Step3_Voice: React.FC = () => {
                         language: lang,
                         accent: accent,
                         provider: provider,
-                        raw_language: v.language, // Para depuración si fuera necesario
+                        raw_language: v.language,
                         raw_accent: v.accent
                     };
                 });
@@ -153,17 +176,44 @@ export const Step3_Voice: React.FC = () => {
     }, []);
 
     const filteredVoices = useMemo(() => {
-        return voices.filter(v => {
-            const matchesProvider = activeProvider === 'retell'
-                ? (v.provider === 'retell' || v.provider === 'openai') // Agrupar Retell y OpenAI como en la captura
-                : v.provider === activeProvider;
+        let list = voices;
+
+        // Si no se han cargado voces aún, usar DEFAULT_VOICES
+        if (list.length === 0 && !isLoadingVoices) list = DEFAULT_VOICES;
+
+        // 1. Filtrar solo las curadas si no hay búsqueda activa (para mantenerla limpia)
+        if (!filterAccent && !filterGender && filterLang === 'es') {
+            const curated = list.filter(v => CURATED_VOICE_IDS.includes(v.voice_id));
+            if (curated.length > 0) list = curated;
+        }
+
+        // 2. Aplicar filtros de UI
+        const filtered = list.filter(v => {
+            const matchesProvider = activeProvider === 'all'
+                ? true
+                : (activeProvider === 'retell'
+                    ? (v.provider === 'retell' || v.provider === 'openai')
+                    : v.provider === activeProvider);
 
             const matchesLang = !filterLang || v.language === filterLang;
             const matchesGender = !filterGender || v.gender === filterGender;
             const matchesAccent = !filterAccent || v.accent === filterAccent;
             return matchesProvider && matchesLang && matchesGender && matchesAccent;
         });
-    }, [voices, activeProvider, filterLang, filterGender, filterAccent]);
+
+        // 3. Ordenación : España > Latam > Resto
+        return [...filtered].sort((a, b) => {
+            // Prioridad para España
+            if (a.accent === 'spain' && b.accent !== 'spain') return -1;
+            if (a.accent !== 'spain' && b.accent === 'spain') return 1;
+
+            // Prioridad para Español en general
+            if (a.language === 'es' && b.language !== 'es') return -1;
+            if (a.language !== 'es' && b.language === 'es') return 1;
+
+            return 0;
+        });
+    }, [voices, activeProvider, filterLang, filterGender, filterAccent, isLoadingVoices]);
 
     const handleCustomVoiceSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -309,9 +359,11 @@ export const Step3_Voice: React.FC = () => {
                         paddingBottom: '2px'
                     }}>
                         {[
-                            { id: 'retell', name: 'Retell AI', icon: 'bi-cpu-fill' },
+                            { id: 'all', name: 'Recomendadas', icon: 'bi-star-fill' },
+                            { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' },
                             { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
-                            { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' }
+                            { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
+                            { id: 'retell', name: 'Retell AI', icon: 'bi-cpu-fill' }
                         ].map(p => (
                             <button
                                 key={p.id}
@@ -428,9 +480,17 @@ export const Step3_Voice: React.FC = () => {
                                         }}>
                                             {v.gender === 'female' ? '👩' : '👨'}
                                         </div>
-                                        <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>{v.voice_name}</div>
-                                        <div className="voice-desc" style={{ fontSize: '11px', color: '#64748b', marginBottom: '16px', minHeight: '32px', textTransform: 'capitalize' }}>
-                                            Voz {v.gender === 'female' ? 'femenina' : 'masculina'} {v.accent ? getAccentName(v.accent).toLowerCase() : 'profesional'}
+                                        <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                            {v.voice_name}
+                                            {CURATED_VOICE_IDS.includes(v.voice_id) && (
+                                                <i className="bi bi-patch-check-fill" style={{ color: '#0ea5e9', fontSize: '14px' }} title="Voz Premium Verificada"></i>
+                                            )}
+                                        </div>
+                                        <div className="voice-desc" style={{ fontSize: '11px', color: '#64748b', marginBottom: '16px', minHeight: '32px', textTransform: 'capitalize', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            <span>Voz {v.gender === 'female' ? 'femenina' : 'masculina'}</span>
+                                            <span style={{ fontWeight: 600, color: v.accent === 'spain' ? '#059669' : '#64748b' }}>
+                                                {v.accent ? getAccentName(v.accent) : 'Profesional'}
+                                            </span>
                                         </div>
 
                                         <div className="voice-tags" style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '20px' }}>
@@ -443,13 +503,14 @@ export const Step3_Voice: React.FC = () => {
                                                 color: '#475569'
                                             }}>{getLanguageName(v.language)}</span>
                                             <span style={{
-                                                background: v.provider === 'elevenlabs' ? '#f0f9ff' : '#f8fafc',
-                                                color: v.provider === 'elevenlabs' ? '#0369a1' : '#64748b',
+                                                background: v.provider === 'elevenlabs' ? '#f0f9ff' : v.provider === 'cartesia' ? '#f5f3ff' : '#f8fafc',
+                                                color: v.provider === 'elevenlabs' ? '#0369a1' : v.provider === 'cartesia' ? '#7c3aed' : '#64748b',
                                                 padding: '2px 8px',
                                                 borderRadius: '6px',
                                                 fontSize: '11px',
-                                                fontWeight: 700
-                                            }}>{v.provider === 'elevenlabs' ? 'HD' : 'Pro'}</span>
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase'
+                                            }}>{v.provider === 'elevenlabs' ? 'Ultra HD' : v.provider === 'cartesia' ? 'Sonic' : 'Pro'}</span>
                                         </div>
 
                                         <button

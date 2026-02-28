@@ -55,6 +55,8 @@ export default function DashboardPage() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedCallId, setExpandedCallId] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [agentFilter, setAgentFilter] = useState('all');
     const [chartJsReady, setChartJsReady] = useState(false);
     const callsChartRef = useRef<HTMLCanvasElement>(null);
     const sentimentChartRef = useRef<HTMLCanvasElement>(null);
@@ -197,8 +199,19 @@ export default function DashboardPage() {
     const successRate = totalCalls > 0 ? ((successCalls / totalCalls) * 100).toFixed(1) + '%' : '0%';
     const avgDurMs = totalCalls > 0 ? calls.reduce((s, c) => s + (c.duration_ms ?? 0), 0) / totalCalls : 0;
     const avgDur = formatDuration(avgDurMs);
-    const totalCost = calls.reduce((s, c) => s + (c.call_cost ?? 0), 0);
+    const totalCost = calls.reduce((s, c) => s + Number(c.call_cost || 0), 0);
     const userInitial = (user?.full_name || user?.email || 'U')[0].toUpperCase();
+
+    // ---- Filtered calls ----
+    const filteredCalls = calls.filter(call => {
+        const matchesSearch = !searchTerm ||
+            (call.customer_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (call.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesAgent = agentFilter === 'all' || call.retell_agent_id === agentFilter;
+
+        return matchesSearch && matchesAgent;
+    });
 
     const handleLogout = async () => {
         const supabase = createClient();
@@ -212,8 +225,8 @@ export default function DashboardPage() {
     };
 
     const sentimentLabel = (s?: string) => {
-        const map: Record<string, string> = { positive: 'Positive', neutral: 'Neutral', negative: 'Negative' };
-        return map[s?.toLowerCase() ?? ''] ?? '—';
+        const map: Record<string, string> = { positive: 'Positivo', neutral: 'Neutral', negative: 'Negativo' };
+        return map[s?.toLowerCase() ?? ''] ?? 'Neutral';
     };
     const sentimentClass = (s?: string) => {
         const map: Record<string, string> = { positive: 'positive', neutral: 'neutral', negative: 'negative' };
@@ -309,6 +322,12 @@ export default function DashboardPage() {
                 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
                 .table-wrapper{overflow-x:auto}
                 .empty-state{padding:60px 40px;text-align:center;color:#9ca3af;font-size:14px}
+                .filter-bar{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+                .filter-input-group{display:flex;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0 12px;flex:1;min-width:200px;transition:all .2s;height:40px}
+                .filter-input-group:focus-within{border-color:#267ab0;box-shadow:0 0 0 2px rgba(38,122,176,.1)}
+                .filter-input{border:none;background:none;padding:10px 8px;font-size:14px;outline:none;width:100%;color:#1a1a1a}
+                .filter-select{height:40px;padding:0 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;outline:none;cursor:pointer;min-width:180px;transition:all .2s;font-family:inherit}
+                .filter-select:focus{border-color:#267ab0}
                 @media(max-width:1024px){.charts-section{grid-template-columns:1fr}}
             `}</style>
 
@@ -370,7 +389,7 @@ export default function DashboardPage() {
                             </button>
                             <div className="balance">
                                 <span>Balance:</span>
-                                <span className="balance-amount">€{totalCost.toFixed(2)}</span>
+                                <span className="balance-amount">€{totalCost.toFixed(3)}</span>
                             </div>
                             <button className="notification-bell">
                                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
@@ -408,7 +427,7 @@ export default function DashboardPage() {
                                             icon: 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z'
                                         },
                                         {
-                                            title: 'Coste total', value: `€${totalCost.toFixed(2)}`, iconColor: '#ea580c', iconClass: 'orange',
+                                            title: 'Coste total', value: `€${totalCost.toFixed(3)}`, iconColor: '#ea580c', iconClass: 'orange',
                                             icon: 'M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z'
                                         },
                                     ].map(stat => (
@@ -487,9 +506,40 @@ export default function DashboardPage() {
                                             </button>
                                         </div>
                                     </div>
-                                    {calls.length === 0 ? (
+
+                                    {/* FILTERS */}
+                                    <div className="filter-bar">
+                                        <div className="filter-input-group">
+                                            <svg width="18" height="18" fill="none" stroke="#9ca3af" strokeWidth="2" viewBox="0 0 24 24">
+                                                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <input
+                                                type="text"
+                                                className="filter-input"
+                                                placeholder="Buscar por número o nombre..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                        <select
+                                            className="filter-select"
+                                            value={agentFilter}
+                                            onChange={(e) => setAgentFilter(e.target.value)}
+                                        >
+                                            <option value="all">Todos los agentes</option>
+                                            {agents.map(ag => (
+                                                <option key={ag.id} value={ag.retell_agent_id || ''}>
+                                                    {ag.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {filteredCalls.length === 0 ? (
                                         <div className="empty-state">
-                                            Las llamadas aparecerán aquí automáticamente una vez que los agentes realicen conversaciones.
+                                            {calls.length === 0
+                                                ? 'Las llamadas aparecerán aquí automáticamente una vez que los agentes realicen conversaciones.'
+                                                : 'No se encontraron llamadas que coincidan con los filtros aplicados.'}
                                         </div>
                                     ) : (
                                         <div className="table-wrapper">
@@ -507,7 +557,7 @@ export default function DashboardPage() {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {calls.map(call => {
+                                                    {filteredCalls.map(call => {
                                                         const sentiment = call.call_analysis?.user_sentiment;
                                                         const successful = call.call_analysis?.call_successful;
                                                         const agentName = getAgentName(call.retell_agent_id);
@@ -534,7 +584,7 @@ export default function DashboardPage() {
                                                                     <td>{formatDuration(call.duration_ms)}</td>
                                                                     <td><span className={`badge ${sentimentClass(sentiment)}`}>{sentimentLabel(sentiment)}</span></td>
                                                                     <td><span className={`badge ${successful ? 'success' : 'error'}`}>{successful ? '✓ Exitosa' : '✗ Fallida'}</span></td>
-                                                                    <td>{call.call_cost ? `€${Number(call.call_cost).toFixed(2)}` : '—'}</td>
+                                                                    <td>{call.call_cost ? `€${Number(call.call_cost).toFixed(3)}` : '—'}</td>
                                                                     <td>
                                                                         <div className="action-btns">
                                                                             <button
@@ -574,12 +624,12 @@ export default function DashboardPage() {
                                                                                                 {call.cost_breakdown.product_costs?.map((p, i: number) => (
                                                                                                     <div key={i} className="cost-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px', borderBottom: i === (call.cost_breakdown?.product_costs?.length || 0) - 1 ? 'none' : '1px solid #e2e8f0' }}>
                                                                                                         <span style={{ color: '#475569' }}>{p.product}</span>
-                                                                                                        <span style={{ fontWeight: 600 }}>€{p.cost.toFixed(4)}</span>
+                                                                                                        <span style={{ fontWeight: 600 }}>€{(p.cost / 100).toFixed(4)}</span>
                                                                                                     </div>
                                                                                                 ))}
                                                                                                 <div className="cost-item" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', marginTop: '4px', display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px' }}>
                                                                                                     <span style={{ fontWeight: 600 }}>Coste Total</span>
-                                                                                                    <span style={{ fontWeight: 700, color: '#267ab0' }}>€{Number(call.call_cost).toFixed(2)}</span>
+                                                                                                    <span style={{ fontWeight: 700, color: '#267ab0' }}>€{Number(call.call_cost).toFixed(3)}</span>
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
@@ -624,7 +674,7 @@ export default function DashboardPage() {
 // ---- Helper functions ----
 function formatDuration(ms: number | null): string {
     if (!ms || ms === 0) return '—';
-    const s = Math.floor(ms / 1000);
+    const s = Math.ceil(ms / 1000);
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 

@@ -7,7 +7,14 @@
  */
 
 // ---- Wizard types (mirrored here to avoid circular deps) ----
-export interface TransferDestination { name: string; number: string; description: string; }
+export interface TransferDestination {
+    name: string;
+    description: string;
+    number?: string;
+    agentId?: string;
+    destination_type: 'number' | 'agent';
+    transfer_mode?: 'cold' | 'warm';
+}
 export interface CustomTool { name: string; url: string; description: string; speakDuring: boolean; speakAfter: boolean; }
 export interface ExtractionVariable { name: string; type: string; description: string; }
 
@@ -97,11 +104,18 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
             const toolName = `transfer_to_${cleanName}`;
 
+            const transfer_destination: any = dest.destination_type === 'agent'
+                ? { type: 'agent', agent_id: dest.agentId }
+                : { type: 'predefined', number: dest.number };
+
             tools.push({
                 type: 'transfer_call',
                 name: toolName,
                 description: dest.description || `Transfiere la llamada a ${dest.name}.`,
-                number: dest.number,
+                transfer_destination,
+                transfer_option: {
+                    type: dest.transfer_mode === 'warm' ? 'warm_transfer' : 'cold_transfer',
+                }
             });
         });
     }
@@ -147,10 +161,19 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
  * This ensures the LLM knows when and how to call each tool.
  */
 export function injectToolInstructions(basePrompt: string, p: ToolsPayload): string {
+    // Definimos los marcadores para poder limpiar el prompt si es necesario
+    const START_MARKER = '### INSTRUCCIONES_HERRAMIENTAS_START ###';
+    const END_MARKER = '### INSTRUCCIONES_HERRAMIENTAS_END ###';
+
+    // Limpiamos cualquier bloque previo de instrucciones automáticas para evitar duplicados
+    let cleanPrompt = basePrompt;
+    const regex = new RegExp(`\\n?\\n?${START_MARKER}[\\s\\S]*?${END_MARKER}`, 'g');
+    cleanPrompt = cleanPrompt.replace(regex, '').trim();
+
     // Si el prompt ya tiene los marcadores de AUTO_TOOLS o AUTO_KB del frontend, 
-    // no añadimos nada más en el backend para evitar redundancia y "ensuciar" el prompt.
-    if (basePrompt.includes('<!-- AUTO_TOOLS_START -->') || basePrompt.includes('<!-- AUTO_KB_START -->')) {
-        return basePrompt;
+    // no añadimos nada más en el backend para evitar redundancia.
+    if (cleanPrompt.includes('<!-- AUTO_TOOLS_START -->') || cleanPrompt.includes('<!-- AUTO_KB_START -->')) {
+        return cleanPrompt;
     }
 
     const blocks: string[] = [];
@@ -176,11 +199,12 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
 
     if (p.enableTransfer && p.transferDestinations.length > 0) {
         const destList = p.transferDestinations
-            .filter(d => d.number)
+            .filter(d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId))
             .map((d) => {
                 const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
                 const toolName = `transfer_to_${cleanName}`;
-                return `- **${d.name}**: ${d.description || d.number} (llamar a la herramienta \`${toolName}\`)`;
+                const destInfo = d.destination_type === 'number' ? `número ${d.number}` : `agente con ID ${d.agentId}`;
+                return `- **${d.name}**: ${d.description || `Transferir a ${destInfo}`} (llamar a la herramienta \`${toolName}\`)`;
             })
             .join('\n');
         blocks.push(
@@ -203,7 +227,9 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         );
     }
 
-    if (blocks.length === 0) return basePrompt;
+    if (blocks.length === 0) return cleanPrompt;
 
-    return `${basePrompt}\n\n---\n\n# Instrucciones de uso de herramientas y base de conocimientos\n\n${blocks.join('\n\n')}`;
+    const toolInstructions = `\n\n${START_MARKER}\n# Instrucciones de uso de herramientas y base de conocimientos\n\n${blocks.join('\n\n')}\n${END_MARKER}`;
+
+    return `${cleanPrompt}${toolInstructions}`;
 }

@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
             start_timestamp: callData.start_timestamp || existingCall?.start_timestamp || null,
             end_timestamp: callData.end_timestamp || existingCall?.end_timestamp || null,
             duration_ms: durationMs || existingCall?.duration_ms || null,
-            call_cost: callData.call_cost?.combined_cost || existingCall?.call_cost || null,
+            call_cost: callData.call_cost?.combined_cost ? (callData.call_cost.combined_cost / 100) : (existingCall?.call_cost || null),
             disconnection_reason: callData.disconnection_reason || existingCall?.disconnection_reason || null,
             call_analysis: (callData.call_analysis && Object.keys(callData.call_analysis).length > 0)
                 ? callData.call_analysis

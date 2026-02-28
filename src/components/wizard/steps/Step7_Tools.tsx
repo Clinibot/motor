@@ -18,7 +18,13 @@ export const Step7_Tools: React.FC = () => {
     };
 
     const addTransfer = () => {
-        updateField('transferDestinations', [...transferDestinations, { name: '', number: '', description: '' }]);
+        updateField('transferDestinations', [...transferDestinations, {
+            name: '',
+            description: '',
+            number: '',
+            destination_type: 'number',
+            transfer_mode: 'cold'
+        }]);
     };
 
     const addVariable = () => {
@@ -121,7 +127,7 @@ export const Step7_Tools: React.FC = () => {
                         {enableTransfer && (
                             <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
                                 {transferDestinations.map((dest, idx) => (
-                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', marginBottom: '12px' }}>
+                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '12px', marginBottom: '12px' }}>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -133,17 +139,35 @@ export const Step7_Tools: React.FC = () => {
                                                 updateField('transferDestinations', newDests);
                                             }}
                                         />
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Número (+34...)"
-                                            value={dest.number}
-                                            onChange={(e) => {
-                                                const newDests = [...transferDestinations];
-                                                newDests[idx].number = e.target.value;
-                                                updateField('transferDestinations', newDests);
-                                            }}
-                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <select
+                                                className="form-control"
+                                                value={dest.destination_type}
+                                                onChange={(e) => {
+                                                    const newDests = [...transferDestinations];
+                                                    newDests[idx].destination_type = e.target.value as 'number' | 'agent';
+                                                    updateField('transferDestinations', newDests);
+                                                }}
+                                            >
+                                                <option value="number">Humano (Número)</option>
+                                                <option value="agent">Otro Agente (Retell)</option>
+                                            </select>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder={dest.destination_type === 'number' ? "Número (+34...)" : "Agent ID (ag_...)"}
+                                                value={dest.destination_type === 'number' ? dest.number : dest.agentId}
+                                                onChange={(e) => {
+                                                    const newDests = [...transferDestinations];
+                                                    if (dest.destination_type === 'number') {
+                                                        newDests[idx].number = e.target.value;
+                                                    } else {
+                                                        newDests[idx].agentId = e.target.value;
+                                                    }
+                                                    updateField('transferDestinations', newDests);
+                                                }}
+                                            />
+                                        </div>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -155,6 +179,18 @@ export const Step7_Tools: React.FC = () => {
                                                 updateField('transferDestinations', newDests);
                                             }}
                                         />
+                                        <select
+                                            className="form-control"
+                                            value={dest.transfer_mode || 'cold'}
+                                            onChange={(e) => {
+                                                const newDests = [...transferDestinations];
+                                                newDests[idx].transfer_mode = e.target.value as 'cold' | 'warm';
+                                                updateField('transferDestinations', newDests);
+                                            }}
+                                        >
+                                            <option value="cold">Modo Cold</option>
+                                            <option value="warm">Modo Warm</option>
+                                        </select>
                                         <button
                                             type="button"
                                             className="btn btn-outline-danger"
