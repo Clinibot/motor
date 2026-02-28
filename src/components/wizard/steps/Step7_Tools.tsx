@@ -127,82 +127,111 @@ export const Step7_Tools: React.FC = () => {
                         {enableTransfer && (
                             <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
                                 {transferDestinations.map((dest, idx) => (
-                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '12px', marginBottom: '12px' }}>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Nombre (ej. Soporte)"
-                                            value={dest.name}
-                                            onChange={(e) => {
-                                                const newDests = [...transferDestinations];
-                                                newDests[idx].name = e.target.value;
-                                                updateField('transferDestinations', newDests);
-                                            }}
-                                        />
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            <select
-                                                className="form-control"
-                                                value={dest.destination_type || 'number'}
-                                                onChange={(e) => {
-                                                    const newDests = [...transferDestinations];
-                                                    const type = e.target.value as 'number' | 'agent';
-                                                    newDests[idx].destination_type = type;
-                                                    // Limpiar el otro campo para evitar confusiones
-                                                    if (type === 'number') newDests[idx].agentId = '';
-                                                    else newDests[idx].number = '';
-                                                    updateField('transferDestinations', newDests);
-                                                }}
+                                    <div key={idx} style={{
+                                        background: '#f8fafc',
+                                        padding: '20px',
+                                        borderRadius: '12px',
+                                        border: '1px solid #e2e8f0',
+                                        marginBottom: '16px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                            <h5 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: 0 }}>Destino #{idx + 1}</h5>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm text-danger"
+                                                style={{ padding: 0 }}
+                                                onClick={() => updateField('transferDestinations', transferDestinations.filter((_, i) => i !== idx))}
                                             >
-                                                <option value="number">📱 Humano (Número)</option>
-                                                <option value="agent">🤖 Otro Agente (Retell)</option>
-                                            </select>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
-                                                placeholder={dest.destination_type === 'agent' ? "ID del agente (ag_...)" : "Número (+34...)"}
-                                                value={dest.destination_type === 'agent' ? dest.agentId : dest.number}
-                                                onChange={(e) => {
-                                                    const newDests = [...transferDestinations];
-                                                    if (dest.destination_type === 'agent') {
-                                                        newDests[idx].agentId = e.target.value;
-                                                    } else {
-                                                        newDests[idx].number = e.target.value;
-                                                    }
-                                                    updateField('transferDestinations', newDests);
-                                                }}
-                                            />
+                                                <i className="bi bi-trash"></i>
+                                            </button>
                                         </div>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Cuándo transferir"
-                                            value={dest.description}
-                                            onChange={(e) => {
-                                                const newDests = [...transferDestinations];
-                                                newDests[idx].description = e.target.value;
-                                                updateField('transferDestinations', newDests);
-                                            }}
-                                        />
-                                        <select
-                                            className="form-control"
-                                            value={dest.transfer_mode || 'cold'}
-                                            onChange={(e) => {
-                                                const newDests = [...transferDestinations];
-                                                newDests[idx].transfer_mode = e.target.value as 'cold' | 'warm';
-                                                updateField('transferDestinations', newDests);
-                                            }}
-                                        >
-                                            <option value="cold">Modo Cold</option>
-                                            <option value="warm">Modo Warm</option>
-                                        </select>
-                                        <button
-                                            type="button"
-                                            className="btn btn-outline-danger"
-                                            onClick={() => updateField('transferDestinations', transferDestinations.filter((_, i) => i !== idx))}
-                                        >
-                                            <i className="bi bi-trash"></i>
-                                        </button>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">Nombre del contacto</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Ej: Sonia / Soporte"
+                                                    value={dest.name}
+                                                    onChange={(e) => {
+                                                        const newDests = [...transferDestinations];
+                                                        newDests[idx].name = e.target.value;
+                                                        updateField('transferDestinations', newDests);
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">Instrucción para el agente (Cuándo transferir)</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Ej: Si el cliente pide hablar con administración"
+                                                    value={dest.description}
+                                                    onChange={(e) => {
+                                                        const newDests = [...transferDestinations];
+                                                        newDests[idx].description = e.target.value;
+                                                        updateField('transferDestinations', newDests);
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '16px', alignItems: 'end' }}>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">Tipo de destino</label>
+                                                <select
+                                                    className="form-control"
+                                                    value={dest.destination_type || 'number'}
+                                                    onChange={(e) => {
+                                                        const newDests = [...transferDestinations];
+                                                        const type = e.target.value as 'number' | 'agent';
+                                                        newDests[idx].destination_type = type;
+                                                        if (type === 'number') newDests[idx].agentId = '';
+                                                        else newDests[idx].number = '';
+                                                        updateField('transferDestinations', newDests);
+                                                    }}
+                                                >
+                                                    <option value="number">Humano (Número)</option>
+                                                    <option value="agent">Otro Agente (Retell)</option>
+                                                </select>
+                                            </div>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">{dest.destination_type === 'agent' ? "ID del Agente de Retell" : "Número de teléfono"}</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
+                                                    placeholder={dest.destination_type === 'agent' ? "ag_123..." : "+34..."}
+                                                    value={dest.destination_type === 'agent' ? dest.agentId : dest.number}
+                                                    onChange={(e) => {
+                                                        const newDests = [...transferDestinations];
+                                                        if (dest.destination_type === 'agent') {
+                                                            newDests[idx].agentId = e.target.value;
+                                                        } else {
+                                                            newDests[idx].number = e.target.value;
+                                                        }
+                                                        updateField('transferDestinations', newDests);
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">Modo conexión</label>
+                                                <select
+                                                    className="form-control"
+                                                    value={dest.transfer_mode || 'cold'}
+                                                    onChange={(e) => {
+                                                        const newDests = [...transferDestinations];
+                                                        newDests[idx].transfer_mode = e.target.value as 'cold' | 'warm';
+                                                        updateField('transferDestinations', newDests);
+                                                    }}
+                                                >
+                                                    <option value="cold">Transferencia Directa (Cold)</option>
+                                                    <option value="warm">Transferencia Asistida (Warm)</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                                 <button type="button" className="btn btn-sm btn-outline-primary" onClick={addTransfer}>
