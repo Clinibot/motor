@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   title: 'Fábrica de Agentes | Netelip',
   description: 'Creador de agentes de IA integrados con Retell AI',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', href: '/favicon.ico' },
+      { url: '/icon.ico', href: '/icon.ico' },
+    ],
   },
 };
 
