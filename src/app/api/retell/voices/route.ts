@@ -14,7 +14,7 @@ function getSupabaseAdmin() {
     return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-export async function GET(_request: Request) {
+export async function GET() {
     try {
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
