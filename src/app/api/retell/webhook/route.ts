@@ -97,6 +97,11 @@ export async function POST(request: NextRequest) {
             disconnection_reason: callData.disconnection_reason ?? null,
             call_analysis: callData.call_analysis ?? {},
             raw_payload: payload,
+            // --- NUEVOS CAMPOS ENRIQUECIDOS ---
+            customer_number: callData.from_number || (callData.call_type === 'web_call' ? 'Web Call' : 'Unknown'),
+            customer_name: callData.call_analysis?.custom_variables?.name || null, // Fallback si hay variables de extracción
+            call_type: callData.call_type || 'web_call',
+            cost_breakdown: callData.call_cost || null,
         };
 
         // Upsert to handle both call_ended and call_analyzed events for the same call

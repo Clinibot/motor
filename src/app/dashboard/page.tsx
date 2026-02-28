@@ -17,7 +17,15 @@ interface Call {
     recording_url: string | null;
     call_cost: number | null;
     disconnection_reason: string | null;
-    call_analysis: { user_sentiment?: string; call_successful?: boolean } | null;
+    call_analysis: {
+        user_sentiment?: string;
+        call_successful?: boolean;
+        custom_variables?: Record<string, any>;
+    } | null;
+    customer_number: string | null;
+    customer_name: string | null;
+    call_type: string | null;
+    cost_breakdown: any | null;
     created_at: string;
 }
 
@@ -43,6 +51,8 @@ export default function DashboardPage() {
     const [calls, setCalls] = useState<Call[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedCall, setSelectedCall] = useState<Call | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [chartJsReady, setChartJsReady] = useState(false);
     const callsChartRef = useRef<HTMLCanvasElement>(null);
     const sentimentChartRef = useRef<HTMLCanvasElement>(null);
@@ -492,7 +502,13 @@ export default function DashboardPage() {
                                                         return (
                                                             <tr key={call.id}>
                                                                 <td suppressHydrationWarning>{new Date(call.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                                                                <td>{userName}</td>
+                                                                <td>
+                                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                        <span style={{ fontWeight: 600 }}>{call.customer_number || 'Web Call'}</span>
+                                                                        {call.customer_name && <span style={{ fontSize: '12px', color: '#6b7280' }}>{call.customer_name}</span>}
+                                                                        <span style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase' }}>{call.call_type === 'phone_call' ? '📞 Teléfono' : '🌐 Web'}</span>
+                                                                    </div>
+                                                                </td>
                                                                 <td>
                                                                     <div className="agent-info">
                                                                         <div className="agent-avatar">{initial}</div>
@@ -502,20 +518,35 @@ export default function DashboardPage() {
                                                                 <td>{formatDuration(call.duration_ms)}</td>
                                                                 <td><span className={`badge ${sentimentClass(sentiment)}`}>{sentimentLabel(sentiment)}</span></td>
                                                                 <td><span className={`badge ${successful ? 'success' : 'error'}`}>{successful ? '✓ Exitosa' : '✗ Fallida'}</span></td>
-                                                                <td>{call.call_cost ? `€${call.call_cost.toFixed(2)}` : '—'}</td>
+                                                                <td>{call.call_cost ? `€${Number(call.call_cost).toFixed(2)}` : '—'}</td>
                                                                 <td>
                                                                     <div className="action-btns">
-                                                                        <button className="action-btn" title="Ver detalle">
+                                                                        <button
+                                                                            className="action-btn"
+                                                                            title="Ver detalle"
+                                                                            onClick={() => {
+                                                                                setSelectedCall(call);
+                                                                                setIsDetailModalOpen(true);
+                                                                            }}
+                                                                        >
                                                                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                                                                 <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                                                                             </svg>
                                                                         </button>
-                                                                        <button className="action-btn" title="Reproducir">
-                                                                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                                                                            </svg>
-                                                                        </button>
+                                                                        {call.recording_url && (
+                                                                            <a
+                                                                                href={call.recording_url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="action-btn"
+                                                                                title="Reproducir"
+                                                                            >
+                                                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                                                                </svg>
+                                                                            </a>
+                                                                        )}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -531,6 +562,87 @@ export default function DashboardPage() {
                     </div>
                 </main>
             </div>
+
+            {/* CALL DETAILS MODAL */}
+            {isDetailModalOpen && selectedCall && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', zindex: 1000, padding: '20px'
+                }}>
+                    <div style={{
+                        background: '#fff', borderRadius: '12px', width: '100%', maxWidth: '800px',
+                        maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'
+                    }}>
+                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 600 }}>Detalle de la llamada</h3>
+                            <button onClick={() => setIsDetailModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#6b7280' }}>×</button>
+                        </div>
+                        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+                                <div>
+                                    <p style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Origen</p>
+                                    <p style={{ fontWeight: 600 }}>{selectedCall.customer_number || 'Web Call'} ({selectedCall.call_type})</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Costo Total</p>
+                                    <p style={{ fontWeight: 600, color: '#267ab0' }}>€{selectedCall.call_cost ? Number(selectedCall.call_cost).toFixed(2) : '0.00'}</p>
+                                </div>
+                            </div>
+
+                            {selectedCall.recording_url && (
+                                <div style={{ marginBottom: '32px' }}>
+                                    <p style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>Grabación</p>
+                                    <audio controls src={selectedCall.recording_url} style={{ width: '100%' }} />
+                                </div>
+                            )}
+
+                            <div style={{ marginBottom: '32px' }}>
+                                <p style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>Transcripción</p>
+                                <div style={{
+                                    background: '#f9fafb', padding: '16px', borderRadius: '10px',
+                                    maxHeight: '300px', overflowY: 'auto', whiteSpace: 'pre-wrap',
+                                    fontSize: '14px', lineHeight: '1.6', color: '#374151', border: '1px solid #e5e7eb'
+                                }}>
+                                    {selectedCall.transcript || 'No hay transcripción disponible.'}
+                                </div>
+                            </div>
+
+                            {selectedCall.cost_breakdown && (
+                                <div style={{ marginBottom: '32px' }}>
+                                    <p style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>Desglose de Costos</p>
+                                    <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                                        {selectedCall.cost_breakdown.product_costs?.map((p: any, i: number) => (
+                                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px', borderBottom: i === selectedCall.cost_breakdown.product_costs.length - 1 ? 'none' : '1px solid #e2e8f0' }}>
+                                                <span style={{ color: '#475569' }}>{p.product}</span>
+                                                <span style={{ fontWeight: 600 }}>€{p.cost.toFixed(4)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedCall.call_analysis?.custom_variables && Object.keys(selectedCall.call_analysis.custom_variables).length > 0 && (
+                                <div>
+                                    <p style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>Datos Extraídos (Post-Call)</p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                                        {Object.entries(selectedCall.call_analysis.custom_variables).map(([key, value]) => (
+                                            <div key={key} style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                                                <p style={{ fontSize: '11px', color: '#0369a1', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>{key}</p>
+                                                <p style={{ fontSize: '14px', color: '#0c4a6e', fontWeight: 500 }}>{String(value)}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div style={{ padding: '20px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button onClick={() => setIsDetailModalOpen(false)} className="btn-secondary">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
