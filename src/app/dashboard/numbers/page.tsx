@@ -419,29 +419,38 @@ export default function NumbersPage() {
                             />
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                        <div className="form-group" style={{ marginBottom: '32px' }}>
+                            <label className="form-label" style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>Transporte de salida</label>
                             <select
                                 className="form-input"
                                 value={newNumber.transport}
                                 onChange={e => setNewNumber({ ...newNumber, transport: e.target.value })}
-                                style={{ width: 'auto', flex: '0 0 auto', padding: '10px 16px', borderRadius: '8px', border: '1px solid #d1d5db', background: '#f9fafb', fontSize: '14px', fontWeight: 500 }}
+                                style={{ padding: '12px 16px', fontSize: '14px', background: '#f9fafb' }}
                             >
-                                <option value="tcp">Transporte de salida: TCP</option>
-                                <option value="udp">Transporte de salida: UDP</option>
-                                <option value="tls">Transporte de salida: TLS</option>
+                                <option value="tcp">TCP (Recomendado)</option>
+                                <option value="udp">UDP</option>
+                                <option value="tls">TLS (Seguro)</option>
                             </select>
+                        </div>
 
-                            <div style={{ display: 'flex', gap: '12px', flex: 1, justifyContent: 'flex-end' }}>
-                                <button className="btn-cancel" onClick={() => setShowAddModal(false)} style={{ background: '#f3f4f6', color: '#4b5563', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>Cancelar</button>
-                                <button
-                                    className="btn-confirm"
-                                    onClick={handleAddNumber}
-                                    disabled={isSaving}
-                                    style={{ background: '#1a1a1a', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-                                >
-                                    {isSaving ? 'Guardando...' : 'Guardar'}
-                                </button>
-                            </div>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                            <button
+                                type="button"
+                                className="btn-cancel"
+                                onClick={() => setShowAddModal(false)}
+                                style={{ background: '#f3f4f6', color: '#4b5563', padding: '12px 24px', borderRadius: '10px', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-confirm"
+                                onClick={handleAddNumber}
+                                disabled={isSaving}
+                                style={{ background: '#267ab0', color: '#fff', padding: '12px 32px', borderRadius: '10px', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(38,122,176,0.2)' }}
+                            >
+                                {isSaving ? 'Guardando...' : 'Guardar'}
+                            </button>
                         </div>
                     </div>
                 </div>
