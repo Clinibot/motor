@@ -11,6 +11,8 @@ interface Voice {
     gender: 'male' | 'female';
     accent: string;
     preview_audio_url?: string;
+    raw_language?: string;
+    raw_accent?: string;
 }
 
 // VOICES_DATA ya no se usa de forma estática, se cargan de la API
@@ -58,16 +60,21 @@ export const Step3_Voice: React.FC = () => {
                     const voiceLangAttr = (v.language || '').toLowerCase();
                     const voiceAccentAttr = (v.accent || '').toLowerCase();
 
-                    // Detección flexible de español
+                    // Detección extremadamente flexible de español
                     let lang = voiceLangAttr;
                     if (lang.startsWith('es') ||
                         lang.includes('spanish') ||
+                        lang.includes('espanol') ||
+                        lang.includes('español') ||
                         voiceName.includes('spanish') ||
-                        voiceName.includes('español')) {
+                        voiceName.includes('español') ||
+                        voiceAccentAttr.includes('spanish') ||
+                        voiceAccentAttr.includes('spain') ||
+                        voiceAccentAttr.includes('españa')) {
                         lang = 'es';
                     } else if (lang.startsWith('en') || lang.includes('english')) {
                         lang = 'en';
-                    } else if (lang.startsWith('pt') || lang.includes('portuguese')) {
+                    } else if (lang.startsWith('pt') || lang.includes('portuguese') || lang.includes('brazil')) {
                         lang = 'pt';
                     } else if (lang.startsWith('fr') || lang.includes('french')) {
                         lang = 'fr';
@@ -75,26 +82,48 @@ export const Step3_Voice: React.FC = () => {
 
                     // Detección flexible de acento
                     let accent = voiceAccentAttr;
-                    if (accent.includes('spain') || accent.includes('españa')) accent = 'spain';
-                    else if (accent.includes('latam') || accent.includes('mexico') || accent.includes('colombia') || accent.includes('latino')) accent = 'latam';
-                    else if (accent.includes('usa') || accent.includes('american') || accent.includes('eeuu')) accent = 'usa';
-                    else if (accent.includes('uk') || accent.includes('british') || accent.includes('británico')) accent = 'uk';
+                    if (accent.includes('spain') ||
+                        accent.includes('españa') ||
+                        accent.includes('castilian') ||
+                        accent.includes('castellano') ||
+                        voiceName.includes('española') ||
+                        voiceName.includes('madrid') ||
+                        voiceName.includes('barcelona')) {
+                        accent = 'spain';
+                    } else if (accent.includes('latam') ||
+                        accent.includes('mexico') ||
+                        accent.includes('colombia') ||
+                        accent.includes('latino') ||
+                        accent.includes('mexican') ||
+                        accent.includes('argentina') ||
+                        accent.includes('chile') ||
+                        accent.includes('peru') ||
+                        voiceName.includes('latam')) {
+                        accent = 'latam';
+                    } else if (accent.includes('usa') || accent.includes('american') || accent.includes('eeuu') || accent.includes('us-')) {
+                        accent = 'usa';
+                    } else if (accent.includes('uk') || accent.includes('british') || accent.includes('británico') || accent.includes('london')) {
+                        accent = 'uk';
+                    }
 
-                    // Normalizar proveedor
+                    // Normalizar proveedor de forma agresiva
                     let provider = (v.provider || '').toLowerCase();
                     const id = (v.voice_id || '').toLowerCase();
-                    if (id.includes('11labs') || id.includes('elevenlabs') || provider === '11labs') provider = 'elevenlabs';
-                    else if (id.includes('openai') || provider === 'openai') provider = 'openai';
-                    else if (id.includes('cartesia') || provider === 'cartesia') provider = 'cartesia';
-                    else if (!provider) provider = 'retell';
+                    if (id.includes('11labs') || id.includes('elevenlabs') || provider.includes('eleven') || provider.includes('11')) provider = 'elevenlabs';
+                    else if (id.includes('openai') || provider.includes('openai')) provider = 'openai';
+                    else if (id.includes('cartesia') || provider.includes('cartesia')) provider = 'cartesia';
+                    else provider = 'retell';
 
                     return {
                         ...v,
                         language: lang,
                         accent: accent,
-                        provider: provider
+                        provider: provider,
+                        raw_language: v.language, // Para depuración si fuera necesario
+                        raw_accent: v.accent
                     };
                 });
+                console.log("Voces normalizadas:", normalized.length, normalized.filter((v: any) => v.language === 'es').length, "en español");
                 setVoices(normalized);
             } else {
                 console.warn("API returned empty voices or failed, using fallback data");
@@ -361,107 +390,124 @@ export const Step3_Voice: React.FC = () => {
                             <div className="spinner-border text-primary" role="status"></div>
                         </div>
                     ) : (
-                        <div className="voices-grid" style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                            gap: '20px'
-                        }}>
-                            {filteredVoices.map((v: Voice) => (
-                                <div
-                                    key={`${v.voice_id}-${v.language}-${v.voice_name}`}
-                                    className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
-                                    style={{
-                                        border: voiceId === v.voice_id ? '2px solid var(--color-primario)' : '1px solid #edf2f7',
-                                        borderRadius: '16px',
-                                        padding: '24px',
-                                        textAlign: 'center',
-                                        cursor: 'pointer',
-                                        background: voiceId === v.voice_id ? '#f0f7ff' : '#fff',
-                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        position: 'relative'
-                                    }}
-                                    onClick={() => {
-                                        updateField('voiceId', v.voice_id);
-                                        updateField('voiceName', v.voice_name);
-                                        updateField('voiceProvider', v.provider);
-                                        updateField('voiceDescription', v.accent || 'Voz de alta calidad');
-                                    }}
-                                >
-                                    <div className="voice-avatar" style={{
-                                        width: '64px',
-                                        height: '64px',
-                                        borderRadius: '50%',
-                                        background: '#f1f5f9',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '32px',
-                                        margin: '0 auto 16px'
-                                    }}>
-                                        {v.gender === 'female' ? '👩' : '👨'}
-                                    </div>
-                                    <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>{v.voice_name}</div>
-                                    <div className="voice-desc" style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
-                                        Voz {v.gender === 'female' ? 'femenina' : 'masculina'} {v.accent ? getAccentName(v.accent).toLowerCase() : 'profesional'}
-                                    </div>
-
-                                    <div className="voice-tags" style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '20px' }}>
-                                        <span style={{
-                                            background: '#f1f5f9',
-                                            padding: '2px 8px',
-                                            borderRadius: '6px',
-                                            fontSize: '11px',
-                                            fontWeight: 600,
-                                            color: '#475569'
-                                        }}>{getLanguageName(v.language)}</span>
-                                        <span style={{
-                                            background: v.provider === 'elevenlabs' ? '#f0f9ff' : '#f8fafc',
-                                            color: v.provider === 'elevenlabs' ? '#0369a1' : '#64748b',
-                                            padding: '2px 8px',
-                                            borderRadius: '6px',
-                                            fontSize: '11px',
-                                            fontWeight: 700
-                                        }}>{v.provider === 'elevenlabs' ? 'HD' : 'Pro'}</span>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        className="btn-play"
+                        <>
+                            <div className="voices-grid" style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                                gap: '20px'
+                            }}>
+                                {filteredVoices.map((v: Voice) => (
+                                    <div
+                                        key={`${v.voice_id}-${v.language}-${v.voice_name}`}
+                                        className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
                                         style={{
-                                            width: '100%',
-                                            padding: '8px',
-                                            borderRadius: '8px',
-                                            border: '1px solid #e2e8f0',
-                                            background: 'white',
-                                            fontSize: '13px',
-                                            fontWeight: 600,
+                                            border: voiceId === v.voice_id ? '2px solid var(--color-primario)' : '1px solid #edf2f7',
+                                            borderRadius: '16px',
+                                            padding: '24px',
+                                            textAlign: 'center',
+                                            cursor: 'pointer',
+                                            background: voiceId === v.voice_id ? '#f0f7ff' : '#fff',
+                                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            position: 'relative'
+                                        }}
+                                        onClick={() => {
+                                            updateField('voiceId', v.voice_id);
+                                            updateField('voiceName', v.voice_name);
+                                            updateField('voiceProvider', v.provider);
+                                            updateField('voiceDescription', v.accent || 'Voz de alta calidad');
+                                        }}
+                                    >
+                                        <div className="voice-avatar" style={{
+                                            width: '64px',
+                                            height: '64px',
+                                            borderRadius: '50%',
+                                            background: '#f1f5f9',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            gap: '6px'
-                                        }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            togglePlay(v);
+                                            fontSize: '32px',
+                                            margin: '0 auto 16px'
+                                        }}>
+                                            {v.gender === 'female' ? '👩' : '👨'}
+                                        </div>
+                                        <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>{v.voice_name}</div>
+                                        <div className="voice-desc" style={{ fontSize: '11px', color: '#64748b', marginBottom: '16px', minHeight: '32px' }}>
+                                            Voz {v.gender === 'female' ? 'femenina' : 'masculina'} {v.accent ? getAccentName(v.accent).toLowerCase() : 'profesional'}
+                                        </div>
+
+                                        <div className="voice-tags" style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '20px' }}>
+                                            <span style={{
+                                                background: '#f1f5f9',
+                                                padding: '2px 8px',
+                                                borderRadius: '6px',
+                                                fontSize: '11px',
+                                                fontWeight: 600,
+                                                color: '#475569'
+                                            }}>{getLanguageName(v.language)}</span>
+                                            <span style={{
+                                                background: v.provider === 'elevenlabs' ? '#f0f9ff' : '#f8fafc',
+                                                color: v.provider === 'elevenlabs' ? '#0369a1' : '#64748b',
+                                                padding: '2px 8px',
+                                                borderRadius: '6px',
+                                                fontSize: '11px',
+                                                fontWeight: 700
+                                            }}>{v.provider === 'elevenlabs' ? 'HD' : 'Pro'}</span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            className="btn-play"
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #e2e8f0',
+                                                background: 'white',
+                                                fontSize: '13px',
+                                                fontWeight: 600,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px'
+                                            }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                togglePlay(v);
+                                            }}
+                                        >
+                                            {playingId === v.voice_id ? (
+                                                <><i className="bi bi-pause-fill"></i> Pausar</>
+                                            ) : (
+                                                <><i className="bi bi-play-fill"></i> Escuchar</>
+                                            )}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {filteredVoices.length === 0 && (
+                                <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>No se encontraron voces</h3>
+                                    <p style={{ fontSize: '14px' }}>Prueba a cambiar el idioma o acento en los filtros superiores.</p>
+                                    <button
+                                        type="button"
+                                        className="btn btn-link"
+                                        style={{ marginTop: '16px', color: 'var(--color-primario)' }}
+                                        onClick={() => {
+                                            setFilterLang('');
+                                            setFilterAccent('');
+                                            setFilterGender('');
                                         }}
                                     >
-                                        {playingId === v.voice_id ? (
-                                            <><i className="bi bi-pause-fill"></i> Pausar</>
-                                        ) : (
-                                            <><i className="bi bi-play-fill"></i> Escuchar</>
-                                        )}
+                                        Limpiar todos los filtros
                                     </button>
                                 </div>
-                            ))}
-                        </div>
+                            )}
+                        </>
                     )}
 
-                    {filteredVoices.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gris-texto)' }}>
-                            <i className="bi bi-search" style={{ fontSize: '48px', opacity: 0.3 }}></i>
-                            <p>No se encontraron voces con estos filtros.</p>
-                        </div>
-                    )}
+
 
                     {/* CONFIGURACIÓN ADICIONAL */}
                     <div className="section-divider">
