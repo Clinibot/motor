@@ -53,7 +53,7 @@ export const Step3_Voice: React.FC = () => {
     const [isProcessingCustom, setIsProcessingCustom] = useState(false);
     const [showCustomModal, setShowCustomModal] = useState(false);
     const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
-    const [activeProvider, setActiveProvider] = useState('retell');
+    const [activeProvider, setActiveProvider] = useState('all');
 
     // Form states
     const [customName, setCustomName] = useState('');
@@ -101,17 +101,25 @@ export const Step3_Voice: React.FC = () => {
 
                     // Detección flexible de acento (Prioridad España)
                     let accent = voiceAccentAttr;
-                    if (accent.includes('spain') ||
+                    const isSpainSignal =
+                        accent.includes('spain') ||
                         accent.includes('españa') ||
                         accent.includes('castilian') ||
                         accent.includes('castellano') ||
                         accent.includes('castellana') ||
+                        voiceLangAttr.includes('spain') ||
+                        voiceLangAttr.includes('es-es') ||
+                        voiceLangAttr.endsWith('-es') ||
                         voiceName.includes('español (españa)') ||
                         voiceName.includes('española') ||
                         voiceName.includes('madrid') ||
                         voiceName.includes('barcelona') ||
                         voiceName.includes('sevilla') ||
-                        voiceName.includes('valencia')) {
+                        voiceName.includes('valencia') ||
+                        // Nombres comunes de voces de España en Cartesia/Eleven/Retell
+                        ['elena', 'manuel', 'isabel', 'teresa', 'dario', 'ines', 'pau', 'alvaro', 'paloma', 'sergio', 'blanca'].some(n => voiceName.includes(n));
+
+                    if (isSpainSignal && lang === 'es') {
                         accent = 'spain';
                     } else if (accent.includes('latam') ||
                         accent.includes('mexico') ||
@@ -148,7 +156,9 @@ export const Step3_Voice: React.FC = () => {
                         raw_accent: v.accent
                     };
                 });
-                console.log("Voces normalizadas:", normalized.length, normalized.filter((v: Voice) => v.language === 'es').length, "en español");
+                console.log("Voces normalizadas:", normalized.length);
+                console.log("Español (España):", normalized.filter((v: Voice) => v.language === 'es' && v.accent === 'spain').length);
+                console.log("Cartesia:", normalized.filter((v: Voice) => v.provider === 'cartesia').length);
                 setVoices(normalized);
             } else {
                 console.warn("API returned empty voices or failed, using fallback data");
@@ -183,8 +193,8 @@ export const Step3_Voice: React.FC = () => {
         // Si no se han cargado voces aún, usar DEFAULT_VOICES
         if (list.length === 0 && !isLoadingVoices) list = DEFAULT_VOICES;
 
-        // 1. Filtrar solo las curadas si no hay búsqueda activa (para mantenerla limpia)
-        if (!filterAccent && !filterGender && filterLang === 'es') {
+        // 1. Filtrar solo las curadas si estamos en la pestaña "Recomendadas" y NO hay filtros específicos
+        if (activeProvider === 'all' && !filterAccent && !filterGender && filterLang === 'es') {
             const curated = list.filter(v => CURATED_VOICE_IDS.includes(v.voice_id));
             if (curated.length > 0) list = curated;
         }
