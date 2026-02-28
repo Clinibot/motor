@@ -62,7 +62,7 @@ export async function POST(request: Request) {
             // Basado en el modal: termination_uri es clave.
             // Nota: Algunos SDKs de Retell manejan SIP trunking a través de un objeto específico.
             // Asumimos estructura estándar para SIP Trunking en Retell:
-            // @ts-expect-error - Campo SIP puede no estar en la definición oficial del SDK todavía
+            // @ts-expect-error - Campo SIP
             sip_termination_uri: termination_uri,
             sip_trunk_username: sip_trunk_username || undefined,
             sip_trunk_password: sip_trunk_password || undefined,

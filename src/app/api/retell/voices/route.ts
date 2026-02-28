@@ -14,7 +14,7 @@ function getSupabaseAdmin() {
     return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
     try {
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
@@ -57,11 +57,11 @@ export async function GET(request: Request) {
             voices: voices
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error fetching voices from Retell:", error);
         return NextResponse.json({
             success: false,
-            error: error.message || "Failed to fetch voices"
+            error: error instanceof Error ? error.message : "Failed to fetch voices"
         }, { status: 500 });
     }
 }

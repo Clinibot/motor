@@ -114,14 +114,12 @@ export async function POST(request: Request) {
 
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
         const llmCreateParams: Parameters<typeof retellClient.llm.create>[0] = {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            model: retellModel as any,
+            model: retellModel,
             general_prompt: finalPrompt,
             begin_message: payload.beginMessage
         };
 
         if (retellTools.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // @ts-expect-error - Retell SDK types
             llmCreateParams.tools = retellTools;
         }
@@ -181,7 +179,6 @@ export async function POST(request: Request) {
             enable_voicemail_detection: payload.enableVoicemailDetection || false,
             voicemail_message: payload.voicemailMessage,
             voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs,
-            // @ts-expect-error - Retell SDK types
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined
         });
 
@@ -266,7 +263,6 @@ export async function PATCH(request: Request) {
 
         const retellModel = payload.model || "gpt-4.1";
 
-        // @ts-expect-error - Type for smart update
         const llmUpdateParams: { model: string, general_prompt: string, begin_message: string, tools?: unknown[], knowledge_base_ids?: string[] } = {
             model: retellModel,
             general_prompt: finalPrompt,
@@ -338,7 +334,6 @@ export async function PATCH(request: Request) {
                 enable_voicemail_detection: payload.enableVoicemailDetection !== undefined ? payload.enableVoicemailDetection : currentAgent.configuration?.enableVoicemailDetection,
                 voicemail_message: payload.voicemailMessage !== undefined ? payload.voicemailMessage : currentAgent.configuration?.voicemailMessage,
                 voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs !== undefined ? payload.voicemailDetectionTimeoutMs : currentAgent.configuration?.voicemailDetectionTimeoutMs,
-                // @ts-expect-error - Retell SDK types
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : []
             });
         }
