@@ -79,7 +79,7 @@ export const Step3_Voice: React.FC = () => {
             const filterGenderLower = filterGender.toLowerCase();
             const filterAccentLower = filterAccent.toLowerCase();
 
-            const matchesLang = !filterLang || voiceLang.includes(filterLangLower);
+            const matchesLang = !filterLang || voiceLang.startsWith(filterLangLower);
             const matchesGender = !filterGender || voiceGender === filterGenderLower;
             const matchesAccent = !filterAccent || voiceAccent.includes(filterAccentLower);
 
@@ -277,7 +277,19 @@ export const Step3_Voice: React.FC = () => {
                                 )
                             ).length > 0 && (
                                     <div className="provider-group">
-                                        <h3 className="provider-title" style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--gris-texto)', marginBottom: '16px' }}>Otros Proveedores</h3>
+                                        <h3 className="provider-title" style={{
+                                            fontSize: '14px',
+                                            fontWeight: 700,
+                                            textTransform: 'uppercase',
+                                            color: 'var(--gris-texto)',
+                                            marginBottom: '16px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}>
+                                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6c757d' }}></span>
+                                            Otros Proveedores
+                                        </h3>
                                         <div className="voices-grid">
                                             {filteredVoices.filter(v =>
                                                 !['elevenlabs', 'openai', 'cartesia'].some(p =>
@@ -291,18 +303,32 @@ export const Step3_Voice: React.FC = () => {
                                                         updateField('voiceId', v.voice_id);
                                                         updateField('voiceName', v.voice_name);
                                                         updateField('voiceProvider', v.provider || 'retell');
-                                                        updateField('voiceDescription', v.accent || 'Voz de Retell');
+                                                        updateField('voiceDescription', v.accent || 'Voz de alta calidad');
                                                     }}
                                                 >
-                                                    {/* Contenido idéntico al anterior... */}
-                                                    <div className="voice-icon">{v.gender === 'female' ? '👩' : '👨'}</div>
+                                                    <div className="voice-icon">
+                                                        {v.gender === 'female' ? '👩' : '👨'}
+                                                    </div>
                                                     <div className="voice-name">{v.voice_name}</div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{v.accent || 'Voz profesional'}</div>
                                                     <div className="voice-tags">
                                                         <span className="voice-tag">{getLanguageName(v.language)}</span>
                                                         <span className="voice-tag">{getGenderName(v.gender)}</span>
+                                                        <span className="voice-tag">{getAccentName(v.accent)}</span>
                                                     </div>
-                                                    <button type="button" className="btn-play" onClick={(e) => { e.stopPropagation(); togglePlay(v); }}>
-                                                        {playingId === v.voice_id ? 'Pausar' : 'Escuchar'}
+                                                    <button
+                                                        type="button"
+                                                        className="btn-play"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            togglePlay(v);
+                                                        }}
+                                                    >
+                                                        {playingId === v.voice_id ? (
+                                                            <><i className="bi bi-pause-circle"></i> Pausar</>
+                                                        ) : (
+                                                            <><i className="bi bi-play-circle"></i> Escuchar</>
+                                                        )}
                                                     </button>
                                                 </div>
                                             ))}
