@@ -35,7 +35,11 @@ const CURATED_VOICE_IDS = [
     'retell-Alberto',
     'retell-Sergio',
     '11labs-George',
-    '11labs-Alice'
+    '11labs-Alice',
+    '11labs-Bill',
+    '11labs-Lily',
+    'cartesia-Marie',
+    'cartesia-Jean',
 ];
 
 const DEFAULT_VOICES: Voice[] = [
@@ -43,6 +47,9 @@ const DEFAULT_VOICES: Voice[] = [
     { voice_id: 'openai-Fable', voice_name: 'Cimo', provider: 'openai', language: 'es', gender: 'male', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Fable.mp3' },
     { voice_id: 'openai-Shimmer', voice_name: 'Serena', provider: 'openai', language: 'es', gender: 'female', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Shimmer.mp3' },
     { voice_id: 'cartesia-Elena', voice_name: 'Elena', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain' },
+    { voice_id: '11labs-George', voice_name: 'George', provider: 'elevenlabs', language: 'en', gender: 'male', accent: 'usa', preview_audio_url: 'https://storage.googleapis.com/retell-api/11labs-George.mp3' },
+    { voice_id: '11labs-Alice', voice_name: 'Alice', provider: 'elevenlabs', language: 'en', gender: 'female', accent: 'usa', preview_audio_url: 'https://storage.googleapis.com/retell-api/11labs-Alice.mp3' },
+    { voice_id: 'cartesia-Ines', voice_name: 'Ines', provider: 'cartesia', language: 'fr', gender: 'female', accent: 'france' },
 ];
 
 export const Step3_Voice: React.FC = () => {
@@ -200,7 +207,8 @@ export const Step3_Voice: React.FC = () => {
         if (list.length === 0 && !isLoadingVoices) list = DEFAULT_VOICES;
 
         // 1. Filtrar solo las curadas si estamos en la pestaña "Recomendadas" y NO hay filtros específicos
-        if (activeProvider === 'all' && !filterAccent && !filterGender && filterLang === 'es') {
+        // 1. Filtrar solo las curadas si estamos en la pestaña "Recomendadas" y NO hay filtros específicos
+        if (activeProvider === 'all' && !filterAccent && !filterGender) {
             const curated = list.filter(v => CURATED_VOICE_IDS.includes(v.voice_id));
             if (curated.length > 0) list = curated;
         }
