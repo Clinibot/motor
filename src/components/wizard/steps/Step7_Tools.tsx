@@ -178,7 +178,7 @@ export const Step7_Tools: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '16px', alignItems: 'end' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '16px', alignItems: 'end' }}>
                                             <div className="form-group mb-0">
                                                 <label className="form-label small">Tipo de destino</label>
                                                 <select
@@ -215,21 +215,6 @@ export const Step7_Tools: React.FC = () => {
                                                         updateField('transferDestinations', newDests);
                                                     }}
                                                 />
-                                            </div>
-                                            <div className="form-group mb-0">
-                                                <label className="form-label small">Modo conexión</label>
-                                                <select
-                                                    className="form-control"
-                                                    value={dest.transfer_mode || 'cold'}
-                                                    onChange={(e) => {
-                                                        const newDests = [...transferDestinations];
-                                                        newDests[idx].transfer_mode = e.target.value as 'cold' | 'warm';
-                                                        updateField('transferDestinations', newDests);
-                                                    }}
-                                                >
-                                                    <option value="cold">Transferencia Directa (Cold)</option>
-                                                    <option value="warm">Transferencia Asistida (Warm)</option>
-                                                </select>
                                             </div>
                                         </div>
                                     </div>
