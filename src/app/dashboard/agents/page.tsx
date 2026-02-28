@@ -373,7 +373,7 @@ export default function AgentsPage() {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <span>Creación:</span>
-                                            <span style={{ color: '#1a1a1a', fontWeight: 500 }}>
+                                            <span suppressHydrationWarning style={{ color: '#1a1a1a', fontWeight: 500 }}>
                                                 {new Date(agent.created_at).toLocaleDateString('es-ES')}
                                             </span>
                                         </div>

@@ -491,7 +491,7 @@ export default function DashboardPage() {
                                                         const initial = agentName[0]?.toUpperCase() ?? 'A';
                                                         return (
                                                             <tr key={call.id}>
-                                                                <td>{new Date(call.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                                                <td suppressHydrationWarning>{new Date(call.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                                                                 <td>{userName}</td>
                                                                 <td>
                                                                     <div className="agent-info">

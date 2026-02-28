@@ -271,12 +271,12 @@ export const Step3_Voice: React.FC = () => {
             <div className="form-card">
                 <h1 className="section-title">
                     Selección de voz del agente
-                    <div className="custom-tooltip">
+                    <span className="custom-tooltip">
                         <i className="bi bi-info-circle tooltip-icon"></i>
-                        <div className="tooltip-content">
+                        <span className="tooltip-content">
                             La voz es la cara audible de tu marca. Elige entre diferentes proveedores para encontrar el tono, acento y género que mejor encaje.
-                        </div>
-                    </div>
+                        </span>
+                    </span>
                 </h1>
                 <p className="section-subtitle">
                     Elige la voz que mejor represente la personalidad de tu agente.
@@ -520,13 +520,13 @@ export const Step3_Voice: React.FC = () => {
                         <div className="form-group">
                             <label className="form-label">
                                 Voice speed
-                                <div className="custom-tooltip">
+                                <span className="custom-tooltip">
                                     <i className="bi bi-info-circle tooltip-icon"></i>
-                                    <div className="tooltip-content">
+                                    <span className="tooltip-content">
                                         <strong>Velocidad de habla:</strong><br />
                                         Controla qué tan rápido habla el agente. Valores entre 0.9 y 1.1 suenan más naturales.
-                                    </div>
-                                </div>
+                                    </span>
+                                </span>
                             </label>
                             <div className="slider-container">
                                 <div className="slider-value">{voiceSpeed.toFixed(1)}x</div>
@@ -542,13 +542,13 @@ export const Step3_Voice: React.FC = () => {
                         <div className="form-group">
                             <label className="form-label">
                                 Voice temperature
-                                <div className="custom-tooltip">
+                                <span className="custom-tooltip">
                                     <i className="bi bi-info-circle tooltip-icon"></i>
-                                    <div className="tooltip-content">
+                                    <span className="tooltip-content">
                                         <strong>Variación emocional:</strong><br />
                                         A mayor temperatura, la voz tendrá más inflexiones y sonará más expresiva y humana.
-                                    </div>
-                                </div>
+                                    </span>
+                                </span>
                             </label>
                             <div className="slider-container">
                                 <div className="slider-value">{voiceTemperature.toFixed(1)}</div>
