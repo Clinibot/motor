@@ -155,10 +155,20 @@ export const Step3_Voice: React.FC = () => {
                     else if (id.includes('fish') || provider.includes('fish')) provider = 'fish_audio';
                     else provider = 'elevenlabs'; // Default to elevenlabs instead of retell
 
+                    if (provider === 'openai') {
+                        lang = 'es'; // OpenAI voices are excellently multilingual
+                        // Override gender for specific OpenAI voices if needed by user perception
+                        if (id.includes('fable')) {
+                            // Cimo is technically male but often used for both, 
+                            // we'll keep it as male but ensure it's in Spanish.
+                            // If user specifically asked for it in female, we can consider it.
+                        }
+                    }
+
                     return {
                         ...v,
                         language: lang,
-                        accent: accent,
+                        accent: accent || (provider === 'openai' ? 'latam' : ''),
                         provider: provider,
                         raw_language: v.language,
                         raw_accent: v.accent
