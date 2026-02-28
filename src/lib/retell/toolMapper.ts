@@ -40,9 +40,7 @@ export interface ToolsPayload {
     kbUsageInstructions?: string;
 }
 
-// ---- Retell SDK tool types ----
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type RetellTool = Record<string, any>;
+type RetellTool = Record<string, unknown>;
 
 /**
  * Builds the `tools` array for the Retell LLM create/update call.
@@ -104,7 +102,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
             const toolName = `transfer_to_${cleanName}`;
 
-            const transfer_destination: any = dest.destination_type === 'agent'
+            const transfer_destination: { type: 'agent'; agent_id?: string } | { type: 'predefined'; number?: string } = dest.destination_type === 'agent'
                 ? { type: 'agent', agent_id: dest.agentId }
                 : { type: 'predefined', number: dest.number };
 

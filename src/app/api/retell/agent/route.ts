@@ -113,7 +113,7 @@ export async function POST(request: Request) {
         const retellModel = payload.model || "gpt-4.1";
 
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
-        const llmCreateParams: any = {
+        const llmCreateParams: Record<string, unknown> = {
             model: retellModel,
             general_prompt: finalPrompt,
             begin_message: payload.beginMessage,
@@ -268,7 +268,7 @@ export async function PATCH(request: Request) {
 
         const retellModel = payload.model || "gpt-4.1";
 
-        const llmUpdateParams: any = {
+        const llmUpdateParams: Record<string, unknown> = {
             model: retellModel,
             general_prompt: finalPrompt,
             begin_message: payload.beginMessage,

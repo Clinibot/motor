@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { useWizardStore } from '../../store/wizardStore';
 
 const stepNames = [
@@ -27,10 +28,12 @@ export const Topbar: React.FC = () => {
         <div className="topbar">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <div className="progress-text">Cargando...</div>
-                <img
+                <Image
                     src="/netelip-logo.png"
                     alt="Netelip"
-                    style={{ height: '28px', objectFit: 'contain' }}
+                    width={100}
+                    height={28}
+                    style={{ objectFit: 'contain' }}
                 />
             </div>
             <div className="progress-bar-container" style={{ marginBottom: 0 }}>
@@ -43,10 +46,12 @@ export const Topbar: React.FC = () => {
         <div className="topbar">
             <div style={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: '12px' }}>
                 <div className="progress-text">Paso {currentStep} de 9 - {currentName}</div>
-                <img
+                <Image
                     src="/netelip-logo.png"
                     alt="Netelip"
-                    style={{ height: '28px', objectFit: 'contain', marginLeft: 'auto' }}
+                    width={100}
+                    height={28}
+                    style={{ objectFit: 'contain', marginLeft: 'auto' }}
                 />
             </div>
             <div className="progress-bar-container" style={{ marginBottom: 0 }}>
