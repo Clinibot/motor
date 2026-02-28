@@ -153,7 +153,7 @@ export const Step3_Voice: React.FC = () => {
                     else if (id.includes('cartesia') || provider.includes('cartesia')) provider = 'cartesia';
                     else if (id.includes('minimax') || provider.includes('minimax')) provider = 'minimax';
                     else if (id.includes('fish') || provider.includes('fish')) provider = 'fish_audio';
-                    else provider = 'retell';
+                    else provider = 'elevenlabs'; // Default to elevenlabs instead of retell
 
                     return {
                         ...v,
@@ -388,8 +388,7 @@ export const Step3_Voice: React.FC = () => {
                             { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
                             { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
                             { id: 'minimax', name: 'MiniMax', icon: 'bi-mic-fill' },
-                            { id: 'fish_audio', name: 'Fish Audio', icon: 'bi-water' },
-                            { id: 'retell', name: 'Retell AI', icon: 'bi-cpu-fill' }
+                            { id: 'fish_audio', name: 'Fish Audio', icon: 'bi-water' }
                         ].map(p => (
                             <button
                                 key={p.id}
