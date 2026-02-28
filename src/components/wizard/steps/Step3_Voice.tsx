@@ -14,11 +14,14 @@ interface Voice {
 }
 
 // VOICES_DATA ya no se usa de forma estática, se cargan de la API
-const DEFAULT_ES_VOICES = [
-    { id: '11labs-Adrian', name: 'Adrián', provider: 'retell', language: 'es', gender: 'male', accent: 'spain', description: 'Voz profesional y clara de España' },
-    { id: 'openai-Fable', name: 'Cimo', provider: 'retell', language: 'es', gender: 'male', accent: 'latam', description: 'Voz energética y amigable' },
-    { id: 'openai-Shimmer', name: 'Serena', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz cálida y natural' },
-    { id: 'openai-Nova', name: 'Isabela', provider: 'retell', language: 'es', gender: 'female', accent: 'latam', description: 'Voz profesional y articulada' },
+const DEFAULT_VOICES: Voice[] = [
+    { voice_id: '11labs-Adrian', voice_name: 'Adrián', provider: 'elevenlabs', language: 'es', gender: 'male', accent: 'spain', preview_audio_url: 'https://storage.googleapis.com/retell-api/11labs-Adrian.mp3' },
+    { voice_id: 'openai-Fable', voice_name: 'Cimo', provider: 'openai', language: 'es', gender: 'male', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Fable.mp3' },
+    { voice_id: 'openai-Shimmer', voice_name: 'Serena', provider: 'openai', language: 'es', gender: 'female', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Shimmer.mp3' },
+    { voice_id: 'cartesia-Elena', voice_name: 'Elena', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain' },
+    { voice_id: '11labs-George', voice_name: 'George', provider: 'elevenlabs', language: 'en', gender: 'male', accent: 'usa' },
+    { voice_id: '11labs-Alice', voice_name: 'Alice', provider: 'elevenlabs', language: 'en', gender: 'female', accent: 'uk' },
+    { voice_id: '11labs-Jean', voice_name: 'Jean', provider: 'elevenlabs', language: 'fr', gender: 'male', accent: 'france' },
 ];
 
 export const Step3_Voice: React.FC = () => {
@@ -44,13 +47,11 @@ export const Step3_Voice: React.FC = () => {
                 } else {
                     console.warn("Failed to fetch voices from API, using fallback data");
                     // Fallback para no dejar la lista vacía si falla la API
-                    // @ts-expect-error - Fallback data format
-                    setVoices(DEFAULT_ES_VOICES);
+                    setVoices(DEFAULT_VOICES);
                 }
             } catch (error) {
                 console.error("Error loading voices:", error);
-                // @ts-expect-error - Fallback data format
-                setVoices(DEFAULT_ES_VOICES);
+                setVoices(DEFAULT_VOICES);
             } finally {
                 setIsLoadingVoices(false);
             }
@@ -70,13 +71,19 @@ export const Step3_Voice: React.FC = () => {
 
     const filteredVoices = useMemo(() => {
         return voices.filter(v => {
-            // Adaptamos el filtrado para los campos de Retell que pueden variar
-            const lang = v.language?.toLowerCase() || '';
-            const targetLang = filterLang.toLowerCase();
+            const voiceLang = (v.language || '').toLowerCase();
+            const voiceGender = (v.gender || '').toLowerCase();
+            const voiceAccent = (v.accent || '').toLowerCase();
 
-            return (!filterLang || lang.startsWith(targetLang)) &&
-                (!filterGender || v.gender === filterGender) &&
-                (!filterAccent || (v.accent || '').includes(filterAccent));
+            const filterLangLower = filterLang.toLowerCase();
+            const filterGenderLower = filterGender.toLowerCase();
+            const filterAccentLower = filterAccent.toLowerCase();
+
+            const matchesLang = !filterLang || voiceLang.includes(filterLangLower);
+            const matchesGender = !filterGender || voiceGender === filterGenderLower;
+            const matchesAccent = !filterAccent || voiceAccent.includes(filterAccentLower);
+
+            return matchesLang && matchesGender && matchesAccent;
         });
     }, [voices, filterLang, filterGender, filterAccent]);
 
