@@ -20,12 +20,15 @@ interface Call {
     call_analysis: {
         user_sentiment?: string;
         call_successful?: boolean;
-        custom_variables?: Record<string, any>;
+        custom_variables?: Record<string, unknown>;
     } | null;
     customer_number: string | null;
     customer_name: string | null;
     call_type: string | null;
-    cost_breakdown: any | null;
+    cost_breakdown: {
+        product_costs?: { product: string; cost: number; unit_price: number }[];
+        combined_cost?: number;
+    } | null;
     created_at: string;
 }
 
@@ -496,7 +499,6 @@ export default function DashboardPage() {
                                                     {calls.map(call => {
                                                         const sentiment = call.call_analysis?.user_sentiment;
                                                         const successful = call.call_analysis?.call_successful;
-                                                        const userName = extractUserName(call.transcript);
                                                         const agentName = getAgentName(call.retell_agent_id);
                                                         const initial = agentName[0]?.toUpperCase() ?? 'A';
                                                         return (
@@ -613,8 +615,8 @@ export default function DashboardPage() {
                                 <div style={{ marginBottom: '32px' }}>
                                     <p style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>Desglose de Costos</p>
                                     <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '12px', border: '1px solid #e2e8f0' }}>
-                                        {selectedCall.cost_breakdown.product_costs?.map((p: any, i: number) => (
-                                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px', borderBottom: i === selectedCall.cost_breakdown.product_costs.length - 1 ? 'none' : '1px solid #e2e8f0' }}>
+                                        {selectedCall.cost_breakdown?.product_costs?.map((p, i: number) => (
+                                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px', borderBottom: i === (selectedCall.cost_breakdown?.product_costs?.length || 0) - 1 ? 'none' : '1px solid #e2e8f0' }}>
                                                 <span style={{ color: '#475569' }}>{p.product}</span>
                                                 <span style={{ fontWeight: 600 }}>€{p.cost.toFixed(4)}</span>
                                             </div>
@@ -654,11 +656,6 @@ function formatDuration(ms: number | null): string {
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-function extractUserName(transcript: string | null): string {
-    if (!transcript) return '—';
-    const match = transcript.match(/(?:me llamo|soy|habla|nombre es)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/i);
-    return match ? match[1] : '—';
-}
 
 function getLast7DaysData(calls: Call[]) {
     const days: { label: string; count: number }[] = [];

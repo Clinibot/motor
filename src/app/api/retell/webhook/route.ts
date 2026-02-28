@@ -21,7 +21,8 @@ function getSupabaseAdmin() {
 
 export async function POST(request: NextRequest) {
     const supabaseAdmin = getSupabaseAdmin();
-    let payload: any = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let payload: Record<string, any> = {};
     try {
         payload = await request.json();
 
