@@ -178,8 +178,11 @@ export async function POST(request: Request) {
             ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
             ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
             normalize_for_speech: payload.normalizeForSpeech,
+            enable_voicemail_detection: payload.enableVoicemailDetection || false,
+            voicemail_message: payload.voicemailMessage,
+            voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs,
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined
-        });
+        } as any);
 
         // 8. Store the new agent in Supabase (including tools config)
         const { error: insertError } = await supabaseAdmin
@@ -334,8 +337,11 @@ export async function PATCH(request: Request) {
                 ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
                 normalize_for_speech: payload.normalizeForSpeech,
+                enable_voicemail_detection: payload.enableVoicemailDetection !== undefined ? payload.enableVoicemailDetection : currentAgent.configuration?.enableVoicemailDetection,
+                voicemail_message: payload.voicemailMessage !== undefined ? payload.voicemailMessage : currentAgent.configuration?.voicemailMessage,
+                voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs !== undefined ? payload.voicemailDetectionTimeoutMs : currentAgent.configuration?.voicemailDetectionTimeoutMs,
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : []
-            });
+            } as any);
         }
 
         // Update Supabase
