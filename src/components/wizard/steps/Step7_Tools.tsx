@@ -142,27 +142,32 @@ export const Step7_Tools: React.FC = () => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             <select
                                                 className="form-control"
-                                                value={dest.destination_type}
+                                                value={dest.destination_type || 'number'}
                                                 onChange={(e) => {
                                                     const newDests = [...transferDestinations];
-                                                    newDests[idx].destination_type = e.target.value as 'number' | 'agent';
+                                                    const type = e.target.value as 'number' | 'agent';
+                                                    newDests[idx].destination_type = type;
+                                                    // Limpiar el otro campo para evitar confusiones
+                                                    if (type === 'number') newDests[idx].agentId = '';
+                                                    else newDests[idx].number = '';
                                                     updateField('transferDestinations', newDests);
                                                 }}
                                             >
-                                                <option value="number">Humano (Número)</option>
-                                                <option value="agent">Otro Agente (Retell)</option>
+                                                <option value="number">📱 Humano (Número)</option>
+                                                <option value="agent">🤖 Otro Agente (Retell)</option>
                                             </select>
                                             <input
                                                 type="text"
                                                 className="form-control"
-                                                placeholder={dest.destination_type === 'number' ? "Número (+34...)" : "Agent ID (ag_...)"}
-                                                value={dest.destination_type === 'number' ? dest.number : dest.agentId}
+                                                style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
+                                                placeholder={dest.destination_type === 'agent' ? "ID del agente (ag_...)" : "Número (+34...)"}
+                                                value={dest.destination_type === 'agent' ? dest.agentId : dest.number}
                                                 onChange={(e) => {
                                                     const newDests = [...transferDestinations];
-                                                    if (dest.destination_type === 'number') {
-                                                        newDests[idx].number = e.target.value;
-                                                    } else {
+                                                    if (dest.destination_type === 'agent') {
                                                         newDests[idx].agentId = e.target.value;
+                                                    } else {
+                                                        newDests[idx].number = e.target.value;
                                                     }
                                                     updateField('transferDestinations', newDests);
                                                 }}
