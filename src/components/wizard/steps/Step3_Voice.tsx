@@ -52,6 +52,7 @@ export const Step3_Voice: React.FC = () => {
     const [isLoadingVoices, setIsLoadingVoices] = useState(true);
     const [isProcessingCustom, setIsProcessingCustom] = useState(false);
     const [showCustomModal, setShowCustomModal] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
     const [activeProvider, setActiveProvider] = useState('all');
 
@@ -176,6 +177,11 @@ export const Step3_Voice: React.FC = () => {
     React.useEffect(() => {
         fetchVoices();
     }, []);
+
+    // Reset expansion when filters change
+    React.useEffect(() => {
+        setIsExpanded(false);
+    }, [activeProvider, filterLang, filterGender, filterAccent]);
 
     // Limpieza de audio al desmontar
     React.useEffect(() => {
@@ -458,7 +464,7 @@ export const Step3_Voice: React.FC = () => {
                                 gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                                 gap: '20px'
                             }}>
-                                {filteredVoices.map((v: Voice) => (
+                                {(isExpanded ? filteredVoices : filteredVoices.slice(0, 12)).map((v: Voice) => (
                                     <div
                                         key={`${v.voice_id}-${v.language}-${v.voice_name}`}
                                         className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
@@ -558,6 +564,30 @@ export const Step3_Voice: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            {filteredVoices.length > 12 && (
+                                <div style={{ textAlign: 'center', marginTop: '32px' }}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-primary"
+                                        style={{
+                                            padding: '10px 32px',
+                                            borderRadius: '30px',
+                                            fontWeight: 600,
+                                            fontSize: '14px',
+                                            borderWidth: '2px',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onClick={() => setIsExpanded(!isExpanded)}
+                                    >
+                                        {isExpanded ? (
+                                            <><i className="bi bi-chevron-up"></i> Mostrar menos voces</>
+                                        ) : (
+                                            <><i className="bi bi-chevron-down"></i> Ver más voces ({filteredVoices.length - 12} adicionales)</>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
 
                             {filteredVoices.length === 0 && (
                                 <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
