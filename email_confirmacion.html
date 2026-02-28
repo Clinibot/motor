@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirma tu cuenta – Netelip</title>
+</head>
+
+<body
+    style="margin:0;padding:0;background-color:#f5f6f8;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f6f8;padding:48px 20px;">
+        <tr>
+            <td align="center">
+
+                <!-- Card -->
+                <table width="520" cellpadding="0" cellspacing="0" border="0"
+                    style="max-width:520px;width:100%;background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:#267ab0;padding:28px 40px;border-radius:12px 12px 0 0;text-align:center;">
+                            <!-- Logo: wordmark inline (funciona en todos los clientes de email) -->
+                            <span
+                                style="font-family:Arial,sans-serif;font-size:28px;font-weight:900;color:#ffffff;letter-spacing:-1px;">netelip</span>
+                            <span
+                                style="display:block;font-size:11px;color:rgba(255,255,255,0.65);letter-spacing:2px;text-transform:uppercase;margin-top:4px;">Fábrica
+                                de Agentes</span>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:40px 44px;">
+
+                            <h2 style="margin:0 0 14px;color:#1a2428;font-size:20px;font-weight:700;line-height:1.3;">
+                                Confirma tu cuenta
+                            </h2>
+
+                            <p style="margin:0 0 28px;color:#4b5563;font-size:15px;line-height:1.7;">
+                                Sigue el siguiente enlace para confirmar tu dirección de correo electrónico y activar tu
+                                cuenta:
+                            </p>
+
+                            <!-- CTA Button -->
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="border-radius:8px;background:#267ab0;">
+                                        <a href="{{ .ConfirmationURL }}"
+                                            style="display:inline-block;color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:8px;letter-spacing:0.1px;">
+                                            Confirmar mi correo
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:28px 0 0;color:#9ca3af;font-size:12px;line-height:1.7;">
+                                Si el botón no funciona, puedes copiar y pegar este enlace en tu navegador:<br />
+                                <a href="{{ .ConfirmationURL }}"
+                                    style="color:#267ab0;word-break:break-all;font-size:12px;">{{ .ConfirmationURL
+                                    }}</a>
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding:20px 44px;border-top:1px solid #f0f0f0;text-align:center;">
+                            <p style="margin:0;color:#adb5bd;font-size:12px;line-height:1.6;">
+                                Si no has creado esta cuenta, puedes ignorar este correo.<br />
+                                El enlace caducará en <strong style="color:#6c757d;">24&nbsp;horas</strong>.
+                            </p>
+                            <p style="margin:12px 0 0;color:#d1d5db;font-size:11px;">
+                                &copy; 2025 Netelip · Todos los derechos reservados
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

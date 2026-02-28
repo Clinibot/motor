@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
@@ -32,6 +32,8 @@ export default function AgentsPage() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Testing State
     const [testAgent, setTestAgent] = useState<Agent | null>(null);
@@ -174,6 +176,16 @@ export default function AgentsPage() {
         }
     };
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     const userInitial = (user?.full_name || user?.email || 'U')[0].toUpperCase();
 
     const getAgentTypeName = (type: string) => {
@@ -211,6 +223,20 @@ export default function AgentsPage() {
                 .content{flex:1;padding:32px}
                 .btn-primary{padding:10px 20px;background:#267ab0;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;font-family:inherit;text-decoration:none}
                 .btn-primary:hover{background:#1e5a87;transform:translateY(-1px);box-shadow:0 4px 12px rgba(38,122,176,.3)}
+                
+                /* Dropdown */
+                .user-profile-container { position: relative; }
+                .user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 220px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden; animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: top right; }
+                .user-dropdown-header { padding: 16px; border-bottom: 1px solid #f3f4f6; background: #f9fafb; text-align: center; }
+                .user-dropdown-name { margin: 0; font-size: 14px; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+                .user-dropdown-email { margin: 4px 0 0; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+                .user-dropdown-body { padding: 8px; }
+                .user-dropdown-item { width: 100%; padding: 10px 12px; display: flex; align-items: center; gap: 10px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 8px; transition: all 0.2s; color: #4b5563; }
+                .user-dropdown-item:hover { background: #f3f4f6; color: #1a1a1a; }
+                .user-dropdown-item.text-red { color: #dc2626; }
+                .user-dropdown-item.text-red:hover { background: #fef2f2; color: #b91c1c; }
+                @keyframes slideDown { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+                
                 .agents-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px}
                 .agent-card{background:#fff;border-radius:12px;padding:24px;border:1px solid #e5e7eb;transition:all .3s;display:flex;flex-direction:column}
                 .agent-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,.08)}
@@ -311,9 +337,31 @@ export default function AgentsPage() {
                             </svg>
                             <span className="notification-badge" />
                         </button>
-                        <button className="user-avatar" onClick={handleLogout} title="Cerrar sesión">
-                            {userInitial}
-                        </button>
+                        <div className="user-profile-container" ref={dropdownRef}>
+                            <button
+                                className="user-avatar"
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                title="Mi perfil"
+                            >
+                                {userInitial}
+                            </button>
+                            {isDropdownOpen && (
+                                <div className="user-dropdown">
+                                    <div className="user-dropdown-header">
+                                        <span className="user-dropdown-name">{user?.full_name || 'Mi cuenta'}</span>
+                                        <span className="user-dropdown-email">{user?.email || 'user@example.com'}</span>
+                                    </div>
+                                    <div className="user-dropdown-body">
+                                        <button onClick={handleLogout} className="user-dropdown-item text-red">
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                            Cerrar sesión
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </header>
 
