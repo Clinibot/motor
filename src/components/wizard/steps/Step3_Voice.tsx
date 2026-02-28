@@ -196,51 +196,121 @@ export const Step3_Voice: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* GALERÍA DE VOCES */}
-                    <div className="voices-grid">
-                        {isLoadingVoices ? (
-                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px' }}>
-                                <div style={{ marginBottom: '16px' }}>Cargando voces de Retell...</div>
-                                <div className="spinner-border text-primary" role="status"></div>
-                            </div>
-                        ) : (filteredVoices as Voice[]).map((v: Voice) => (
-                            <div
-                                key={`${v.voice_id}-${v.language}`}
-                                className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
-                                onClick={() => {
-                                    updateField('voiceId', v.voice_id);
-                                    updateField('voiceName', v.voice_name);
-                                    updateField('voiceProvider', v.provider || 'retell');
-                                    updateField('voiceDescription', v.accent || 'Voz de alta calidad');
-                                }}
-                            >
-                                <div className="voice-icon">
-                                    {v.gender === 'female' ? '👩' : '👨'}
-                                </div>
-                                <div className="voice-name">{v.voice_name}</div>
-                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{v.accent || 'Voz de Retell'}</div>
-                                <div className="voice-tags">
-                                    <span className="voice-tag">{getLanguageName(v.language)}</span>
-                                    <span className="voice-tag">{getGenderName(v.gender)}</span>
-                                    <span className="voice-tag">{getAccentName(v.accent)}</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="btn-play"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        togglePlay(v);
-                                    }}
-                                >
-                                    {playingId === v.voice_id ? (
-                                        <><i className="bi bi-pause-circle"></i> Pausar</>
-                                    ) : (
-                                        <><i className="bi bi-play-circle"></i> Escuchar</>
-                                    )}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
+                    {/* GALERÍA DE VOCES AGRUPADAS */}
+                    {isLoadingVoices ? (
+                        <div style={{ textAlign: 'center', padding: '60px' }}>
+                            <div style={{ marginBottom: '16px' }}>Cargando voces de alta calidad...</div>
+                            <div className="spinner-border text-primary" role="status"></div>
+                        </div>
+                    ) : (
+                        <div className="voices-container">
+                            {['elevenlabs', 'openai', 'cartesia'].map(provider => {
+                                const providerVoices = filteredVoices.filter(v =>
+                                    (v.provider || '').toLowerCase() === provider ||
+                                    (v.voice_id || '').toLowerCase().includes(provider)
+                                );
+
+                                if (providerVoices.length === 0) return null;
+
+                                return (
+                                    <div key={provider} className="provider-group" style={{ marginBottom: '32px' }}>
+                                        <h3 className="provider-title" style={{
+                                            fontSize: '14px',
+                                            fontWeight: 700,
+                                            textTransform: 'uppercase',
+                                            color: 'var(--gris-texto)',
+                                            marginBottom: '16px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}>
+                                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-primario)' }}></span>
+                                            {provider === 'elevenlabs' ? 'ElevenLabs (Premium)' : provider.toUpperCase()}
+                                        </h3>
+                                        <div className="voices-grid">
+                                            {providerVoices.map((v: Voice) => (
+                                                <div
+                                                    key={`${v.voice_id}-${v.language}`}
+                                                    className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
+                                                    onClick={() => {
+                                                        updateField('voiceId', v.voice_id);
+                                                        updateField('voiceName', v.voice_name);
+                                                        updateField('voiceProvider', v.provider || provider);
+                                                        updateField('voiceDescription', v.accent || 'Voz de alta calidad');
+                                                    }}
+                                                >
+                                                    <div className="voice-icon">
+                                                        {v.gender === 'female' ? '👩' : '👨'}
+                                                    </div>
+                                                    <div className="voice-name">{v.voice_name}</div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '12px' }}>{v.accent || 'Voz profesional'}</div>
+                                                    <div className="voice-tags">
+                                                        <span className="voice-tag">{getLanguageName(v.language)}</span>
+                                                        <span className="voice-tag">{getGenderName(v.gender)}</span>
+                                                        <span className="voice-tag">{getAccentName(v.accent)}</span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="btn-play"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            togglePlay(v);
+                                                        }}
+                                                    >
+                                                        {playingId === v.voice_id ? (
+                                                            <><i className="bi bi-pause-circle"></i> Pausar</>
+                                                        ) : (
+                                                            <><i className="bi bi-play-circle"></i> Escuchar</>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {/* Grupo para proveedores desconocidos o Retell nativo */}
+                            {filteredVoices.filter(v =>
+                                !['elevenlabs', 'openai', 'cartesia'].some(p =>
+                                    (v.provider || '').toLowerCase() === p || (v.voice_id || '').toLowerCase().includes(p)
+                                )
+                            ).length > 0 && (
+                                    <div className="provider-group">
+                                        <h3 className="provider-title" style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--gris-texto)', marginBottom: '16px' }}>Otros Proveedores</h3>
+                                        <div className="voices-grid">
+                                            {filteredVoices.filter(v =>
+                                                !['elevenlabs', 'openai', 'cartesia'].some(p =>
+                                                    (v.provider || '').toLowerCase() === p || (v.voice_id || '').toLowerCase().includes(p)
+                                                )
+                                            ).map((v: Voice) => (
+                                                <div
+                                                    key={`${v.voice_id}-${v.language}`}
+                                                    className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
+                                                    onClick={() => {
+                                                        updateField('voiceId', v.voice_id);
+                                                        updateField('voiceName', v.voice_name);
+                                                        updateField('voiceProvider', v.provider || 'retell');
+                                                        updateField('voiceDescription', v.accent || 'Voz de Retell');
+                                                    }}
+                                                >
+                                                    {/* Contenido idéntico al anterior... */}
+                                                    <div className="voice-icon">{v.gender === 'female' ? '👩' : '👨'}</div>
+                                                    <div className="voice-name">{v.voice_name}</div>
+                                                    <div className="voice-tags">
+                                                        <span className="voice-tag">{getLanguageName(v.language)}</span>
+                                                        <span className="voice-tag">{getGenderName(v.gender)}</span>
+                                                    </div>
+                                                    <button type="button" className="btn-play" onClick={(e) => { e.stopPropagation(); togglePlay(v); }}>
+                                                        {playingId === v.voice_id ? 'Pausar' : 'Escuchar'}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                        </div>
+                    )}
 
                     {filteredVoices.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gris-texto)' }}>
