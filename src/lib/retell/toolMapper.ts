@@ -91,7 +91,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
 
     // 4. Call Transfer
     if (p.enableTransfer && p.transferDestinations.length > 0) {
-        p.transferDestinations.forEach((dest, idx) => {
+        p.transferDestinations.forEach((dest) => {
             if (!dest.number) return;
             // Use a clean, unique name for the tool
             const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
@@ -177,7 +177,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     if (p.enableTransfer && p.transferDestinations.length > 0) {
         const destList = p.transferDestinations
             .filter(d => d.number)
-            .map((d, idx) => {
+            .map((d) => {
                 const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
                 const toolName = `transfer_to_${cleanName}`;
                 return `- **${d.name}**: ${d.description || d.number} (llamar a la herramienta \`${toolName}\`)`;
