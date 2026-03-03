@@ -139,17 +139,6 @@ export async function POST(request: Request) {
         // 6.5 Verify and Alias Voice ID
         let finalVoiceId = payload.voiceId || "11labs-Adrian";
 
-        // Mapear voces Cartesia (placeholders UI) a voces OpenAI disponibles en Retell
-        const cartesiaMapping: Record<string, string> = {
-            'cartesia-Elena': 'openai-Shimmer',
-            'cartesia-Isabel': 'openai-Shimmer',
-            'cartesia-Manuel': 'openai-Fable',
-        };
-
-        if (cartesiaMapping[finalVoiceId]) {
-            finalVoiceId = cartesiaMapping[finalVoiceId];
-        }
-
         // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA (Solo si es carolina o vacía)
         if (!finalVoiceId || finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
             console.log("Forzando fallback de voz a 11labs-Adrian");
@@ -304,18 +293,8 @@ export async function PATCH(request: Request) {
             llmId = createdLlm.llm_id;
         }
 
-        // Mapear voces Cartesia (placeholders UI) a voces OpenAI disponibles en Retell
-        const cartesiaMapping: Record<string, string> = {
-            'cartesia-Elena': 'openai-Shimmer',
-            'cartesia-Isabel': 'openai-Shimmer',
-            'cartesia-Manuel': 'openai-Fable',
-        };
-
         const finalVoiceId = payload.voiceId || currentAgent?.configuration?.voiceId || "11labs-Adrian";
         let cleanVoiceId = finalVoiceId;
-        if (cartesiaMapping[cleanVoiceId]) {
-            cleanVoiceId = cartesiaMapping[cleanVoiceId];
-        }
 
         // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA EN EDICIÓN
         if (!cleanVoiceId || cleanVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {

@@ -253,7 +253,11 @@ export const Step2_CompanyInfo: React.FC = () => {
                                         <button onClick={() => setUploadError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '16px', lineHeight: 1 }}>×</button>
                                     </div>
                                 )}
-                                <div className={`kb-upload-area ${isUploading ? 'opacity-50' : ''}`} onClick={() => { if (!isUploading) document.getElementById('kb-upload')?.click() }}>
+                                <label
+                                    htmlFor="kb-upload"
+                                    className={`kb-upload-area ${isUploading ? 'opacity-50' : ''}`}
+                                    style={{ cursor: isUploading ? 'default' : 'pointer' }}
+                                >
                                     {isUploading ? (
                                         <div className="py-3">
                                             <div className="spinner-border text-primary mb-2" role="status"></div>
@@ -266,16 +270,16 @@ export const Step2_CompanyInfo: React.FC = () => {
                                             <div className="text-muted small">Formatos: .md, .txt, .pdf, .docx</div>
                                         </>
                                     )}
-                                    <input
-                                        type="file"
-                                        id="kb-upload"
-                                        className="d-none"
-                                        multiple
-                                        accept=".md,.txt,.pdf,.docx"
-                                        onChange={handleFileUpload}
-                                        disabled={isUploading}
-                                    />
-                                </div>
+                                </label>
+                                <input
+                                    type="file"
+                                    id="kb-upload"
+                                    className="d-none"
+                                    multiple
+                                    accept=".md,.txt,.pdf,.docx"
+                                    onChange={handleFileUpload}
+                                    disabled={isUploading}
+                                />
 
                                 <div className="alert alert-info mt-3 d-flex align-items-center" role="alert" style={{ fontSize: '0.9rem' }}>
                                     <i className="bi bi-info-circle-fill me-2" style={{ fontSize: '1.2rem' }}></i>
