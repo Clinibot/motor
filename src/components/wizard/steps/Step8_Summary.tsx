@@ -387,7 +387,7 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
 
         const kbInnerContent = wizardData.kbFiles.length > 0
             ? `## Consulta de Base de Conocimientos\nTienes acceso a una base de conocimientos documentada que puedes consultar para responder dudas de los usuarios.\n\n` +
-            `Documentos disponibles en tu memoria:\n` + wizardData.kbFiles.map(f => `- ${f.name}`).join('\n') +
+            `Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retell_name || f.name}`).join('\n') +
             (wizardData.kbUsageInstructions ? `\n\nInstrucciones sobre cuándo o cómo consultarlos:\n- ${wizardData.kbUsageInstructions}` : '')
             : '';
 
