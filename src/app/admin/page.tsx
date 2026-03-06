@@ -295,72 +295,93 @@ export default function AdminDashboard() {
                     </div>
                 ) : (
                     /* Global Users View */
-                    <div className="bg-white border text-gray-800 border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                            <span className="font-medium text-gray-700">Listado de Usuarios Registrados</span>
-                            <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-bold">
-                                {users.length} TOTAL
-                            </span>
+                    <div className="space-y-6">
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 flex gap-4 items-start shadow-sm">
+                            <div className="bg-white p-2 rounded-lg shadow-sm">
+                                <Settings className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-sm font-bold text-indigo-900 mb-1">Sincronización de Agentes</h4>
+                                <p className="text-xs text-indigo-700 leading-relaxed">
+                                    Utiliza el botón <strong>Sincronizar Agentes (Global)</strong> si realizas cambios en la estructura del prompt general o en las reglas de las herramientas. Esto propagará las mejoras a todos los clientes existentes de forma automática.
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleSyncAll}
+                                disabled={isSyncing}
+                                className="whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-md transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Settings className="w-3.5 h-3.5" />}
+                                Sincronizar Ahora
+                            </button>
                         </div>
 
-                        {isLoading ? (
-                            <div className="p-12 flex justify-center items-center text-gray-400">
-                                <Loader2 className="w-8 h-8 animate-spin" />
+                        <div className="bg-white border text-gray-800 border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                                <span className="font-medium text-gray-700">Listado de Usuarios Registrados</span>
+                                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-bold">
+                                    {users.length} TOTAL
+                                </span>
                             </div>
-                        ) : users.length === 0 ? (
-                            <div className="p-10 text-center text-gray-500">
-                                No hay usuarios registrados.
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-bold">
-                                        <tr>
-                                            <th className="px-6 py-3 border-b border-gray-200">Usuario</th>
-                                            <th className="px-6 py-3 border-b border-gray-200">Email</th>
-                                            <th className="px-6 py-3 border-b border-gray-200">Workspace</th>
-                                            <th className="px-6 py-3 border-b border-gray-200">Teléfonos</th>
-                                            <th className="px-6 py-3 border-b border-gray-200 text-right">Consumo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                        {users.map((u) => (
-                                            <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-6 py-4 font-medium text-gray-900">{u.full_name || 'Sin nombre'}</td>
-                                                <td className="px-6 py-4 text-gray-600">{u.email}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-medium">
-                                                        {u.workspace_name}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {u.phone_numbers?.length > 0 ? (
-                                                            u.phone_numbers.map((num: string, idx: number) => (
-                                                                <span key={idx} className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">
-                                                                    {num}
-                                                                </span>
-                                                            ))
-                                                        ) : (
-                                                            <span className="text-[10px] text-gray-400 italic">Ninguno</span>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-sm font-bold text-gray-900">{u.total_minutes} min</span>
-                                                        <span className="text-[10px] text-gray-500">{u.calls_count} llamadas</span>
-                                                    </div>
-                                                </td>
+
+                            {isLoading ? (
+                                <div className="p-12 flex justify-center items-center text-gray-400">
+                                    <Loader2 className="w-8 h-8 animate-spin" />
+                                </div>
+                            ) : users.length === 0 ? (
+                                <div className="p-10 text-center text-gray-500">
+                                    No hay usuarios registrados.
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-bold">
+                                            <tr>
+                                                <th className="px-6 py-3 border-b border-gray-200">Usuario</th>
+                                                <th className="px-6 py-3 border-b border-gray-200">Email</th>
+                                                <th className="px-6 py-3 border-b border-gray-200">Workspace</th>
+                                                <th className="px-6 py-3 border-b border-gray-200">Teléfonos</th>
+                                                <th className="px-6 py-3 border-b border-gray-200 text-right">Consumo</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200">
+                                            {users.map((u) => (
+                                                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-6 py-4 font-medium text-gray-900">{u.full_name || 'Sin nombre'}</td>
+                                                    <td className="px-6 py-4 text-gray-600">{u.email}</td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-medium">
+                                                            {u.workspace_name}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {u.phone_numbers?.length > 0 ? (
+                                                                u.phone_numbers.map((num: string, idx: number) => (
+                                                                    <span key={idx} className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">
+                                                                        {num}
+                                                                    </span>
+                                                                ))
+                                                            ) : (
+                                                                <span className="text-[10px] text-gray-400 italic">Ninguno</span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-sm font-bold text-gray-900">{u.total_minutes} min</span>
+                                                            <span className="text-[10px] text-gray-500">{u.calls_count} llamadas</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
                 )}
-            </div>
+                    </div>
         </div>
-    );
+            );
 }
