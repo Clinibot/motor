@@ -76,7 +76,7 @@ export const Step7_Tools: React.FC = () => {
     };
 
     const addVariable = () => {
-        updateField('extractionVariables', [...extractionVariables, { name: '', type: 'string', description: '' }]);
+        updateField('extractionVariables', [...extractionVariables, { name: '', type: 'string', description: '', required: true }]);
     };
 
     const addCustomTool = () => {

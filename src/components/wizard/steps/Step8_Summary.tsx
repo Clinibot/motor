@@ -229,10 +229,24 @@ export const Step8_Summary: React.FC = () => {
         };
         const langStr = langMap[wizardData.language] || 'español';
 
-        // Los bloques de herramientas y KB se inyectan ahora exclusivamente en el backend (toolMapper.ts)
-        // para asegurar una única fuente de verdad y evitar duplicados si el usuario regenera el prompt.
-        const toolsContent = '';
-        const kbContent = '';
+        // Bloques de herramientas y KB para la previsualización
+        let toolsContentArr = [];
+        if (wizardData.enableCalBooking && wizardData.calApiKey) {
+            toolsContentArr.push(`## Agenda\n- Gestiona citas usando las herramientas de Cal.com.\n- Propon 2 huecos variados inicialmente.`);
+        }
+        if (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) {
+            const transfers = wizardData.transferDestinations
+                .map(d => `- Si el usuario ${d.description || 'quiere hablar con un compañero'}, entonces ejecuta la función \`transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}\`.`)
+                .join('\n');
+            toolsContentArr.push(`## Transferencias\n${transfers}`);
+        }
+        const toolsContent = toolsContentArr.length > 0
+            ? `\n# Uso de herramientas\n${toolsContentArr.join('\n\n')}`
+            : '';
+
+        const kbContent = wizardData.kbFiles.length > 0
+            ? `\n# Base de Conocimientos\nConsulta los documentos para resolver dudas sobre los servicios.`
+            : '';
 
         let finalPrompt = '';
         const currentPrompt = wizardData.prompt || '';
@@ -527,8 +541,15 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                         <SummaryRow label="Tiempo máx. llamada" value={`${Math.round((wizardData.maxCallDurationMs ?? 0) / 60000)} min`} last />
                     </SummaryCard>
 
-                    {/* Paso 7 Full Width */}
-                    <SummaryCard icon="bi-gear-fill" color="#267ab0" title="Paso 7: Configuración avanzada" step={7} onEdit={setStep} fullWidth>
+                    {/* Paso 7 */}
+                    <SummaryCard icon="bi-mic-fill" color="#267ab0" title="Paso 7: Audio y STT" step={7} onEdit={setStep}>
+                        <SummaryRow label="Volumen agente" value={(wizardData.volume * 100).toFixed(0) + '%'} />
+                        <SummaryRow label="Ruido ambiente" value={wizardData.enableAmbientSound ? (wizardData.ambientSound || 'Activado') : 'Desactivado'} />
+                        <SummaryRow label="Modo STT" value={wizardData.sttMode === 'accurate' ? 'Precisión' : 'Velocidad'} last />
+                    </SummaryCard>
+
+                    {/* Paso 8 Full Width */}
+                    <SummaryCard icon="bi-gear-fill" color="#267ab0" title="Paso 8: Herramientas" step={8} onEdit={setStep} fullWidth>
                         <SummaryRow label="Transferencias activas" value={wizardData.enableTransfer ? `Sí (${wizardData.transferDestinations.length} destinos)` : 'No'} />
                         <SummaryRow label="Variables de extracción" value={`${wizardData.extractionVariables.length} variable(s)`} />
                         <SummaryRow label="Herramientas externas" value={wizardData.enableCustomTools ? `Sí (${wizardData.customTools.length} herramientas)` : 'No'} last />

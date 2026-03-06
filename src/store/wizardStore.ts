@@ -30,6 +30,7 @@ export interface ExtractionVariable {
     name: string;
     type: string;
     description: string;
+    required?: boolean;
 }
 
 export interface WizardState {

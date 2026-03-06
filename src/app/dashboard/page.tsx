@@ -666,6 +666,7 @@ export default function DashboardPage() {
                                                         const agentName = getAgentName(call.retell_agent_id);
                                                         const initial = agentName[0]?.toUpperCase() ?? 'A';
                                                         const isExpanded = expandedCallId === call.id;
+                                                        const internalAgentId = agents.find(a => a.retell_agent_id === call.retell_agent_id)?.id;
 
                                                         return (
                                                             <React.Fragment key={call.id}>
@@ -720,19 +721,44 @@ export default function DashboardPage() {
 
                                                                                 {/* RIGHT COLUMN: SUMMARY & CUSTOM DATA */}
                                                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
                                                                                     {/* SUMMARY SECTION */}
-                                                                                    {call.call_analysis?.call_summary && (
-                                                                                        <div>
-                                                                                            <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '12px' }}>Resumen de la Llamada</h4>
-                                                                                            <div style={{ background: '#fff', padding: '16px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', lineHeight: '1.6', color: '#374151' }}>
-                                                                                                {call.call_analysis.call_summary}
+                                                                                    {(() => {
+                                                                                        // Prioritize custom variable "Resumen" (Spanish) if it exists
+                                                                                        const customSummary = call.call_analysis?.custom_variables &&
+                                                                                            Object.entries(call.call_analysis.custom_variables).find(([key]) =>
+                                                                                                key.toLowerCase() === 'resumen'
+                                                                                            )?.[1];
+
+                                                                                        const summaryToDisplay = customSummary || call.call_analysis?.call_summary;
+
+                                                                                        if (!summaryToDisplay) return null;
+
+                                                                                        return (
+                                                                                            <div>
+                                                                                                <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '12px' }}>Resumen de la Llamada</h4>
+                                                                                                <div style={{ background: '#fff', padding: '16px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', lineHeight: '1.6', color: '#374151' }}>
+                                                                                                    {String(summaryToDisplay)}
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    )}
+                                                                                        );
+                                                                                    })()}
 
                                                                                     {/* CUSTOM DATA SECTION (PREVIOUSLY EXTRACTED DATA) */}
                                                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                                                                        <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '0px' }}>Datos Extraídos</h4>
+                                                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                                            <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '0px' }}>Datos Extraídos</h4>
+                                                                                            {internalAgentId && (
+                                                                                                <Link
+                                                                                                    href={`/dashboard/wizard?editId=${internalAgentId}#step8`}
+                                                                                                    className="text-primary"
+                                                                                                    style={{ fontSize: '12px', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                                                                >
+                                                                                                    <i className="bi bi-gear-fill"></i>
+                                                                                                    Configurar extracción
+                                                                                                </Link>
+                                                                                            )}
+                                                                                        </div>
                                                                                         {call.call_analysis?.custom_variables && Object.keys(call.call_analysis.custom_variables).length > 0 ? (
                                                                                             <div className="post-data-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
                                                                                                 {Object.entries(call.call_analysis.custom_variables).map(([key, value]) => (

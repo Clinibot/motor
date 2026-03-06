@@ -225,103 +225,128 @@ export const Step2_CompanyInfo: React.FC = () => {
 
                     {/* SECCIÓN 3: BASE DE CONOCIMIENTOS */}
                     <div className="step-section">
-                        <h3 className="step-section-title mb-4">
-                            <i className="bi bi-book-fill me-2" style={{ color: '#64748b' }}></i>
-                            Base de conocimientos
-                        </h3>
+                        <div className="kb-header mb-4 text-center">
+                            <h3>
+                                <i className="bi bi-book-fill me-2" style={{ color: 'var(--netelip-azul)' }}></i>
+                                Base de conocimientos
+                            </h3>
+                            <p className="text-muted">Sube documentos para que tu agente responda con información precisa sobre tu negocio.</p>
+                        </div>
 
-                        <div className="row">
-                            <div className="col-md-12">
-                                <p className="text-muted small mb-4">Sube documentos que tu agente podrá consultar para responder con información precisa.</p>
-
-                                <div className="warning-box mb-4">
-                                    <i className="bi bi-exclamation-triangle-fill me-3"></i>
-                                    <div>
-                                        <strong className="d-block mb-1">Importante: Datos Tratados</strong>
-                                        <p className="mb-0">Recomendamos documentos estructurados en formato <strong>Preguntas Frecuentes (FAQ)</strong> o <strong>Problema/Solución</strong>. Límite máximo de 3 archivos (máx 10 MB/cada uno).</p>
-                                    </div>
+                        <div className="kb-section-container">
+                            <div className="kb-warning-card">
+                                <i className="bi bi-exclamation-triangle-fill"></i>
+                                <div className="banner-content">
+                                    <span className="kb-warning-title">Importante: Preparación de Documentos</span>
+                                    <p className="m-0">
+                                        Para mejores resultados, utiliza archivos estructurados como <strong>Preguntas Frecuentes (FAQ)</strong>.
+                                        Límite: 3 archivos, máx 10 MB cada uno.
+                                    </p>
                                 </div>
+                            </div>
 
-                                {uploadError && (
-                                    <div style={{
-                                        background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px',
-                                        padding: '12px 16px', marginBottom: '12px', display: 'flex',
-                                        alignItems: 'center', justifyContent: 'space-between', gap: '10px',
-                                        fontSize: '13px', color: '#ef4444', fontWeight: 500,
-                                    }}>
-                                        <span><i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '8px' }} />{uploadError}</span>
-                                        <button onClick={() => setUploadError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '16px', lineHeight: 1 }}>×</button>
-                                    </div>
-                                )}
+                            {uploadError && (
+                                <div style={{
+                                    background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '12px',
+                                    padding: '14px 20px', display: 'flex',
+                                    alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                                    fontSize: '14px', color: '#ef4444', fontWeight: 600,
+                                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.05)'
+                                }}>
+                                    <span><i className="bi bi-exclamation-circle-fill me-2" />{uploadError}</span>
+                                    <button onClick={() => setUploadError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '20px', lineHeight: 1 }}>×</button>
+                                </div>
+                            )}
+
+                            <div>
                                 <label
                                     htmlFor="kb-upload"
-                                    className={`kb-upload-area ${isUploading ? 'opacity-50' : ''}`}
-                                    style={{ cursor: isUploading ? 'default' : 'pointer' }}
+                                    className={`kb-upload-dropzone ${isUploading ? 'opacity-50' : ''}`}
+                                    style={{ cursor: isUploading ? 'default' : 'pointer', width: '100%', display: 'flex' }}
                                 >
                                     {isUploading ? (
-                                        <div className="py-3">
-                                            <div className="spinner-border text-primary mb-2" role="status"></div>
-                                            <div className="fw-bold">Subiendo archivo(s)...</div>
+                                        <div className="py-4 w-100 text-center">
+                                            <div className="spinner-border text-primary mb-3" role="status"></div>
+                                            <div className="fw-bold" style={{ color: 'var(--netelip-azul)' }}>Subiendo archivos...</div>
                                         </div>
                                     ) : (
-                                        <>
-                                            <i className="bi bi-cloud-arrow-up-fill mb-2" style={{ fontSize: '30px', color: '#cbd5e1' }}></i>
-                                            <div className="fw-bold">Arrastra archivos aquí o haz clic para subir</div>
-                                            <div className="text-muted small">Formatos: .md, .txt, .pdf, .docx</div>
-                                        </>
+                                        <div className="w-100 text-center">
+                                            <div className="kb-upload-icon mx-auto mb-3">
+                                                <i className="bi bi-cloud-arrow-up"></i>
+                                            </div>
+                                            <div className="fw-700 mb-1" style={{ fontSize: '16px', color: 'var(--oscuro)' }}>
+                                                Arrastra archivos aquí o haz clic para subir
+                                            </div>
+                                            <div style={{ color: '#64748b', fontSize: '13px' }}>
+                                                Formatos: <span className="fw-600">.md, .txt, .pdf, .docx</span>
+                                            </div>
+                                        </div>
                                     )}
                                 </label>
                                 <input
                                     type="file"
                                     id="kb-upload"
-                                    className="d-none"
+                                    style={{ display: 'none', position: 'absolute', width: '1px', height: '1px', padding: '0', margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', border: '0' }}
                                     multiple
                                     accept=".md,.txt,.pdf,.docx"
                                     onChange={handleFileUpload}
                                     disabled={isUploading}
                                 />
+                            </div>
 
-                                <div className="alert alert-info mt-3 d-flex align-items-center" role="alert" style={{ fontSize: '0.9rem' }}>
-                                    <i className="bi bi-info-circle-fill me-2" style={{ fontSize: '1.2rem' }}></i>
-                                    <div>
-                                        Si la información que quieres añadir no es muy extensa, es recomendable añadirla en las instrucciones finales que se generarán para el agente en lugar de subir un archivo.
-                                    </div>
+                            <div className="kb-info-note">
+                                <i className="bi bi-info-circle-fill"></i>
+                                <div>
+                                    <strong>Consejo:</strong> Si la información es breve, es más eficiente incluirla directamente en las
+                                    instrucciones finales del agente para una respuesta más rápida.
                                 </div>
+                            </div>
 
-                                {kbFiles.length > 0 && (
-                                    <div className="kb-file-list mt-3">
-                                        {kbFiles.map((file, idx) => (
-                                            <div key={idx} className="kb-file-item">
-                                                <div className="d-flex flex-column flex-grow-1">
-                                                    <div className="d-flex align-items-center">
-                                                        <i className="bi bi-file-earmark-text me-2 text-primary"></i>
-                                                        <span className="file-name">{file.name}</span>
-                                                        <span className="file-size ms-2">({file.size})</span>
-                                                    </div>
-                                                    {file.retell_name && (
-                                                        <div className="small text-muted mt-1 ps-4" style={{ fontSize: '0.75rem' }}>
-                                                            <strong>ID para Prompt:</strong> <code>{file.retell_name}</code>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <button type="button" className="btn-remove" onClick={() => removeFile(idx)}>
-                                                    <i className="bi bi-trash"></i>
-                                                </button>
+                            {kbFiles.length > 0 && (
+                                <div className="kb-file-grid">
+                                    {kbFiles.map((file, idx) => (
+                                        <div key={idx} className="kb-file-card">
+                                            <div className="kb-file-icon">
+                                                <i className="bi bi-file-earmark-text"></i>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                <div className="form-group mt-4">
-                                    <label className="form-label fw-bold">Instrucciones de uso de la base</label>
-                                    <textarea
-                                        className="form-control"
-                                        rows={3}
-                                        placeholder="Eje: Consulta esta información solo para dudas técnicas sobre implantes..."
-                                        value={kbUsageInstructions}
-                                        onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
-                                    />
+                                            <div className="kb-file-info">
+                                                <span className="kb-file-name" title={file.name}>{file.name}</span>
+                                                <div className="kb-file-meta">
+                                                    <span>{file.size}</span>
+                                                    {file.retell_name && <span className="kb-retell-badge">ID: {file.retell_name}</span>}
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="kb-btn-remove"
+                                                onClick={() => removeFile(idx)}
+                                                title="Eliminar archivo"
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
+                            )}
+
+                            <div className="form-group mb-0 mt-2">
+                                <label className="form-label fw-bold">
+                                    Instrucciones de uso de la base
+                                    <div className="custom-tooltip ms-2">
+                                        <i className="bi bi-question-circle tooltip-icon" style={{ fontSize: '14px' }}></i>
+                                        <div className="tooltip-content">
+                                            Explica al agente cuándo debe consultar estos documentos (ej: "Solo para precios técnicos").
+                                        </div>
+                                    </div>
+                                </label>
+                                <textarea
+                                    className="form-control"
+                                    rows={3}
+                                    style={{ borderRadius: '12px', padding: '14px' }}
+                                    placeholder="Ej: Consulta esta información solo para dudas técnicas sobre implantes y tiempos de recuperación."
+                                    value={kbUsageInstructions}
+                                    onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
+                                />
                             </div>
                         </div>
                     </div>

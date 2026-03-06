@@ -186,17 +186,36 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
  * This ensures the LLM knows when and how to call each tool.
  */
 export function injectToolInstructions(basePrompt: string, p: ToolsPayload): string {
-    const START_MARKER = '### INSTRUCCIONES_HERRAMIENTAS_START ###';
-    const END_MARKER = '### INSTRUCCIONES_HERRAMIENTAS_END ###';
-
     let cleanPrompt = basePrompt;
-    const regex = new RegExp(`\\n?\\n?${START_MARKER}[\\s\\S]*?${END_MARKER}`, 'g');
-    cleanPrompt = cleanPrompt.replace(regex, '').trim();
 
-    // Limpiar marcadores antiguos del frontend si existen
-    const feToolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/g;
-    const feKbRegex = /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g;
-    cleanPrompt = cleanPrompt.replace(feToolsRegex, '').replace(feKbRegex, '').trim();
+    // Lista de posibles encabezados que queremos limpiar antes de re-inyectar
+    const sectionsToClean = [
+        '# Uso de herramientas',
+        '# Instrucciones de Herramientas',
+        '### INSTRUCCIONES_HERRAMIENTAS_START ###',
+        '## Agenda',
+        '## Transferencias',
+        '## Normas de Estilo de Voz'
+    ];
+
+    for (const section of sectionsToClean) {
+        if (cleanPrompt.includes(section)) {
+            // Limpiamos todo lo que haya después del primer encabezado de herramientas encontrado
+            cleanPrompt = cleanPrompt.split(section)[0].trim();
+            break;
+        }
+    }
+
+    // Limpieza de marcadores del frontend si aún quedaran
+    const fePatterns = [
+        /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/g,
+        /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g
+    ];
+    fePatterns.forEach(regex => {
+        cleanPrompt = cleanPrompt.replace(regex, '');
+    });
+
+    cleanPrompt = cleanPrompt.trim();
 
     const blocks: string[] = [];
     const lowerPrompt = cleanPrompt.toLowerCase();
@@ -206,7 +225,47 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     }
 
     if (p.enableCalBooking && p.calApiKey && !lowerPrompt.includes('check_availability')) {
-        blocks.push(`## Gestión de Citas (Cal.com)\nSi el usuario quiere agendar una cita:\n1. Usa primero \`check_availability\` para ver huecos.\n2. Pide datos (nombre, email, tel) y usa \`book_appointment\` para confirmar.`);
+        const today = new Date();
+        const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' };
+        const dateStr = today.toLocaleDateString('es-ES', options);
+
+        blocks.push(`## Agenda (Citas)
+Hoy es ${dateStr}.
+Usa \`check_availability\` cuando el usuario quiera agendar, pregunte por huecos o quiera programar una visita.
+ 
+### Cómo presentar los resultados:
+ 
+**OFERTA INICIAL (primera vez):**
+Selecciona los 2 huecos más próximos priorizando diversidad horaria:
+1. Toma el primer hueco disponible.
+2. Para el segundo, prefiere la tarde (12:00–19:59) si el primero fue por la mañana; si no, toma el siguiente más próximo.
+3. Presentación natural: "Tenemos disponibilidad el [hueco 1] y [hueco 2]. ¿Cuál te viene mejor?"
+ 
+**SI EL USUARIO PIDE MÁS OPCIONES:**
+Si dice "¿no tenéis otra cosa?", "¿y otro día?", "¿nada más tarde?", "¿la semana que viene?", presenta TODOS los huecos disponibles agrupados por día.
+ 
+### Reglas de formato (crítico):
+- Idioma: Español, estilo hablado natural.
+- Día: "martes dieciocho".
+- Horas: Siempre con LETRAS, nunca dígitos (una, dos, tres...).
+- Conversión 24h a 12h con periodos:
+  - 00:00–11:59: "de la mañana"
+  - 12:00: "del mediodía"
+  - 12:30–19:59: "de la tarde"
+  - 20:00–23:59: "de la noche"
+- "la una" (nunca "un").
+- :30 -> "y media" | :00 -> omitir minutos.
+- Ejemplo mismo día: "a las diez de la mañana y a las tres de la tarde".
+ 
+### Disponibilidad completa (agrupada por día):
+Agrupa slots consecutivos de 30 min en rangos: "entre las [inicio] y las [fin]". Un hueco rompe la secuencia. Conecta rangos con ", y también".
+Ejemplo: "Jueves 14 de noviembre: entre las nueve y las diez de la mañana, y también entre las dos y las tres y media de la tarde."
+ 
+### Si no hay disponibilidad:
+"Ahora mismo no tenemos huecos disponibles en los próximos días. ¿Quieres que te llame alguien del equipo para buscar una fecha?"
+ 
+### Tras elegir un hueco:
+Una vez que el usuario elige un hueco, confírmalo claramente (ej: "Perfecto, te apunto el martes dieciocho a las diez de la mañana"). Pide su nombre completo y usa INMEDIATAMENTE \`book_appointment\` para realizar la reserva. **No vuelvas a consultar disponibilidad una vez que el hueco ya ha sido seleccionado y confirmado por el usuario.**`);
     }
 
     if (p.enableTransfer && p.transferDestinations.length > 0) {
@@ -222,7 +281,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             .join('\n');
 
         if (destList && !lowerPrompt.includes('transferir llamada')) {
-            blocks.push(`## Transferir llamada\nCasos:\n${destList}`);
+            blocks.push(`## Transferencias\nCasos:\n${destList}`);
         }
     }
 
@@ -244,7 +303,16 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         blocks.push(`## Base de Conocimientos\nConsulta los documentos si el usuario tiene dudas sobre los servicios.`);
     }
 
+    // ALWAYS add Voice Style Rules for phonetic consistency
+    blocks.push(`## Normas de Estilo de Voz (CRÍTICO)
+Para que suenes natural y cercano, sigue estas reglas de pronunciación en ESPAÑOL:
+1. **Fechas y Horas**: No digas formatos numéricos. Usa lenguaje coloquial. Di "las nueve de la mañana", "la una de la tarde", "las ocho de la tarde". Nunca digas "trece horas" o "veinte cero cero".
+2. **Números de Teléfono**: No digas el prefijo "+34". Pronuncia los números de uno en uno o en grupos pequeños, escritos con letras. Ejemplo: "seis seis seis, cinco cinco, cuatro tres".
+3. **Páginas Web**: Pronuncia los puntos. Ejemplo: en lugar de "benam.es" di "benam punto e-s" o "benam punto es".
+4. **Correos Electrónicos**: Di "arroba" para "@" y "punto" para ".". Ejemplo: "contacto arroba empresa punto com".
+5. **General**: No leas números, símbolos o formatos técnicos. Di siempre las palabras tal y como se pronuncian en una conversación natural.`);
+
     if (blocks.length === 0) return cleanPrompt;
 
-    return `${cleanPrompt}\n\n${START_MARKER}\n# Instrucciones de Herramientas\n\n${blocks.join('\n\n')}\n${END_MARKER}`;
+    return `${cleanPrompt}\n\n# Uso de herramientas\n\n${blocks.join('\n\n')}`;
 }
