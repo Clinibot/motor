@@ -53,21 +53,22 @@ export async function POST(request: Request) {
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
         // 2. Registrar número SIP en Retell
-        // Según documentación de Retell: create un número con tipo 'sip'
-        console.log("Registering SIP Number in Retell:", phone_number);
-        const retellResponse = await retellClient.phoneNumber.create({
+        // Para números SIP (SIP Trunking), se usa .import() con la configuración del trunk
+        console.log("Importing SIP Number in Retell:", phone_number);
+
+        const importPayload = {
             phone_number: phone_number,
+            termination_uri: termination_uri,
             nickname: nickname || phone_number,
-            // En el SDK de Retell, los campos SIP suelen ir dentro de una configuración específica o como campos directos dependiendo de la versión
-            // Basado en el modal: termination_uri es clave.
-            // Nota: Algunos SDKs de Retell manejan SIP trunking a través de un objeto específico.
-            // Asumimos estructura estándar para SIP Trunking en Retell:
-            // @ts-expect-error - Campo SIP
-            sip_termination_uri: termination_uri,
-            sip_trunk_username: sip_trunk_username || undefined,
-            sip_trunk_password: sip_trunk_password || undefined,
-            outbound_transport: outbound_transport || 'tcp'
-        });
+            sip_outbound_trunk_config: {
+                termination_uri: termination_uri,
+                auth_username: sip_trunk_username || undefined,
+                auth_password: sip_trunk_password || undefined,
+                transport: ((outbound_transport || 'TCP').toUpperCase()) as 'TCP' | 'UDP' | 'TLS'
+            }
+        };
+
+        const retellResponse = await retellClient.phoneNumber.import(importPayload);
 
         // 3. Persistir en nuestra base de datos (Supabase)
         // Buscamos o creamos una clínica para este workspace si no existe
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
             .select('id')
             .eq('user_id', session.user.id)
             .limit(1)
-            .single();
+            .maybeSingle(); // Usamos maybeSingle para evitar error si no hay resultados
 
         if (existingClinic) {
             clinicId = existingClinic.id;
@@ -104,12 +105,12 @@ export async function POST(request: Request) {
         }
 
         if (clinicId) {
+            // NOTA: nickname no existe en la tabla phone_numbers según el esquema
             const { error: dbError } = await supabaseAdmin
                 .from('phone_numbers')
                 .insert({
                     clinic_id: clinicId,
                     phone_number: retellResponse.phone_number,
-                    nickname: nickname || phone_number,
                     status: 'active'
                 });
 
