@@ -559,6 +559,13 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         }, 1500);
     };
 
+    const handleConfirmRegenerate = () => {
+        const confirmMsg = "Atención: Al regenerar el prompt se perderán todas las ediciones manuales que hayas realizado. ¿Deseas continuar?";
+        if (typeof window !== 'undefined' && window.confirm(confirmMsg)) {
+            generateAllInstructions();
+        }
+    };
+
     const handleCreateAgent = async () => {
         // En modo edición, actualizamos el prompt automáticamente antes de enviar
         let currentPromptValue = wizardData.prompt;
@@ -781,7 +788,7 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                                     <i className="bi bi-check-circle-fill me-1" /> {editingAgentId ? 'Instrucciones maestras del agente (se auto-actualizan al guardar).' : 'Generadas correctamente. Puedes editarlas.'}
                                 </p>
                             </div>
-                            <button onClick={generateAllInstructions} disabled={isGenerating}
+                            <button onClick={handleConfirmRegenerate} disabled={isGenerating}
                                 style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
                                 {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
                             </button>
