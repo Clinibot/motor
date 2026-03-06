@@ -605,7 +605,7 @@ export default function NumbersPage() {
 
                             <div style={{ background: '#eff6fb', padding: '16px', borderRadius: '12px', border: '1px solid #dbeafe', marginTop: '8px' }}>
                                 <p style={{ fontSize: '12px', color: '#267ab0', lineHeight: 1.5 }}>
-                                    <strong>Nota:</strong> Tu contraseña SIP la encontrarás en el panel de Netelip, dentro de la configuración de tu línea SIP.
+                                    <strong>Nota:</strong> Tu usuario y contraseña SIP los encontrarás en <strong>Línea SIP - Configurador de dispositivos</strong> dentro de tu panel de Netelip.
                                 </p>
                             </div>
                         </div>
