@@ -95,7 +95,7 @@ export async function POST() {
                 }
 
                 if (config.kbFiles && config.kbFiles.length > 0) {
-                    const kbIds = config.kbFiles.map((f: any) => f.id).filter(Boolean);
+                    const kbIds = config.kbFiles.map((f: { id: string }) => f.id).filter(Boolean);
                     if (kbIds.length > 0) {
                         llmUpdateParams.knowledge_base_ids = kbIds;
                     }
@@ -114,9 +114,10 @@ export async function POST() {
                     .eq('id', agent.id);
 
                 updatedCount++;
-            } catch (err: any) {
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err);
                 console.error(`Error syncing agent ${agent.id}:`, err);
-                errors.push({ id: agent.id, error: err.message });
+                errors.push({ id: agent.id, error: message });
             }
         }
 
@@ -127,8 +128,9 @@ export async function POST() {
             message: `Successfully synced ${updatedCount} agents.`
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error("Critical error in sync-agents:", error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }

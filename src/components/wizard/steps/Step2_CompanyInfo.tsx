@@ -335,7 +335,7 @@ export const Step2_CompanyInfo: React.FC = () => {
                                     <div className="custom-tooltip ms-2">
                                         <i className="bi bi-question-circle tooltip-icon" style={{ fontSize: '14px' }}></i>
                                         <div className="tooltip-content">
-                                            Explica al agente cuándo debe consultar estos documentos (ej: "Solo para precios técnicos").
+                                            Explica al agente cuándo debe consultar estos documentos (ej: &quot;Solo para precios técnicos&quot;).
                                         </div>
                                     </div>
                                 </label>

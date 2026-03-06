@@ -230,7 +230,7 @@ export const Step8_Summary: React.FC = () => {
         const langStr = langMap[wizardData.language] || 'español';
 
         // Bloques de herramientas y KB para la previsualización
-        let toolsContentArr = [];
+        const toolsContentArr: string[] = [];
         if (wizardData.enableCalBooking && wizardData.calApiKey) {
             toolsContentArr.push(`## Agenda\n- Gestiona citas usando las herramientas de Cal.com.\n- Propon 2 huecos variados inicialmente.`);
         }
@@ -334,7 +334,10 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
         wizardData.prompt, wizardData.businessHours,
         wizardData.personality, wizardData.tone, wizardData.extractionVariables,
-        wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite
+        wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite,
+        wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
+        wizardData.transferDestinations, wizardData.kbFiles,
+        wizardData.companyName // Already included above, but for clarity
     ]);
 
     // Asegurar visibilidad del prompt
