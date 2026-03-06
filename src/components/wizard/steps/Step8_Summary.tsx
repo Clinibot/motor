@@ -386,7 +386,7 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
 
 **Si no hay disponibilidad válida:** "Ahora mismo no tenemos huecos libres en los próximos días. ¿Quieres que te llame alguien del equipo para buscar una fecha?"
 
-**Tras elegir hueco:** Confirma el día y hora claramente antes de reservar: "Perfecto, te apunto el [día] a las [hora]. ¿Me confirmas tu nombre completo?"`);
+**Tras elegir hueco:** Confirma el día y hora claramente y empieza a pedir los datos obligatorios para reservar (uno por uno): nombre completo, email, teléfono, y un breve resumen de lo que necesita. Ejemplo: "Perfecto, te apunto el [día] a las [hora]. Para confirmar la cita, ¿me dices tu nombre completo?"`);
         }
         if (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) {
             const transfers = wizardData.transferDestinations
@@ -461,7 +461,7 @@ Tu misión es atender las llamadas de forma humana, cálida y eficiente, evitand
 - Frases cortas y directas. No des rodeos.
 - Regla de oro: Habla siempre con palabras. Nunca uses dígitos para horas, teléfonos o fechas cuando respondas.
 - Empatía y escucha activa.
-- Nunca hagas más de una pregunta a la vez.
+- REGLA CRÍTICA: Haz solo UNA pregunta por turno. Nunca lances múltiples preguntas seguidas.
 - REGLA CRÍTICA: No repitas datos que el usuario ya ha dicho. Pasa a la siguiente tarea.
 
 ## Tareas Principales
@@ -471,7 +471,7 @@ ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferenci
 1. Resuelve dudas sobre los servicios.
 2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas de agenda.
 3. Sigue estrictamente las reglas de presentación de huecos (oferta inicial vs más opciones).
-4. Pide nombre y datos necesarios para confirmar una vez elegido el hueco.` : `### Resolución y Cualificación
+4. Pide nombre completo, email, teléfono y un breve resumen de lo que necesita para confirmar (hazlo paso a paso, una pregunta por turno).` : `### Resolución y Cualificación
 1. Resuelve dudas sobre ${company}.
 2. Interésate por las necesidades del cliente.
 3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural en la charla.`}
