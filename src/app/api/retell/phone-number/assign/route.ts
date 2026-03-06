@@ -20,7 +20,7 @@ export async function POST(request: Request) {
         const {
             number_id, // UUID in our DB
             phone_number, // E.164 number
-            retell_agent_id, // Agent ID from Retell (can be null/none)
+            agent_id, // UUID in our DB or 'none'
             workspace_id
         } = payload;
 
@@ -36,7 +36,24 @@ export async function POST(request: Request) {
 
         const supabaseAdmin = getSupabaseAdmin();
 
-        // 1. Obtener API Key de Retell del workspace
+        // 1. Resolver retell_agent_id (String) a partir del agent_id (UUID)
+        let retellAgentId = null;
+        const localAgentId = (agent_id === 'none' || !agent_id) ? null : agent_id;
+
+        if (localAgentId) {
+            const { data: agentData, error: agentError } = await supabaseAdmin
+                .from('agents')
+                .select('retell_agent_id')
+                .eq('id', localAgentId)
+                .single();
+
+            if (agentError || !agentData) {
+                return NextResponse.json({ success: false, error: "Agent not found in database" }, { status: 404 });
+            }
+            retellAgentId = agentData.retell_agent_id;
+        }
+
+        // 2. Obtener API Key de Retell del workspace
         const { data: workspace, error: wsError } = await supabaseAdmin
             .from('workspaces')
             .select('retell_api_key')
@@ -49,24 +66,21 @@ export async function POST(request: Request) {
 
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
-        // 2. Actualizar en Retell
-        const agentId = (retell_agent_id === 'none' || !retell_agent_id) ? null : retell_agent_id;
-
-        console.log(`Updating Retell phone number ${phone_number} with agent ${agentId}`);
+        // 3. Actualizar en Retell
+        console.log(`Updating Retell phone number ${phone_number} with agent ${retellAgentId}`);
 
         await retellClient.phoneNumber.update(phone_number, {
-            inbound_agent_id: agentId
+            inbound_agent_id: retellAgentId
         });
 
-        // 3. Actualizar en nuestra DB
+        // 4. Actualizar en nuestra DB con el UUID local
         const { error: dbError } = await supabaseAdmin
             .from('phone_numbers')
-            .update({ assigned_inbound_agent_id: agentId })
+            .update({ assigned_inbound_agent_id: localAgentId })
             .eq('id', number_id);
 
         if (dbError) {
             console.error("Error updating DB assignment:", dbError);
-            // Aunque falle la DB, el cambio en Retell ya se hizo
             return NextResponse.json({
                 success: false,
                 error: `Retell updated, but DB failed: ${dbError.message}`
@@ -76,7 +90,7 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             phone_number: phone_number,
-            assigned_agent_id: agentId
+            assigned_agent_id: localAgentId
         });
 
     } catch (error: unknown) {
