@@ -155,7 +155,7 @@ export default function AdminDashboard() {
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium transition-colors ${activeTab === 'users' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
                         <Users className="w-5 h-5" />
-                        Usuarios Registrados
+                        Usuarios
                     </button>
                 </nav>
 
@@ -174,7 +174,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">
-                            {activeTab === 'workspaces' ? 'Workspaces (Tenants)' : 'Usuarios Registrados'}
+                            {activeTab === 'workspaces' ? 'Workspaces (Tenants)' : 'Usuarios'}
                         </h1>
                         <p className="text-gray-500 mt-1">
                             {activeTab === 'workspaces'
