@@ -30,6 +30,7 @@ function WizardContent() {
         setMounted(true);
         const loadEditData = async () => {
             const editId = searchParams.get('editId');
+            const targetStep = searchParams.get('step');
             if (editId) {
                 setIsLoadingEdit(true);
                 try {
@@ -42,6 +43,12 @@ function WizardContent() {
 
                     if (!error && agent?.configuration) {
                         setEditingAgent(editId, agent.configuration);
+                        if (targetStep) {
+                            const stepNum = parseInt(targetStep);
+                            if (!isNaN(stepNum) && stepNum >= 1 && stepNum <= 9) {
+                                useWizardStore.getState().setStep(stepNum);
+                            }
+                        }
                     } else {
                         console.error("Agent config not found:", error);
                         router.push('/dashboard/agents');

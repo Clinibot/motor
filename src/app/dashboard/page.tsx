@@ -750,7 +750,7 @@ export default function DashboardPage() {
                                                                                             <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '0px' }}>Datos Extraídos</h4>
                                                                                             {internalAgentId && (
                                                                                                 <Link
-                                                                                                    href={`/dashboard/wizard?editId=${internalAgentId}#step8`}
+                                                                                                    href={`/wizard?editId=${internalAgentId}&step=8`}
                                                                                                     className="text-primary"
                                                                                                     style={{ fontSize: '12px', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
                                                                                                 >
