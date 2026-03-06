@@ -310,6 +310,7 @@ export const Step8_Summary: React.FC = () => {
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [showConfirmRegenerate, setShowConfirmRegenerate] = useState(false);
     const editingAgentId = wizardData.editingAgentId;
 
     const getUpdatedPrompt = React.useCallback((forceRebuild = false) => {
@@ -560,10 +561,12 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
     };
 
     const handleConfirmRegenerate = () => {
-        const confirmMsg = "Atención: Al regenerar el prompt se perderán todas las ediciones manuales que hayas realizado. ¿Deseas continuar?";
-        if (typeof window !== 'undefined' && window.confirm(confirmMsg)) {
-            generateAllInstructions();
-        }
+        setShowConfirmRegenerate(true);
+    };
+
+    const handleExecuteRegenerate = () => {
+        setShowConfirmRegenerate(false);
+        generateAllInstructions();
     };
 
     const handleCreateAgent = async () => {
@@ -788,10 +791,18 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                                     <i className="bi bi-check-circle-fill me-1" /> {editingAgentId ? 'Instrucciones maestras del agente (se auto-actualizan al guardar).' : 'Generadas correctamente. Puedes editarlas.'}
                                 </p>
                             </div>
-                            <button onClick={handleConfirmRegenerate} disabled={isGenerating}
-                                style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
-                                {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
-                            </button>
+                            {showConfirmRegenerate ? (
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>¿Borrar cambios?</span>
+                                    <button onClick={() => setShowConfirmRegenerate(false)} style={{ ...S.editBtn, padding: '4px 8px' }}>No</button>
+                                    <button onClick={handleExecuteRegenerate} style={{ ...S.editBtn, borderColor: '#ef4444', color: '#ef4444', padding: '4px 8px' }}>Sí, borrar</button>
+                                </div>
+                            ) : (
+                                <button onClick={handleConfirmRegenerate} disabled={isGenerating}
+                                    style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
+                                    {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
+                                </button>
+                            )}
                         </div>
                         <textarea
                             rows={18}
