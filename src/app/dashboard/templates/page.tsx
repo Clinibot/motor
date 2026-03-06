@@ -251,7 +251,7 @@ export default function TemplatesPage() {
 
                 <div className="content">
                     <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '600px' }}>
-                        Aquí encontrarás los prompts que se inyectan automáticamente en tu agente según las herramientas que actives. Puedes consultarlos y copiarlos para adaptarlos si lo necesitas.
+                        Aquí encontrarás instrucciones que se inyectan automáticamente en tu agente según las herramientas que actives y otros que podrías añadir para darle más funcionalidades. Puedes consultarlos y copiarlos para adaptarlos si lo necesitas.
                     </p>
 
                     <div className="templates-grid">
