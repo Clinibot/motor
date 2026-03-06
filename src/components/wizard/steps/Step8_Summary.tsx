@@ -293,21 +293,6 @@ const formatUrlForTTS = (url: string) => {
 const cleanPromptForDeployment = (prompt: string) => {
     if (!prompt) return '';
     return prompt
-        // Eliminar comentarios de sincronización
-        .replace(/<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/g, (match) => {
-            return match
-                .replace(/<!-- AUTO_TOOLS_START -->/g, '')
-                .replace(/<!-- AUTO_TOOLS_END -->/g, '')
-                .trim();
-        })
-        .replace(/<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g, (match) => {
-            return match
-                .replace(/<!-- AUTO_KB_START -->/g, '')
-                .replace(/<!-- AUTO_KB_END -->/g, '')
-                .trim();
-        })
-        // Eliminar cualquier otro comentario HTML que pudiera quedar
-        .replace(/<!--[\s\S]*?-->/g, '')
         // Normalizar espacios en blanco (máximo 2 saltos de línea)
         .replace(/\n{3,}/g, '\n\n')
         .trim();
@@ -420,6 +405,9 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
 
             // Retrocompatibilidad: Limpiar el bloque antiguo de "Datos a Extraer" si quedó huérfano en el estado
             finalPrompt = finalPrompt.replace(/\n*### Datos a Extraer[\s\S]*?(?=### Despedida|$)/g, '\n\n');
+
+            // Retrocompatibilidad: Limpiar el bloque antiguo de "Herramientas" que no tenía marcadores HTML
+            finalPrompt = finalPrompt.replace(/\n*# Uso de herramientas[\s\S]*?(?=(?:### Despedida|<!--|# Información de Contacto|# Reglas de Terminación|$))/g, '\n\n');
 
             const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/;
             if (toolsRegex.test(finalPrompt)) {
@@ -769,12 +757,10 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
                                     <i className="bi bi-check-circle-fill me-1" /> {editingAgentId ? 'Instrucciones maestras del agente (se auto-actualizan al guardar).' : 'Generadas correctamente. Puedes editarlas.'}
                                 </p>
                             </div>
-                            {!editingAgentId && (
-                                <button onClick={generateAllInstructions} disabled={isGenerating}
-                                    style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
-                                    {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
-                                </button>
-                            )}
+                            <button onClick={generateAllInstructions} disabled={isGenerating}
+                                style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
+                                {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
+                            </button>
                         </div>
                         <textarea
                             rows={18}
