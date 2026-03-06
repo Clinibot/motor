@@ -473,12 +473,9 @@ ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferenci
 3. Sigue estrictamente las reglas de presentación de huecos (oferta inicial vs más opciones).
 4. Pide nombre completo, email, teléfono y un breve resumen de lo que necesita para confirmar (hazlo paso a paso, una pregunta por turno).` : `### Resolución y Cualificación
 1. Resuelve dudas sobre ${company}.
-2. Interésate por las necesidades del cliente.
-3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural en la charla.`}
+2. Interésate por las necesidades del cliente.`}
 
 ${toolsSection.trim() ? `${toolsSection.trim()}` : ''}
-${wizardData.extractionVariables.length > 0 ? `\n### Datos a Extraer
-${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.description}`).join('\n')}` : ''}
 
 ### Despedida
 Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete cordialmente.
@@ -492,7 +489,7 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
     }, [
         wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
         wizardData.prompt, wizardData.businessHours,
-        wizardData.personality, wizardData.tone, wizardData.extractionVariables,
+        wizardData.personality, wizardData.tone,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
         wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions
