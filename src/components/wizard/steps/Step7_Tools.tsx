@@ -23,6 +23,17 @@ export const Step7_Tools: React.FC = () => {
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
 
     useEffect(() => {
+        if (window.location.hash === '#extraction') {
+            setTimeout(() => {
+                const element = document.getElementById('extraction-section');
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 500);
+        }
+    }, []);
+
+    useEffect(() => {
         const fetchAgents = async () => {
             setIsLoadingAgents(true);
             try {
@@ -492,7 +503,7 @@ export const Step7_Tools: React.FC = () => {
                     </div>
 
                     {/* DATA EXTRACTION */}
-                    <div className="section-divider" style={{ borderTop: '2px solid var(--gris-borde)', paddingTop: '32px' }}>
+                    <div id="extraction-section" className="section-divider" style={{ borderTop: '2px solid var(--gris-borde)', paddingTop: '32px' }}>
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <i className="bi bi-database"></i> Extracción de datos
                         </h3>
