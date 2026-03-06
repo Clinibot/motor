@@ -191,23 +191,37 @@ export default function NumbersPage() {
         }
     };
 
-    const handleDeleteNumber = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar este número?')) return;
+    const handleDeleteNumber = async (id: string, phone: string) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar el número ${phone}? Esta acción es irreversible.`)) return;
 
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('phone_numbers')
-                .delete()
-                .eq('id', id);
+            const response = await fetch('/api/retell/phone-number/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    number_id: id,
+                    phone_number: phone,
+                    workspace_id: user?.workspace_id
+                })
+            });
 
-            if (error) throw error;
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Error al eliminar el número");
+            }
 
             const newList = numbers.filter(n => n.id !== id);
             setNumbers(newList);
-        } catch (error) {
+            setNotification({
+                message: "Número eliminado correctamente de Retell y de la base de datos.",
+                type: 'success'
+            });
+        } catch (error: unknown) {
             console.error("Error deleting number:", error);
-            alert("No se pudo eliminar el número de la base de datos.");
+            setNotification({
+                message: `Error: ${(error as Error).message || "No se pudo eliminar el número."}`,
+                type: 'error'
+            });
         }
     };
 
@@ -464,7 +478,7 @@ export default function NumbersPage() {
                                                     </select>
                                                 </td>
                                                 <td style={{ textAlign: 'right' }}>
-                                                    <button className="btn-delete-row" onClick={() => handleDeleteNumber(num.id)} title="Borrar número">
+                                                    <button className="btn-delete-row" onClick={() => handleDeleteNumber(num.id, num.phone_number)} title="Borrar número">
                                                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                                         </svg>
