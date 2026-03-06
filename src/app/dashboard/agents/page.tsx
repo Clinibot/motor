@@ -505,6 +505,31 @@ export default function AgentsPage() {
                                         "Escuchando y respondiendo..."}
                             </p>
 
+                            <div className="mt-8 p-4 bg-orange-50 border border-orange-100 rounded-xl text-left w-full">
+                                <div className="flex gap-3 items-start mb-2">
+                                    <div className="bg-orange-100 p-1.5 rounded-lg">
+                                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <h4 className="text-xs font-bold text-orange-900 pt-1">Notas de prueba</h4>
+                                </div>
+                                <div className="space-y-3 pl-1">
+                                    <div className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 flex-shrink-0" />
+                                        <p className="text-[11px] text-orange-800 leading-normal">
+                                            <strong>Transferencias:</strong> No funcionan desde La Fábrica de agentes, únicamente en llamadas reales desde un número de teléfono.
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 flex-shrink-0" />
+                                        <p className="text-[11px] text-orange-800 leading-normal">
+                                            <strong>Instrucciones:</strong> Si necesitas perfilar o mejorar el comportamiento, puedes editar las instrucciones en el panel de edición con cuidado.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button
                                 className={`call-btn ${callStatus === "inactive" ? "start" : callStatus === "active" ? "stop" : "connecting"}`}
                                 onClick={toggleCall}
