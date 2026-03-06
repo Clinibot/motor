@@ -71,9 +71,10 @@ export async function POST(request: Request) {
         let retellResponse;
         try {
             retellResponse = await retellClient.phoneNumber.import(importPayload);
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Si el número ya está importado en Retell (Error 409 o similar), intentamos recuperarlo
-            if (error.status === 409 || (error.message && error.message.includes("already exists"))) {
+            const retellError = error as { status?: number; message?: string };
+            if (retellError.status === 409 || (retellError.message && retellError.message.includes("already exists"))) {
                 console.log("Number already exists in Retell, fetching existing one:", phone_number);
                 retellResponse = await retellClient.phoneNumber.retrieve(phone_number);
             } else {
@@ -126,13 +127,14 @@ export async function POST(request: Request) {
 
             if (dbError) {
                 console.error("Error persisting phone number to DB:", dbError);
-                // Si ya existe en nuestra DB, no es un error crítico
+                // Si ya existe en nuestra DB, no es un error crítico si es duplicado
+                // Pero si es otro error, queremos saberlo.
                 if (dbError.code !== '23505') {
-                    return NextResponse.json({ success: false, error: `Error saving to DB: ${dbError.message}` }, { status: 500 });
+                    throw new Error(`Error saving to DB: ${dbError.message}`);
                 }
             }
         } else {
-            return NextResponse.json({ success: false, error: "No se pudo asociar a una clínica" }, { status: 500 });
+            throw new Error("No se pudo asociar a una clínica (clinic_id is null)");
         }
 
         return NextResponse.json({
