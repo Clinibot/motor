@@ -60,11 +60,32 @@ export async function POST() {
 
         for (const agent of agents) {
             try {
+                // 1. Fetch current LLM state from Retell to preserve manual instructions
+                let manualInstructions = "";
+                if (agent.retell_llm_id) {
+                    try {
+                        const currentLlm = await retellClient.llm.retrieve(agent.retell_llm_id);
+                        const currentPrompt = currentLlm.general_prompt || "";
+                        const delimiter = "### INSTRUCCIONES MANUALES ###";
+                        if (currentPrompt.includes(delimiter)) {
+                            manualInstructions = "\n\n" + delimiter + currentPrompt.split(delimiter)[1];
+                        }
+                    } catch (e) {
+                        console.error(`Could not retrieve LLM ${agent.retell_llm_id} for agent ${agent.id}`, e);
+                    }
+                }
+
                 const config = agent.configuration || {};
                 const retellTools = buildRetellTools(config);
-                const finalPrompt = injectToolInstructions(config.prompt || 'Eres un asistente amable.', config);
+                let finalPrompt = injectToolInstructions(config.prompt || 'Eres un asistente amable.', config);
 
-                const llmUpdateParams: Record<string, any> = {
+                // 2. Append preserved manual instructions
+                if (manualInstructions) {
+                    finalPrompt += manualInstructions;
+                }
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const llmUpdateParams: any = {
                     general_prompt: finalPrompt,
                 };
 

@@ -20,6 +20,8 @@ export default function AdminDashboard() {
     const [name, setName] = useState('');
     const [retellApiKey, setRetellApiKey] = useState('');
     const [error, setError] = useState('');
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncMessage, setSyncMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
     const fetchWorkspaces = async () => {
         setIsLoading(true);
@@ -41,6 +43,34 @@ export default function AdminDashboard() {
     useEffect(() => {
         fetchWorkspaces();
     }, []);
+
+    const handleSyncAll = async () => {
+        if (!window.confirm("¿Deseas sincronizar todos los agentes? Se aplicarán las nuevas reglas de herramientas y se preservarán las instrucciones manuales.")) {
+            return;
+        }
+
+        setIsSyncing(true);
+        setSyncMessage(null);
+        setError('');
+
+        try {
+            const res = await fetch('/api/retell/sync-agents', { method: 'POST' });
+            const data = await res.json();
+
+            if (data.success) {
+                setSyncMessage({
+                    text: `Sincronización completada: ${data.updated} agentes actualizados.`,
+                    type: 'success'
+                });
+            } else {
+                setError(data.error || "Error durante la sincronización");
+            }
+        } catch {
+            setError("Error de conexión al servidor de sincronización.");
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const handleCreateWorkspace = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -107,7 +137,22 @@ export default function AdminDashboard() {
                         <h1 className="text-3xl font-bold text-gray-900">Workspaces (Tenants)</h1>
                         <p className="text-gray-500 mt-1">Gestiona los clientes y sus credenciales de Retell AI.</p>
                     </div>
+                    <button
+                        onClick={handleSyncAll}
+                        disabled={isSyncing}
+                        className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                    >
+                        {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Settings className="w-5 h-5" />}
+                        Sincronizar Agentes (Global)
+                    </button>
                 </div>
+
+                {syncMessage && (
+                    <div className="bg-green-50 text-green-700 p-4 rounded-md mb-6 border border-green-200 flex justify-between items-center">
+                        <span>{syncMessage.text}</span>
+                        <button onClick={() => setSyncMessage(null)} className="text-green-900 hover:text-green-700">×</button>
+                    </div>
+                )}
 
                 {error && (
                     <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6 border border-red-200">

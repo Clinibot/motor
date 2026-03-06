@@ -32,10 +32,8 @@ export default function AgentsPage() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
-    const [isSyncing, setIsSyncing] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const [syncMessage, setSyncMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
     // Testing State
     const [testAgent, setTestAgent] = useState<Agent | null>(null);
@@ -152,30 +150,6 @@ export default function AgentsPage() {
         const supabase = createClient();
         await supabase.auth.signOut();
         router.push('/login');
-    };
-
-    const handleSyncAll = async () => {
-        if (!window.confirm("¿Deseas actualizar el prompt de todos tus agentes con la nueva estructura de herramientas?")) {
-            return;
-        }
-
-        setIsSyncing(true);
-        setSyncMessage(null);
-        try {
-            const response = await fetch('/api/retell/sync-agents', { method: 'POST' });
-            const data = await response.json();
-            if (data.success) {
-                setSyncMessage({ text: `Se han actualizado ${data.updated} agentes correctamente.`, type: 'success' });
-                loadData();
-            } else {
-                setSyncMessage({ text: `Error al sincronizar: ${data.error}`, type: 'error' });
-            }
-        } catch (error) {
-            console.error("Error syncing agents:", error);
-            setSyncMessage({ text: "Ocurrió un error al intentar sincronizar los agentes.", type: 'error' });
-        } finally {
-            setIsSyncing(false);
-        }
     };
 
     const handleDelete = async (id: string, name: string) => {
@@ -351,16 +325,6 @@ export default function AgentsPage() {
                         <h1>Mis agentes IA</h1>
                     </div>
                     <div className="topbar-right">
-                        <button onClick={handleSyncAll} className="btn-secondary" disabled={isSyncing} style={{ padding: '10px 16px' }}>
-                            {isSyncing ? (
-                                <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', marginBottom: 0, marginRight: '8px' }} />
-                            ) : (
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                            )}
-                            Sincronizar todos
-                        </button>
                         <button onClick={handleCreateAgent} className="btn-primary">
                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -402,19 +366,6 @@ export default function AgentsPage() {
                 </header>
 
                 <div className="content" style={{ position: 'relative' }}>
-                    {syncMessage && (
-                        <div style={{
-                            background: syncMessage.type === 'success' ? '#f0fdf4' : '#fff1f2',
-                            border: `1px solid ${syncMessage.type === 'success' ? '#bbf7d0' : '#fca5a5'}`,
-                            borderRadius: '10px',
-                            padding: '14px 20px', marginBottom: '20px', display: 'flex',
-                            alignItems: 'center', justifyContent: 'space-between', gap: '12px',
-                            fontSize: '14px', color: syncMessage.type === 'success' ? '#16a34a' : '#dc2626', fontWeight: 500,
-                        }}>
-                            <span>{syncMessage.text}</span>
-                            <button onClick={() => setSyncMessage(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: '18px', lineHeight: 1 }}>×</button>
-                        </div>
-                    )}
                     {deleteError && (
                         <div style={{
                             background: '#fff1f2', border: '1px solid #fca5a5', borderRadius: '10px',
