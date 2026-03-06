@@ -260,6 +260,29 @@ const formatUrlForTTS = (url: string) => {
         .trim();
 };
 
+const cleanPromptForDeployment = (prompt: string) => {
+    if (!prompt) return '';
+    return prompt
+        // Eliminar comentarios de sincronización
+        .replace(/<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/g, (match) => {
+            return match
+                .replace(/<!-- AUTO_TOOLS_START -->/g, '')
+                .replace(/<!-- AUTO_TOOLS_END -->/g, '')
+                .trim();
+        })
+        .replace(/<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g, (match) => {
+            return match
+                .replace(/<!-- AUTO_KB_START -->/g, '')
+                .replace(/<!-- AUTO_KB_END -->/g, '')
+                .trim();
+        })
+        // Eliminar cualquier otro comentario HTML que pudiera quedar
+        .replace(/<!--[\s\S]*?-->/g, '')
+        // Normalizar espacios en blanco (máximo 2 saltos de línea)
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+};
+
 export const Step8_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const { setStep, prevStep, updateField } = wizardData;
@@ -343,14 +366,14 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
 
         const toolsInnerContent = toolsContentArr.join('\n\n');
         const toolsSection = toolsInnerContent
-            ? `\n\n<!-- AUTO_TOOLS_START -->\n# Uso de herramientas\n${toolsInnerContent}\n<!-- AUTO_TOOLS_END -->`
+            ? `\n\n<!-- AUTO_TOOLS_START -->\n# Uso de herramientas\n${toolsInnerContent}\n<!-- AUTO_TOOLS_END -->\n`
             : '';
 
         const kbInnerContent = wizardData.kbFiles.length > 0
             ? `# Base de Conocimientos\nConsulta los documentos para resolver dudas sobre los servicios.`
             : '';
         const kbSection = kbInnerContent
-            ? `\n\n<!-- AUTO_KB_START -->\n${kbInnerContent}\n<!-- AUTO_KB_END -->`
+            ? `\n\n<!-- AUTO_KB_START -->\n${kbInnerContent}\n<!-- AUTO_KB_END -->\n`
             : '';
 
         let finalPrompt = '';
@@ -504,14 +527,19 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         let currentPromptValue = wizardData.prompt;
         if (editingAgentId) {
             currentPromptValue = getUpdatedPrompt();
-            updateField('prompt', currentPromptValue);
         }
+
+        // LIMPIEZA CRÍTICA: Eliminar marcadores y espacios extra antes de enviar a Retell
+        const cleanedPrompt = cleanPromptForDeployment(currentPromptValue);
+
+        // Sincronizar el prompt limpio de vuelta al store (opcional, pero recomendado)
+        updateField('prompt', cleanedPrompt);
 
         const missing = [];
         if (!wizardData.agentName) missing.push('Nombre del agente');
         if (!wizardData.model) missing.push('Modelo LLM');
         if (!wizardData.voiceId) missing.push('Voz');
-        if (!currentPromptValue || currentPromptValue.length < 50) missing.push('Prompt (necesitas generarlo)');
+        if (!cleanedPrompt || cleanedPrompt.length < 50) missing.push('Prompt (necesitas generarlo)');
 
         if (missing.length > 0) {
             setErrorMessage(`Faltan campos obligatorios: ${missing.join(', ')}`);
@@ -522,8 +550,8 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         try {
             const method = editingAgentId ? 'PATCH' : 'POST';
             const bodyObj = editingAgentId
-                ? { ...wizardData, id: editingAgentId, prompt: currentPromptValue }
-                : wizardData;
+                ? { ...wizardData, id: editingAgentId, prompt: cleanedPrompt }
+                : { ...wizardData, prompt: cleanedPrompt };
 
             const response = await fetch('/api/retell/agent', {
                 method,
