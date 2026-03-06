@@ -334,44 +334,56 @@ export const Step8_Summary: React.FC = () => {
         // Bloques de herramientas y KB para la previsualización con marcadores para evitar bucles
         const toolsContentArr: string[] = [];
         if (wizardData.enableCalBooking && wizardData.calApiKey) {
-            toolsContentArr.push(`## Agenda y Disponibilidad (Cal.com)
-Tienes acceso a una herramienta para consultar huecos disponibles. Úsala cuando el usuario quiera reservar, pregunte por horarios o quiera agendar una visita.
+            toolsContentArr.push(`# GESTIÓN DE AGENDA Y DISPONIBILIDAD
 
-#### Cómo presentar los resultados:
+Tienes acceso a dos herramientas para gestionar citas: \`check_availability\` y \`book_appointment\`. Úsalas siempre que el usuario quiera reservar, pregunte por horarios o quiera agendar una visita.
 
-**OFERTA INICIAL (primer contacto):**
-Selecciona los 2 huecos más próximos priorizando diversidad horaria:
-1. Toma el hueco más cercano.
-2. Para el segundo, prefiere la tarde (12:00 a 20:00) si el primero fue por la mañana; si no, el siguiente disponible.
-3. Preséntalos de forma natural: "Tenemos disponibilidad el [hueco 1] y [hueco 2]. ¿Cuál te viene mejor?"
+## HORARIO COMERCIAL — REGLA CRÍTICA
+Antes de ofrecer cualquier hueco, filtra los resultados por el horario de apertura de la empresa (ver sección "# Horario comercial" más abajo). La herramienta puede devolver slots en zonas horarias incorrectas. Ignora y descarta automáticamente cualquier hueco que caiga fuera del horario indicado. Nunca menciones, ofrezcas ni confirmes un hueco fuera de ese horario, aunque la herramienta lo devuelva.
 
-**CUANDO EL USUARIO PIDE MÁS OPCIONES:**
-Si el usuario dice "¿no tenéis otra cosa?", "¿y otro día?", "¿algo más tarde?" o similar, presenta TODOS los huecos disponibles agrupados por día.
+## CÓMO HABLAR DE FECHAS Y HORAS
+Nunca uses números para expresar horas. Habla siempre de forma natural y coloquial en español. Los días los dices con palabras, como "martes dieciocho" o "miércoles diecinueve". Las horas las dices siempre en palabras: "a las tres de la tarde", "a las diez de la mañana", "a la una del mediodía". Cuando la hora es en punto, no digas los minutos. Cuando son y media, dices "y media". La una siempre es "la una", nunca "un". Para la franja horaria usa: de la mañana para horas entre las cero y las once y cincuenta y nueve, del mediodía para las doce, de la tarde para horas entre las doce y media y las siete y cincuenta y nueve, y de la noche para las ocho en adelante.
 
-#### Reglas de formato (Habla natural):
-- Idioma: Español coloquial.
-- Días: "martes dieciocho", "miércoles diecinueve".
-- Horas: SIEMPRE con palabras, nunca números (una, dos, tres...).
-- Formato horario:
-  - 00:00–11:59 → "de la mañana"
-  - 12:00 → "del mediodía"
-  - 12:30–19:59 → "de la tarde"
-  - 20:00–23:59 → "de la noche"
-- 1:00 → SIEMPRE "la una" (nunca "un").
-- :30 → "y media" | :00 → omite los minutos.
-- Ejemplo mismo día: "a las diez de la mañana y a las tres de la tarde".
+## ESCENARIO 1 — EL USUARIO PIDE UNA FECHA Y HORA CONCRETAS
+Ejecuta \`check_availability\` con esos datos exactos.
+- Si está libre: confírmale de forma natural que está disponible y pasa a recoger los datos para la reserva antes de ejecutar \`book_appointment\`.
+- Si no está libre: ejecuta \`check_availability\` dos veces más — una para buscar otro hueco ese mismo día, otra para buscar esa misma hora al día siguiente. Preséntale ambas alternativas y espera que elija.
+- Si ninguna encaja: pregúntale si quieres buscar en otro rango y aplica el Escenario 3.
 
-#### CRÍTICO - Filtrado por Horario Comercial:
-NUNCA ofrezcas huecos que estén fuera de nuestro "# Horario comercial". La herramienta podría devolver horas en una zona horaria incorrecta (ej. a las 7 de la mañana cuando abrimos a las 9). Omite automáticamente e ignora cualquier hueco devuelto por la agenda que caiga fuera de las horas en las que estamos abiertos.
+## ESCENARIO 2 — EL USUARIO SOLO DA UNA FECHA SIN HORA
+Pregúntale si prefiere mañana o tarde. Ejecuta \`check_availability\` para ese día filtrando por la franja elegida. Selecciona los dos huecos más cercanos y preséntaselos. Cuando confirme, recoge los datos y ejecuta \`book_appointment\`.
 
-#### Disponibilidad Completa (agrupada):
-Agrupa huecos de 30 minutos consecutivos en rangos: "entre las [inicio] y las [fin]".
-Un salto de tiempo rompe el rango. Usa ", y también" para conectar rangos del mismo día.
-Hueco único: "solo tenemos disponibilidad a las [hora]".
+Si no hay huecos ese día, busca el siguiente con \`check_availability\` e informa del cambio de día antes de ofrecer opciones.
 
-**Si no hay disponibilidad válida:** "Ahora mismo no tenemos huecos libres en los próximos días. ¿Quieres que te llame alguien del equipo para buscar una fecha?"
+## ESCENARIO 3 — EL USUARIO DA UN RANGO O NO TIENE FECHA FIJA
+Pregunta primero si prefiere mañana o tarde (si no lo ha dicho). Ejecuta \`check_availability\` sobre el rango completo. Filtra por horario comercial y franja elegida. Selecciona los dos huecos más próximos priorizando diversidad horaria (si el primero es de mañana, el segundo de tarde, y viceversa).
 
-**Tras elegir hueco:** Confirma el día y hora claramente y empieza a pedir los datos obligatorios para reservar (uno por uno): nombre completo, email, teléfono, y un breve resumen de lo que necesita. Ejemplo: "Perfecto, te apunto el [día] a las [hora]. Para confirmar la cita, ¿me dices tu nombre completo?"`);
+Preséntaselos así: "Tenemos disponibilidad el [hueco 1] y el [hueco 2]. ¿Cuál te viene mejor?"
+
+Si el usuario pide más opciones ("¿no tenéis otra cosa?", "¿y otro día?", "¿algo más tarde?"...), presenta todos los huecos disponibles agrupados por día.
+
+## ESCENARIO 4 — EL USUARIO QUIERE CANCELAR O CAMBIAR UNA CITA
+Indícale que para cancelaciones o modificaciones debe contactar directamente con el equipo, ya que no tienes herramienta para esa acción. Ofrécete a reservar una nueva cita si lo necesita.
+
+## ESCENARIO 5 — LA HERRAMIENTA NO DEVUELVE RESULTADOS O DA ERROR
+Si \`check_availability\` no devuelve huecos: "En ese período no tenemos huecos disponibles. ¿Quieres que busque en otra franja o en otra semana?"
+Si hay error técnico, discúlpate brevemente y pide que repita los datos. No uses palabras como "error" o "fallo del sistema". Usa frases como "no me ha llegado bien esa información, ¿me lo repites?"
+
+## RECOGIDA DE DATOS ANTES DE RESERVAR
+Una vez confirmado el hueco, recoge los datos en este orden, de uno en uno y esperando respuesta antes de preguntar lo siguiente:
+1. Nombre completo: "¿Me dices tu nombre completo para la reserva?"
+2. Email: "¿Y tu correo electrónico?"
+3. Motivo de la cita: "¿Cuál es el motivo de la visita?"
+
+El teléfono del usuario se envía automáticamente como {{user_number}}, no lo preguntes.
+
+## CONFIRMACIÓN FINAL ANTES DE RESERVAR
+Antes de ejecutar \`book_appointment\`, confirma todos los datos en voz alta:
+"Entonces te reservo el [día] a las [hora], a nombre de [nombre completo], con el correo [email] y el motivo [motivo]. ¿Es todo correcto?"
+Solo ejecuta \`book_appointment\` cuando el usuario confirme afirmativamente.
+
+## REGLA GENERAL
+Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca inventes ni supongas disponibilidad. Habla siempre de forma cercana, natural y en español coloquial.`);
         }
         if (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) {
             const transfers = wizardData.transferDestinations
