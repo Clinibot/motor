@@ -142,11 +142,7 @@ export default function NumbersPage() {
 
     useEffect(() => { loadData(); }, [loadData]);
 
-    const saveToLocalStorage = (newList: PhoneNumber[]) => {
-        if (user?.workspace_id) {
-            localStorage.setItem(`phone_numbers_${user.workspace_id}`, JSON.stringify(newList));
-        }
-    };
+
 
     const handleAssignAgent = async (numberId: string, retellAgentId: string) => {
         setIsUpdatingId(numberId);

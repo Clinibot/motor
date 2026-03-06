@@ -227,7 +227,7 @@ export default function DashboardPage() {
             });
             chartsInstances.current.push(c);
         }
-    }, [chartJsReady, isLoading, calls, agents]);
+    }, [chartJsReady, isLoading, calls, agents, customDateRange, timeFilter]);
 
     // ---- Stats computed from real data ----
     const totalCalls = calls.length;

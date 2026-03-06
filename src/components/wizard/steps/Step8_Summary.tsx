@@ -318,8 +318,7 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         return finalPrompt;
     }, [
         wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
-        wizardData.kbUsageInstructions, wizardData.kbFiles, wizardData.enableTransfer,
-        wizardData.transferDestinations, wizardData.prompt, wizardData.businessHours,
+        wizardData.prompt, wizardData.businessHours,
         wizardData.personality, wizardData.tone, wizardData.extractionVariables,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite
     ]);
