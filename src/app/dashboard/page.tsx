@@ -20,6 +20,7 @@ interface Call {
     call_analysis: {
         user_sentiment?: string;
         call_successful?: boolean;
+        call_summary?: string;
         custom_variables?: Record<string, unknown>;
     } | null;
     customer_number: string | null;
@@ -717,29 +718,22 @@ export default function DashboardPage() {
                                                                                     </div>
                                                                                 </div>
 
-                                                                                {/* RIGHT COLUMN: COSTS & POST-DATA */}
+                                                                                {/* RIGHT COLUMN: SUMMARY & CUSTOM DATA */}
                                                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                                                                    {call.cost_breakdown && (
+                                                                                    {/* SUMMARY SECTION */}
+                                                                                    {call.call_analysis?.call_summary && (
                                                                                         <div>
-                                                                                            <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '12px' }}>Desglose de Costes</h4>
-                                                                                            <div className="cost-list" style={{ background: '#f8fafc', borderRadius: '8px', padding: '12px', border: '1px solid #e2e8f0' }}>
-                                                                                                {call.cost_breakdown.product_costs?.map((p, i: number) => (
-                                                                                                    <div key={i} className="cost-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px', borderBottom: i === (call.cost_breakdown?.product_costs?.length || 0) - 1 ? 'none' : '1px solid #e2e8f0' }}>
-                                                                                                        <span style={{ color: '#475569' }}>{p.product}</span>
-                                                                                                        <span style={{ fontWeight: 600 }}>€{(p.cost / 100).toFixed(4)}</span>
-                                                                                                    </div>
-                                                                                                ))}
-                                                                                                <div className="cost-item" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', marginTop: '4px', display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px' }}>
-                                                                                                    <span style={{ fontWeight: 600 }}>Coste Total</span>
-                                                                                                    <span style={{ fontWeight: 700, color: '#267ab0' }}>€{Number(call.call_cost).toFixed(3)}</span>
-                                                                                                </div>
+                                                                                            <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '12px' }}>Resumen de la Llamada</h4>
+                                                                                            <div style={{ background: '#fff', padding: '16px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', lineHeight: '1.6', color: '#374151' }}>
+                                                                                                {call.call_analysis.call_summary}
                                                                                             </div>
                                                                                         </div>
                                                                                     )}
 
-                                                                                    {call.call_analysis?.custom_variables && Object.keys(call.call_analysis.custom_variables).length > 0 && (
-                                                                                        <div>
-                                                                                            <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '12px' }}>Datos Extraídos (Post-Call)</h4>
+                                                                                    {/* CUSTOM DATA SECTION (PREVIOUSLY EXTRACTED DATA) */}
+                                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                                                        <h4 className="details-section-title" style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '0px' }}>Datos Extraídos</h4>
+                                                                                        {call.call_analysis?.custom_variables && Object.keys(call.call_analysis.custom_variables).length > 0 ? (
                                                                                             <div className="post-data-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
                                                                                                 {Object.entries(call.call_analysis.custom_variables).map(([key, value]) => (
                                                                                                     <div key={key} className="post-data-card" style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
@@ -748,8 +742,12 @@ export default function DashboardPage() {
                                                                                                     </div>
                                                                                                 ))}
                                                                                             </div>
-                                                                                        </div>
-                                                                                    )}
+                                                                                        ) : (
+                                                                                            <div style={{ fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', padding: '12px', background: '#f9fafb', borderRadius: '8px', border: '1px dotted #d1d5db' }}>
+                                                                                                No se extrajeron datos adicionales de esta llamada.
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                         </td>
