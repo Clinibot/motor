@@ -229,7 +229,7 @@ export const Step8_Summary: React.FC = () => {
         };
         const langStr = langMap[wizardData.language] || 'español';
 
-        // Bloques de herramientas y KB para la previsualización
+        // Bloques de herramientas y KB para la previsualización con marcadores para evitar bucles
         const toolsContentArr: string[] = [];
         if (wizardData.enableCalBooking && wizardData.calApiKey) {
             toolsContentArr.push(`## Agenda\n- Gestiona citas usando las herramientas de Cal.com.\n- Propon 2 huecos variados inicialmente.`);
@@ -240,12 +240,17 @@ export const Step8_Summary: React.FC = () => {
                 .join('\n');
             toolsContentArr.push(`## Transferencias\n${transfers}`);
         }
-        const toolsContent = toolsContentArr.length > 0
-            ? `\n# Uso de herramientas\n${toolsContentArr.join('\n\n')}`
+
+        const toolsInnerContent = toolsContentArr.join('\n\n');
+        const toolsSection = toolsInnerContent
+            ? `\n\n<!-- AUTO_TOOLS_START -->\n# Uso de herramientas\n${toolsInnerContent}\n<!-- AUTO_TOOLS_END -->`
             : '';
 
-        const kbContent = wizardData.kbFiles.length > 0
-            ? `\n# Base de Conocimientos\nConsulta los documentos para resolver dudas sobre los servicios.`
+        const kbInnerContent = wizardData.kbFiles.length > 0
+            ? `# Base de Conocimientos\nConsulta los documentos para resolver dudas sobre los servicios.`
+            : '';
+        const kbSection = kbInnerContent
+            ? `\n\n<!-- AUTO_KB_START -->\n${kbInnerContent}\n<!-- AUTO_KB_END -->`
             : '';
 
         let finalPrompt = '';
@@ -257,23 +262,24 @@ export const Step8_Summary: React.FC = () => {
 
             const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/;
             if (toolsRegex.test(finalPrompt)) {
-                finalPrompt = finalPrompt.replace(toolsRegex, toolsContent.trim());
-            } else if (toolsContent) {
+                // Solo reemplazamos si el contenido de las herramientas es diferente (sin contar markers)
+                finalPrompt = finalPrompt.replace(toolsRegex, toolsSection.trim());
+            } else if (toolsSection) {
                 if (finalPrompt.includes('### Despedida')) {
-                    finalPrompt = finalPrompt.replace('### Despedida', `${toolsContent}\n\n### Despedida`);
+                    finalPrompt = finalPrompt.replace('### Despedida', `${toolsSection.trim()}\n\n### Despedida`);
                 } else {
-                    finalPrompt += `\n\n${toolsContent}`;
+                    finalPrompt += `\n\n${toolsSection.trim()}`;
                 }
             }
 
             const kbRegex = /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/;
             if (kbRegex.test(finalPrompt)) {
-                finalPrompt = finalPrompt.replace(kbRegex, kbContent.trim());
-            } else if (kbContent) {
+                finalPrompt = finalPrompt.replace(kbRegex, kbSection.trim());
+            } else if (kbSection) {
                 if (finalPrompt.includes('# Información de Contacto')) {
-                    finalPrompt = finalPrompt.replace('# Información de Contacto', `${kbContent}\n\n# Información de Contacto`);
+                    finalPrompt = finalPrompt.replace('# Información de Contacto', `${kbSection.trim()}\n\n# Información de Contacto`);
                 } else {
-                    finalPrompt += `\n\n${kbContent}`;
+                    finalPrompt += `\n\n${kbSection.trim()}`;
                 }
             }
         } else {
@@ -306,7 +312,7 @@ ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferenci
 2. Interésate por las necesidades del cliente.
 3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural.
 `}
-${toolsContent}
+${toolsSection.trim()}
 
 ${wizardData.extractionVariables.length > 0 ? `### Datos a Extraer
 ${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.description}`).join('\n')}
@@ -315,7 +321,7 @@ ${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.desc
 ### Despedida
 Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete cordialmente.
 
-${kbContent}
+${kbSection.trim()}
 
 # Información de Contacto y Horarios
 - Dirección: ${wizardData.companyAddress || 'No especificada'}
