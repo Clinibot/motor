@@ -178,6 +178,7 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
             name: v.name,
             type: v.type as 'string' | 'boolean' | 'number',
             description: v.description,
+            required: true,
         }));
 }
 
