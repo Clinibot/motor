@@ -464,34 +464,26 @@ Tu misión es atender las llamadas de forma humana, cálida y eficiente, evitand
 ## Tareas Principales
 ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferencia
 1. Entiende el motivo de la llamada.
-2. Si es necesario, informa que vas a transferir la llamada a un compañero.
-` : wizardData.agentType === 'agendamiento' ? `### Agendamiento
+2. Si es necesario, informa que vas a transferir la llamada a un compañero.` : wizardData.agentType === 'agendamiento' ? `### Agendamiento
 1. Resuelve dudas sobre los servicios.
 2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas de agenda.
 3. Sigue estrictamente las reglas de presentación de huecos (oferta inicial vs más opciones).
-4. Pide nombre y datos necesarios para confirmar una vez elegido el hueco.
-` : `### Resolución y Cualificación
+4. Pide nombre y datos necesarios para confirmar una vez elegido el hueco.` : `### Resolución y Cualificación
 1. Resuelve dudas sobre ${company}.
 2. Interésate por las necesidades del cliente.
-3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural en la charla.
-`}
+3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural en la charla.`}
 
-${toolsSection.trim()}
-
-${wizardData.extractionVariables.length > 0 ? `### Datos a Extraer
-${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.description}`).join('\n')}
-` : ''}
+${toolsSection.trim() ? `${toolsSection.trim()}` : ''}
+${wizardData.extractionVariables.length > 0 ? `\n### Datos a Extraer
+${wizardData.extractionVariables.map(v => `- **${v.name}** (${v.type}): ${v.description}`).join('\n')}` : ''}
 
 ### Despedida
 Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete cordialmente.
-
-${kbSection.trim()}
-
-${companySection.trim()}
+${kbSection.trim() ? `\n${kbSection.trim()}` : ''}
+${companySection.trim() ? `\n${companySection.trim()}` : ''}
 
 # Reglas de Terminación
-Si el usuario se despide o no necesita nada más, despídete y usa la herramienta 'end_call' inmediatamente.
-`.trim();
+Si el usuario se despide o no necesita nada más, despídete y usa la herramienta 'end_call' inmediatamente.`.replace(/\n{3,}/g, '\n\n').trim();
         }
         return finalPrompt;
     }, [
