@@ -418,6 +418,9 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
         if (currentPrompt && currentPrompt !== 'Eres un asistente útil.') {
             finalPrompt = currentPrompt;
 
+            // Retrocompatibilidad: Limpiar el bloque antiguo de "Datos a Extraer" si quedó huérfano en el estado
+            finalPrompt = finalPrompt.replace(/\n*### Datos a Extraer[\s\S]*?(?=### Despedida|$)/g, '\n\n');
+
             const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/;
             if (toolsRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(toolsRegex, toolsSection.trim());
