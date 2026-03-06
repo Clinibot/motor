@@ -68,7 +68,18 @@ export async function POST(request: Request) {
             }
         };
 
-        const retellResponse = await retellClient.phoneNumber.import(importPayload);
+        let retellResponse;
+        try {
+            retellResponse = await retellClient.phoneNumber.import(importPayload);
+        } catch (error: any) {
+            // Si el número ya está importado en Retell (Error 409 o similar), intentamos recuperarlo
+            if (error.status === 409 || (error.message && error.message.includes("already exists"))) {
+                console.log("Number already exists in Retell, fetching existing one:", phone_number);
+                retellResponse = await retellClient.phoneNumber.retrieve(phone_number);
+            } else {
+                throw error;
+            }
+        }
 
         // 3. Persistir en nuestra base de datos (Supabase)
         // Buscamos o creamos una clínica para este workspace si no existe
@@ -80,7 +91,7 @@ export async function POST(request: Request) {
             .select('id')
             .eq('user_id', session.user.id)
             .limit(1)
-            .maybeSingle(); // Usamos maybeSingle para evitar error si no hay resultados
+            .maybeSingle();
 
         if (existingClinic) {
             clinicId = existingClinic.id;
@@ -97,27 +108,31 @@ export async function POST(request: Request) {
 
             if (clinicError) {
                 console.error("Error creating clinic:", clinicError);
-                // Si falla crear la clínica, intentamos seguir sin ella si la tabla lo permite, 
-                // pero según el esquema parece requerida.
             } else {
                 clinicId = newClinic.id;
             }
         }
 
         if (clinicId) {
-            // NOTA: nickname no existe en la tabla phone_numbers según el esquema
             const { error: dbError } = await supabaseAdmin
                 .from('phone_numbers')
                 .insert({
                     clinic_id: clinicId,
                     phone_number: retellResponse.phone_number,
+                    nickname: nickname || phone_number,
+                    country: 'Spain', // Valor requerido por constraint
                     status: 'active'
                 });
 
             if (dbError) {
                 console.error("Error persisting phone number to DB:", dbError);
-                // No fallamos el request si Retell tuvo éxito, pero logueamos el error
+                // Si ya existe en nuestra DB, no es un error crítico
+                if (dbError.code !== '23505') {
+                    return NextResponse.json({ success: false, error: `Error saving to DB: ${dbError.message}` }, { status: 500 });
+                }
             }
+        } else {
+            return NextResponse.json({ success: false, error: "No se pudo asociar a una clínica" }, { status: 500 });
         }
 
         return NextResponse.json({
