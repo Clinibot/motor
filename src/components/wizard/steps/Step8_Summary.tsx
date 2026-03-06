@@ -376,12 +376,15 @@ Si el usuario dice "¿no tenéis otra cosa?", "¿y otro día?", "¿algo más tar
 - :30 → "y media" | :00 → omite los minutos.
 - Ejemplo mismo día: "a las diez de la mañana y a las tres de la tarde".
 
+### CRÍTICO - Filtrado por Horario Comercial:
+NUNCA ofrezcas huecos que estén fuera de nuestro "# Horario comercial". La herramienta podría devolver horas en una zona horaria incorrecta (ej. a las 7 de la mañana cuando abrimos a las 9). Omite automáticamente e ignora cualquier hueco devuelto por la agenda que caiga fuera de las horas en las que estamos abiertos.
+
 ### Disponibilidad Completa (agrupada):
 Agrupa huecos de 30 minutos consecutivos en rangos: "entre las [inicio] y las [fin]".
 Un salto de tiempo rompe el rango. Usa ", y también" para conectar rangos del mismo día.
 Hueco único: "solo tenemos disponibilidad a las [hora]".
 
-**Si no hay disponibilidad:** "Ahora mismo no tenemos huecos libres en los próximos días. ¿Quieres que te llame alguien del equipo para buscar una fecha?"
+**Si no hay disponibilidad válida:** "Ahora mismo no tenemos huecos libres en los próximos días. ¿Quieres que te llame alguien del equipo para buscar una fecha?"
 
 **Tras elegir hueco:** Confirma el día y hora claramente antes de reservar: "Perfecto, te apunto el [día] a las [hora]. ¿Me confirmas tu nombre completo?"`);
         }
