@@ -197,6 +197,41 @@ function SummaryCard({
     );
 }
 
+const formatTimeToSpanishWords = (timeStr: string) => {
+    if (!timeStr) return '';
+    const [hoursStr, minutesStr] = timeStr.split(':');
+    const hours = parseInt(hoursStr);
+    const minutes = parseInt(minutesStr);
+
+    let hourWord = '';
+    const hoursMap: Record<number, string> = {
+        0: 'las doce de la noche', 1: 'la una de la mañana', 2: 'las dos de la mañana', 3: 'las tres de la mañana',
+        4: 'las cuatro de la mañana', 5: 'las cinco de la mañana', 6: 'las seis de la mañana', 7: 'las siete de la mañana',
+        8: 'las ocho de la mañana', 9: 'las nueve de la mañana', 10: 'las diez de la mañana', 11: 'las once de la mañana',
+        12: 'las doce del mediodía', 13: 'la una de la tarde', 14: 'las dos de la tarde', 15: 'las tres de la tarde',
+        16: 'las cuatro de la tarde', 17: 'las cinco de la tarde', 18: 'las seis de la tarde', 19: 'las siete de la tarde',
+        20: 'las ocho de la tarde', 21: 'las nueve de la noche', 22: 'las diez de la noche', 23: 'las once de la noche'
+    };
+
+    hourWord = hoursMap[hours] || `${hours}`;
+
+    if (minutes === 0) return hourWord;
+    if (minutes === 30) return `${hourWord} y media`;
+    if (minutes === 15) return `${hourWord} y cuarto`;
+
+    return `${hourWord} y ${minutes} minutos`;
+};
+
+const formatPhoneForTTS = (phone: string) => {
+    if (!phone) return '';
+    return phone
+        .replace(/\+/g, 'más ')
+        .split('')
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
 export const Step8_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const { setStep, prevStep, updateField } = wizardData;
@@ -215,7 +250,7 @@ export const Step8_Summary: React.FC = () => {
         const name = wizardData.agentName || 'Sofía';
         const company = wizardData.companyName || 'nuestra empresa';
         const formattedHours = wizardData.businessHours
-            .map(h => `- ${h.day}: ${h.closed ? 'Cerrado' : `de ${h.open} a ${h.close}`}`)
+            .map(h => `- ${h.day}: ${h.closed ? 'Cerrado' : `de ${formatTimeToSpanishWords(h.open)} a ${formatTimeToSpanishWords(h.close)}`}`)
             .join('\n');
         const personalityStr = wizardData.personality.length > 0
             ? `Tu personalidad es: ${wizardData.personality.join(', ')}.`
@@ -325,7 +360,7 @@ ${kbSection.trim()}
 
 # Información de Contacto y Horarios
 - Dirección: ${wizardData.companyAddress || 'No especificada'}
-- Teléfono: ${wizardData.companyPhone || 'No especificado'}
+- Teléfono: ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}
 - Web: ${wizardData.companyWebsite || 'No especificada'}
 
 ### Horarios comerciales:
