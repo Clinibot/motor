@@ -40,18 +40,21 @@ export async function GET() {
 
         if (callError) throw callError;
 
-        // 3. Fetch phone numbers (logic depends on how they are stored, 
-        // usually in a phone_numbers table or similar, 
-        // looking at previous context it seems they might be in 'agents' or a dedicated table)
-        // I'll try to fetch from 'agents' first as it's a common pattern in this project
-        const { data: agents, error: agentError } = await supabaseAdmin
-            .from('agents')
-            .select('workspace_id, configuration');
+        // 3. Fetch phone numbers via clinics
+        const { data: phoneNumbersData, error: phoneError } = await supabaseAdmin
+            .from('phone_numbers')
+            .select(`
+                phone_number,
+                clinics (
+                    user_id
+                )
+            `);
 
-        if (agentError) throw agentError;
+        if (phoneError) throw phoneError;
 
         // Process data
         const enhancedUsers = users?.map(user => {
+            const userId = user.id;
             const workspaceId = user.workspace_id;
 
             // Calculate total minutes for this workspace
@@ -59,11 +62,16 @@ export async function GET() {
             const totalMs = workspaceCalls.reduce((acc, call) => acc + (call.duration_ms || 0), 0);
             const totalMinutes = Math.floor(totalMs / 60000);
 
-            // Extract phone numbers from agents configuration in this workspace
-            const workspaceAgents = agents?.filter(a => a.workspace_id === workspaceId) || [];
-            const phoneNumbers = Array.from(new Set(
-                workspaceAgents
-                    .map(a => a.configuration?.phoneNumber)
+            // Extract phone numbers for this user via clinic association
+            const userPhoneNumbers = Array.from(new Set(
+                phoneNumbersData
+                    ?.filter(p => {
+                        const clinic = p.clinics as unknown as { user_id: string } | { user_id: string }[];
+                        return Array.isArray(clinic)
+                            ? clinic.some(c => c.user_id === userId)
+                            : (clinic as any)?.user_id === userId;
+                    })
+                    .map(p => p.phone_number)
                     .filter(Boolean)
             ));
 
@@ -74,12 +82,12 @@ export async function GET() {
                 : (workspaceData?.name || 'Sin Workspace');
 
             return {
-                id: user.id,
+                id: userId,
                 full_name: user.full_name,
                 email: user.email,
                 workspace_name: workspaceName,
-                workspace_id: user.workspace_id,
-                phone_numbers: phoneNumbers,
+                workspace_id: workspaceId,
+                phone_numbers: userPhoneNumbers,
                 total_minutes: totalMinutes,
                 calls_count: workspaceCalls.length
             };
