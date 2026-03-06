@@ -58,8 +58,8 @@ export default function NumbersPage() {
     }, [notification]);
 
     const handleAddNumber = async () => {
-        if (!newNumber.phone || !newNumber.termination_uri) {
-            alert("Por favor, rellena el número y la URI de terminación.");
+        if (!newNumber.phone || !newNumber.termination_uri || !newNumber.username || !newNumber.password) {
+            alert("Por favor, rellena todos los campos (Teléfono, URI, Usuario y Contraseña). Son necesarios para las transferencias.");
             return;
         }
 
@@ -531,7 +531,7 @@ export default function NumbersPage() {
                         </div>
 
                         <div className="form-group" style={{ marginBottom: '20px' }}>
-                            <label className="form-label" style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>Nombre de Usuario del Trunk SIP <span style={{ color: '#6b7280', fontWeight: 400 }}>(Opcional)</span></label>
+                            <label className="form-label" style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>Nombre de Usuario del Trunk SIP</label>
                             <input
                                 className="form-input"
                                 placeholder="Introduce el nombre de usuario del Trunk SIP"
@@ -542,7 +542,7 @@ export default function NumbersPage() {
                         </div>
 
                         <div className="form-group" style={{ marginBottom: '20px' }}>
-                            <label className="form-label" style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>Contraseña del Trunk SIP <span style={{ color: '#6b7280', fontWeight: 400 }}>(Opcional)</span></label>
+                            <label className="form-label" style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>Contraseña del Trunk SIP</label>
                             <input
                                 className="form-input"
                                 type="password"
