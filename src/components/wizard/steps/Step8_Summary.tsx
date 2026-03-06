@@ -403,15 +403,20 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
         if (currentPrompt && currentPrompt !== 'Eres un asistente útil.') {
             finalPrompt = currentPrompt;
 
-            // Retrocompatibilidad: Limpiar el bloque antiguo de "Datos a Extraer" si quedó huérfano en el estado
-            finalPrompt = finalPrompt.replace(/\n*### Datos a Extraer[\s\S]*?(?=### Despedida|$)/g, '\n\n');
+            // Retrocompatibilidad agresiva: Limpiar la basura residual del prompt (bloques duplicados o huérfanos sin marcadores)
+            for (let i = 0; i < 3; i++) {
+                finalPrompt = finalPrompt.replace(/\n*### Datos a Extraer[\s\S]*?(?=### Despedida|# Reglas de Terminación|<!--|$)/gi, '');
+                finalPrompt = finalPrompt.replace(/\n*# Uso de herramientas[\s\S]*?(?=### Despedida|# Reglas de Terminación|<!--|# Información de Contacto|$)/gi, '');
+                finalPrompt = finalPrompt.replace(/\n*# Información de Contacto[\s\S]*?(?=(?:# Reglas de Terminación|<!--|### Despedida|# Información de Contacto|- Información:|$))/gi, '');
+                finalPrompt = finalPrompt.replace(/\n*(?:### Horarios comerciales:|# Horario comercial:)[\s\S]*?(?=(?:# Reglas de Terminación|<!--|### Despedida|# Información de Contacto|- Información:|$))/gi, '');
+                finalPrompt = finalPrompt.replace(/\n*- Información:.*[\s\S]*?(?=(?:# Reglas de Terminación|<!--|### Despedida|# Información de Contacto|- Información:|$))/gi, '');
+            }
 
-            // Retrocompatibilidad: Limpiar el bloque antiguo de "Herramientas" que no tenía marcadores HTML
-            finalPrompt = finalPrompt.replace(/\n*# Uso de herramientas[\s\S]*?(?=(?:### Despedida|<!--|# Información de Contacto|# Reglas de Terminación|$))/g, '\n\n');
-
-            const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/;
+            const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*?<!-- AUTO_TOOLS_END -->/;
             if (toolsRegex.test(finalPrompt)) {
-                finalPrompt = finalPrompt.replace(toolsRegex, toolsSection.trim());
+                finalPrompt = finalPrompt.replace(toolsRegex, '___TEMP_TOOLS___');
+                finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_TOOLS_START -->[\s\S]*?<!-- AUTO_TOOLS_END -->/g, '');
+                finalPrompt = finalPrompt.replace('___TEMP_TOOLS___', () => toolsSection.trim());
             } else if (toolsSection) {
                 if (finalPrompt.includes('### Despedida')) {
                     finalPrompt = finalPrompt.replace('### Despedida', `${toolsSection.trim()}\n\n### Despedida`);
@@ -420,16 +425,20 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
                 }
             }
 
-            const kbRegex = /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/;
+            const kbRegex = /<!-- AUTO_KB_START -->[\s\S]*?<!-- AUTO_KB_END -->/;
             if (kbRegex.test(finalPrompt)) {
-                finalPrompt = finalPrompt.replace(kbRegex, kbSection.trim());
+                finalPrompt = finalPrompt.replace(kbRegex, '___TEMP_KB___');
+                finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_KB_START -->[\s\S]*?<!-- AUTO_KB_END -->/g, '');
+                finalPrompt = finalPrompt.replace('___TEMP_KB___', () => kbSection.trim());
             } else if (kbSection) {
                 finalPrompt += `\n\n${kbSection.trim()}`;
             }
 
-            const companyRegex = /<!-- AUTO_COMPANY_START -->[\s\S]*<!-- AUTO_COMPANY_END -->/;
+            const companyRegex = /<!-- AUTO_COMPANY_START -->[\s\S]*?<!-- AUTO_COMPANY_END -->/;
             if (companyRegex.test(finalPrompt)) {
-                finalPrompt = finalPrompt.replace(companyRegex, companySection.trim());
+                finalPrompt = finalPrompt.replace(companyRegex, '___TEMP_COMPANY___');
+                finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_COMPANY_START -->[\s\S]*?<!-- AUTO_COMPANY_END -->/g, '');
+                finalPrompt = finalPrompt.replace('___TEMP_COMPANY___', () => companySection.trim());
             } else {
                 // Si no hay marcadores de empresa, los inyectamos al final
                 finalPrompt += `\n\n${companySection.trim()}`;
