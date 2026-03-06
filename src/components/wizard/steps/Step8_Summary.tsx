@@ -369,12 +369,11 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
             ? `\n\n<!-- AUTO_TOOLS_START -->\n# Uso de herramientas\n${toolsInnerContent}\n<!-- AUTO_TOOLS_END -->\n`
             : '';
 
-        const kbInnerContent = wizardData.kbFiles.length > 0
-            ? `# Base de Conocimientos\nConsulta los documentos para resolver dudas sobre los servicios.`
-            : '';
         const kbSection = kbInnerContent
             ? `\n\n<!-- AUTO_KB_START -->\n${kbInnerContent}\n<!-- AUTO_KB_END -->\n`
             : '';
+
+        const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto y Horarios de ${company}\n- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}\n\n### Nuestros horarios comerciales (en lenguaje natural):\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
         let finalPrompt = '';
         const currentPrompt = wizardData.prompt || '';
@@ -398,11 +397,15 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
             if (kbRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(kbRegex, kbSection.trim());
             } else if (kbSection) {
-                if (finalPrompt.includes('# Información de Contacto')) {
-                    finalPrompt = finalPrompt.replace('# Información de Contacto', `${kbSection.trim()}\n\n# Información de Contacto`);
-                } else {
-                    finalPrompt += `\n\n${kbSection.trim()}`;
-                }
+                finalPrompt += `\n\n${kbSection.trim()}`;
+            }
+
+            const companyRegex = /<!-- AUTO_COMPANY_START -->[\s\S]*<!-- AUTO_COMPANY_END -->/;
+            if (companyRegex.test(finalPrompt)) {
+                finalPrompt = finalPrompt.replace(companyRegex, companySection.trim());
+            } else {
+                // Si no hay marcadores de empresa, los inyectamos al final
+                finalPrompt += `\n\n${companySection.trim()}`;
             }
         } else {
             finalPrompt = `
@@ -451,13 +454,7 @@ Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete
 
 ${kbSection.trim()}
 
-# Información de Contacto y Horarios de ${company}
-- Dirección: ${wizardData.companyAddress || 'No especificada'}
-- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}
-- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}
-
-### Nuestros horarios comerciales (en lenguaje natural):
-${formattedHours}
+${companySection.trim()}
 
 # Reglas de Terminación
 Si el usuario se despide o no necesita nada más, despídete y usa la herramienta 'end_call' inmediatamente.
