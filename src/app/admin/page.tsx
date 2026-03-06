@@ -11,6 +11,17 @@ interface Workspace {
     users_count?: number;
 }
 
+interface AdminUser {
+    id: string;
+    full_name: string | null;
+    email: string;
+    workspace_name: string;
+    workspace_id: string;
+    phone_numbers: string[];
+    total_minutes: number;
+    calls_count: number;
+}
+
 export default function AdminDashboard() {
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +33,7 @@ export default function AdminDashboard() {
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
     const [activeTab, setActiveTab] = useState<'workspaces' | 'users'>('workspaces');
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<AdminUser[]>([]);
 
     const fetchWorkspaces = async () => {
         setIsLoading(true);

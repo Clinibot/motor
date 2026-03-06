@@ -336,8 +336,7 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         wizardData.personality, wizardData.tone, wizardData.extractionVariables,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
-        wizardData.transferDestinations, wizardData.kbFiles,
-        wizardData.companyName // Already included above, but for clarity
+        wizardData.transferDestinations, wizardData.kbFiles
     ]);
 
     // Asegurar visibilidad del prompt
