@@ -145,24 +145,31 @@ export default function NumbersPage() {
 
 
 
-    const handleAssignAgent = async (numberId: string, retellAgentId: string) => {
+    const handleAssignAgent = async (numberId: string, phone: string, retellAgentId: string) => {
         setIsUpdatingId(numberId);
         try {
-            const supabase = createClient();
             const agentIdToAssign = retellAgentId === 'none' ? null : retellAgentId;
 
-            const { error } = await supabase
-                .from('phone_numbers')
-                .update({ assigned_inbound_agent_id: agentIdToAssign })
-                .eq('id', numberId);
+            const response = await fetch('/api/retell/phone-number/assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    number_id: numberId,
+                    phone_number: phone,
+                    retell_agent_id: agentIdToAssign,
+                    workspace_id: user?.workspace_id
+                })
+            });
 
-            if (error) throw error;
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Error al asignar agente");
 
             const newList = numbers.map(n => n.id === numberId ? { ...n, retell_agent_id: agentIdToAssign } : n);
             setNumbers(newList);
-        } catch (error) {
+            alert("Agente asignado con éxito en Retell y Base de Datos");
+        } catch (error: unknown) {
             console.error("Error updating agent assignment:", error);
-            alert("No se pudo actualizar la asignación.");
+            alert(`Error: ${(error as Error).message || "No se pudo actualizar la asignación."}`);
         } finally {
             setIsUpdatingId(null);
         }
@@ -404,7 +411,7 @@ export default function NumbersPage() {
                                                     <select
                                                         className="agent-selector"
                                                         value={num.retell_agent_id || 'none'}
-                                                        onChange={(e) => handleAssignAgent(num.id, e.target.value)}
+                                                        onChange={(e) => handleAssignAgent(num.id, num.phone_number, e.target.value)}
                                                         disabled={isUpdatingId === num.id}
                                                     >
                                                         <option value="none">Sin agente (Desactivado)</option>
