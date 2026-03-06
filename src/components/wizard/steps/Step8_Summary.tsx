@@ -312,7 +312,7 @@ export const Step8_Summary: React.FC = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const editingAgentId = wizardData.editingAgentId;
 
-    const getUpdatedPrompt = React.useCallback(() => {
+    const getUpdatedPrompt = React.useCallback((forceRebuild = false) => {
         const name = wizardData.agentName || 'Sofía';
         const company = wizardData.companyName || 'nuestra empresa';
         const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -413,7 +413,8 @@ Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca 
         const currentPrompt = wizardData.prompt || '';
 
         // Si ya hay un prompt y no es el por defecto, intentamos "Smart Update"
-        if (currentPrompt && currentPrompt !== 'Eres un asistente útil.') {
+        // EXCEPTO si forceRebuild=true (botón Regenerar): en ese caso reconstruimos desde cero
+        if (!forceRebuild && currentPrompt && currentPrompt !== 'Eres un asistente útil.') {
             finalPrompt = currentPrompt;
 
             // Retrocompatibilidad agresiva: Limpiar la basura residual del prompt (bloques duplicados o huérfanos sin marcadores)
@@ -549,7 +550,8 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
 
     const generateAllInstructions = () => {
         setIsGenerating(true);
-        const finalPrompt = getUpdatedPrompt();
+        // forceRebuild=true: siempre reconstruye el prompt desde cero, sin Smart Update
+        const finalPrompt = getUpdatedPrompt(true);
         setTimeout(() => {
             updateField('prompt', finalPrompt);
             setIsGenerating(false);
