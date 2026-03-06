@@ -224,10 +224,38 @@ const formatTimeToSpanishWords = (timeStr: string) => {
 
 const formatPhoneForTTS = (phone: string) => {
     if (!phone) return '';
-    return phone
-        .replace(/\+/g, 'más ')
+    // Eliminar +34 o 0034 al principio
+    let cleanPhone = phone.replace(/^\+34|^0034/, '');
+
+    // Convertir cada dígito en palabra para pronunciación clara
+    const digitWords: Record<string, string> = {
+        '0': 'cero', '1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro',
+        '5': 'cinco', '6': 'seis', '7': 'siete', '8': 'ocho', '9': 'nueve'
+    };
+
+    return cleanPhone
         .split('')
+        .map(d => digitWords[d] || d)
         .join(' ')
+        .trim();
+};
+
+const formatEmailForTTS = (email: string) => {
+    if (!email) return '';
+    return email
+        .replace(/@/g, ' arroba ')
+        .replace(/\./g, ' punto ')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
+const formatUrlForTTS = (url: string) => {
+    if (!url) return '';
+    return url
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .replace(/\//g, ' barra ')
+        .replace(/\./g, ' punto ')
         .replace(/\s+/g, ' ')
         .trim();
 };
@@ -249,9 +277,12 @@ export const Step8_Summary: React.FC = () => {
     const getUpdatedPrompt = React.useCallback(() => {
         const name = wizardData.agentName || 'Sofía';
         const company = wizardData.companyName || 'nuestra empresa';
+        const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
         const formattedHours = wizardData.businessHours
-            .map(h => `- ${h.day}: ${h.closed ? 'Cerrado' : `de ${formatTimeToSpanishWords(h.open)} a ${formatTimeToSpanishWords(h.close)}`}`)
+            .map(h => `- los ${h.day}: ${h.closed ? 'Estamos cerrados' : `${formatTimeToSpanishWords(h.open)} a ${formatTimeToSpanishWords(h.close)}`}`)
             .join('\n');
+
         const personalityStr = wizardData.personality.length > 0
             ? `Tu personalidad es: ${wizardData.personality.join(', ')}.`
             : 'Tienes una personalidad profesional y atenta.';
@@ -267,7 +298,41 @@ export const Step8_Summary: React.FC = () => {
         // Bloques de herramientas y KB para la previsualización con marcadores para evitar bucles
         const toolsContentArr: string[] = [];
         if (wizardData.enableCalBooking && wizardData.calApiKey) {
-            toolsContentArr.push(`## Agenda\n- Gestiona citas usando las herramientas de Cal.com.\n- Propon 2 huecos variados inicialmente.`);
+            toolsContentArr.push(`## Agenda y Disponibilidad (Cal.com)
+Tienes acceso a una herramienta para consultar huecos disponibles. Úsala cuando el usuario quiera reservar, pregunte por horarios o quiera agendar una visita.
+
+### Cómo presentar los resultados:
+
+**OFERTA INICIAL (primer contacto):**
+Selecciona los 2 huecos más próximos priorizando diversidad horaria:
+1. Toma el hueco más cercano.
+2. Para el segundo, prefiere la tarde (12:00 a 20:00) si el primero fue por la mañana; si no, el siguiente disponible.
+3. Preséntalos de forma natural: "Tenemos disponibilidad el [hueco 1] y [hueco 2]. ¿Cuál te viene mejor?"
+
+**CUANDO EL USUARIO PIDE MÁS OPCIONES:**
+Si el usuario dice "¿no tenéis otra cosa?", "¿y otro día?", "¿algo más tarde?" o similar, presenta TODOS los huecos disponibles agrupados por día.
+
+### Reglas de formato (Habla natural):
+- Idioma: Español coloquial.
+- Días: "martes dieciocho", "miércoles diecinueve".
+- Horas: SIEMPRE con palabras, nunca números (una, dos, tres...).
+- Formato horario:
+  - 00:00–11:59 → "de la mañana"
+  - 12:00 → "del mediodía"
+  - 12:30–19:59 → "de la tarde"
+  - 20:00–23:59 → "de la noche"
+- 1:00 → SIEMPRE "la una" (nunca "un").
+- :30 → "y media" | :00 → omite los minutos.
+- Ejemplo mismo día: "a las diez de la mañana y a las tres de la tarde".
+
+### Disponibilidad Completa (agrupada):
+Agrupa huecos de 30 minutos consecutivos en rangos: "entre las [inicio] y las [fin]".
+Un salto de tiempo rompe el rango. Usa ", y también" para conectar rangos del mismo día.
+Hueco único: "solo tenemos disponibilidad a las [hora]".
+
+**Si no hay disponibilidad:** "Ahora mismo no tenemos huecos libres en los próximos días. ¿Quieres que te llame alguien del equipo para buscar una fecha?"
+
+**Tras elegir hueco:** Confirma el día y hora claramente antes de reservar: "Perfecto, te apunto el [día] a las [hora]. ¿Me confirmas tu nombre completo?"`);
         }
         if (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) {
             const transfers = wizardData.transferDestinations
@@ -297,7 +362,6 @@ export const Step8_Summary: React.FC = () => {
 
             const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/;
             if (toolsRegex.test(finalPrompt)) {
-                // Solo reemplazamos si el contenido de las herramientas es diferente (sin contar markers)
                 finalPrompt = finalPrompt.replace(toolsRegex, toolsSection.trim());
             } else if (toolsSection) {
                 if (finalPrompt.includes('### Despedida')) {
@@ -319,6 +383,9 @@ export const Step8_Summary: React.FC = () => {
             }
         } else {
             finalPrompt = `
+# Contexto Temporal
+Fecha actual: ${today}. Úsala para orientar al cliente sobre días de la semana y citas.
+
 # Idioma
 Habla siempre en ${langStr}. No cambies de idioma a menos que el usuario lo solicite explícitamente.
 
@@ -329,7 +396,8 @@ Tu misión es atender las llamadas de forma humana, cálida y eficiente, evitand
 ## Estilo de Comunicación
 - ${personalityStr}
 - ${toneStr}
-- Frases cortas y directas.
+- Frases cortas y directas. No des rodeos.
+- Regla de oro: Habla siempre con palabras. Nunca uses dígitos para horas, teléfonos o fechas cuando respondas.
 - Empatía y escucha activa.
 - Nunca hagas más de una pregunta a la vez.
 - REGLA CRÍTICA: No repitas datos que el usuario ya ha dicho. Pasa a la siguiente tarea.
@@ -340,13 +408,15 @@ ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferenci
 2. Si es necesario, informa que vas a transferir la llamada a un compañero.
 ` : wizardData.agentType === 'agendamiento' ? `### Agendamiento
 1. Resuelve dudas sobre los servicios.
-2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas.
-3. Pide nombre y datos necesarios para confirmar.
+2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas de agenda.
+3. Sigue estrictamente las reglas de presentación de huecos (oferta inicial vs más opciones).
+4. Pide nombre y datos necesarios para confirmar una vez elegido el hueco.
 ` : `### Resolución y Cualificación
 1. Resuelve dudas sobre ${company}.
 2. Interésate por las necesidades del cliente.
-3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural.
+3. Si hay variables específicas a extraer, asegúrate de obtenerlas de forma natural en la charla.
 `}
+
 ${toolsSection.trim()}
 
 ${wizardData.extractionVariables.length > 0 ? `### Datos a Extraer
@@ -358,12 +428,12 @@ Antes de terminar, pregunta si hay algo más en lo que puedas ayudar. Despídete
 
 ${kbSection.trim()}
 
-# Información de Contacto y Horarios
+# Información de Contacto y Horarios de ${company}
 - Dirección: ${wizardData.companyAddress || 'No especificada'}
-- Teléfono: ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}
-- Web: ${wizardData.companyWebsite || 'No especificada'}
+- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}
+- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}
 
-### Horarios comerciales:
+### Nuestros horarios comerciales (en lenguaje natural):
 ${formattedHours}
 
 # Reglas de Terminación
