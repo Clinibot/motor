@@ -386,8 +386,9 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
             : '';
 
         const kbInnerContent = wizardData.kbFiles.length > 0
-            ? wizardData.kbFiles.map(f => `- Información: ${f.name}`).join('\n') +
-            (wizardData.kbUsageInstructions ? `\n\nInstrucciones adicionales: ${wizardData.kbUsageInstructions}` : '')
+            ? `## Consulta de Base de Conocimientos\nTienes acceso a una base de conocimientos documentada que puedes consultar para responder dudas de los usuarios.\n\n` +
+            `Documentos disponibles en tu memoria:\n` + wizardData.kbFiles.map(f => `- ${f.name}`).join('\n') +
+            (wizardData.kbUsageInstructions ? `\n\nInstrucciones sobre cuándo o cómo consultarlos:\n- ${wizardData.kbUsageInstructions}` : '')
             : '';
 
         const kbSection = kbInnerContent
@@ -409,7 +410,7 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
                 finalPrompt = finalPrompt.replace(/\n*# Uso de herramientas[\s\S]*?(?=### Despedida|# Reglas de Terminación|<!--|# Información de Contacto|$)/gi, '');
                 finalPrompt = finalPrompt.replace(/\n*# Información de Contacto[\s\S]*?(?=(?:# Reglas de Terminación|<!--|### Despedida|# Información de Contacto|- Información:|$))/gi, '');
                 finalPrompt = finalPrompt.replace(/\n*(?:### Horarios comerciales:|# Horario comercial:)[\s\S]*?(?=(?:# Reglas de Terminación|<!--|### Despedida|# Información de Contacto|- Información:|$))/gi, '');
-                finalPrompt = finalPrompt.replace(/\n*- Información:.*[\s\S]*?(?=(?:# Reglas de Terminación|<!--|### Despedida|# Información de Contacto|- Información:|$))/gi, '');
+                finalPrompt = finalPrompt.replace(/\n*(?:- Información:|Instrucciones adicionales:).*[\s\S]*?(?=(?:# Reglas de Terminación|<!--|### Despedida|# Información de Contacto|- Información:|Instrucciones adicionales:|$))/gi, '');
             }
 
             const toolsRegex = /<!-- AUTO_TOOLS_START -->[\s\S]*?<!-- AUTO_TOOLS_END -->/;
