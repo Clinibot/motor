@@ -352,7 +352,7 @@ export const Step8_Summary: React.FC = () => {
             toolsContentArr.push(`## Agenda y Disponibilidad (Cal.com)
 Tienes acceso a una herramienta para consultar huecos disponibles. Úsala cuando el usuario quiera reservar, pregunte por horarios o quiera agendar una visita.
 
-### Cómo presentar los resultados:
+#### Cómo presentar los resultados:
 
 **OFERTA INICIAL (primer contacto):**
 Selecciona los 2 huecos más próximos priorizando diversidad horaria:
@@ -363,7 +363,7 @@ Selecciona los 2 huecos más próximos priorizando diversidad horaria:
 **CUANDO EL USUARIO PIDE MÁS OPCIONES:**
 Si el usuario dice "¿no tenéis otra cosa?", "¿y otro día?", "¿algo más tarde?" o similar, presenta TODOS los huecos disponibles agrupados por día.
 
-### Reglas de formato (Habla natural):
+#### Reglas de formato (Habla natural):
 - Idioma: Español coloquial.
 - Días: "martes dieciocho", "miércoles diecinueve".
 - Horas: SIEMPRE con palabras, nunca números (una, dos, tres...).
@@ -376,10 +376,10 @@ Si el usuario dice "¿no tenéis otra cosa?", "¿y otro día?", "¿algo más tar
 - :30 → "y media" | :00 → omite los minutos.
 - Ejemplo mismo día: "a las diez de la mañana y a las tres de la tarde".
 
-### CRÍTICO - Filtrado por Horario Comercial:
+#### CRÍTICO - Filtrado por Horario Comercial:
 NUNCA ofrezcas huecos que estén fuera de nuestro "# Horario comercial". La herramienta podría devolver horas en una zona horaria incorrecta (ej. a las 7 de la mañana cuando abrimos a las 9). Omite automáticamente e ignora cualquier hueco devuelto por la agenda que caiga fuera de las horas en las que estamos abiertos.
 
-### Disponibilidad Completa (agrupada):
+#### Disponibilidad Completa (agrupada):
 Agrupa huecos de 30 minutos consecutivos en rangos: "entre las [inicio] y las [fin]".
 Un salto de tiempo rompe el rango. Usa ", y también" para conectar rangos del mismo día.
 Hueco único: "solo tenemos disponibilidad a las [hora]".
@@ -467,7 +467,7 @@ Tu misión es atender las llamadas de forma humana, cálida y eficiente, evitand
 ## Tareas Principales
 ${wizardData.agentType === 'transferencia' ? `### Identificación y Transferencia
 1. Entiende el motivo de la llamada.
-2. Si es necesario, informa que vas a transferir la llamada a un compañero.` : wizardData.agentType === 'agendamiento' ? `### Agendamiento
+2. Si el usuario solicita hablar con un humano o un rol específico, usa la herramienta de transferencia correspondiente (ej: ejecuta \`transfer_to_...\`).` : wizardData.agentType === 'agendamiento' ? `### Agendamiento
 1. Resuelve dudas sobre los servicios.
 2. Si el usuario quiere una cita, verifica disponibilidad usando tus herramientas de agenda.
 3. Sigue estrictamente las reglas de presentación de huecos (oferta inicial vs más opciones).
