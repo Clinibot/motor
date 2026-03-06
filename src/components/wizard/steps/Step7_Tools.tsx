@@ -551,25 +551,6 @@ export const Step7_Tools: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* INBOUND WEBHOOK */}
-                    <div className="form-group" style={{ marginTop: '32px' }}>
-                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            URL del webhook para llamadas entrantes
-                            <div className="custom-tooltip">
-                                <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '14px' }}></i>
-                                <div className="tooltip-content">
-                                    Opcional - Se ejecuta cuando el agente recibe una llamada entrante.
-                                </div>
-                            </div>
-                        </label>
-                        <input
-                            type="url"
-                            className="form-control"
-                            value={webhookInbound}
-                            onChange={(e) => updateField('webhookInbound', e.target.value)}
-                            placeholder="https://tu-servidor.com/webhook/inbound"
-                        />
-                    </div>
 
                     <div className="wizard-actions">
                         <button type="button" className="btn btn-secondary" onClick={prevStep}>

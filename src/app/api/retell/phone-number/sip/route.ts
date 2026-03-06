@@ -70,10 +70,54 @@ export async function POST(request: Request) {
         });
 
         // 3. Persistir en nuestra base de datos (Supabase)
-        // Usamos la tabla agents o una dedicada si existiera, pero por ahora en agents (configuration) o simulado como en el dashboard
-        // El usuario pidió "gestionar números reales", por lo que lo ideal es guardarlo para que el dashboard lo liste.
-        // Dado que el dashboard carga de localStorage O de una tabla inexistente en el código actual, 
-        // vamos a intentar insertarlo en una tabla 'phone_numbers' hipotética o devolver éxito para que el front lo maneje.
+        // Buscamos o creamos una clínica para este workspace si no existe
+        let clinicId = null;
+
+        // Intentar obtener una clínica existente para este usuario
+        const { data: existingClinic } = await supabaseAdmin
+            .from('clinics')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .limit(1)
+            .single();
+
+        if (existingClinic) {
+            clinicId = existingClinic.id;
+        } else {
+            // Crear una clínica básica si no existe
+            const { data: newClinic, error: clinicError } = await supabaseAdmin
+                .from('clinics')
+                .insert({
+                    user_id: session.user.id,
+                    name: nickname || 'Mi Clínica',
+                })
+                .select('id')
+                .single();
+
+            if (clinicError) {
+                console.error("Error creating clinic:", clinicError);
+                // Si falla crear la clínica, intentamos seguir sin ella si la tabla lo permite, 
+                // pero según el esquema parece requerida.
+            } else {
+                clinicId = newClinic.id;
+            }
+        }
+
+        if (clinicId) {
+            const { error: dbError } = await supabaseAdmin
+                .from('phone_numbers')
+                .insert({
+                    clinic_id: clinicId,
+                    phone_number: retellResponse.phone_number,
+                    nickname: nickname || phone_number,
+                    status: 'active'
+                });
+
+            if (dbError) {
+                console.error("Error persisting phone number to DB:", dbError);
+                // No fallamos el request si Retell tuvo éxito, pero logueamos el error
+            }
+        }
 
         return NextResponse.json({
             success: true,

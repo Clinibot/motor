@@ -72,16 +72,7 @@ export default function NumbersPage() {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Error al registrar el número");
 
-            const id = Math.random().toString(36).substr(2, 9);
-            const newList = [...numbers, {
-                id,
-                phone_number: newNumber.phone,
-                phone_number_pretty: newNumber.phone,
-                nickname: newNumber.nickname || 'Nuevo Número SIP',
-                retell_agent_id: null
-            }];
-            setNumbers(newList);
-            saveToLocalStorage(newList);
+            await loadData(); // Recargar todo desde Supabase para asegurar consistencia
 
             setNewNumber({ phone: '', nickname: '', termination_uri: '', username: '', password: '', transport: 'tcp' });
             setShowAddModal(false);
@@ -116,15 +107,32 @@ export default function NumbersPage() {
                     .eq('workspace_id', currentWorkspaceId);
                 setAgents(agentList ?? []);
 
-                const saved = localStorage.getItem(`phone_numbers_${currentWorkspaceId}`);
-                if (saved) {
-                    setNumbers(JSON.parse(saved));
+                // Fetch real phone numbers from Supabase
+                // First get clinic for this user
+                const { data: clinicData } = await supabase
+                    .from('clinics')
+                    .select('id')
+                    .eq('user_id', session.user.id);
+
+                const clinicIds = clinicData?.map(c => c.id) || [];
+
+                if (clinicIds.length > 0) {
+                    const { data: phoneData } = await supabase
+                        .from('phone_numbers')
+                        .select('id, phone_number, nickname, assigned_inbound_agent_id')
+                        .in('clinic_id', clinicIds);
+
+                    if (phoneData) {
+                        setNumbers(phoneData.map(n => ({
+                            id: n.id,
+                            phone_number: n.phone_number,
+                            phone_number_pretty: n.phone_number,
+                            nickname: n.nickname,
+                            retell_agent_id: n.assigned_inbound_agent_id
+                        })));
+                    }
                 } else {
-                    const initial = [
-                        { id: '1', phone_number: '+34910000001', phone_number_pretty: '+34 910 000 001', retell_agent_id: null, nickname: 'Línea Principal' },
-                    ];
-                    setNumbers(initial);
-                    localStorage.setItem(`phone_numbers_${currentWorkspaceId}`, JSON.stringify(initial));
+                    setNumbers([]);
                 }
             }
         } finally {
@@ -143,19 +151,44 @@ export default function NumbersPage() {
     const handleAssignAgent = async (numberId: string, retellAgentId: string) => {
         setIsUpdatingId(numberId);
         try {
-            const newList = numbers.map(n => n.id === numberId ? { ...n, retell_agent_id: retellAgentId === 'none' ? null : retellAgentId } : n);
+            const supabase = createClient();
+            const agentIdToAssign = retellAgentId === 'none' ? null : retellAgentId;
+
+            const { error } = await supabase
+                .from('phone_numbers')
+                .update({ assigned_inbound_agent_id: agentIdToAssign })
+                .eq('id', numberId);
+
+            if (error) throw error;
+
+            const newList = numbers.map(n => n.id === numberId ? { ...n, retell_agent_id: agentIdToAssign } : n);
             setNumbers(newList);
-            saveToLocalStorage(newList);
+        } catch (error) {
+            console.error("Error updating agent assignment:", error);
+            alert("No se pudo actualizar la asignación.");
         } finally {
             setIsUpdatingId(null);
         }
     };
 
-    const handleDeleteNumber = (id: string) => {
+    const handleDeleteNumber = async (id: string) => {
         if (!window.confirm('¿Estás seguro de que deseas eliminar este número?')) return;
-        const newList = numbers.filter(n => n.id !== id);
-        setNumbers(newList);
-        saveToLocalStorage(newList);
+
+        try {
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('phone_numbers')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            const newList = numbers.filter(n => n.id !== id);
+            setNumbers(newList);
+        } catch (error) {
+            console.error("Error deleting number:", error);
+            alert("No se pudo eliminar el número de la base de datos.");
+        }
     };
 
     const handleLogout = async () => {
@@ -405,7 +438,7 @@ export default function NumbersPage() {
             {/* Modal Añadir Número - SIP TRUNKING COMPLETO */}
             {showAddModal && (
                 <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-                    <div className="modal-content" style={{ maxWidth: '500px', padding: '40px' }} onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" style={{ maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', padding: '40px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
                             <h3 className="modal-title" style={{ margin: 0, fontSize: '22px' }}>Conectar número vía SIP trunking</h3>
                             <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '24px', color: '#9ca3af' }}>&times;</button>
