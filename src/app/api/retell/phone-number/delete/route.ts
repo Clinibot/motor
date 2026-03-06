@@ -55,9 +55,9 @@ export async function POST(request: Request) {
         console.log(`Deleting phone number ${phone_number} from Retell`);
         try {
             await retellClient.phoneNumber.delete(phone_number);
-        } catch (retellErr: any) {
+        } catch (retellErr: unknown) {
             // Si el número no existe en Retell, procedemos con el borrado local de todos modos
-            console.warn(`Retell phone number delete warning for ${phone_number}:`, retellErr.message);
+            console.warn(`Retell phone number delete warning for ${phone_number}:`, (retellErr as Error).message || retellErr);
         }
 
         // 3. Eliminar de nuestra base de datos

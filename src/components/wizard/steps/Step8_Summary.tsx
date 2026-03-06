@@ -263,7 +263,7 @@ const groupBusinessHours = (hours: { day: string; open: string; close: string; c
 const formatPhoneForTTS = (phone: string) => {
     if (!phone) return '';
     // Eliminar +34 o 0034 al principio
-    let cleanPhone = phone.replace(/^\+34|^0034/, '');
+    const cleanPhone = phone.replace(/^\+34|^0034/, '');
 
     // Convertir cada dígito en palabra para pronunciación clara
     const digitWords: Record<string, string> = {
@@ -278,14 +278,6 @@ const formatPhoneForTTS = (phone: string) => {
         .trim();
 };
 
-const formatEmailForTTS = (email: string) => {
-    if (!email) return '';
-    return email
-        .replace(/@/g, ' arroba ')
-        .replace(/\./g, ' punto ')
-        .replace(/\s+/g, ' ')
-        .trim();
-};
 
 const formatUrlForTTS = (url: string) => {
     if (!url) return '';
@@ -508,7 +500,7 @@ Si el usuario se despide o no necesita nada más, despídete y usa la herramient
         wizardData.personality, wizardData.tone, wizardData.extractionVariables,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
-        wizardData.transferDestinations, wizardData.kbFiles
+        wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions
     ]);
 
     // Asegurar visibilidad del prompt
