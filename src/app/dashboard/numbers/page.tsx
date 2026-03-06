@@ -35,6 +35,7 @@ export default function NumbersPage() {
     const [activeTab, setActiveTab] = useState<'inbound' | 'outbound'>('inbound');
     const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -276,6 +277,15 @@ export default function NumbersPage() {
                 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
                 .modal-content{background:#fff;border-radius:16px;width:100%;max-width:400px;padding:32px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
                 .modal-title{font-size:20px;font-weight:700;margin-bottom:24px}
+                .help-link{color:#267ab0;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:4px;margin-bottom:12px;transition:all 0.2s;background:none;border:none;padding:0}
+                .help-link:hover{text-decoration:underline;color:#1e5a87}
+                .help-step{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f3f4f6}
+                .help-step:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+                .help-step-title{font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+                .help-step-number{width:20px;height:20px;background:#267ab0;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px}
+                .help-data-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
+                .help-data-label{color:#6b7280}
+                .help-data-value{font-family:monospace;background:#f3f4f6;padding:2px 6px;border-radius:4px;color:#1a1a1a}
                 .form-group{margin-bottom:16px}
                 .form-label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;color:#4b5563}
                 .form-input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #d1d5db;outline:none}
@@ -435,10 +445,20 @@ export default function NumbersPage() {
             {showAddModal && (
                 <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
                     <div className="modal-content" style={{ maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', padding: '40px' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 className="modal-title" style={{ margin: 0, fontSize: '22px' }}>Conectar número vía SIP trunking</h3>
                             <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '24px', color: '#9ca3af' }}>&times;</button>
                         </div>
+
+                        <button
+                            className="help-link"
+                            onClick={() => setShowHelpModal(true)}
+                        >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Ver manual de configuración de Netelip
+                        </button>
 
                         <div className="form-group" style={{ marginBottom: '20px' }}>
                             <label className="form-label" style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>Número de Teléfono</label>
@@ -529,6 +549,74 @@ export default function NumbersPage() {
                                 {isSaving ? 'Guardando...' : 'Guardar'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Ayuda Netelip */}
+            {showHelpModal && (
+                <div className="modal-overlay" onClick={() => setShowHelpModal(false)} style={{ zIndex: 1100 }}>
+                    <div className="modal-content" style={{ maxWidth: '540px', padding: '40px' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h3 className="modal-title" style={{ margin: 0, fontSize: '20px', color: '#1a1a1a' }}>Guía de Configuración Netelip</h3>
+                            <button onClick={() => setShowHelpModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '24px', color: '#9ca3af' }}>&times;</button>
+                        </div>
+
+                        <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}>
+                            <div className="help-step">
+                                <div className="help-step-title">
+                                    <span className="help-step-number">1</span>
+                                    Llamadas Salientes (en este panel)
+                                </div>
+                                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>Introduce estos datos en el formulario anterior:</p>
+                                <div className="help-data-row">
+                                    <span className="help-data-label">Termination URI</span>
+                                    <span className="help-data-value">retellai.netelip.com</span>
+                                </div>
+                                <div className="help-data-row">
+                                    <span className="help-data-label">SIP Username</span>
+                                    <span className="help-data-value">Tu número de Netelip</span>
+                                </div>
+                                <div className="help-data-row">
+                                    <span className="help-data-label">Outbound Transport</span>
+                                    <span className="help-data-value">UDP</span>
+                                </div>
+                            </div>
+
+                            <div className="help-step">
+                                <div className="help-step-title">
+                                    <span className="help-step-number">2</span>
+                                    Llamadas Entrantes (en Panel Netelip)
+                                </div>
+                                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>Accede a tu panel de Netelip y configura el desvío SIP del número:</p>
+                                <div className="help-data-row">
+                                    <span className="help-data-label">Servidor SIP</span>
+                                    <span className="help-data-value">5t4n6j0wnrl.sip.livekit.cloud</span>
+                                </div>
+                                <div className="help-data-row" style={{ marginTop: '4px' }}>
+                                    <span className="help-data-label">Añadir &quot;+&quot; al número E.164</span>
+                                    <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>Activar</span>
+                                </div>
+                                <div className="help-data-row">
+                                    <span className="help-data-label">Habilitar desvío</span>
+                                    <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>Activar</span>
+                                </div>
+                            </div>
+
+                            <div style={{ background: '#eff6fb', padding: '16px', borderRadius: '12px', border: '1px solid #dbeafe', marginTop: '8px' }}>
+                                <p style={{ fontSize: '12px', color: '#267ab0', lineHeight: 1.5 }}>
+                                    <strong>Nota:</strong> Tu contraseña SIP la encontrarás en el panel de Netelip, dentro de la configuración de tu línea SIP.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            className="btn-confirm"
+                            onClick={() => setShowHelpModal(false)}
+                            style={{ width: '100%', marginTop: '32px', padding: '14px' }}
+                        >
+                            Entendido
+                        </button>
                     </div>
                 </div>
             )}
