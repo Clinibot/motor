@@ -40,6 +40,7 @@ export default function NumbersPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
     const [newNumber, setNewNumber] = useState({
         phone: '',
         nickname: '',
@@ -48,6 +49,13 @@ export default function NumbersPage() {
         password: '',
         transport: 'tcp'
     });
+
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => setNotification(null), 6000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
 
     const handleAddNumber = async () => {
         if (!newNumber.phone || !newNumber.termination_uri) {
@@ -168,10 +176,16 @@ export default function NumbersPage() {
 
             const newList = numbers.map(n => n.id === numberId ? { ...n, agent_id: agentIdToAssign } : n);
             setNumbers(newList);
-            alert("Agente asignado con éxito en Retell y Base de Datos");
+            setNotification({
+                message: "Agente asignado correctamente. Ya puedes llamarle directamente desde este número de teléfono.",
+                type: 'success'
+            });
         } catch (error: unknown) {
             console.error("Error updating agent assignment:", error);
-            alert(`Error: ${(error as Error).message || "No se pudo actualizar la asignación."}`);
+            setNotification({
+                message: `Error: ${(error as Error).message || "No se pudo actualizar la asignación."}`,
+                type: 'error'
+            });
         } finally {
             setIsUpdatingId(null);
         }
@@ -217,6 +231,11 @@ export default function NumbersPage() {
 
     return (
         <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            {notification && (
+                <div className={`notification-toast ${notification.type}`}>
+                    <div className="notification-message">{notification.message}</div>
+                </div>
+            )}
             <style>{`
                 *{margin:0;padding:0;box-sizing:border-box}
                 body{font-family:'Inter',-apple-system,sans-serif;background:#f5f5f5;color:#1a1a1a}
@@ -302,6 +321,26 @@ export default function NumbersPage() {
                 .modal-actions{display:flex;gap:12px;margin-top:24px}
                 .btn-cancel{flex:1;padding:10px;border-radius:8px;background:#f3f4f6;border:none;font-weight:600;cursor:pointer}
                 .btn-confirm{flex:1;padding:10px;border-radius:8px;background:#267ab0;color:#fff;border:none;font-weight:600;cursor:pointer}
+
+                .notification-toast {
+                    position: fixed;
+                    top: 24px;
+                    right: 32px;
+                    padding: 16px 24px;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.5);
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    z-index: 2000;
+                    animation: toastSlideIn 0.3s ease-out;
+                    max-width: 400px;
+                }
+                .notification-toast.success { border-left: 4px solid #16a34a; }
+                .notification-toast.error { border-left: 4px solid #ef4444; }
+                .notification-message { font-size: 14px; font-weight: 500; color: #1a1a1a; line-height: 1.5; }
+                @keyframes toastSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
             `}</style>
 
             <aside className="sidebar">
