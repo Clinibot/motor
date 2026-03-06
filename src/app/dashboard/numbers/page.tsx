@@ -9,7 +9,8 @@ interface PhoneNumber {
     id: string;
     phone_number: string;
     phone_number_pretty: string;
-    retell_agent_id: string | null;
+    agent_id: string | null;
+    retell_agent_id: string | null; // For info only
     nickname: string | null;
 }
 
@@ -129,7 +130,8 @@ export default function NumbersPage() {
                             phone_number: n.phone_number,
                             phone_number_pretty: n.phone_number,
                             nickname: n.nickname,
-                            retell_agent_id: n.assigned_inbound_agent_id
+                            agent_id: n.assigned_inbound_agent_id,
+                            retell_agent_id: null // Will be resolved if needed, but we use agent_id for selector
                         })));
                     }
                 } else {
@@ -156,7 +158,7 @@ export default function NumbersPage() {
                 body: JSON.stringify({
                     number_id: numberId,
                     phone_number: phone,
-                    retell_agent_id: agentIdToAssign,
+                    agent_id: agentIdToAssign,
                     workspace_id: user?.workspace_id
                 })
             });
@@ -164,7 +166,7 @@ export default function NumbersPage() {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Error al asignar agente");
 
-            const newList = numbers.map(n => n.id === numberId ? { ...n, retell_agent_id: agentIdToAssign } : n);
+            const newList = numbers.map(n => n.id === numberId ? { ...n, agent_id: agentIdToAssign } : n);
             setNumbers(newList);
             alert("Agente asignado con éxito en Retell y Base de Datos");
         } catch (error: unknown) {
@@ -410,13 +412,13 @@ export default function NumbersPage() {
                                                 <td>
                                                     <select
                                                         className="agent-selector"
-                                                        value={num.retell_agent_id || 'none'}
+                                                        value={num.agent_id || 'none'}
                                                         onChange={(e) => handleAssignAgent(num.id, num.phone_number, e.target.value)}
                                                         disabled={isUpdatingId === num.id}
                                                     >
                                                         <option value="none">Sin agente (Desactivado)</option>
                                                         {agents.map(agent => (
-                                                            <option key={agent.id} value={agent.retell_agent_id || ''}>
+                                                            <option key={agent.id} value={agent.id}>
                                                                 {agent.name}
                                                             </option>
                                                         ))}
