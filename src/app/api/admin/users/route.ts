@@ -53,6 +53,8 @@ export async function GET() {
         if (phoneError) throw phoneError;
 
         // Process data
+        interface ClinicRow { user_id: string }
+
         const enhancedUsers = users?.map(user => {
             const userId = user.id;
             const workspaceId = user.workspace_id;
@@ -66,10 +68,10 @@ export async function GET() {
             const userPhoneNumbers = Array.from(new Set(
                 phoneNumbersData
                     ?.filter(p => {
-                        const clinic = p.clinics as unknown as { user_id: string } | { user_id: string }[];
+                        const clinic = p.clinics as unknown as ClinicRow | ClinicRow[];
                         return Array.isArray(clinic)
                             ? clinic.some(c => c.user_id === userId)
-                            : (clinic as any)?.user_id === userId;
+                            : clinic?.user_id === userId;
                     })
                     .map(p => p.phone_number)
                     .filter(Boolean)
