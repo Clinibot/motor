@@ -48,7 +48,6 @@ export interface ToolsPayload {
     enableAnalysis: boolean;
     analysisModel: string;
     webhookUrl: string;
-    webhookInbound: string;
     kbFiles?: { name: string }[];
     kbUsageInstructions?: string;
 }
