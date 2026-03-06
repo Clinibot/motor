@@ -203,6 +203,18 @@ const formatTimeToSpanishWords = (timeStr: string) => {
     const hours = parseInt(hoursStr);
     const minutes = parseInt(minutesStr);
 
+    const minutesToWords = (n: number) => {
+        const words: Record<number, string> = {
+            1: 'un', 2: 'dos', 3: 'tres', 4: 'cuatro', 5: 'cinco', 6: 'seis', 7: 'siete', 8: 'ocho', 9: 'nueve', 10: 'diez',
+            11: 'once', 12: 'doce', 13: 'trece', 14: 'catorce', 15: 'quince', 16: 'dieciséis', 17: 'diecisiete', 18: 'dieciocho', 19: 'diecinueve',
+            20: 'veinte', 21: 'veintiuno', 22: 'veintidós', 23: 'veintitrés', 24: 'veinticuatro', 25: 'veinticinco', 26: 'veintiséis', 27: 'veintisiete', 28: 'veintiocho', 29: 'veintinueve',
+            30: 'treinta', 31: 'treinta y uno', 32: 'treinta y dos', 33: 'treinta y tres', 34: 'treinta y cuatro', 35: 'treinta y cinco', 36: 'treinta y seis', 37: 'treinta y siete', 38: 'treinta y ocho', 39: 'treinta y nueve',
+            40: 'cuarenta', 41: 'cuarenta y uno', 42: 'cuarenta y dos', 43: 'cuarenta y tres', 44: 'cuarenta y cuatro', 45: 'cuarenta y cinco', 46: 'cuarenta y seis', 47: 'cuarenta y siete', 48: 'cuarenta y ocho', 49: 'cuarenta y nueve',
+            50: 'cincuenta', 51: 'cincuenta y uno', 52: 'cincuenta y dos', 53: 'cincuenta y tres', 54: 'cincuenta y cuatro', 55: 'cincuenta y cinco', 56: 'cincuenta y seis', 57: 'cincuenta y siete', 58: 'cincuenta y ocho', 59: 'cincuenta y nueve'
+        };
+        return words[n] || String(n);
+    };
+
     let hourWord = '';
     const hoursMap: Record<number, string> = {
         0: 'las doce de la noche', 1: 'la una de la mañana', 2: 'las dos de la mañana', 3: 'las tres de la mañana',
@@ -219,7 +231,33 @@ const formatTimeToSpanishWords = (timeStr: string) => {
     if (minutes === 30) return `${hourWord} y media`;
     if (minutes === 15) return `${hourWord} y cuarto`;
 
-    return `${hourWord} y ${minutes} minutos`;
+    return `${hourWord} y ${minutesToWords(minutes)} minutos`;
+};
+
+const groupBusinessHours = (hours: { day: string; open: string; close: string; closed: boolean }[]) => {
+    const active = hours.filter(h => !h.closed);
+    if (active.length === 0) return "Estamos cerrados todos los días.";
+
+    const groups: { hoursKey: string; open: string; close: string; days: string[] }[] = [];
+
+    active.forEach(h => {
+        const hoursKey = `${h.open}-${h.close}`;
+        const existing = groups.find(g => g.hoursKey === hoursKey);
+        if (existing) {
+            existing.days.push(h.day);
+        } else {
+            groups.push({ hoursKey, open: h.open, close: h.close, days: [h.day] });
+        }
+    });
+
+    return groups.map(g => {
+        const formattedDays = g.days.map((d, i) => i === 0 ? d : d.toLowerCase());
+        const daysJoined = formattedDays.length === 1
+            ? formattedDays[0]
+            : formattedDays.slice(0, -1).join(', ') + ' y ' + formattedDays[formattedDays.length - 1];
+
+        return `${daysJoined} de ${formatTimeToSpanishWords(g.open)} a ${formatTimeToSpanishWords(g.close)}.`;
+    }).join(' ');
 };
 
 const formatPhoneForTTS = (phone: string) => {
@@ -302,9 +340,7 @@ export const Step8_Summary: React.FC = () => {
         const company = wizardData.companyName || 'nuestra empresa';
         const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        const formattedHours = wizardData.businessHours
-            .map(h => `- los ${h.day}: ${h.closed ? 'Estamos cerrados' : `${formatTimeToSpanishWords(h.open)} a ${formatTimeToSpanishWords(h.close)}`}`)
-            .join('\n');
+        const formattedHours = groupBusinessHours(wizardData.businessHours);
 
         const personalityStr = wizardData.personality.length > 0
             ? `Tu personalidad es: ${wizardData.personality.join(', ')}.`
@@ -369,11 +405,16 @@ Hueco único: "solo tenemos disponibilidad a las [hora]".
             ? `\n\n<!-- AUTO_TOOLS_START -->\n# Uso de herramientas\n${toolsInnerContent}\n<!-- AUTO_TOOLS_END -->\n`
             : '';
 
+        const kbInnerContent = wizardData.kbFiles.length > 0
+            ? wizardData.kbFiles.map(f => `- Información: ${f.name}`).join('\n') +
+            (wizardData.kbUsageInstructions ? `\n\nInstrucciones adicionales: ${wizardData.kbUsageInstructions}` : '')
+            : '';
+
         const kbSection = kbInnerContent
             ? `\n\n<!-- AUTO_KB_START -->\n${kbInnerContent}\n<!-- AUTO_KB_END -->\n`
             : '';
 
-        const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto y Horarios de ${company}\n- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}\n\n### Nuestros horarios comerciales (en lenguaje natural):\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
+        const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto de ${company}\n- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}\n\n# Horario comercial:\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
         let finalPrompt = '';
         const currentPrompt = wizardData.prompt || '';
