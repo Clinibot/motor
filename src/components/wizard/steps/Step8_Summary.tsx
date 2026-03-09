@@ -294,6 +294,11 @@ const formatUrlForTTS = (url: string) => {
 const cleanPromptForDeployment = (prompt: string) => {
     if (!prompt) return '';
     return prompt
+        // Eliminar secciones auto-generadas (se re-inyectan en el servidor via injectToolInstructions)
+        .replace(/<!-- AUTO_TOOLS_START -->[\s\S]*?<!-- AUTO_TOOLS_END -->/g, '')
+        .replace(/<!-- AUTO_KB_START -->[\s\S]*?<!-- AUTO_KB_END -->/g, '')
+        .replace(/<!-- AUTO_COMPANY_START -->[\s\S]*?<!-- AUTO_COMPANY_END -->/g, '')
+        .replace(/<!-- AUTO_NOTES_START -->[\s\S]*?<!-- AUTO_NOTES_END -->/g, '')
         // Normalizar espacios en blanco (máximo 2 saltos de línea)
         .replace(/\n{3,}/g, '\n\n')
         .trim();
@@ -634,17 +639,9 @@ Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{4,}
     };
 
     const handleCreateAgent = async () => {
-        // En modo edición, actualizamos el prompt automáticamente antes de enviar
-        let currentPromptValue = wizardData.prompt;
-        if (editingAgentId) {
-            currentPromptValue = getUpdatedPrompt();
-        }
-
-        // LIMPIEZA CRÍTICA: Eliminar marcadores y espacios extra antes de enviar a Retell
-        const cleanedPrompt = cleanPromptForDeployment(currentPromptValue);
-
-        // Sincronizar el prompt limpio de vuelta al store (opcional, pero recomendado)
-        updateField('prompt', cleanedPrompt);
+        // LIMPIEZA CRÍTICA: Eliminar secciones auto-generadas y espacios extra antes de enviar a Retell.
+        // Las secciones AUTO_* se re-inyectan en el servidor via injectToolInstructions.
+        const cleanedPrompt = cleanPromptForDeployment(wizardData.prompt);
 
         const missing = [];
         if (!wizardData.agentName) missing.push('Nombre del agente');
