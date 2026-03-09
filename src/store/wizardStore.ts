@@ -117,6 +117,7 @@ export interface WizardState {
     enableAnalysis: boolean;
     analysisModel: string;
     webhookUrl: string;
+    customNotes: string;
 
     // Edit Mode
     editingAgentId: string | null;
@@ -216,6 +217,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     enableAnalysis: false,
     analysisModel: 'gpt-4.1',
     webhookUrl: '',
+    customNotes: '',
 
     // Edit Mode
     editingAgentId: null,
@@ -252,7 +254,9 @@ export const useWizardStore = create<WizardState>((set) => ({
         enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '',
         enableTransfer: false, transferDestinations: [], enableCustomTools: false, customTools: [],
         useTemplate: false, extractionVariables: [], enableAnalysis: false, analysisModel: 'gpt-4.1',
-        webhookUrl: '', companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
+        webhookUrl: '',
+        customNotes: '',
+        companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
         businessHours: [
             { day: 'Lunes', open: '09:00', close: '20:00', closed: false },
             { day: 'Martes', open: '09:00', close: '20:00', closed: false },

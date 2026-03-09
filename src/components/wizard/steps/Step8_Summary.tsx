@@ -459,6 +459,17 @@ Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca 
                 // Si no hay marcadores de empresa, los inyectamos al final
                 finalPrompt += `\n\n${companySection.trim()}`;
             }
+
+            // Gestionar notas personalizadas
+            const notesSection = wizardData.customNotes ? `\n\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.customNotes}\n<!-- AUTO_NOTES_END -->\n` : '';
+            const notesRegex = /<!-- AUTO_NOTES_START -->[\s\S]*?<!-- AUTO_NOTES_END -->/;
+            if (notesRegex.test(finalPrompt)) {
+                finalPrompt = finalPrompt.replace(notesRegex, '___TEMP_NOTES___');
+                finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_NOTES_START -->[\s\S]*?<!-- AUTO_NOTES_END -->/g, '');
+                finalPrompt = finalPrompt.replace('___TEMP_NOTES___', () => notesSection.trim());
+            } else if (notesSection) {
+                finalPrompt += `\n\n${notesSection.trim()}`;
+            }
         } else {
             const roleObjective = wizardData.agentType === 'transferencia'
                 ? `conectarlo con el departamento adecuado de ${company} y gestionar transferencias eficientes.`
@@ -532,15 +543,16 @@ ${wizardData.agentType === 'transferencia'
 
 ${kbSection.trim() ? `\n${kbSection.trim()}` : ''}
 ${companySection.trim() ? `\n${companySection.trim()}` : ''}
+${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.customNotes}\n<!-- AUTO_NOTES_END -->\n` : ''}
 
 # Reglas de Terminación
-Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{3,}/g, '\n\n').trim();
+Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{4,}/g, '\n\n\n').replace(/\n{3,}/g, '\n\n').trim();
         }
         return finalPrompt;
     }, [
         wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
         wizardData.prompt, wizardData.businessHours,
-        wizardData.personality, wizardData.tone,
+        wizardData.personality, wizardData.tone, wizardData.customNotes,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite, wizardData.companyDescription,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
         wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions
@@ -781,8 +793,45 @@ Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{3,}
                     <SummaryCard icon="bi-gear-fill" color="#267ab0" title="Paso 8: Herramientas" step={8} onEdit={setStep} fullWidth>
                         <SummaryRow label="Transferencias activas" value={wizardData.enableTransfer ? `Sí (${wizardData.transferDestinations.length} destinos)` : 'No'} />
                         <SummaryRow label="Variables de extracción" value={`${wizardData.extractionVariables.length} variable(s)`} />
-                        <SummaryRow label="Herramientas externas" value={wizardData.enableCustomTools ? `Sí (${wizardData.customTools.length} herramientas)` : 'No'} last />
                     </SummaryCard>
+                </div>
+
+                {/* NOTAS PERSONALIZADAS */}
+                <div style={{ marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#1a2428', margin: 0 }}>
+                            <i className="bi bi-pencil-square me-2" /> Notas adicionales del prompt
+                        </h4>
+                        <div className="custom-tooltip">
+                            <i className="bi bi-question-circle-fill tooltip-icon" style={{ fontSize: '14px' }}></i>
+                            <div className="tooltip-content shadow" style={{ width: '280px' }}>
+                                <strong>Instrucciones personalizadas</strong><br />
+                                Todo lo que escribas aquí se añadirá al final del prompt en una sección llamada &quot;# Notas&quot;.
+                                <br /><br />
+                                Ideal para reglas específicas, comportamientos únicos o datos que no están en los otros pasos.
+                            </div>
+                        </div>
+                    </div>
+                    <textarea
+                        className="form-control"
+                        rows={4}
+                        placeholder="Ej: Si el usuario dice 'chocolate', responde con un chiste sobre cacao..."
+                        value={wizardData.customNotes}
+                        onChange={(e) => updateField('customNotes', e.target.value)}
+                        style={{
+                            minHeight: '100px',
+                            background: '#fff',
+                            border: '1px solid #ced4da',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            fontSize: '14px',
+                            resize: 'vertical',
+                            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)'
+                        }}
+                    />
+                    <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px' }}>
+                        <i className="bi bi-info-circle me-1" /> Estas notas se mantendrán incluso si regeneras el prompt o cambias otras configuraciones.
+                    </p>
                 </div>
 
                 {/* PROMPT */}

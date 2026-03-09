@@ -48,6 +48,7 @@ export interface ToolsPayload {
     enableAnalysis: boolean;
     analysisModel: string;
     webhookUrl: string;
+    customNotes?: string;
     kbFiles?: { name: string }[];
     kbUsageInstructions?: string;
     // Company Info
@@ -297,7 +298,8 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // Limpieza de marcadores del frontend si aún quedaran
     const fePatterns = [
         /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/g,
-        /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g
+        /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g,
+        /<!-- AUTO_COMPANY_START -->[\s\S]*<!-- AUTO_COMPANY_END -->/g
     ];
     fePatterns.forEach(regex => {
         cleanPrompt = cleanPrompt.replace(regex, '');
@@ -398,6 +400,17 @@ Para que suenes natural y cercano, sigue estas reglas de pronunciación en ESPA�
     }
     if (companySection) {
         finalPrompt += `\n\n${companySection.trim()}`;
+    }
+
+    // --- CUSTOM NOTES INJECTION ---
+    if (p.customNotes) {
+        const notesSection = `\n\n<!-- AUTO_NOTES_START -->\n# Notas\n${p.customNotes}\n<!-- AUTO_NOTES_END -->\n`;
+        const notesRegex = /<!-- AUTO_NOTES_START -->[\s\S]*<!-- AUTO_NOTES_END -->/;
+        if (notesRegex.test(finalPrompt)) {
+            finalPrompt = finalPrompt.replace(notesRegex, () => notesSection.trim());
+        } else {
+            finalPrompt += notesSection;
+        }
     }
 
     return finalPrompt;
