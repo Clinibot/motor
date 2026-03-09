@@ -527,9 +527,25 @@ Nunca uses números para expresar horas. Habla siempre de forma natural y coloqu
 ## 2. Resolución o Routing
 ${wizardData.agentType === 'transferencia'
                     ? '- Identifica el departamento destino y realiza la transferencia usando las herramientas disponibles.'
-                    : wizardData.enableCalBooking && wizardData.calApiKey
-                        ? '- Resuelve dudas usando la Base de Conocimientos si está disponible.\n- Ofrece agendar una cita si detectas interés o necesidad comercial.'
-                        : '- Resuelve dudas usando la Base de Conocimientos si está disponible.\n- Si el contacto pregunta por agendar una cita, indica que no tienes acceso a la agenda en este momento pero que tomarás nota de su interés.'}
+                    : (() => {
+                        const lines: string[] = [];
+                        if (wizardData.kbFiles.length > 0) {
+                            const kbNames = wizardData.kbFiles.map(f => f.retell_name || f.name).join(', ');
+                            let kbLine = `- Resuelve dudas consultando la Base de Conocimientos (${kbNames}).`;
+                            if (wizardData.kbUsageInstructions) {
+                                kbLine += ` ${wizardData.kbUsageInstructions}`;
+                            }
+                            lines.push(kbLine);
+                        } else {
+                            lines.push('- Resuelve las dudas del contacto con la información que tengas disponible.');
+                        }
+                        if (wizardData.enableCalBooking && wizardData.calApiKey) {
+                            lines.push('- Ofrece agendar una cita si detectas interés o necesidad comercial.');
+                        } else {
+                            lines.push('- Si el contacto pregunta por agendar una cita, indica que no tienes acceso a la agenda en este momento pero que tomarás nota de su interés.');
+                        }
+                        return lines.join('\n');
+                    })()}
 
 ## 3. Cierre
 - Pregunta: "¿Hay algo más en lo que pueda ayudarte?"
