@@ -412,7 +412,7 @@ Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca 
         const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto de ${company}\n${wizardData.companyDescription ? `- Actividad: ${wizardData.companyDescription}\n` : ''}- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}\n\n# Horario comercial:\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
         let finalPrompt = '';
-        const currentPrompt = wizardData.prompt || '';
+        const currentPrompt = promptRef.current || '';
 
         // Si ya hay un prompt y no es el por defecto, intentamos "Smart Update"
         // EXCEPTO si forceRebuild=true (botón Regenerar): en ese caso reconstruimos desde cero
@@ -499,24 +499,31 @@ Eres ${name} y tu objetivo es ${roleObjective}
 
 ## Instrucciones
 ### Estilos de comunicación
-- Haz solo una pregunta a la vez y espera respuesta. REGLA DE ORO: No encadenes preguntas.
+- Haz solo una pregunta a la vez y espera respuesta. REGLA DE ORO: No encadenes preguntas (no digas "¿Cuál es tu nombre y en qué puedo ayudarte?"; en su lugar pregunta "¿Cuál es tu nombre?", espera la respuesta, y luego pregunta "¿En qué puedo ayudarte?").
 - Mantén las interacciones breves con oraciones cortas.
-- Presta atención a la información que el contacto ya ha compartido. No repitas preguntas sobre datos ya dados.
-- Al ofrecer opciones (ej. horarios), limita las opciones a 2 máximo.
+- Esta es una conversación de voz con potencial retraso (2 mensajes cortados seguidos) y errores de transcripción (palabras equivocadas), así que adáptate en consecuencia. Considera el contexto para aclarar información ambigua o mal transcrita.
+- Si recibes un mensaje obviamente incompleto, responde: "uhm".
 - Escribe los símbolos como palabras: "tres euros" no "3€", "arroba" no "@".
-- Lee las fechas de forma natural: "lunes quince de abril a las seis y media de la tarde".
-- Si recibes un mensaje obviamente incompleto o ruidos, responde con un breve "uhm" o espera.
+- Menciona la zona horaria (hora de Madrid) una vez al inicio si es relevante, no la repitas durante la llamada.
+- Presta atención a la información que el contacto ya ha compartido - Si mencionan su nombre, empresa o motivo mientras responden otra pregunta, reconócelo y no vuelvas a preguntarlo.
+- Al ofrecer opciones (ej. horarios de citas), limita las opciones a 2 máximo.
+- Varía las respuestas entusiastas ("Genial", "Perfecto", "Estupendo") - Evita repeticiones.
+- Maneja preguntas sobre tu naturaleza con transparencia y humor: si preguntan "¿Eres un robot?" o "¿Eres real?", responde "No soy un robot, soy un agente de voz creado con inteligencia artificial" y luego redirige al objetivo principal de la llamada.
+- Considera la base de conocimientos proporcionada para aclarar cualquier información ambigua o confusa sobre los servicios de ${company} para contactos que NO son clientes.
+- Usa palabras de relleno naturales ("umm", "entonces") de forma muy limitada - máximo una cada 4 interacciones.
 
 ### Control de Entonación y Puntuación (IMPORTANTE)
 - Mantén un tono profesional y estable en todo momento.
-- Evita el uso excesivo de signos de exclamación.
+- Evita el uso excesivo de signos de exclamación (máximo uno cada 3 frases).
 - NO uses puntos suspensivos innecesarios.
+- Cuando expreses entusiasmo, usa palabras precisas pero mantén el mismo nivel de energía vocal.
 - Las variaciones de confirmación ("Perfecto", "Genial", "Estupendo") deben sonar naturales, no forzadas.
+- No subas ni bajes bruscamente el tono al cambiar de tema.
 
 ### Reglas de comunicación
 - Máximo 30 segundos por respuesta.
-- Varía las respuestas entusiastas para evitar sonar repetitivo.
-- Maneja preguntas sobre tu naturaleza con transparencia: "Soy un agente de voz creado con inteligencia artificial" y redirige al objetivo.
+- Usa el {{user_name}} frecuentemente una vez lo tengas capturado.
+- Lee las fechas de forma natural y con palabras completas: "lunes quince de abril a las seis y media de la tarde" no "15/04 a las 18:30".
 
 ${toolsSection.trim() ? `## Herramientas\n${toolsSection.trim()}` : ''}
 
@@ -524,7 +531,10 @@ ${toolsSection.trim() ? `## Herramientas\n${toolsSection.trim()}` : ''}
 
 ### 1. Saludo y Cualificación
 - Saluda cordialmente, identifícate y entiende el motivo de la llamada.
-- Determina si el contacto ya es cliente o busca información nueva.
+- Haz las siguientes preguntas para determinar si el contacto es cliente de ${company} y hacia dónde dirigirlo. Haz una pregunta a la vez y adapta según lo que compartan:
+    - Q1: "¿Eres ya cliente de ${company} o quieres información para empezar?"
+    - Q2: "¿En qué puedo ayudarte?"
+    - Q3 (solo NO clientes): "¿Te gustaría agendar una cita con un asesor para que te dé información más detallada?"
 
 ### 2. Resolución o Routing
 ${wizardData.agentType === 'transferencia'
@@ -551,12 +561,18 @@ Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{4,}
         return finalPrompt;
     }, [
         wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
-        wizardData.prompt, wizardData.businessHours,
+        wizardData.businessHours,
         wizardData.personality, wizardData.tone, wizardData.customNotes,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite, wizardData.companyDescription,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
         wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions
     ]);
+
+    // Referencia para evitar bucles en el prompt
+    const promptRef = React.useRef(wizardData.prompt);
+    React.useEffect(() => {
+        promptRef.current = wizardData.prompt;
+    }, [wizardData.prompt]);
 
     // Asegurar visibilidad del prompt
     const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(
@@ -576,7 +592,7 @@ Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{4,}
                 updateField('prompt', updated);
             }
         }
-    }, [editingAgentId, wizardData.prompt, getUpdatedPrompt, updateField]);
+    }, [editingAgentId, getUpdatedPrompt, updateField]);
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {

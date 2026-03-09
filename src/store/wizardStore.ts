@@ -22,7 +22,9 @@ export interface CustomTool {
     url: string;
     description: string;
     speakDuring: boolean;
+    speakDuringMsg?: string;
     speakAfter: boolean;
+    speakAfterMsg?: string;
     parameters: ToolParameter[];
 }
 

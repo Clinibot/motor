@@ -26,7 +26,9 @@ export interface CustomTool {
     url: string;
     description: string;
     speakDuring: boolean;
+    speakDuringMsg?: string;
     speakAfter: boolean;
+    speakAfterMsg?: string;
     parameters: ToolParameter[];
 }
 export interface ExtractionVariable { name: string; type: string; description: string; }
@@ -160,7 +162,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                 speak_during_execution: tool.speakDuring,
                 speak_after_execution: tool.speakAfter,
                 execution_message_description: tool.speakDuring
-                    ? 'Informa al usuario que estás procesando su solicitud.'
+                    ? (tool.speakDuringMsg || 'Informa al usuario que estás procesando su solicitud.')
                     : undefined,
                 parameters: {
                     type: 'object',

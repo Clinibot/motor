@@ -92,7 +92,16 @@ export const Step7_Tools: React.FC = () => {
     };
 
     const addCustomTool = () => {
-        updateField('customTools', [...customTools, { name: '', url: '', description: '', speakDuring: false, speakAfter: false, parameters: [] }]);
+        updateField('customTools', [...customTools, {
+            name: '',
+            url: '',
+            description: '',
+            speakDuring: false,
+            speakDuringMsg: '',
+            speakAfter: false,
+            speakAfterMsg: '',
+            parameters: []
+        }]);
     };
 
     return (
@@ -410,6 +419,42 @@ export const Step7_Tools: React.FC = () => {
                                                     Agente habla al terminar
                                                 </label>
                                             </div>
+                                        </div>
+
+                                        {/* Tool Message Inputs */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: tool.speakDuring && tool.speakAfter ? '1fr 1fr' : '1fr', gap: '16px', marginBottom: '16px' }}>
+                                            {tool.speakDuring && (
+                                                <div className="form-group mb-0">
+                                                    <label className="form-label small">Mensaje mientras consulta</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control form-control-sm"
+                                                        placeholder="Ej: Un momento, voy a consultar el inventario..."
+                                                        value={tool.speakDuringMsg || ''}
+                                                        onChange={(e) => {
+                                                            const newTools = [...customTools];
+                                                            newTools[idx].speakDuringMsg = e.target.value;
+                                                            updateField('customTools', newTools);
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                            {tool.speakAfter && (
+                                                <div className="form-group mb-0">
+                                                    <label className="form-label small">Mensaje al terminar</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control form-control-sm"
+                                                        placeholder="Ej: Ya tengo los datos. Esto es lo que he encontrado:"
+                                                        value={tool.speakAfterMsg || ''}
+                                                        onChange={(e) => {
+                                                            const newTools = [...customTools];
+                                                            newTools[idx].speakAfterMsg = e.target.value;
+                                                            updateField('customTools', newTools);
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Parameters Section */}
