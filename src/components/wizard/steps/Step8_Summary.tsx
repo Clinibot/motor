@@ -480,6 +480,7 @@ Eres ${name} y tu objetivo es ${roleObjective}
 - Tienes acceso a información sobre los servicios de ${company} para responder preguntas.
 - Hora actual: {{current_time_Europe/Madrid}}
 - Fecha: ${today}
+- Idioma de la conversación: Habla siempre en ${langStr}.
 - Nombre del contacto: {{user_name}}
 - Teléfono de contacto: {{numero_telefono}}
 - Email: {{email}}
