@@ -7,7 +7,7 @@ import { createClient } from '../../../lib/supabase/client';
 
 export const Step2_CompanyInfo: React.FC = () => {
     const {
-        companyAddress, companyPhone, companyWebsite, companyDescription, businessHours,
+        companyName, companyAddress, companyPhone, companyWebsite, companyDescription, businessHours,
         kbFiles, kbUsageInstructions,
         updateField, prevStep, nextStep
     } = useWizardStore();
@@ -113,6 +113,21 @@ export const Step2_CompanyInfo: React.FC = () => {
                     {/* SECCIÓN 1: DATOS BÁSICOS */}
                     <div className="step-section">
                         <div className="row g-4">
+                            <div className="col-12">
+                                <div className="form-group">
+                                    <label className="form-label fw-bold">
+                                        <i className="bi bi-building me-2 text-primary"></i>
+                                        Nombre de la empresa
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={companyName}
+                                        onChange={(e) => updateField('companyName', e.target.value)}
+                                        placeholder="Mi Empresa S.L."
+                                    />
+                                </div>
+                            </div>
                             <div className="col-md-6">
                                 <div className="form-group">
                                     <label className="form-label fw-bold">
