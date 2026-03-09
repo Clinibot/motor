@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step5_Timings: React.FC = () => {
     const {
@@ -19,18 +20,15 @@ export const Step5_Timings: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">
-                    Configuración de tiempos
-                    <div className="custom-tooltip">
-                        <i className="bi bi-info-circle tooltip-icon"></i>
-                        <div className="tooltip-content">
-                            Controla los ritmos de la conversación: cuánto tarda en saludar, cuánto espera antes de colgar por silencio y cómo gestiona el buzón de voz.
-                        </div>
-                    </div>
-                </h1>
-                <p className="section-subtitle">
-                    Define las duraciones, delays y comportamientos temporales de tu agente.
-                </p>
+                <WizardStepHeader
+                    title="Tiempos y esperas"
+                    subtitle="Define los retardos y límites de tiempo para la interacción del agente."
+                    tooltipContent={
+                        <>
+                            <strong>Gestión de tiempos.</strong> Optimiza la respuesta inicial y la duración máxima de las llamadas para mejorar la experiencia.
+                        </>
+                    }
+                />
 
                 <form onSubmit={handleNext}>
                     {/* PAUSA INICIAL */}

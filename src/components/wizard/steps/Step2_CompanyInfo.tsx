@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 import { createClient } from '../../../lib/supabase/client';
 
 export const Step2_CompanyInfo: React.FC = () => {
@@ -98,8 +99,15 @@ export const Step2_CompanyInfo: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">Información de la empresa</h1>
-                <p className="section-subtitle">Configura los detalles comerciales y proporciona la base de conocimientos de tu negocio.</p>
+                <WizardStepHeader
+                    title="Información de la empresa"
+                    subtitle="Cuéntanos más sobre tu negocio para que el agente pueda responder mejor a los clientes."
+                    tooltipContent={
+                        <>
+                            <strong>Contexto empresarial.</strong> Esta información ayuda al agente a entender quién eres y qué haces.
+                        </>
+                    }
+                />
 
                 <form onSubmit={handleNext}>
                     {/* SECCIÓN 1: DATOS BÁSICOS */}

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step4_Conversation: React.FC = () => {
     const {
@@ -35,18 +36,15 @@ export const Step4_Conversation: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">
-                    Configuración de conversación
-                    <div className="custom-tooltip">
-                        <i className="bi bi-info-circle tooltip-icon"></i>
-                        <div className="tooltip-content">
-                            Ajusta el comportamiento dinámico del agente: cómo maneja las interrupciones y qué sonidos emite mientras escucha.
-                        </div>
-                    </div>
-                </h1>
-                <p className="section-subtitle">
-                    Define las reglas de interacción y fluidez de la llamada.
-                </p>
+                <WizardStepHeader
+                    title="Control de la conversación"
+                    subtitle="Ajusta cómo el agente escucha y responde durante la llamada."
+                    tooltipContent={
+                        <>
+                            <strong>Dinámica de conversación.</strong> Estos parámetros controlan la fluidez y el ritmo de la interacción.
+                        </>
+                    }
+                />
 
                 <form onSubmit={handleNext}>
                     <div className="form-group">

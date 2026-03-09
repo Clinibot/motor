@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step6_Audio: React.FC = () => {
     const {
@@ -13,10 +14,15 @@ export const Step6_Audio: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">Audio y STT</h1>
-                <p className="section-subtitle">
-                    Configura la calidad del sonido, el ruido de fondo y cómo el agente debe procesar el texto.
-                </p>
+                <WizardStepHeader
+                    title="Audio y procesamiento"
+                    subtitle="Configura la calidad del audio, cancelación de ruido y transcripción del agente."
+                    tooltipContent={
+                        <>
+                            <strong>Procesamiento de Voz.</strong> Ajusta cómo el sistema convierte voz a texto y viceversa para una mayor precisión.
+                        </>
+                    }
+                />
 
                 <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
                     {/* SECCIÓN 1: VOLUMEN Y SONIDO AMBIENTE */}

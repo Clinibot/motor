@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 import { createClient } from '../../../lib/supabase/client';
 
 interface AvailableAgent {
@@ -97,18 +98,15 @@ export const Step7_Tools: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">
-                    Configuración avanzada
-                    <div className="custom-tooltip">
-                        <i className="bi bi-info-circle tooltip-icon"></i>
-                        <div className="tooltip-content">
-                            Configura las herramientas y los puntos de integración para que tu agente pueda interactuar con sistemas externos.
-                        </div>
-                    </div>
-                </h1>
-                <p className="section-subtitle">
-                    Selecciona las herramientas que tu agente podrá utilizar durante las llamadas.
-                </p>
+                <WizardStepHeader
+                    title="Herramientas y funciones"
+                    subtitle="Activa integraciones especiales y capas de análisis para potenciar a tu agente."
+                    tooltipContent={
+                        <>
+                            <strong>Capacidades especiales.</strong> Las herramientas permiten al agente interactuar con sistemas externos como calendarios o transferencias de llamadas.
+                        </>
+                    }
+                />
 
                 <form onSubmit={handleNext}>
                     {/* CAL.COM BOOKING */}

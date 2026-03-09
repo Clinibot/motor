@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step1_Type: React.FC = () => {
     const { agentName, companyName, agentType, updateField, nextStep } = useWizardStore();
@@ -18,12 +19,16 @@ export const Step1_Type: React.FC = () => {
                 <form onSubmit={handleNext}>
                     {/* SECCIÓN: INFORMACIÓN BÁSICA DEL AGENTE */}
                     <div style={{ marginBottom: '48px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--oscuro)', marginBottom: '8px' }}>
-                            Información básica del agente
-                        </h2>
-                        <p style={{ fontSize: '14px', color: 'var(--gris-texto)', marginBottom: '32px', lineHeight: '1.6' }}>
-                            Empecemos con los datos fundamentales. Esta información personaliza todo el comportamiento de tu agente.
-                        </p>
+                        <WizardStepHeader
+                            title="Información básica del agente"
+                            subtitle="Empecemos con los datos fundamentales. Esta información personaliza todo el comportamiento de tu agente."
+                            tooltipContent={
+                                <>
+                                    <strong>Configuración inicial.</strong> Estos datos son la base sobre la que se construye la identidad de tu agente.
+                                </>
+                            }
+                            showArrows={true}
+                        />
 
                         <div className="row">
                             <div className="col-md-6">

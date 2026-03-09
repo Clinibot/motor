@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 
 interface Voice {
     voice_id: string;
@@ -353,18 +354,15 @@ export const Step3_Voice: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">
-                    Selección de voz del agente
-                    <span className="custom-tooltip">
-                        <i className="bi bi-info-circle tooltip-icon"></i>
-                        <span className="tooltip-content">
-                            La voz es la cara audible de tu marca. Elige entre diferentes proveedores para encontrar el tono, acento y género que mejor encaje.
-                        </span>
-                    </span>
-                </h1>
-                <p className="section-subtitle">
-                    Elige la voz que mejor represente la personalidad de tu agente.
-                </p>
+                <WizardStepHeader
+                    title="Selección de voz del agente"
+                    subtitle="Elige la voz que mejor represente la personalidad de tu agente."
+                    tooltipContent={
+                        <>
+                            <strong>La voz es la cara audible de tu marca.</strong> Elige entre diferentes proveedores para encontrar el tono, acento y género que mejor encaje.
+                        </>
+                    }
+                />
 
                 <div className="alert-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>

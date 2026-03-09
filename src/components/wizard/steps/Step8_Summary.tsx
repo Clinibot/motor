@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 
 /* ─── Estilos locales fieles al HTML de referencia wizard-paso8-netelip.html ─── */
 const S = {
@@ -692,10 +693,15 @@ Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{3,}
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">Resumen de configuración</h1>
-                <p className="section-subtitle">
-                    Revisa todos los detalles de tu agente antes de crearlo. Puedes editar cualquier paso si necesitas hacer cambios.
-                </p>
+                <WizardStepHeader
+                    title="Resumen y confirmación"
+                    subtitle="Revisa la configuración final de tu agente antes de crearlo o guardarlo."
+                    tooltipContent={
+                        <>
+                            <strong>Paso final.</strong> Aquí puedes ver un resumen de todas las decisiones tomadas y una previsualización del prompt generado.
+                        </>
+                    }
+                />
 
                 {/* BANNER ÉXITO CONFIGURACIÓN */}
                 <div style={S.alertSuccess}>

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step2_LLM: React.FC = () => {
     const {
@@ -31,12 +32,15 @@ export const Step2_LLM: React.FC = () => {
     return (
         <div className="content-area">
             <div className="form-card">
-                <h1 className="section-title">
-                    Configuración del LLM
-                </h1>
-                <p className="section-subtitle">
-                    Selecciona el modelo de IA y ajusta sus parámetros de funcionamiento.
-                </p>
+                <WizardStepHeader
+                    title="Cerebro del agente"
+                    subtitle="Selecciona el modelo de lenguaje y ajusta la personalidad de tu agente."
+                    tooltipContent={
+                        <>
+                            <strong>Modelos de Lenguaje.</strong> Diferentes motores de IA ofrecen distintos niveles de razonamiento y velocidad.
+                        </>
+                    }
+                />
 
                 <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
                     {/* SECCIÓN 1: CONFIGURACIÓN DEL MODELO */}
