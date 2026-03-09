@@ -408,7 +408,7 @@ Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca 
             ? `\n\n<!-- AUTO_KB_START -->\n${kbInnerContent}\n<!-- AUTO_KB_END -->\n`
             : '';
 
-        const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto de ${company}\n- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}\n\n# Horario comercial:\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
+        const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto de ${company}\n${wizardData.companyDescription ? `- Actividad: ${wizardData.companyDescription}\n` : ''}- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}\n\n# Horario comercial:\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
         let finalPrompt = '';
         const currentPrompt = wizardData.prompt || '';
@@ -540,7 +540,7 @@ Finaliza siempre con la herramienta 'end_call' tras despedirte.`.replace(/\n{3,}
         wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
         wizardData.prompt, wizardData.businessHours,
         wizardData.personality, wizardData.tone,
-        wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite,
+        wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite, wizardData.companyDescription,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
         wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions
     ]);

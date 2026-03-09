@@ -55,6 +55,7 @@ export interface ToolsPayload {
     companyAddress?: string;
     companyPhone?: string;
     companyWebsite?: string;
+    companyDescription?: string;
     businessHours?: { day: string; open: string; close: string; closed: boolean }[];
 }
 
@@ -375,17 +376,7 @@ Usa \`check_availability\` cuando el usuario quiera agendar, pregunte por huecos
 
     // --- COMPANY INFO INJECTION ---
     const formattedHours = p.businessHours ? groupBusinessHours(p.businessHours) : '';
-    const companySection = p.companyName ? `
-<!-- AUTO_COMPANY_START -->
-# Información de Contacto de ${p.companyName}
-- Dirección: ${p.companyAddress || 'No especificada'}
-- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(p.companyPhone || '') || 'No especificado'}
-- Web: ${formatUrlForTTS(p.companyWebsite || '') || 'No especificada'}
-
-# Horario comercial:
-${formattedHours}
-<!-- AUTO_COMPANY_END -->
-` : '';
+    const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto de ${p.companyName || 'la empresa'}\n${p.companyDescription ? `- Actividad: ${p.companyDescription}\n` : ''}- Dirección: ${p.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(p.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(p.companyWebsite || '') || 'No especificada'}\n\n# Horario comercial:\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
     // Clean existing company blocks if they exist
     const companyRegex = /<!-- AUTO_COMPANY_START -->[\s\S]*<!-- AUTO_COMPANY_END -->/;
