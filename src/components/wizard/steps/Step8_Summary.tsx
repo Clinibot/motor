@@ -522,20 +522,16 @@ Nunca uses números para expresar horas. Habla siempre de forma natural y coloqu
 - Saluda cordialmente, identifícate y entiende el motivo de la llamada.
 - Haz las siguientes preguntas para determinar si el contacto es cliente de ${company} y hacia dónde dirigirlo. Haz una pregunta a la vez y adapta según lo que compartan:
     - Q1: "¿Eres ya cliente de ${company} o quieres información para empezar?"
-    - Q2: "¿En qué puedo ayudarte?"
-    - Q3 (solo NO clientes): "¿Te gustaría agendar una cita con un asesor para que te dé información más detallada?"
+    - Q2: "¿En qué puedo ayudarte?"${wizardData.enableCalBooking && wizardData.calApiKey ? `\n    - Q3 (solo NO clientes): "¿Te gustaría agendar una cita con un asesor para que te dé información más detallada?"` : ''}
 
 ## 2. Resolución o Routing
 ${wizardData.agentType === 'transferencia'
                     ? '- Identifica el departamento destino y realiza la transferencia usando las herramientas disponibles.'
-                    : '- Resuelve dudas usando la Base de Conocimientos si está disponible.\n- Ofrece agendar una cita si detectas interés o necesidad comercial.'}
+                    : wizardData.enableCalBooking && wizardData.calApiKey
+                        ? '- Resuelve dudas usando la Base de Conocimientos si está disponible.\n- Ofrece agendar una cita si detectas interés o necesidad comercial.'
+                        : '- Resuelve dudas usando la Base de Conocimientos si está disponible.\n- Si el contacto pregunta por agendar una cita, indica que no tienes acceso a la agenda en este momento pero que tomarás nota de su interés.'}
 
-## 3. Agendamiento (si aplica)
-- Consulta disponibilidad real.
-- Ofrece 2 opciones horarias.
-- Si acepta, solicita teléfono y email (pide deletreo del email para mayor precisión).
-
-## 4. Cierre
+## 3. Cierre
 - Pregunta: "¿Hay algo más en lo que pueda ayudarte?"
 - Despídete usando el nombre del contacto si lo tienes.
 - Ejecuta la función \`end_call\` inmediatamente después de la despedida.
