@@ -314,8 +314,8 @@ export const Step8_Summary: React.FC = () => {
     const editingAgentId = wizardData.editingAgentId;
 
     const getUpdatedPrompt = React.useCallback((forceRebuild = false) => {
-        const name = wizardData.agentName || 'Sofía';
-        const company = wizardData.companyName || 'nuestra empresa';
+        const name = wizardData.agentName || 'Elio';
+        const company = wizardData.companyName || 'netelip';
         const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         const formattedHours = groupBusinessHours(wizardData.businessHours);
@@ -481,6 +481,8 @@ Eres ${name} y tu objetivo es ${roleObjective}
 - Hora actual: {{current_time_Europe/Madrid}}
 - Fecha: ${today}
 - Nombre del contacto: {{user_name}}
+- Teléfono de contacto: {{numero_telefono}}
+- Email: {{email}}
 
 ## Instrucciones
 ### Estilos de comunicación
