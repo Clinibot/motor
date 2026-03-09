@@ -163,7 +163,7 @@ export const Step4_Conversation: React.FC = () => {
                                         onChange={(e) => updateField('interruptionSensitivity', parseFloat(e.target.value))}
                                     />
                                 </div>
-                                <div className="form-text">0 = No interrumpe, 1 = Sensibilidad alta</div>
+                                <div className="form-text">0 = No interrumpe, 0.8 = Recomendado, 1 = Sensibilidad alta</div>
                             </div>
                         </div>
                     </div>

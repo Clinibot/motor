@@ -159,7 +159,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     kbSimilarityThreshold: 0.7,
 
     model: 'gpt-4.1',
-    temperature: 0.7,
+    temperature: 0,
     highPriority: false,
     whoFirst: 'agent',
     beginMessage: '',
@@ -176,7 +176,7 @@ export const useWizardStore = create<WizardState>((set) => ({
 
     language: 'es-ES',
     responsiveness: 1.0,
-    interruptionSensitivity: 1.0,
+    interruptionSensitivity: 0.8,
     enableBackchannel: false,
     backchannelFrequency: 0.9,
     backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
@@ -237,10 +237,10 @@ export const useWizardStore = create<WizardState>((set) => ({
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
-        model: 'gpt-4.1', temperature: 0.7, highPriority: false, whoFirst: 'agent', beginMessage: '',
+        model: 'gpt-4.1', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
         personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
         voiceId: '11labs-Adrian', voiceName: 'Adrián', voiceProvider: 'retell', voiceDescription: 'Voz profesional y clara de España', voiceSpeed: 1.0, voiceTemperature: 1.0,
-        language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 1.0,
+        language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 0.8,
         enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
         boostedKeywords: [], normalizeForSpeech: true,
         beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 600000,

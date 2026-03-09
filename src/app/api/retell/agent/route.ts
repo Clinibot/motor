@@ -107,6 +107,8 @@ export async function POST(request: Request) {
             payload
         );
 
+        console.log(`Prompt injected for ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
+
         console.log(`Tools configured for ${payload.agentName}: ${retellTools.length}`, JSON.stringify(retellTools, null, 2));
         console.log(`Knowledge base configuration:`, payload.kbFiles?.length || 0, "files");
 
@@ -253,6 +255,8 @@ export async function PATCH(request: Request) {
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
         const finalPrompt = injectToolInstructions(payload.prompt || 'Eres un asistente amable.', payload);
+
+        console.log(`Prompt injected for PATCH ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
 
         console.log(`Tools mapped for PATCH (${payload.agentName}):`, JSON.stringify(retellTools, null, 2));
 

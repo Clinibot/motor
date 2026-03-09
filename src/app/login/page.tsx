@@ -148,9 +148,6 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '12px', color: '#9ca3af' }}>
-                    © 2025 Netelip · Fábrica de Agentes IA
-                </p>
             </div>
         </div>
     );

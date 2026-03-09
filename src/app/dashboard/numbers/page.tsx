@@ -47,7 +47,7 @@ export default function NumbersPage() {
         termination_uri: '',
         username: '',
         password: '',
-        transport: 'tcp'
+        transport: 'udp'
     });
 
     useEffect(() => {
@@ -84,7 +84,7 @@ export default function NumbersPage() {
 
             await loadData(); // Recargar todo desde Supabase para asegurar consistencia
 
-            setNewNumber({ phone: '', nickname: '', termination_uri: '', username: '', password: '', transport: 'tcp' });
+            setNewNumber({ phone: '', nickname: '', termination_uri: '', username: '', password: '', transport: 'udp' });
             setShowAddModal(false);
             alert("¡Número SIP conectado con éxito!");
         } catch (error: unknown) {
@@ -586,8 +586,8 @@ export default function NumbersPage() {
                                 onChange={e => setNewNumber({ ...newNumber, transport: e.target.value })}
                                 style={{ padding: '12px 16px', fontSize: '14px', background: '#f9fafb' }}
                             >
-                                <option value="tcp">TCP (Recomendado)</option>
-                                <option value="udp">UDP</option>
+                                <option value="tcp">TCP</option>
+                                <option value="udp">UDP (Recomendado)</option>
                                 <option value="tls">TLS (Seguro)</option>
                             </select>
                         </div>

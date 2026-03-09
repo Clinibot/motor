@@ -85,8 +85,8 @@ export const Step2_LLM: React.FC = () => {
                                             <i className="bi bi-question-circle-fill tooltip-icon"></i>
                                             <div className="tooltip-content shadow">
                                                 <strong>Controla la creatividad:</strong><br />
-                                                <strong>0.0-0.3:</strong> Consistente (Soporte)<br />
-                                                <strong>0.4-0.6:</strong> Balanceado (Recomendado)<br />
+                                                <strong>0.0-0.2:</strong> Consistente (Recomendado)<br />
+                                                <strong>0.3-0.6:</strong> Balanceado<br />
                                                 <strong>0.7-1.0:</strong> Creativo (Ventas)
                                             </div>
                                         </div>
