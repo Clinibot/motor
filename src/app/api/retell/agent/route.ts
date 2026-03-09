@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
-import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '../../../../lib/retell/toolMapper';
+import { buildRetellTools, buildPostCallAnalysis } from '../../../../lib/retell/toolMapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,13 +101,11 @@ export async function POST(request: Request) {
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
 
-        // 5. Inject tool instructions into the base prompt
-        const finalPrompt = injectToolInstructions(
-            payload.prompt || 'Eres un asistente amable.',
-            payload
-        );
+        // 5. El prompt llega ya procesado desde el wizard (fuente de verdad).
+        // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
+        const finalPrompt = payload.prompt || 'Eres un asistente amable.';
 
-        console.log(`Prompt injected for ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
+        console.log(`Prompt recibido para ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
 
         console.log(`Tools configured for ${payload.agentName}: ${retellTools.length}`, JSON.stringify(retellTools, null, 2));
         console.log(`Knowledge base configuration:`, payload.kbFiles?.length || 0, "files");
@@ -254,9 +252,11 @@ export async function PATCH(request: Request) {
 
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
-        const finalPrompt = injectToolInstructions(payload.prompt || 'Eres un asistente amable.', payload);
+        // El prompt llega ya procesado desde el wizard (fuente de verdad).
+        // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
+        const finalPrompt = payload.prompt || 'Eres un asistente amable.';
 
-        console.log(`Prompt injected for PATCH ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
+        console.log(`Prompt recibido para PATCH ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
 
         console.log(`Tools mapped for PATCH (${payload.agentName}):`, JSON.stringify(retellTools, null, 2));
 

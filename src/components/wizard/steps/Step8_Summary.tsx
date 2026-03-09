@@ -294,11 +294,9 @@ const formatUrlForTTS = (url: string) => {
 const cleanPromptForDeployment = (prompt: string) => {
     if (!prompt) return '';
     return prompt
-        // Eliminar secciones auto-generadas (se re-inyectan en el servidor via injectToolInstructions)
-        .replace(/<!-- AUTO_TOOLS_START -->[\s\S]*?<!-- AUTO_TOOLS_END -->/g, '')
-        .replace(/<!-- AUTO_KB_START -->[\s\S]*?<!-- AUTO_KB_END -->/g, '')
-        .replace(/<!-- AUTO_COMPANY_START -->[\s\S]*?<!-- AUTO_COMPANY_END -->/g, '')
-        .replace(/<!-- AUTO_NOTES_START -->[\s\S]*?<!-- AUTO_NOTES_END -->/g, '')
+        // Eliminar solo los marcadores HTML (mantener el contenido que encierran)
+        // El wizard es la fuente de verdad: lo que se ve = lo que va a Retell
+        .replace(/<!--\s*AUTO_[A-Z_]+_(?:START|END)\s*-->/g, '')
         // Normalizar espacios en blanco (máximo 2 saltos de línea)
         .replace(/\n{3,}/g, '\n\n')
         .trim();
