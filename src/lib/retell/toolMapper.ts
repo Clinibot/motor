@@ -316,43 +316,26 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' };
         const dateStr = today.toLocaleDateString('es-ES', options);
 
-        blocks.push(`## Agenda (Citas)
+        blocks.push(`## Gestión de Agenda y Citas
 Hoy es ${dateStr}.
 Usa \`check_availability\` cuando el usuario quiera agendar, pregunte por huecos o quiera programar una visita.
  
-### Cómo presentar los resultados:
- 
-**OFERTA INICIAL (primera vez):**
-Selecciona los 2 huecos más próximos priorizando diversidad horaria:
-1. Toma el primer hueco disponible.
-2. Para el segundo, prefiere la tarde (12:00–19:59) si el primero fue por la mañana; si no, toma el siguiente más próximo.
-3. Presentación natural: "Tenemos disponibilidad el [hueco 1] y [hueco 2]. ¿Cuál te viene mejor?"
- 
-**SI EL USUARIO PIDE MÁS OPCIONES:**
-Si dice "¿no tenéis otra cosa?", "¿y otro día?", "¿nada más tarde?", "¿la semana que viene?", presenta TODOS los huecos disponibles agrupados por día.
- 
-### Reglas de formato (crítico):
-- Idioma: Español, estilo hablado natural.
+### Proceso de Agendamiento:
+1. **Consulta**: Cuando el contacto acepta agendar, di: "Excelente. Déjame consultar qué horarios tenemos disponibles..." y ejecuta \`check_availability\`.
+2. **Oferta**: Ofrece los 2 horarios más tempranos (mañana/tarde). "Tenemos disponibilidad el [hueco 1] y [hueco 2]. ¿Cuál te viene mejor?".
+3. **Más opciones**: Si no le valen, busca en los próximos 6 días y agrupa slots.
+4. **Recogida de datos**: Una vez elegido el horario, di: "Estupendo. Para confirmar tu cita necesito un par de datos. ¿Cuál es tu número de teléfono?"
+5. **Email y Deletreo (CRÍTICO)**: 
+   - Tras el teléfono, pide el email.
+   - Una vez escuchado el email, di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien".
+   - Escucha el deletreo completo.
+6. **Ejecución**: Inmediatamente después del deletreo, di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\`.
+7. **Confirmación**: Tras el éxito, confirma fecha/hora y menciona que recibirá un correo.
+
+### Reglas de formato de voz:
 - Día: "martes dieciocho".
-- Horas: Siempre con LETRAS, nunca dígitos (una, dos, tres...).
-- Conversión 24h a 12h con periodos:
-  - 00:00–11:59: "de la mañana"
-  - 12:00: "del mediodía"
-  - 12:30–19:59: "de la tarde"
-  - 20:00–23:59: "de la noche"
-- "la una" (nunca "un").
-- :30 -> "y media" | :00 -> omitir minutos.
-- Ejemplo mismo día: "a las diez de la mañana y a las tres de la tarde".
- 
-### Disponibilidad completa (agrupada por día):
-Agrupa slots consecutivos de 30 min en rangos: "entre las [inicio] y las [fin]". Un hueco rompe la secuencia. Conecta rangos con ", y también".
-Ejemplo: "Jueves 14 de noviembre: entre las nueve y las diez de la mañana, y también entre las dos y las tres y media de la tarde."
- 
-### Si no hay disponibilidad:
-"Ahora mismo no tenemos huecos disponibles en los próximos días. ¿Quieres que te llame alguien del equipo para buscar una fecha?"
- 
-### Tras elegir un hueco:
-Una vez que el usuario elige un hueco, confírmalo claramente (ej: "Perfecto, te apunto el martes dieciocho a las diez de la mañana"). Pide su nombre completo y usa INMEDIATAMENTE \`book_appointment\` para realizar la reserva. **No vuelvas a consultar disponibilidad una vez que el hueco ya ha sido seleccionado y confirmado por el usuario.**`);
+- Horas: Siempre con LETRAS (diez de la mañana, cuatro de la tarde). No digas formato 24h.
+- "la una" (nunca "un").`);
     }
 
     if (p.enableTransfer && p.transferDestinations.length > 0) {

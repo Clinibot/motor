@@ -188,7 +188,7 @@ export const Step2_LLM: React.FC = () => {
                                         <textarea
                                             className="form-control start-message-area"
                                             rows={4}
-                                            placeholder="Ej: Hola, soy Elio, tu asistente de voz creado con inteligencia artificial de Netelip - ¿Con quién tengo el gusto de hablar?"
+                                            placeholder="Ej: Hola, soy Elio, tu asistente de voz creado con inteligencia artificial de Netelip y esta llamada está siendo grabada por motivos de calidad - ¿Con quién tengo el gusto de hablar?"
                                             value={beginMessage}
                                             onChange={(e) => updateField('beginMessage', e.target.value)}
                                             required
