@@ -471,6 +471,8 @@ Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca 
             finalPrompt = `
 # Rol y Objetivo
 Eres ${name} y tu objetivo es ${roleObjective}
+
+# Estilo de Comunicación
 - ${personalityStr}
 - ${toneStr}
 - Eres paciente y consistente, especialmente cuando el contacto no tiene claro qué necesita.
@@ -483,8 +485,6 @@ Eres ${name} y tu objetivo es ${roleObjective}
 - Nombre del contacto: {{user_name}}
 - Teléfono de contacto: {{numero_telefono}}
 - Email: {{email}}
-
-# Estilo de Comunicación
 
 ## Reglas generales
 - Haz solo una pregunta a la vez y espera respuesta. REGLA DE ORO: No encadenes preguntas (no digas "¿Cuál es tu nombre y en qué puedo ayudarte?"; en su lugar pregunta "¿Cuál es tu nombre?", espera la respuesta, y luego pregunta "¿En qué puedo ayudarte?").
