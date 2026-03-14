@@ -70,3 +70,57 @@ export async function POST(req: Request) {
         );
     }
 }
+
+export async function DELETE(req: Request) {
+    try {
+        const supabaseAdmin = getSupabaseAdmin();
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: "Workspace ID is required" }, { status: 400 });
+        }
+
+        const { error } = await supabaseAdmin
+            .from('workspaces')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        return NextResponse.json({ success: true });
+    } catch (error: unknown) {
+        console.error("Error deleting workspace:", error);
+        return NextResponse.json(
+            { success: false, error: error instanceof Error ? error.message : "Failed to delete workspace" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PATCH(req: Request) {
+    try {
+        const supabaseAdmin = getSupabaseAdmin();
+        const body = await req.json();
+        const { id, name } = body;
+
+        if (!id || !name) {
+            return NextResponse.json({ success: false, error: "ID and Name are required" }, { status: 400 });
+        }
+
+        const { error } = await supabaseAdmin
+            .from('workspaces')
+            .update({ name })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        return NextResponse.json({ success: true });
+    } catch (error: unknown) {
+        console.error("Error updating workspace:", error);
+        return NextResponse.json(
+            { success: false, error: error instanceof Error ? error.message : "Failed to update workspace" },
+            { status: 500 }
+        );
+    }
+}

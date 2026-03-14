@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Plus, Users, Key, Loader2, Building } from 'lucide-react';
+import { Settings, Plus, Users, Key, Loader2, Building, Trash2, Pencil, Check, X, HelpCircle, Info, ExternalLink } from 'lucide-react';
 
 interface Workspace {
     id: string;
@@ -34,6 +34,10 @@ export default function AdminDashboard() {
     const [syncMessage, setSyncMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
     const [activeTab, setActiveTab] = useState<'workspaces' | 'users'>('workspaces');
     const [users, setUsers] = useState<AdminUser[]>([]);
+
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingName, setEditingName] = useState('');
+    const [showHelp, setShowHelp] = useState(false);
 
     const fetchWorkspaces = async () => {
         setIsLoading(true);
@@ -133,6 +137,49 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleDeleteWorkspace = async (id: string, name: string) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar el workspace "${name}"? Esta acción no se puede deshacer.`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/workspaces?id=${id}`, {
+                method: 'DELETE',
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                fetchWorkspaces();
+            } else {
+                setError(data.error || "Error al eliminar workspace");
+            }
+        } catch {
+            setError("Error de conexión al eliminar workspace.");
+        }
+    };
+
+    const handleUpdateWorkspace = async (id: string) => {
+        if (!editingName.trim()) return;
+
+        try {
+            const res = await fetch('/api/admin/workspaces', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, name: editingName })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setEditingId(null);
+                fetchWorkspaces();
+            } else {
+                setError(data.error || "Error al actualizar workspace");
+            }
+        } catch {
+            setError("Error de conexión al actualizar workspace.");
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex">
             {/* Minimal Admin Sidebar */}
@@ -173,8 +220,15 @@ export default function AdminDashboard() {
             <div className="flex-1 p-10 max-w-6xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">
+                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             {activeTab === 'workspaces' ? 'Workspaces (Tenants)' : 'Usuarios'}
+                            <button 
+                                onClick={() => setShowHelp(true)}
+                                className="text-gray-400 hover:text-indigo-600 transition-colors"
+                                title="Ayuda"
+                            >
+                                <HelpCircle className="w-6 h-6" />
+                            </button>
                         </h1>
                         <p className="text-gray-500 mt-1">
                             {activeTab === 'workspaces'
@@ -226,8 +280,43 @@ export default function AdminDashboard() {
                                         {workspaces.map((ws) => (
                                             <li key={ws.id} className="p-6 hover:bg-gray-50 transition-colors">
                                                 <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-gray-900">{ws.name}</h3>
+                                                    <div className="flex-1">
+                                                        {editingId === ws.id ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={editingName}
+                                                                    onChange={(e) => setEditingName(e.target.value)}
+                                                                    className="flex-1 px-2 py-1 border border-indigo-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                                    autoFocus
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleUpdateWorkspace(ws.id)}
+                                                                    className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                                                >
+                                                                    <Check className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingId(null)}
+                                                                    className="p-1 text-gray-400 hover:bg-gray-50 rounded"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2">
+                                                                <h3 className="text-lg font-semibold text-gray-900">{ws.name}</h3>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingId(ws.id);
+                                                                        setEditingName(ws.name);
+                                                                    }}
+                                                                    className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                                                                >
+                                                                    <Pencil className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                         <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
                                                             <span className="font-mono bg-gray-100 px-2 py-1 rounded">ID: {ws.id}</span>
                                                             {ws.is_free ? (
@@ -241,6 +330,13 @@ export default function AdminDashboard() {
                                                             )}
                                                         </div>
                                                     </div>
+                                                    <button
+                                                        onClick={() => handleDeleteWorkspace(ws.id, ws.name)}
+                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                        title="Eliminar Workspace"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
                                                 </div>
                                                 <div className="mt-4 pt-4 border-t border-gray-100">
                                                     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -394,6 +490,77 @@ export default function AdminDashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Help Modal */}
+            {showHelp && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-indigo-50/50">
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <Info className="w-5 h-5 text-indigo-600" />
+                                Gestión de Workspaces (Fábrica)
+                            </h2>
+                            <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <section>
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">¿Cómo funciona esta pantalla?</h3>
+                                <p className="text-gray-600 leading-relaxed">
+                                    Esta pantalla permite gestionar los "Tenants" o Workspaces de Retell AI. Los clientes que se registran en la Fábrica no reciben un workspace automáticamente; tú, como administrador, debes crearlos manualmente y tener un pool de workspaces disponibles para su asignación.
+                                </p>
+                            </section>
+
+                            <section className="bg-amber-50 border border-amber-100 p-4 rounded-lg">
+                                <h3 className="text-amber-900 font-bold flex items-center gap-2 mb-1">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    Límite de Concurrencia
+                                </h3>
+                                <p className="text-sm text-amber-800">
+                                    Cada nuevo cliente registrado tendrá acceso a un workspace con una <strong>concurrencia máxima de 20 llamadas simultáneas</strong>. Es vital monitorizar esto para asegurar la estabilidad del servicio.
+                                </p>
+                            </section>
+
+                            <section>
+                                <h3 className="text-lg font-bold text-gray-900 mb-3 underline decoration-indigo-200 underline-offset-4">Pasos para dar de alta un Workspace</h3>
+                                <div className="space-y-4">
+                                    <div className="flex gap-4">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">1</div>
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Crea el Workspace en Retell AI</p>
+                                            <p className="text-sm text-gray-600">Accede a tu consola de Retell y crea un nuevo workspace dedicado para el nuevo cliente.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">2</div>
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Configura la Facturación</p>
+                                            <p className="text-sm text-gray-600">Añade los datos de facturación necesarios en Retell para activar el workspace y permitir el flujo de llamadas.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">3</div>
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Integra la API Key</p>
+                                            <p className="text-sm text-gray-600">Copia la API Key generada e introdúcela en el formulario de "Añadir Nuevo Workspace" de este panel.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div className="pt-4 flex justify-end">
+                                <button 
+                                    onClick={() => setShowHelp(false)}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-all"
+                                >
+                                    Entendido
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
