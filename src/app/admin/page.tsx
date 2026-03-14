@@ -158,6 +158,27 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleDeleteUser = async (id: string, email: string) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario "${email}"? Esta acción borrará también su cuenta de acceso.`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/users?userId=${id}`, {
+                method: 'DELETE',
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                fetchUsers();
+            } else {
+                setError(data.error || "Error al eliminar usuario");
+            }
+        } catch {
+            setError("Error de conexión al eliminar usuario.");
+        }
+    };
+
     const handleUpdateWorkspace = async (id: string) => {
         if (!editingName.trim()) return;
 
@@ -449,6 +470,7 @@ export default function AdminDashboard() {
                                                 <th className="px-6 py-3 border-b border-gray-200">Workspace</th>
                                                 <th className="px-6 py-3 border-b border-gray-200">Teléfonos</th>
                                                 <th className="px-6 py-3 border-b border-gray-200 text-right">Consumo</th>
+                                                <th className="px-6 py-3 border-b border-gray-200 text-right">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
@@ -479,6 +501,15 @@ export default function AdminDashboard() {
                                                             <span className="text-sm font-bold text-gray-900">{u.total_minutes} min</span>
                                                             <span className="text-[10px] text-gray-500">{u.calls_count} llamadas</span>
                                                         </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button 
+                                                            onClick={() => handleDeleteUser(u.id, u.email)}
+                                                            className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Eliminar usuario"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}

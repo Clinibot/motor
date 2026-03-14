@@ -104,3 +104,42 @@ export async function GET() {
         );
     }
 }
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        if (!userId) {
+            return NextResponse.json({ success: false, error: "User ID is required" }, { status: 400 });
+        }
+
+        const supabaseAdmin = getSupabaseAdmin();
+
+        // 1. Delete user from public.users (cascading might handle related tables depending on schema, 
+        // but we ensure auth deletion specifically)
+        const { error: deleteError } = await supabaseAdmin
+            .from('users')
+            .delete()
+            .eq('id', userId);
+
+        if (deleteError) throw deleteError;
+
+        // 2. Delete user from Auth (requires service role)
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        
+        // We log but don't strictly fail if auth delete fails (e.g. user already gone from auth)
+        if (authError) {
+            console.warn("Auth deletion failed or user already deleted:", authError.message);
+        }
+
+        return NextResponse.json({ success: true, message: "User deleted successfully" });
+
+    } catch (error: unknown) {
+        console.error("Error deleting user:", error);
+        return NextResponse.json(
+            { success: false, error: error instanceof Error ? error.message : "Failed to delete user" },
+            { status: 500 }
+        );
+    }
+}
