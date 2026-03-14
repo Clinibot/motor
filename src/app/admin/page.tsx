@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Plus, Users, Key, Loader2, Building, Trash2, Pencil, Check, X, HelpCircle, Info, ExternalLink } from 'lucide-react';
+import { Settings, Plus, Users, Key, Loader2, Building, Trash2, Pencil, Check, X, HelpCircle, Info } from 'lucide-react';
 
 interface Workspace {
     id: string;
@@ -508,7 +508,7 @@ export default function AdminDashboard() {
                             <section>
                                 <h3 className="text-lg font-bold text-gray-900 mb-2">¿Cómo funciona esta pantalla?</h3>
                                 <p className="text-gray-600 leading-relaxed">
-                                    Esta pantalla permite gestionar los "Tenants" o Workspaces de Retell AI. Los clientes que se registran en la Fábrica no reciben un workspace automáticamente; tú, como administrador, debes crearlos manualmente y tener un pool de workspaces disponibles para su asignación.
+                                    Esta pantalla permite gestionar los &quot;Tenants&quot; o Workspaces de Retell AI. Los clientes que se registran en la Fábrica no reciben un workspace automáticamente; tú, como administrador, debes crearlos manualmente y tener un pool de workspaces disponibles para su asignación.
                                 </p>
                             </section>
 
@@ -543,7 +543,7 @@ export default function AdminDashboard() {
                                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">3</div>
                                         <div>
                                             <p className="font-semibold text-gray-900">Integra la API Key</p>
-                                            <p className="text-sm text-gray-600">Copia la API Key generada e introdúcela en el formulario de "Añadir Nuevo Workspace" de este panel.</p>
+                                            <p className="text-sm text-gray-600">Copia la API Key generada e introdúcela en el formulario de &quot;Añadir Nuevo Workspace&quot; de este panel.</p>
                                         </div>
                                     </div>
                                 </div>
