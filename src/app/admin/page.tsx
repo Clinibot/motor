@@ -508,7 +508,7 @@ export default function AdminDashboard() {
                             <section>
                                 <h3 className="text-lg font-bold text-gray-900 mb-2">¿Cómo funciona esta pantalla?</h3>
                                 <p className="text-gray-600 leading-relaxed">
-                                    Esta pantalla permite gestionar los &quot;Tenants&quot; o Workspaces de Retell AI. Los clientes que se registran en la Fábrica no reciben un workspace automáticamente; tú, como administrador, debes crearlos manualmente y tener un pool de workspaces disponibles para su asignación.
+                                    Esta pantalla permite gestionar los &quot;Tenants&quot; o Workspaces de Retell AI. Los clientes que se registran en la Fábrica no reciben un workspace automáticamente; tú, como administrador, debes crearlos manualmente y tener un pool de workspaces disponibles para su asignación. Si hay disponibles se irán asignando a los nuevos clientes. ¡No dejes que se quede sin unidades disponibles para los nuevos registros de clientes!
                                 </p>
                             </section>
 
