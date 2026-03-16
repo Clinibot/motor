@@ -119,9 +119,17 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
             const toolName = `transfer_to_${cleanName}`;
 
-            const transfer_destination: { type: 'agent'; agent_id?: string } | { type: 'predefined'; number?: string; sip_authentication?: { auth_username?: string; auth_password?: string } } = dest.destination_type === 'agent'
-                ? { type: 'agent', agent_id: dest.agentId }
-                : { 
+            if (dest.destination_type === 'agent') {
+                // INTERNAL AGENT TRANSFER (Agent Swap)
+                tools.push({
+                    type: 'agent_transfer',
+                    name: toolName,
+                    description: dest.description || `Transfiere la llamada a ${dest.name}.`,
+                    agent_id: dest.agentId
+                });
+            } else {
+                // EXTERNAL NUMBER TRANSFER
+                const transfer_destination: { type: 'predefined'; number?: string; sip_authentication?: { auth_username?: string; auth_password?: string } } = { 
                     type: 'predefined', 
                     number: dest.number,
                     sip_authentication: (dest.sip_username || dest.sip_password) 
@@ -130,17 +138,18 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                             auth_password: dest.sip_password
                         }
                         : undefined
-                  };
+                };
 
-            tools.push({
-                type: 'transfer_call',
-                name: toolName,
-                description: dest.description || `Transfiere la llamada a ${dest.name}.`,
-                transfer_destination,
-                transfer_option: {
-                    type: dest.transfer_mode === 'warm' ? 'warm_transfer' : 'cold_transfer',
-                }
-            });
+                tools.push({
+                    type: 'transfer_call',
+                    name: toolName,
+                    description: dest.description || `Transfiere la llamada a ${dest.name}.`,
+                    transfer_destination,
+                    transfer_option: {
+                        type: dest.transfer_mode === 'warm' ? 'warm_transfer' : 'cold_transfer',
+                    }
+                });
+            }
         });
     }
 
