@@ -326,7 +326,7 @@ export const Step3_Voice: React.FC = () => {
             console.log("Iniciando clonación mediante Server Action...");
             const data = await cloneVoiceAction(formData);
 
-            if (data.success) {
+            if (data && data.success) {
                 alert("Voz clonada con éxito");
                 setShowCustomModal(false);
                 setCustomName('');

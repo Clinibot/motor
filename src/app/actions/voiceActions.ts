@@ -14,7 +14,11 @@ function getSupabaseAdmin() {
 }
 
 export async function cloneVoiceAction(formData: FormData) {
-    console.log("[Action] Iniciando cloneVoiceAction");
+    console.log("[Action] Iniciando cloneVoiceAction...");
+    
+    // Objeto de respuesta por defecto
+    const result = { success: false, error: "Error desconocido durante la ejecución" };
+
     try {
         const supabase = await createLocalClient();
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -27,7 +31,7 @@ export async function cloneVoiceAction(formData: FormData) {
         const voice_name = (formData.get('voice_name') as string || '').trim();
         const files = formData.getAll('files') as File[];
 
-        console.log(`[Action] Datos: ${files.length} archivos, nombre: ${voice_name}`);
+        console.log(`[Action] Files: ${files.length}, Name: ${voice_name}`);
 
         if (!voice_name || !files || files.length === 0) {
             return { success: false, error: "Falta el nombre o los archivos de audio" };
@@ -43,7 +47,7 @@ export async function cloneVoiceAction(formData: FormData) {
             .single();
 
         if (profileError || !userProfile?.workspace_id) {
-            console.error("[Action] Error perfil/workspace:", profileError);
+            console.error("[Action] Error perfil:", profileError);
             return { success: false, error: "No se encontró el workspace del usuario" };
         }
 
@@ -54,19 +58,25 @@ export async function cloneVoiceAction(formData: FormData) {
             .single();
 
         if (wsError || !workspace?.retell_api_key) {
-            console.error("[Action] Error API Key Retell:", wsError);
+            console.error("[Action] Error API Key:", wsError);
             return { success: false, error: "No se encontró la API Key de Retell" };
         }
 
+        console.log(`[Action] Llamando a Retell SDK para clonación...`);
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
-        console.log(`[Action] Llamando a Retell SDK...`);
         const voice = await retellClient.voice.clone({
             voice_name,
             files: files,
             voice_provider: 'elevenlabs'
         });
-        console.log(`[Action] Retell éxito:`, voice.voice_id);
+
+        if (!voice || !voice.voice_id) {
+            console.error("[Action] Retell devolvió un objeto vacío o inválido");
+            return { success: false, error: "Retell no pudo crear la voz (respuesta vacía)" };
+        }
+
+        console.log(`[Action] Clonación exitosa:`, voice.voice_id);
 
         return {
             success: true,
@@ -77,11 +87,10 @@ export async function cloneVoiceAction(formData: FormData) {
         };
 
     } catch (error: unknown) {
-        console.error("[Action] Error CRÍTICO en Server Action:", error);
-        const errorMessage = error instanceof Error ? error.message : "Error interno en el servidor al clonar la voz";
+        console.error("[Action] Error CRÍTICO:", error);
         return {
             success: false,
-            error: errorMessage
+            error: error instanceof Error ? error.message : "Fallo inesperado al clonar voz"
         };
     }
 }
