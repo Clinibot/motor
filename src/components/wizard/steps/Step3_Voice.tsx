@@ -117,17 +117,17 @@ export const Step3_Voice: React.FC = () => {
                         accent.includes('castilian') ||
                         accent.includes('castellano') ||
                         accent.includes('castellana') ||
+                        accent.includes('es-es') ||
+                        accent === 'spanish' ||
+                        accent === 'español' ||
                         voiceLangAttr.includes('spain') ||
                         voiceLangAttr.includes('es-es') ||
                         voiceLangAttr.endsWith('-es') ||
                         voiceName.includes('español (españa)') ||
                         voiceName.includes('española') ||
                         voiceName.includes('madrid') ||
-                        voiceName.includes('barcelona') ||
-                        voiceName.includes('sevilla') ||
-                        voiceName.includes('valencia') ||
-                        // Nombres comunes de voces de España en Cartesia/Eleven/Retell
-                        ['elena', 'manuel', 'isabel', 'teresa', 'dario', 'ines', 'pau', 'alvaro', 'paloma', 'sergio', 'blanca'].some(n => voiceName.includes(n));
+                        // Nombres comunes de voces de España
+                        ['elena', 'manuel', 'isabel', 'teresa', 'dario', 'ines', 'pau', 'alvaro', 'paloma', 'sergio', 'blanca', 'adrian', 'adrián', 'sol', 'mateo', 'jose', 'josé', 'maria', 'maría', 'antoni', 'antonio', 'lola', 'carmen', 'javier', 'elvira'].some(n => voiceName.includes(n));
 
                     if (isSpainSignal && lang === 'es') {
                         accent = 'spain';
@@ -187,6 +187,12 @@ export const Step3_Voice: React.FC = () => {
                 console.log("Español (España):", normalized.filter((v: Voice) => v.language === 'es' && v.accent === 'spain').length);
                 console.log("Cartesia:", normalized.filter((v: Voice) => v.provider === 'cartesia').length);
                 setVoices(normalized);
+                
+                // Debug log para voces en español sin acento reconocido
+                const unknownAccent = normalized.filter((v: Voice) => v.language === 'es' && v.accent !== 'spain' && v.accent !== 'latam');
+                if (unknownAccent.length > 0) {
+                    console.log("Voces en español con acento no reconocido:", unknownAccent.map((v: Voice) => `${v.voice_name} (Accento raw: ${v.raw_accent}, ID: ${v.voice_id})`));
+                }
             } else {
                 console.warn("API returned empty voices or failed, using fallback data");
                 setVoices(DEFAULT_VOICES);
