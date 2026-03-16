@@ -341,7 +341,7 @@ export const Step3_Voice: React.FC = () => {
                 console.error("Texto que falló:", responseText);
                 
                 if (res.status === 413 || responseText.toLowerCase().includes("too large") || responseText.includes("Request Entity Too Large")) {
-                    alert("Error 413: Los archivos son demasiado grandes para el servidor. Por favor, intenta subir archivos más pequeños (máximo 4MB en total).");
+                    alert("Error 413: Los archivos son demasiado grandes para el servidor. El límite actual es de 20MB. Si tus archivos pesan más de 5MB y estás en Vercel, es posible que la plataforma lo bloquee automáticamente.");
                 } else if (res.status === 504 || responseText.toLowerCase().includes("timeout")) {
                     alert("Error 504: Tiempo de espera agotado. El procesamiento de los audios ha tardado demasiado.");
                 } else {
