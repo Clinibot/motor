@@ -74,6 +74,7 @@ export const Step3_Voice: React.FC = () => {
     const [filterLang, setFilterLang] = useState('es');
     const [filterGender, setFilterGender] = useState('');
     const [filterAccent, setFilterAccent] = useState('');
+    const [legalConfirmed, setLegalConfirmed] = useState(false);
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
@@ -896,7 +897,7 @@ export const Step3_Voice: React.FC = () => {
                                     type="submit"
                                     className="btn btn-primary"
                                     style={{ width: '100%', justifyContent: 'center' }}
-                                    disabled={isProcessingCustom}
+                                    disabled={isProcessingCustom || !legalConfirmed}
                                 >
                                     {isProcessingCustom ? (
                                         <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: '16px', height: '16px' }}></span> Procesando...</>
