@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
-import { buildRetellTools, buildPostCallAnalysis } from '../../../../lib/retell/toolMapper';
+import { buildRetellTools, buildPostCallAnalysis } from '@/lib/retell/toolMapper';
+import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,62 +16,7 @@ function getSupabaseAdmin() {
     return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-async function enrichSipCredentials(payload: any, supabaseAdmin: any) {
-    if (!payload.enableTransfer || !payload.transferDestinations || !Array.isArray(payload.transferDestinations)) return;
 
-    console.log("Checking for SIP credentials in transfer destinations...");
-    for (const dest of payload.transferDestinations) {
-        if (dest.destination_type === 'number' && dest.number) {
-            // Limpiamos siempre para que dependa estrictamente del número guardado en la BD
-            dest.sip_username = undefined;
-            dest.sip_password = undefined;
-
-            const baseNumber = dest.number.replace(/\s+/g, '');
-            // Si empieza por +34 lo probamos tal cual. Si no, probamos con +34 y sin +
-            const variations = [baseNumber];
-            if (!baseNumber.startsWith('+')) {
-                variations.push('+' + baseNumber);
-                if (baseNumber.startsWith('34')) {
-                    variations.push('+' + baseNumber); // duplicado pero seguro
-                } else {
-                    variations.push('+34' + baseNumber);
-                }
-            } else {
-                variations.push(baseNumber.substring(1)); // quitar el +
-            }
-
-            // Eliminar duplicados de variaciones
-            const uniqueVariations = Array.from(new Set(variations));
-            
-            console.log(`Searching DB for SIP credentials using variations: ${uniqueVariations.join(', ')}`);
-            
-            const { data: phoneData, error } = await supabaseAdmin
-                .from('phone_numbers')
-                .select('sip_username, sip_password, phone_number')
-                .in('phone_number', uniqueVariations)
-                .maybeSingle();
-
-            if (error) {
-                console.error(`Error searching SIP credentials for ${baseNumber}:`, error);
-                continue;
-            }
-
-            if (phoneData) {
-                console.log(`Match found in DB for number: ${phoneData.phone_number}`);
-                if (phoneData.sip_username) {
-                    console.log(`Enriching with SIP username: ${phoneData.sip_username}`);
-                    dest.sip_username = phoneData.sip_username;
-                }
-                if (phoneData.sip_password) {
-                    console.log(`Enriching with SIP password (length: ${phoneData.sip_password.length})`);
-                    dest.sip_password = phoneData.sip_password;
-                }
-            } else {
-                console.warn(`No records found for any variation of ${baseNumber} in phone_numbers table.`);
-            }
-        }
-    }
-}
 
 export async function POST(request: Request) {
     try {
@@ -305,7 +251,7 @@ export async function PATCH(request: Request) {
 
         console.log("PATCH Payload received:", JSON.stringify(payload, null, 2));
 
-        await enrichSipCredentials(payload, supabaseAdmin);
+        await enrichSipCredentials(payload, supabaseAdmin, payload.id);
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
         // El prompt llega ya procesado desde el wizard (fuente de verdad).

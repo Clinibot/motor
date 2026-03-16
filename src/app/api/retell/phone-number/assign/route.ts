@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import Retell from 'retell-sdk';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { buildRetellTools } from '@/lib/retell/toolMapper';
+import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,6 +87,32 @@ export async function POST(request: Request) {
                 success: false,
                 error: `Retell updated, but DB failed: ${dbError.message}`
             }, { status: 500 });
+        }
+
+        // 5. SI hay un agente asignado, actualizar sus herramientas para incluir las credenciales SIP de este número
+        if (localAgentId && retellAgentId) {
+            try {
+                console.log(`Refrescando herramientas del agente ${localAgentId} con credenciales de ${phone_number}`);
+                const { data: agent } = await supabaseAdmin
+                    .from('agents')
+                    .select('configuration, retell_llm_id')
+                    .eq('id', localAgentId)
+                    .single();
+
+                if (agent && agent.configuration && agent.retell_llm_id) {
+                    const payload = { ...agent.configuration };
+                    // Enriquecemos PASANDO el ID del agente para que encuentre el número recién asignado
+                    await enrichSipCredentials(payload, supabaseAdmin, localAgentId);
+                    const updatedTools = buildRetellTools(payload);
+
+                    await retellClient.llm.update(agent.retell_llm_id, {
+                        general_tools: updatedTools as any[]
+                    });
+                    console.log("Herramientas del agente actualizadas con éxito tras asignación.");
+                }
+            } catch (updateErr) {
+                console.warn("No se pudieron actualizar las herramientas del agente tras la asignación, pero el número se vinculó:", updateErr);
+            }
         }
 
         return NextResponse.json({
