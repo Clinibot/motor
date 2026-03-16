@@ -158,13 +158,33 @@ export const Step3_Voice: React.FC = () => {
                     // Normalizar proveedor de forma agresiva
                     let provider = (v.provider || '').toLowerCase();
                     const id = (v.voice_id || '').toLowerCase();
-                    if (id.startsWith('custom_voice_') || provider === 'platform' || id.includes('retell')) provider = 'platform';
-                    else if (id.includes('11labs') || id.includes('elevenlabs') || provider.includes('eleven') || provider.includes('11')) provider = 'elevenlabs';
-                    else if (id.includes('openai') || provider.includes('openai')) provider = 'openai';
-                    else if (id.includes('cartesia') || provider.includes('cartesia')) provider = 'cartesia';
-                    else if (id.includes('minimax') || provider.includes('minimax')) provider = 'minimax';
-                    else if (id.includes('fish') || provider.includes('fish')) provider = 'fish_audio';
-                    else provider = 'elevenlabs';
+                    
+                    // PRIORIDAD ABSOLUTA: Si el ID empieza por custom_voice_, es una voz clonada (Clonadas)
+                    if (id.startsWith('custom_voice_')) {
+                        provider = 'cloned';
+                    } 
+                    // Si el ID incluye retell o el proveedor es platform, pero NO es un clon del usuario, es voz de la plataforma
+                    else if (id.includes('retell') || provider === 'platform') {
+                        provider = 'platform';
+                    }
+                    else if (id.includes('11labs') || id.includes('elevenlabs') || provider.includes('eleven') || provider.includes('11')) {
+                        provider = 'elevenlabs';
+                    }
+                    else if (id.includes('openai') || provider.includes('openai')) {
+                        provider = 'openai';
+                    }
+                    else if (id.includes('cartesia') || provider.includes('cartesia')) {
+                        provider = 'cartesia';
+                    }
+                    else if (id.includes('minimax') || provider.includes('minimax')) {
+                        provider = 'minimax';
+                    }
+                    else if (id.includes('fish') || provider.includes('fish')) {
+                        provider = 'fish_audio';
+                    }
+                    else {
+                        provider = 'elevenlabs';
+                    }
 
                     if (provider === 'openai') {
                         lang = 'es'; // OpenAI voices are excellently multilingual
@@ -239,7 +259,7 @@ export const Step3_Voice: React.FC = () => {
 
         if (activeProvider === 'all' && !isFiltering) {
             const recommended = list.filter(v => 
-                CURATED_VOICE_IDS.includes(v.voice_id) || v.provider === 'platform'
+                CURATED_VOICE_IDS.includes(v.voice_id) || v.provider === 'cloned'
             );
             if (recommended.length > 0) list = recommended;
         }
@@ -370,7 +390,7 @@ export const Step3_Voice: React.FC = () => {
                 setCustomName('');
                 setCloneFiles(null);
                 setLegalConfirmed(false);
-                setActiveProvider('platform'); // Volver a recomendadas donde saldrá primera
+                setActiveProvider('cloned'); // Volver a recomendadas donde saldrá primera
                 fetchVoices();
             } else {
                 alert("Error: " + (data?.error || "Ocurrió un problema al clonar la voz."));
@@ -496,7 +516,7 @@ export const Step3_Voice: React.FC = () => {
                             { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
                             { id: 'minimax', name: 'MiniMax', icon: 'bi-mic-fill' },
                             { id: 'fish_audio', name: 'Fish Audio', icon: 'bi-water' },
-                            { id: 'platform', name: 'Clonadas', icon: 'bi-mic-fill' }
+                            { id: 'cloned', name: 'Clonadas', icon: 'bi-mic-fill' }
                         ].map(p => (
                             <button
                                 key={p.id}
