@@ -305,9 +305,9 @@ export const Step3_Voice: React.FC = () => {
                 for (let i = 0; i < cloneFiles.length; i++) {
                     totalSize += cloneFiles[i].size;
                 }
-                // Límite de Vercel es 4.5MB, ponemos un margen de seguridad
-                if (totalSize > 4.3 * 1024 * 1024) {
-                    alert("El tamaño total de los archivos de audio es demasiado grande (máximo 4.3MB combinado). Por favor, usa menos archivos o archivos de menor calidad/duración.");
+                // Margen de seguridad para el límite del servidor
+                if (totalSize > 20 * 1024 * 1024) {
+                    alert("El tamaño total de los archivos de audio es demasiado grande (máximo 20MB combinado). Por favor, intenta subir archivos más pequeños.");
                     setIsProcessingCustom(false);
                     return;
                 }
