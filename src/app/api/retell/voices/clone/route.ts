@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import Retell from 'retell-sdk';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -94,7 +93,7 @@ export async function POST(req: Request) {
             try {
                 const errorJson = JSON.parse(errorText);
                 errorMessage = errorJson.message || errorMessage;
-            } catch (_e) {
+            } catch {
                 errorMessage = errorText || errorMessage;
             }
             
