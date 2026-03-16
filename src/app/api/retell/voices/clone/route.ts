@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         }
 
         const formData = await req.formData();
-        const voice_name = formData.get('voice_name') as string;
+        const voice_name = (formData.get('voice_name') as string || '').trim();
         const files = formData.getAll('files') as File[];
 
         if (!voice_name || !files || files.length === 0) {

@@ -23,7 +23,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const { voice_name, provider_voice_id, public_user_id } = await req.json();
+        const body = await req.json();
+        const voice_name = (body.voice_name || '').trim();
+        const provider_voice_id = (body.provider_voice_id || '').trim();
+        const public_user_id = (body.public_user_id || '').trim();
 
         if (!voice_name || !provider_voice_id) {
             return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });

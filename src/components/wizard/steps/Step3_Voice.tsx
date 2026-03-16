@@ -257,18 +257,35 @@ export const Step3_Voice: React.FC = () => {
         try {
             let res;
             if (customTab === 'import') {
+                const trimmedName = customName.trim();
+                const trimmedVoiceId = importVoiceId.trim();
+                const trimmedUserId = publicUserId.trim();
+
+                if (!trimmedName || !trimmedVoiceId) {
+                    alert("Por favor, rellena los campos obligatorios.");
+                    setIsProcessingCustom(false);
+                    return;
+                }
+
                 res = await fetch('/api/retell/voices/import', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        voice_name: customName,
-                        provider_voice_id: importVoiceId,
-                        public_user_id: publicUserId
+                        voice_name: trimmedName,
+                        provider_voice_id: trimmedVoiceId,
+                        public_user_id: trimmedUserId || undefined
                     })
                 });
             } else {
+                const trimmedName = customName.trim();
+                if (!trimmedName) {
+                    alert("Por favor, introduce un nombre para la voz.");
+                    setIsProcessingCustom(false);
+                    return;
+                }
+
                 const formData = new FormData();
-                formData.append('voice_name', customName);
+                formData.append('voice_name', trimmedName);
                 if (cloneFiles) {
                     for (let i = 0; i < cloneFiles.length; i++) {
                         formData.append('files', cloneFiles[i]);
@@ -753,6 +770,7 @@ export const Step3_Voice: React.FC = () => {
                                     value={customName}
                                     onChange={(e) => setCustomName(e.target.value)}
                                     required
+                                    disabled={isProcessingCustom}
                                 />
                             </div>
 
@@ -767,6 +785,7 @@ export const Step3_Voice: React.FC = () => {
                                             value={importVoiceId}
                                             onChange={(e) => setImportVoiceId(e.target.value)}
                                             required
+                                            disabled={isProcessingCustom}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -777,6 +796,7 @@ export const Step3_Voice: React.FC = () => {
                                             placeholder="Solo si es una voz de la comunidad"
                                             value={publicUserId}
                                             onChange={(e) => setPublicUserId(e.target.value)}
+                                            disabled={isProcessingCustom}
                                         />
                                     </div>
                                 </>
@@ -790,6 +810,7 @@ export const Step3_Voice: React.FC = () => {
                                         accept="audio/*"
                                         onChange={(e) => setCloneFiles(e.target.files)}
                                         required
+                                        disabled={isProcessingCustom}
                                     />
                                     <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '8px' }}>
                                         Sube entre 1 y 25 archivos para una mejor calidad. Retell procesará la clonación.
