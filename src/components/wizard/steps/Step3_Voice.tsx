@@ -898,7 +898,7 @@ export const Step3_Voice: React.FC = () => {
                                         * Tamaño máximo total recomendado: 20MB (.mp3 o .wav)
                                     </p>
                                     <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '8px' }}>
-                                        Sube entre 1 y 25 archivos para una mejor calidad. Retell procesará la clonación.
+                                        Sube entre 1 y 25 archivos para una mejor calidad.
                                     </p>
                                 </div>
                                 
