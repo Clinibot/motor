@@ -323,8 +323,26 @@ export const Step3_Voice: React.FC = () => {
                     formData.append('files', cloneFiles[i]);
                 }
             }
-            console.log("Iniciando clonación mediante Server Action...");
-            const data = await cloneVoiceAction(formData);
+            
+            console.log("Iniciando clonación mediante API Route...");
+            const res = await fetch('/api/retell/voices/clone', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                if (res.status === 413) {
+                    alert("Error 413: El archivo de audio es demasiado grande para el servidor. Por favor, intenta subir un archivo más pequeño (menos de 4.5 MB si estás en Vercel) o comprimido.");
+                } else {
+                    const text = await res.text();
+                    alert(`Error ${res.status}: El servidor respondió con un error al procesar el audio.`);
+                    console.error("Respuesta de error completa:", text);
+                }
+                setIsProcessingCustom(false);
+                return;
+            }
+
+            const data = await res.json();
 
             if (data && data.success) {
                 alert("Voz clonada con éxito");
@@ -333,15 +351,14 @@ export const Step3_Voice: React.FC = () => {
                 setCloneFiles(null);
                 fetchVoices();
             } else {
-                alert("Error: " + (data.error || "Ocurrió un problema al clonar la voz."));
+                alert("Error: " + (data?.error || "Ocurrió un problema al clonar la voz."));
             }
         } catch (error: unknown) {
             const err = error as Error;
             console.error("Error crítico en handleCustomVoiceSubmit:", err);
             
-            // Si el error es de tamaño de body en Next.js, a veces lanza un error específico o falla la red
-            if (err.message?.includes("body size limit") || err.name === 'PayloadTooLargeError') {
-                alert("Error: Los archivos exceden el límite de 25MB permitido por el servidor.");
+            if (err.name === 'SyntaxError') {
+                alert("Error: El servidor devolvió una respuesta inesperada. Esto suele ocurrir cuando el archivo es demasiado grande.");
             } else {
                 alert("Error al procesar la voz: " + (err.message || "Error desconocido"));
             }
