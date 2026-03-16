@@ -16,7 +16,7 @@ export const Step7_Tools: React.FC = () => {
         enableCalBooking, calUrl, calApiKey, calEventId,
         enableTransfer, transferDestinations,
         enableCustomTools, customTools,
-        extractionVariables,
+        extractionVariables, agentName,
         updateField, prevStep, nextStep, editingAgentId
     } = useWizardStore();
 
@@ -57,7 +57,11 @@ export const Step7_Tools: React.FC = () => {
                         .order('name', { ascending: true });
 
                     // Filtrar el agente actual si estamos editando para evitar transferencias a sí mismo
-                    const filteredList = (agentList || []).filter(a => a.retell_agent_id !== editingAgentId);
+                    const filteredList = (agentList || []).filter(a => {
+                        const isSelfById = editingAgentId ? a.id === editingAgentId : false;
+                        const isSelfByName = a.name.toLowerCase() === agentName.toLowerCase();
+                        return !isSelfById && !isSelfByName;
+                    });
                     setAvailableAgents(filteredList);
                 }
             } catch (error) {
@@ -70,7 +74,7 @@ export const Step7_Tools: React.FC = () => {
         if (enableTransfer) {
             fetchAgents();
         }
-    }, [enableTransfer, editingAgentId]);
+    }, [enableTransfer, editingAgentId, agentName]);
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
