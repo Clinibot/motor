@@ -6,54 +6,33 @@
  *   3. Prompt instruction blocks injected at the end of the system prompt
  */
 
-// ---- Wizard types (mirrored here to avoid circular deps) ----
-export interface TransferDestination {
-    name: string;
-    description: string;
-    number?: string;
-    agentId?: string;
-    destination_type: 'number' | 'agent';
-    transfer_mode?: 'cold' | 'warm';
-    sip_username?: string;
-    sip_password?: string;
-}
-export interface ToolParameter {
-    name: string;
-    type: 'string' | 'number' | 'boolean';
-    description: string;
-    required: boolean;
-}
-export interface CustomTool {
-    name: string;
-    url: string;
-    description: string;
-    speakDuring: boolean;
-    speakDuringMsg?: string;
-    speakAfter: boolean;
-    speakAfterMsg?: string;
-    parameters: ToolParameter[];
-}
-export interface ExtractionVariable { name: string; type: string; description: string; }
+import { 
+    TransferDestination, 
+    CustomTool, 
+    ExtractionVariable,
+    KBFile
+} from './types';
 
 export interface ToolsPayload {
-    enableEndCall: boolean;
-    endCallDescription: string;
-    enableCalBooking: boolean;
-    calUrl: string;
-    calApiKey: string;
-    calEventId: string;
-    enableCalAvailability: boolean;
-    calAvailabilityDays: number;
+    enableEndCall?: boolean;
+    endCallDescription?: string;
+    enableCalBooking?: boolean;
+    calUrl?: string;
+    calApiKey?: string;
+    calEventId?: string;
+    enableCalAvailability?: boolean;
+    calAvailabilityDays?: number;
     enableTransfer: boolean;
     transferDestinations: TransferDestination[];
-    enableCustomTools: boolean;
-    customTools: CustomTool[];
-    extractionVariables: ExtractionVariable[];
-    enableAnalysis: boolean;
-    analysisModel: string;
-    webhookUrl: string;
+    enableCustomTools?: boolean;
+    customTools?: CustomTool[];
+    enableExtractions?: boolean;
+    extractionVariables?: ExtractionVariable[];
+    enableAnalysis?: boolean;
+    analysisModel?: string;
+    webhookUrl?: string;
     customNotes?: string;
-    kbFiles?: { name: string }[];
+    kbFiles?: KBFile[];
     kbUsageInstructions?: string;
     // Company Info
     companyName?: string;
@@ -154,8 +133,8 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     }
 
     // 5. Custom webhook tools
-    if (parseBool(p.enableCustomTools) && p.customTools.length > 0) {
-        p.customTools.forEach((tool) => {
+    if (parseBool(p.enableCustomTools) && (p.customTools?.length ?? 0) > 0) {
+        p.customTools?.forEach((tool) => {
             if (!tool.url || !tool.name) return;
             // Build JSON Schema for parameters
             const properties: Record<string, { type: string; description: string }> = {};
@@ -380,8 +359,8 @@ Usa \`check_availability\` cuando el usuario quiera agendar, pregunte por huecos
         }
     }
 
-    if (p.enableCustomTools && p.customTools.length > 0) {
-        const toolList = p.customTools
+    if (p.enableCustomTools && (p.customTools?.length ?? 0) > 0) {
+        const toolList = (p.customTools || [])
             .filter(t => t.name && t.url)
             .map(t => {
                 const tName = t.name.toLowerCase();

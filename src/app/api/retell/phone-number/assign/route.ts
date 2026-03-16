@@ -106,7 +106,8 @@ export async function POST(request: Request) {
                     const updatedTools = buildRetellTools(payload);
 
                     await retellClient.llm.update(agent.retell_llm_id, {
-                        general_tools: updatedTools as any[]
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        general_tools: updatedTools as any
                     });
                     console.log("Herramientas del agente actualizadas con éxito tras asignación.");
                 }

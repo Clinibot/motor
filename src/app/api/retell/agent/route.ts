@@ -4,6 +4,7 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, buildPostCallAnalysis } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
+import { AgentPayload } from '@/lib/retell/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ function getSupabaseAdmin() {
 
 export async function POST(request: Request) {
     try {
-        const payload = await request.json();
+        const payload: AgentPayload = await request.json();
 
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
                     .select('workspace_id')
                     .not('workspace_id', 'is', null);
 
-                const assignedIds = (usersWithWorkspaces || []).map((u: { workspace_id: string }) => u.workspace_id);
+                const assignedIds = (usersWithWorkspaces || []).map((u: { workspace_id: string | null }) => u.workspace_id).filter((id): id is string => id !== null);
 
                 let freeWorkspaceQuery = supabaseAdmin
                     .from('workspaces')
@@ -158,7 +159,7 @@ export async function POST(request: Request) {
             response_engine: { type: "retell-llm", llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
             voice_id: finalVoiceId,
-            language: payload.language || "es-ES",
+            language: (payload.language || "es-ES") as "es-ES",
             responsiveness: payload.responsiveness || 1,
             interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
             enable_backchannel: payload.enableBackchannel || false,
@@ -172,7 +173,7 @@ export async function POST(request: Request) {
             voice_speed: payload.voiceSpeed,
             voice_temperature: payload.voiceTemperature,
             volume: payload.volume,
-            ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
+            ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined) as "call-center",
             ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
             normalize_for_speech: payload.normalizeForSpeech,
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined
@@ -218,7 +219,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
     try {
         const supabaseAdmin = getSupabaseAdmin();
-        const payload = await request.json();
+        const payload: AgentPayload = await request.json();
 
         if (!payload.id) {
             return NextResponse.json({ success: false, error: "Entity ID is required for PATCH." }, { status: 400 });
@@ -318,7 +319,7 @@ export async function PATCH(request: Request) {
                 response_engine: { type: "retell-llm", llm_id: llmId },
                 agent_name: payload.agentName || "Updated Agent",
                 voice_id: cleanVoiceId,
-                language: payload.language || "es-ES",
+                language: (payload.language || "es-ES") as "es-ES",
                 responsiveness: payload.responsiveness || 1,
                 interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
                 enable_backchannel: payload.enableBackchannel || false,
@@ -332,7 +333,7 @@ export async function PATCH(request: Request) {
                 voice_speed: payload.voiceSpeed,
                 voice_temperature: payload.voiceTemperature,
                 volume: payload.volume,
-                ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
+                ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined) as "call-center",
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
                 normalize_for_speech: payload.normalizeForSpeech,
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : []

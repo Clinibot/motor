@@ -72,9 +72,10 @@ export async function POST(req: Request) {
             voice: voice
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error importing voice to Retell:", error);
-        let message = error instanceof Error ? error.message : "Failed to import voice";
+        const err = error as Error;
+        let message = err.message || "Failed to import voice";
         
         // Handle specific Retell error for ElevenLabs community voices
         if (message.includes('addCommunityVoice11labs error')) {

@@ -611,7 +611,7 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
                 updateField('prompt', updated);
             }
         }
-    }, [editingAgentId, getUpdatedPrompt, updateField]);
+    }, [editingAgentId, getUpdatedPrompt, updateField, wizardData.prompt]);
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {

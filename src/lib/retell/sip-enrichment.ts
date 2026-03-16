@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { AgentPayload } from './types';
 
-export async function enrichSipCredentials(payload: any, supabaseAdmin: SupabaseClient, agentId?: string) {
+export async function enrichSipCredentials(payload: AgentPayload, supabaseAdmin: SupabaseClient, agentId?: string) {
     if (!payload.enableTransfer || !payload.transferDestinations || !Array.isArray(payload.transferDestinations)) return;
 
     let workspaceSipUser: string | undefined;
