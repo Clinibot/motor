@@ -1,6 +1,6 @@
 # Guía de Mantenimiento: Cómo añadir o modificar Modelos de IA (LLM)
 
-¡Hola! Soy Sonia. He preparado esta guía sencilla para que cualquier programador que mantenga la plataforma sepa exactamente qué tocar si necesitamos añadir un nuevo modelo de inteligencia artificial (como un nuevo GPT, Claude o Gemini) a nuestra fábrica de agentes.
+¡Hola! He preparado esta guía sencilla para que cualquier programador que mantenga la plataforma sepa exactamente qué tocar si necesitamos añadir un nuevo modelo de inteligencia artificial (como un nuevo GPT, Claude o Gemini) a nuestra fábrica de agentes.
 
 He estructurado los pasos de forma clara, dividiendo lo que hay que hacer en la parte visual (Frontend) y en la parte lógica (Backend).
 
