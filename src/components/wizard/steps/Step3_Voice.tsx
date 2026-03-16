@@ -238,8 +238,10 @@ export const Step3_Voice: React.FC = () => {
         const isFiltering = filterAccent || filterGender || (filterLang && filterLang !== 'es');
 
         if (activeProvider === 'all' && !isFiltering) {
-            const curated = list.filter(v => CURATED_VOICE_IDS.includes(v.voice_id));
-            if (curated.length > 0) list = curated;
+            const recommended = list.filter(v => 
+                CURATED_VOICE_IDS.includes(v.voice_id) || v.provider === 'platform'
+            );
+            if (recommended.length > 0) list = recommended;
         }
 
         // 2. Aplicar filtros de UI
@@ -256,6 +258,10 @@ export const Step3_Voice: React.FC = () => {
 
         // 3. Ordenación : España > Latam > Resto
         return [...filtered].sort((a, b) => {
+            // Prioridad absoluta para voces clonadas por el usuario
+            if (a.provider === 'platform' && b.provider !== 'platform') return -1;
+            if (a.provider !== 'platform' && b.provider === 'platform') return 1;
+
             // Prioridad para España
             if (a.accent === 'spain' && b.accent !== 'spain') return -1;
             if (a.accent !== 'spain' && b.accent === 'spain') return 1;
@@ -364,7 +370,7 @@ export const Step3_Voice: React.FC = () => {
                 setCustomName('');
                 setCloneFiles(null);
                 setLegalConfirmed(false);
-                setActiveProvider('platform'); // Auto-switch to see the new voice
+                setActiveProvider('all'); // Volver a recomendadas donde saldrá primera
                 fetchVoices();
             } else {
                 alert("Error: " + (data?.error || "Ocurrió un problema al clonar la voz."));
@@ -485,7 +491,6 @@ export const Step3_Voice: React.FC = () => {
                     }}>
                         {[
                             { id: 'all', name: 'Recomendadas', icon: 'bi-star-fill' },
-                            { id: 'platform', name: 'Mis Voces', icon: 'bi-person-badge-fill' },
                             { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' },
                             { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
                             { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
