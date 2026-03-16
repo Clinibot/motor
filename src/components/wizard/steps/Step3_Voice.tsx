@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
-import { cloneVoiceAction } from '../../../app/actions/voiceActions';
 
 interface Voice {
     voice_id: string;

@@ -75,6 +75,7 @@ export async function POST(req: Request) {
         
         const voice = await retellClient.voice.clone({
             voice_name,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             files: processedFiles as any, // Cast as any to bypass potential SDK type mismatches with direct buffers
             voice_provider: 'elevenlabs'
         });

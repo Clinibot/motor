@@ -16,8 +16,6 @@ function getSupabaseAdmin() {
 export async function cloneVoiceAction(formData: FormData) {
     console.log("[Action] Iniciando cloneVoiceAction...");
     
-    // Objeto de respuesta por defecto
-    const result = { success: false, error: "Error desconocido durante la ejecución" };
 
     try {
         const supabase = await createLocalClient();
