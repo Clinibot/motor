@@ -158,12 +158,12 @@ export const Step3_Voice: React.FC = () => {
                     // Normalizar proveedor de forma agresiva
                     let provider = (v.provider || '').toLowerCase();
                     const id = (v.voice_id || '').toLowerCase();
-                    if (id.includes('11labs') || id.includes('elevenlabs') || provider.includes('eleven') || provider.includes('11')) provider = 'elevenlabs';
+                    if (id.startsWith('custom_voice_') || provider === 'platform' || id.includes('retell')) provider = 'platform';
+                    else if (id.includes('11labs') || id.includes('elevenlabs') || provider.includes('eleven') || provider.includes('11')) provider = 'elevenlabs';
                     else if (id.includes('openai') || provider.includes('openai')) provider = 'openai';
                     else if (id.includes('cartesia') || provider.includes('cartesia')) provider = 'cartesia';
                     else if (id.includes('minimax') || provider.includes('minimax')) provider = 'minimax';
                     else if (id.includes('fish') || provider.includes('fish')) provider = 'fish_audio';
-                    else if (provider === 'platform' || id.includes('retell') || id.startsWith('custom_voice_')) provider = 'platform';
                     else provider = 'elevenlabs';
 
                     if (provider === 'openai') {
@@ -491,12 +491,12 @@ export const Step3_Voice: React.FC = () => {
                     }}>
                         {[
                             { id: 'all', name: 'Recomendadas', icon: 'bi-star-fill' },
-                            { id: 'platform', name: 'Clonadas', icon: 'bi-mic-fill' },
                             { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' },
                             { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
                             { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
                             { id: 'minimax', name: 'MiniMax', icon: 'bi-mic-fill' },
-                            { id: 'fish_audio', name: 'Fish Audio', icon: 'bi-water' }
+                            { id: 'fish_audio', name: 'Fish Audio', icon: 'bi-water' },
+                            { id: 'platform', name: 'Clonadas', icon: 'bi-mic-fill' }
                         ].map(p => (
                             <button
                                 key={p.id}
