@@ -138,11 +138,18 @@ export const Step3_Voice: React.FC = () => {
                         accent.includes('argentina') ||
                         accent.includes('chile') ||
                         accent.includes('peru') ||
-                        voiceName.includes('latam')) {
+                        accent.includes('venezuela') ||
+                        accent.includes('dominican') ||
+                        accent.includes('puerto rico') ||
+                        voiceName.includes('latam') ||
+                        voiceName.includes('mexic') ||
+                        voiceLangAttr.includes('mx') ||
+                        voiceLangAttr.includes('co') ||
+                        voiceLangAttr.includes('ar')) {
                         accent = 'latam';
-                    } else if (accent.includes('usa') || accent.includes('american') || accent.includes('eeuu') || accent.includes('us-')) {
+                    } else if (accent.includes('usa') || accent.includes('american') || accent.includes('eeuu') || accent.includes('us-') || voiceName.includes('american')) {
                         accent = 'usa';
-                    } else if (accent.includes('uk') || accent.includes('british') || accent.includes('británico') || accent.includes('london')) {
+                    } else if (accent.includes('uk') || accent.includes('british') || accent.includes('británico') || accent.includes('london') || voiceName.includes('british')) {
                         accent = 'uk';
                     }
 
@@ -218,8 +225,10 @@ export const Step3_Voice: React.FC = () => {
         if (list.length === 0 && !isLoadingVoices) list = DEFAULT_VOICES;
 
         // 1. Filtrar solo las curadas si estamos en la pestaña "Recomendadas" y NO hay filtros específicos
-        // 1. Filtrar solo las curadas si estamos en la pestaña "Recomendadas" y NO hay filtros específicos
-        if (activeProvider === 'all' && !filterAccent && !filterGender) {
+        // Importante: filterLang NO debe disparar la lista completa si es el valor por defecto ('es')
+        const isFiltering = filterAccent || filterGender || (filterLang && filterLang !== 'es');
+
+        if (activeProvider === 'all' && !isFiltering) {
             const curated = list.filter(v => CURATED_VOICE_IDS.includes(v.voice_id));
             if (curated.length > 0) list = curated;
         }
@@ -789,15 +798,21 @@ export const Step3_Voice: React.FC = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label className="form-label">Public User ID (Opcional)</label>
+                                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            Public User ID
+                                            <span style={{ fontSize: '10px', background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>REQUERIDO PARA VOCES DE COMUNIDAD</span>
+                                        </label>
                                         <input
                                             type="text"
                                             className="form-control"
-                                            placeholder="Solo si es una voz de la comunidad"
+                                            placeholder="Introduce el ID del creador de la voz"
                                             value={publicUserId}
                                             onChange={(e) => setPublicUserId(e.target.value)}
                                             disabled={isProcessingCustom}
                                         />
+                                        <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                                            <i className="bi bi-info-circle"></i> En ElevenLabs, ve a la voz de la comunidad y busca el ID del usuario creador.
+                                        </p>
                                     </div>
                                 </>
                             ) : (
