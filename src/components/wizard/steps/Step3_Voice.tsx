@@ -891,6 +891,20 @@ export const Step3_Voice: React.FC = () => {
                                         Sube entre 1 y 25 archivos para una mejor calidad. Retell procesará la clonación.
                                     </p>
                                 </div>
+                                
+                                <div style={{ marginBottom: '24px' }}>
+                                    <label style={{ display: 'flex', gap: '12px', cursor: 'pointer', alignItems: 'flex-start' }}>
+                                        <input 
+                                            type="checkbox" 
+                                            style={{ marginTop: '4px' }}
+                                            checked={legalConfirmed}
+                                            onChange={(e) => setLegalConfirmed(e.target.checked)}
+                                        />
+                                        <span style={{ fontSize: '13px', color: '#475569', lineHeight: '1.4' }}>
+                                            Confirmo que tengo todos los derechos y consentimientos necesarios para subir y clonar estas muestras de voz, y que no utilizaré el contenido generado por la plataforma para ningún propósito ilegal, fraudulento o dañino.
+                                        </span>
+                                    </label>
+                                </div>
 
                             <div style={{ marginTop: '32px' }}>
                                 <button
