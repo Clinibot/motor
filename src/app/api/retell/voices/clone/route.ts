@@ -61,25 +61,48 @@ export async function POST(req: Request) {
 
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
-        // IMPORTANT: Convert Files to Buffers to avoid SDK issues with Blob/File objects in Node environment
-        const processedFiles = await Promise.all(
+        // Build FormData manually to ensure correct field naming ('files' instead of 'files[]')
+        const retellFormData = new FormData();
+        retellFormData.append('voice_name', voice_name);
+        retellFormData.append('voice_provider', 'elevenlabs');
+        
+        console.log(`[Clone] Preparing FormData with ${files.length} files`);
+        
+        await Promise.all(
             files.map(async (file) => {
                 const arrayBuffer = await file.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
-                // Return a structure that is guaranteed to be compatible
-                return buffer; 
+                const blob = new Blob([arrayBuffer], { type: file.type || 'audio/mpeg' });
+                // Append with key 'files' as per Retell API requirements
+                retellFormData.append('files', blob, file.name);
             })
         );
 
-        console.log(`[Clone] Calling Retell SDK with ${processedFiles.length} buffers`);
+        console.log(`[Clone] Sending request to Retell API...`);
         
-        const voice = await retellClient.voice.clone({
-            voice_name,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            files: processedFiles as any, // Cast as any to bypass potential SDK type mismatches with direct buffers
-            voice_provider: 'elevenlabs'
+        const retellResponse = await fetch('https://api.retellai.com/clone-voice', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${workspace.retell_api_key}`,
+            },
+            body: retellFormData,
         });
 
+        if (!retellResponse.ok) {
+            const errorText = await retellResponse.text();
+            console.error(`[Clone] Retell API error (${retellResponse.status}):`, errorText);
+            
+            let errorMessage = `API Error ${retellResponse.status}`;
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.message || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+            
+            return NextResponse.json({ success: false, error: errorMessage }, { status: retellResponse.status });
+        }
+
+        const voice = await retellResponse.json();
         console.log(`[Clone] Success! Created voice_id: ${voice.voice_id}`);
         
         return NextResponse.json({
@@ -91,14 +114,11 @@ export async function POST(req: Request) {
         console.error("CRITICAL ERROR during voice cloning:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to clone voice";
         
-        // Ensure we ALWAYS return JSON, even if it's an error
-        return new Response(JSON.stringify({
+        // Ensure we ALWAYS return JSON
+        return NextResponse.json({
             success: false,
             error: errorMessage,
             details: error instanceof Error ? error.stack : undefined
-        }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        }, { status: 500 });
     }
 }
