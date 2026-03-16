@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
+import { deleteVoiceAction } from '@/app/actions/voiceActions';
+import { toast } from 'react-hot-toast';
 
 interface Voice {
     voice_id: string;
@@ -76,6 +78,7 @@ export const Step3_Voice: React.FC = () => {
     const [filterAccent, setFilterAccent] = useState('');
     const [legalConfirmed, setLegalConfirmed] = useState(false);
     const [playingId, setPlayingId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
     const fetchVoices = async () => {
@@ -236,6 +239,36 @@ export const Step3_Voice: React.FC = () => {
             setVoices(DEFAULT_VOICES);
         } finally {
             setIsLoadingVoices(false);
+        }
+    };
+
+    const handleVoiceDelete = async (e: React.MouseEvent, voice: Voice) => {
+        e.stopPropagation();
+        
+        if (!confirm(`¿Estás seguro de que quieres eliminar la voz "${voice.voice_name}"? Esta acción no se puede deshacer.`)) {
+            return;
+        }
+
+        setDeletingId(voice.voice_id);
+        try {
+            const result = await deleteVoiceAction(voice.voice_id);
+            if (result.success) {
+                toast.success('Voz eliminada correctamente');
+                // Actualizar la lista localmente para un feedback instantáneo
+                setVoices(prev => prev.filter(v => v.voice_id !== voice.voice_id));
+                // Si la voz eliminada era la seleccionada, deseleccionarla
+                if (voiceId === voice.voice_id) {
+                    updateField('voiceId', '');
+                    updateField('voiceName', '');
+                }
+            } else {
+                toast.error(result.error || 'Error al eliminar la voz');
+            }
+        } catch (error) {
+            console.error('Error delete:', error);
+            toast.error('Error inesperado al eliminar');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -641,9 +674,45 @@ export const Step3_Voice: React.FC = () => {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             fontSize: '32px',
-                                            margin: '0 auto 16px'
+                                            margin: '0 auto 16px',
+                                            position: 'relative'
                                         }}>
                                             {v.gender === 'female' ? '👩' : '👨'}
+                                            
+                                            {v.provider === 'cloned' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleVoiceDelete(e, v)}
+                                                    disabled={deletingId === v.voice_id}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '-8px',
+                                                        right: '-8px',
+                                                        width: '28px',
+                                                        height: '28px',
+                                                        borderRadius: '50%',
+                                                        background: '#fee2e2',
+                                                        color: '#dc2626',
+                                                        border: '2px solid white',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer',
+                                                        zIndex: 10,
+                                                        transition: 'transform 0.2s',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                    }}
+                                                    title="Eliminar voz"
+                                                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                                >
+                                                    {deletingId === v.voice_id ? (
+                                                        <span className="spinner-border spinner-border-sm" style={{ width: '12px', height: '12px' }}></span>
+                                                    ) : (
+                                                        <i className="bi bi-trash-fill" style={{ fontSize: '12px' }}></i>
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
                                         <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                             {v.voice_name}

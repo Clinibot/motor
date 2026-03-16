@@ -92,3 +92,58 @@ export async function cloneVoiceAction(formData: FormData) {
         };
     }
 }
+
+export async function deleteVoiceAction(voiceId: string) {
+    console.log(`[Action] Iniciando deleteVoiceAction para ${voiceId}...`);
+
+    try {
+        const supabase = await createLocalClient();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+            console.error("[Action] No session found:", sessionError);
+            return { success: false, error: "No autorizado" };
+        }
+
+        const userId = session.user.id;
+        const supabaseAdmin = getSupabaseAdmin();
+
+        // Obtener workspace del usuario
+        const { data: userProfile, error: profileError } = await supabaseAdmin
+            .from('users')
+            .select('workspace_id')
+            .eq('id', userId)
+            .single();
+
+        if (profileError || !userProfile?.workspace_id) {
+            console.error("[Action] Error perfil:", profileError);
+            return { success: false, error: "Error al verificar permisos" };
+        }
+
+        const { data: workspace, error: wsError } = await supabaseAdmin
+            .from('workspaces')
+            .select('retell_api_key')
+            .eq('id', userProfile.workspace_id)
+            .single();
+
+        if (wsError || !workspace?.retell_api_key) {
+            console.error("[Action] Error API Key:", wsError);
+            return { success: false, error: "API Key no configurada" };
+        }
+
+        // Ejecutar eliminación en Retell
+        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        await retellClient.voice.delete(voiceId);
+        
+        console.log(`[Action] Voz eliminada exitosamente en Retell: ${voiceId}`);
+
+        return { success: true };
+
+    } catch (error: unknown) {
+        console.error("[Action] Error al eliminar voz:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error inesperado al eliminar la voz"
+        };
+    }
+}
