@@ -59,7 +59,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Workspace API Key not found" }, { status: 400 });
         }
 
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
         // Build FormData manually to ensure correct field naming ('files' instead of 'files[]')
         const retellFormData = new FormData();
@@ -95,7 +94,7 @@ export async function POST(req: Request) {
             try {
                 const errorJson = JSON.parse(errorText);
                 errorMessage = errorJson.message || errorMessage;
-            } catch (e) {
+            } catch (_e) {
                 errorMessage = errorText || errorMessage;
             }
             
