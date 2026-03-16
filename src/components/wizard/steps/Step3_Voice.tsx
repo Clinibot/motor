@@ -61,13 +61,11 @@ export const Step3_Voice: React.FC = () => {
     const [isProcessingCustom, setIsProcessingCustom] = useState(false);
     const [showCustomModal, setShowCustomModal] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
+    const [customTab, setCustomTab] = useState<'clone'>('clone');
     const [activeProvider, setActiveProvider] = useState('all');
 
     // Form states
     const [customName, setCustomName] = useState('');
-    const [importVoiceId, setImportVoiceId] = useState('');
-    const [publicUserId, setPublicUserId] = useState('');
     const [cloneFiles, setCloneFiles] = useState<FileList | null>(null);
 
     const [filterLang, setFilterLang] = useState('es');
@@ -265,62 +263,54 @@ export const Step3_Voice: React.FC = () => {
 
         try {
             let res;
-            if (customTab === 'import') {
-                const trimmedName = customName.trim();
-                const trimmedVoiceId = importVoiceId.trim();
-                const trimmedUserId = publicUserId.trim();
-
-                if (!trimmedName || !trimmedVoiceId) {
-                    alert("Por favor, rellena los campos obligatorios.");
-                    setIsProcessingCustom(false);
-                    return;
-                }
-
-                if (trimmedVoiceId === trimmedUserId) {
-                    const confirmSame = window.confirm("Has introducido el mismo ID para 'Voice ID' y 'Public User ID'. Normalmente son diferentes. ¿Estás seguro de que quieres continuar?");
-                    if (!confirmSame) {
-                        setIsProcessingCustom(false);
-                        return;
-                    }
-                }
-
-                res = await fetch('/api/retell/voices/import', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        voice_name: trimmedName,
-                        provider_voice_id: trimmedVoiceId,
-                        public_user_id: trimmedUserId || undefined
-                    })
-                });
-            } else {
-                const trimmedName = customName.trim();
-                if (!trimmedName) {
-                    alert("Por favor, introduce un nombre para la voz.");
-                    setIsProcessingCustom(false);
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('voice_name', trimmedName);
-                if (cloneFiles) {
-                    for (let i = 0; i < cloneFiles.length; i++) {
-                        formData.append('files', cloneFiles[i]);
-                    }
-                }
-                res = await fetch('/api/retell/voices/clone', {
-                    method: 'POST',
-                    body: formData
-                });
+            const trimmedName = customName.trim();
+            if (!trimmedName) {
+                alert("Por favor, introduce un nombre para la voz.");
+                setIsProcessingCustom(false);
+                return;
             }
 
-            const data = await res.json();
+            const formData = new FormData();
+            formData.append('voice_name', trimmedName);
+            if (cloneFiles) {
+                let totalSize = 0;
+                for (let i = 0; i < cloneFiles.length; i++) {
+                    totalSize += cloneFiles[i].size;
+                }
+                // Límite de Vercel es 4.5MB, ponemos un margen de seguridad
+                if (totalSize > 4.3 * 1024 * 1024) {
+                    alert("El tamaño total de los archivos de audio es demasiado grande (máximo 4.3MB combinado). Por favor, usa menos archivos o archivos de menor calidad/duración.");
+                    setIsProcessingCustom(false);
+                    return;
+                }
+
+                for (let i = 0; i < cloneFiles.length; i++) {
+                    formData.append('files', cloneFiles[i]);
+                }
+            }
+            res = await fetch('/api/retell/voices/clone', {
+                method: 'POST',
+                body: formData
+            });
+
+            let data;
+            const responseText = await res.text();
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error("Response is not JSON:", responseText);
+                if (res.status === 413 || responseText.includes("Request Entity Too Large")) {
+                    alert("Error: Los archivos son demasiado grandes para el servidor. Intenta subir menos archivos o de menor tamaño.");
+                } else {
+                    alert("Error del servidor: La respuesta no es válida. " + (res.status === 504 ? "Tiempo de espera agotado." : ""));
+                }
+                setIsProcessingCustom(false);
+                return;
+            }
             if (data.success) {
-                alert(customTab === 'import' ? "Voz importada con éxito" : "Voz clonada con éxito");
+                alert("Voz clonada con éxito");
                 setShowCustomModal(false);
                 setCustomName('');
-                setImportVoiceId('');
-                setPublicUserId('');
                 setCloneFiles(null);
                 fetchVoices(); // Refrescar lista
             } else {
@@ -750,32 +740,7 @@ export const Step3_Voice: React.FC = () => {
                             <button type="button" onClick={() => setShowCustomModal(false)} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--gris-texto)' }}>&times;</button>
                         </div>
 
-                        <div style={{ display: 'flex', background: 'var(--gris-claro)', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
-                            <button
-                                type="button"
-                                onClick={() => setCustomTab('import')}
-                                style={{
-                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
-                                    background: customTab === 'import' ? 'white' : 'transparent',
-                                    color: customTab === 'import' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
-                                    boxShadow: customTab === 'import' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-                                }}
-                            >
-                                Importar ElevenLabs
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setCustomTab('clone')}
-                                style={{
-                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
-                                    background: customTab === 'clone' ? 'white' : 'transparent',
-                                    color: customTab === 'clone' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
-                                    boxShadow: customTab === 'clone' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-                                }}
-                            >
-                                Clonar Voz (Upload)
-                            </button>
-                        </div>
+                        <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#475569', marginBottom: '24px' }}>Clonar voz mediante archivos de audio</h3>
 
                         <form onSubmit={handleCustomVoiceSubmit}>
                             <div className="form-group">
@@ -791,45 +756,6 @@ export const Step3_Voice: React.FC = () => {
                                 />
                             </div>
 
-                            {customTab === 'import' ? (
-                                <>
-                                    <div className="form-group">
-                                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            Provider Voice ID (ElevenLabs)
-                                            <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>OBLIGATORIO</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Ej: pMsXpInD..."
-                                            value={importVoiceId}
-                                            onChange={(e) => setImportVoiceId(e.target.value)}
-                                            required
-                                            disabled={isProcessingCustom}
-                                        />
-                                        <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                                            <i className="bi bi-info-circle"></i> Es el ID único de la voz en la librería de ElevenLabs.
-                                        </p>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            Public User ID
-                                            <span style={{ fontSize: '10px', background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>REQUERIDO PARA VOCES DE COMUNIDAD</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Introduce el ID del creador de la voz"
-                                            value={publicUserId}
-                                            onChange={(e) => setPublicUserId(e.target.value)}
-                                            disabled={isProcessingCustom}
-                                        />
-                                        <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                                            <i className="bi bi-info-circle"></i> En ElevenLabs, ve a la voz de la comunidad y busca el ID del usuario creador.
-                                        </p>
-                                    </div>
-                                </>
-                            ) : (
                                 <div className="form-group">
                                     <label className="form-label">Archivos de audio (WAV/MP3)</label>
                                     <input
@@ -845,7 +771,6 @@ export const Step3_Voice: React.FC = () => {
                                         Sube entre 1 y 25 archivos para una mejor calidad. Retell procesará la clonación.
                                     </p>
                                 </div>
-                            )}
 
                             <div style={{ marginTop: '32px' }}>
                                 <button
@@ -857,7 +782,7 @@ export const Step3_Voice: React.FC = () => {
                                     {isProcessingCustom ? (
                                         <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: '16px', height: '16px' }}></span> Procesando...</>
                                     ) : (
-                                        customTab === 'import' ? 'Importar Voz' : 'Comenzar Clonación'
+                                        'Comenzar Clonación'
                                     )}
                                 </button>
                             </div>

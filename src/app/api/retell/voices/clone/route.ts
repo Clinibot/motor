@@ -4,6 +4,7 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // 60 seconds for voice cloning
 
 function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

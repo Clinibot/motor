@@ -101,7 +101,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             if (dest.destination_type === 'agent') {
                 // INTERNAL AGENT TRANSFER (Agent Swap)
                 tools.push({
-                    type: 'agent_transfer',
+                    type: 'agent_swap',
                     name: toolName,
                     description: dest.description || `Transfiere la llamada a ${dest.name}.`,
                     agent_id: dest.agentId
