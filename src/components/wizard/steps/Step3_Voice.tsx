@@ -62,10 +62,13 @@ export const Step3_Voice: React.FC = () => {
     const [showCustomModal, setShowCustomModal] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [customTab, setCustomTab] = useState<'clone'>('clone');
+    // const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
     const [activeProvider, setActiveProvider] = useState('all');
 
     // Form states
     const [customName, setCustomName] = useState('');
+    // const [importVoiceId, setImportVoiceId] = useState('');
+    // const [publicUserId, setPublicUserId] = useState('');
     const [cloneFiles, setCloneFiles] = useState<FileList | null>(null);
 
     const [filterLang, setFilterLang] = useState('es');
@@ -263,6 +266,32 @@ export const Step3_Voice: React.FC = () => {
 
         try {
             let res;
+
+            /* 
+            // CÓDIGO COMENTADO - IMPORTACIÓN ELEVENLABS
+            if (customTab === 'import') {
+                const trimmedName = customName.trim();
+                const trimmedVoiceId = importVoiceId.trim();
+                const trimmedUserId = publicUserId.trim();
+
+                if (!trimmedName || !trimmedVoiceId) {
+                    alert("Por favor, rellena los campos obligatorios.");
+                    setIsProcessingCustom(false);
+                    return;
+                }
+
+                res = await fetch('/api/retell/voices/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        voice_name: trimmedName,
+                        provider_voice_id: trimmedVoiceId,
+                        public_user_id: trimmedUserId || undefined
+                    })
+                });
+            } else { ... }
+            */
+
             const trimmedName = customName.trim();
             if (!trimmedName) {
                 alert("Por favor, introduce un nombre para la voz.");
@@ -740,6 +769,35 @@ export const Step3_Voice: React.FC = () => {
                             <button type="button" onClick={() => setShowCustomModal(false)} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--gris-texto)' }}>&times;</button>
                         </div>
 
+                        {/* 
+                        <div style={{ display: 'flex', background: 'var(--gris-claro)', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
+                            <button
+                                type="button"
+                                onClick={() => setCustomTab('import')}
+                                style={{
+                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
+                                    background: customTab === 'import' ? 'white' : 'transparent',
+                                    color: customTab === 'import' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
+                                    boxShadow: customTab === 'import' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                }}
+                            >
+                                Importar ElevenLabs
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCustomTab('clone')}
+                                style={{
+                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
+                                    background: customTab === 'clone' ? 'white' : 'transparent',
+                                    color: customTab === 'clone' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
+                                    boxShadow: customTab === 'clone' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                }}
+                            >
+                                Clonar Voz (Upload)
+                            </button>
+                        </div> 
+                        */}
+
                         <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#475569', marginBottom: '24px' }}>Clonar voz mediante archivos de audio</h3>
 
                         <form onSubmit={handleCustomVoiceSubmit}>
@@ -755,6 +813,13 @@ export const Step3_Voice: React.FC = () => {
                                     disabled={isProcessingCustom}
                                 />
                             </div>
+
+                            {/* 
+                            <div className="form-group">
+                                <label className="form-label">Provider Voice ID (ElevenLabs)</label>
+                                <input type="text" className="form-control" />
+                            </div>
+                            */}
 
                                 <div className="form-group">
                                     <label className="form-label">Archivos de audio (WAV/MP3)</label>
