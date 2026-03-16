@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         // Build FormData manually to ensure correct field naming ('files' instead of 'files[]')
         const retellFormData = new FormData();
         retellFormData.append('voice_name', voice_name);
-        retellFormData.append('voice_provider', 'platform');
+        retellFormData.append('voice_provider', 'elevenlabs');
         
         console.log(`[Clone] Preparing FormData with ${files.length} files`);
         

@@ -66,7 +66,7 @@ export async function cloneVoiceAction(formData: FormData) {
         const voice = await retellClient.voice.clone({
             voice_name,
             files: files,
-            voice_provider: 'platform'
+            voice_provider: 'elevenlabs'
         });
 
         if (!voice || !voice.voice_id) {
