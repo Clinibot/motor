@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, injectToolInstructions } from '@/lib/retell/toolMapper';
+import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +77,9 @@ export async function POST() {
                 }
 
                 const config = agent.configuration || {};
+                // Enriquecer con credenciales SIP del número asignado
+                await enrichSipCredentials(config, supabaseAdmin, agent.id);
+                
                 const retellTools = buildRetellTools(config);
                 let finalPrompt = injectToolInstructions(config.prompt || 'Eres un asistente amable.', config);
 
