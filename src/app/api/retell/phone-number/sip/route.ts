@@ -117,21 +117,22 @@ export async function POST(request: Request) {
         if (clinicId) {
             const { error: dbError } = await supabaseAdmin
                 .from('phone_numbers')
-                .insert({
+                .upsert({
                     clinic_id: clinicId,
                     phone_number: retellResponse.phone_number,
                     nickname: nickname || phone_number,
                     country: 'Spain', // Valor requerido por constraint
-                    status: 'active'
+                    status: 'active',
+                    sip_username: sip_trunk_username || null,
+                    sip_password: sip_trunk_password || null,
+                    updated_at: new Date().toISOString()
+                }, { 
+                    onConflict: 'phone_number' 
                 });
 
             if (dbError) {
                 console.error("Error persisting phone number to DB:", dbError);
-                // Si ya existe en nuestra DB, no es un error crítico si es duplicado
-                // Pero si es otro error, queremos saberlo.
-                if (dbError.code !== '23505') {
-                    throw new Error(`Error saving to DB: ${dbError.message}`);
-                }
+                throw new Error(`Error saving to DB: ${dbError.message}`);
             }
         } else {
             throw new Error("No se pudo asociar a una clínica (clinic_id is null)");

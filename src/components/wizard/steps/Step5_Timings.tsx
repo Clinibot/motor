@@ -8,7 +8,6 @@ export const Step5_Timings: React.FC = () => {
     const {
         beginMessageDelayMs, endCallAfterSilenceMs, maxCallDurationMs,
         reminderTriggerMs, reminderMaxCount, ringDurationMs,
-        enableVoicemailDetection, voicemailDetectionTimeoutMs, voicemailMessage,
         updateField, prevStep, nextStep
     } = useWizardStore();
 
@@ -49,7 +48,7 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-group mb-0">
-                            <label className="form-label">Wait time before greeting (seconds)</label>
+                            <label className="form-label">Tiempo de espera antes del saludo (segundos)</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="number"
@@ -82,7 +81,7 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-group mb-0">
-                            <label className="form-label">Silence threshold (seconds)</label>
+                            <label className="form-label">Tiempo de silencio para colgar (segundos)</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="number"
@@ -109,7 +108,7 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-group mb-0">
-                            <label className="form-label">Max call duration (seconds)</label>
+                            <label className="form-label">Duración máxima de la llamada (segundos)</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="number"
@@ -144,7 +143,7 @@ export const Step5_Timings: React.FC = () => {
                                 </div>
                             </div>
                             <div className="form-group mb-0">
-                                <label className="form-label">Reminder trigger (seconds)</label>
+                                <label className="form-label">Disparador de recordatorio (segundos)</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <input
                                         type="number"
@@ -170,7 +169,7 @@ export const Step5_Timings: React.FC = () => {
                                 </div>
                             </div>
                             <div className="form-group mb-0">
-                                <label className="form-label">Reminder max count</label>
+                                <label className="form-label">Cantidad máxima de recordatorios</label>
                                 <input
                                     type="number"
                                     className="form-control"
@@ -182,59 +181,6 @@ export const Step5_Timings: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
-                    <div className="section-divider">
-                        <h3>
-                            Detección de buzón de voz
-                            <div className="custom-tooltip">
-                                <i className="bi bi-info-circle tooltip-icon" style={{ fontSize: '18px' }}></i>
-                                <div className="tooltip-content">Permite al agente saber si ha saltado un buzón de voz y dejar un mensaje grabado si lo deseas.</div>
-                            </div>
-                        </h3>
-                    </div>
-
-                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <input
-                            type="checkbox"
-                            id="enableVoicemailDetection"
-                            style={{ width: '24px', height: '24px', cursor: 'pointer' }}
-                            checked={enableVoicemailDetection}
-                            onChange={(e) => updateField('enableVoicemailDetection', e.target.checked)}
-                        />
-                        <label htmlFor="enableVoicemailDetection" style={{ fontWeight: 600, cursor: 'pointer', margin: 0 }}>
-                            Activar detección de buzón de voz
-                        </label>
-                    </div>
-
-                    {enableVoicemailDetection && (
-                        <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: '10px', padding: '20px', marginTop: '16px' }}>
-                            <div className="form-group">
-                                <label className="form-label">Timeout de detección (segundos)</label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <input
-                                        type="number"
-                                        className="form-control"
-                                        value={voicemailDetectionTimeoutMs / 1000}
-                                        min="1" max="15" step="0.5"
-                                        onChange={(e) => updateField('voicemailDetectionTimeoutMs', Math.round(parseFloat(e.target.value) * 1000) || 0)}
-                                        style={{ width: '120px' }}
-                                    />
-                                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gris-texto)' }}>segundos</span>
-                                </div>
-                            </div>
-
-                            <div className="form-group mb-0">
-                                <label className="form-label">Mensaje para buzón de voz</label>
-                                <textarea
-                                    className="form-control"
-                                    rows={3}
-                                    value={voicemailMessage}
-                                    onChange={(e) => updateField('voicemailMessage', e.target.value)}
-                                    placeholder="Ej: Hola, soy Sofia de Netelip. Intentaremos contactarte más tarde. Gracias."
-                                />
-                            </div>
-                        </div>
-                    )}
 
                     <div className="section-divider">
                         <h3>Duración de timbre (Outbound)</h3>

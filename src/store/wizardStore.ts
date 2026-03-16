@@ -89,9 +89,6 @@ export interface WizardState {
     reminderTriggerMs: number;
     reminderMaxCount: number;
     ringDurationMs: number;
-    enableVoicemailDetection: boolean;
-    voicemailDetectionTimeoutMs: number;
-    voicemailMessage: string;
 
     // Step 7: Audio & STT
     volume: number;
@@ -161,7 +158,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     kbRetrievalChunks: 3,
     kbSimilarityThreshold: 0.7,
 
-    model: 'gpt-4.1',
+    model: 'gemini-3.0-flash',
     temperature: 0,
     highPriority: false,
     whoFirst: 'agent',
@@ -192,9 +189,6 @@ export const useWizardStore = create<WizardState>((set) => ({
     reminderTriggerMs: 30000,
     reminderMaxCount: 1,
     ringDurationMs: 30000,
-    enableVoicemailDetection: false,
-    voicemailDetectionTimeoutMs: 5000,
-    voicemailMessage: '',
 
     volume: 1.0,
     enableAmbientSound: false,
@@ -241,7 +235,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
     resetWizard: () => set({
         agentName: '', companyName: '', agentType: 'cualificacion',
-        model: 'gpt-4.1', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
+        model: 'gemini-3.0-flash', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
         personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
         voiceId: '11labs-Adrian', voiceName: 'Adrián', voiceProvider: 'retell', voiceDescription: 'Voz profesional y clara de España', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 0.8,
@@ -249,7 +243,6 @@ export const useWizardStore = create<WizardState>((set) => ({
         boostedKeywords: [], normalizeForSpeech: true,
         beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 600000,
         reminderTriggerMs: 30000, reminderMaxCount: 1, ringDurationMs: 30000,
-        enableVoicemailDetection: false, voicemailDetectionTimeoutMs: 5000, voicemailMessage: '',
         volume: 1.0, enableAmbientSound: false, ambientSound: 'none', ambientSoundVolume: 0.2,
         sttMode: 'accurate', enableTranscriptionFormatting: true,
         enableEndCall: true, endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',

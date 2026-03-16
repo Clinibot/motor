@@ -15,6 +15,46 @@ function getSupabaseAdmin() {
     return createClient(supabaseUrl, supabaseServiceKey);
 }
 
+async function enrichSipCredentials(payload: any, supabaseAdmin: any) {
+    if (!payload.enableTransfer || !payload.transferDestinations || !Array.isArray(payload.transferDestinations)) return;
+
+    console.log("Checking for SIP credentials in transfer destinations...");
+    for (const dest of payload.transferDestinations) {
+        if (dest.destination_type === 'number' && dest.number) {
+            // Limpiamos siempre para que dependa estrictamente del número guardado en la BD
+            dest.sip_username = undefined;
+            dest.sip_password = undefined;
+
+            const cleanNumber = dest.number.replace(/\s+/g, '');
+            console.log(`Searching DB for SIP credentials for number: ${cleanNumber}`);
+            
+            const { data: phoneData, error } = await supabaseAdmin
+                .from('phone_numbers')
+                .select('sip_username, sip_password')
+                .eq('phone_number', cleanNumber)
+                .maybeSingle();
+
+            if (error) {
+                console.error(`Error searching SIP credentials for ${cleanNumber}:`, error);
+                continue;
+            }
+
+            if (phoneData) {
+                if (phoneData.sip_username) {
+                    console.log(`Found SIP username for ${cleanNumber} in DB: ${phoneData.sip_username}`);
+                    dest.sip_username = phoneData.sip_username;
+                }
+                if (phoneData.sip_password) {
+                    console.log(`Found SIP password for ${cleanNumber} in DB (obfuscated)`);
+                    dest.sip_password = phoneData.sip_password;
+                }
+            } else {
+                console.log(`No records found for ${cleanNumber} in phone_numbers table.`);
+            }
+        }
+    }
+}
+
 export async function POST(request: Request) {
     try {
         const payload = await request.json();
@@ -98,6 +138,7 @@ export async function POST(request: Request) {
         console.log("Creating agent via Retell AI for:", payload.agentName);
 
         // 4. Map Step 7 tools to Retell format
+        await enrichSipCredentials(payload, supabaseAdmin);
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
 
@@ -171,9 +212,6 @@ export async function POST(request: Request) {
             ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
             ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
             normalize_for_speech: payload.normalizeForSpeech,
-            enable_voicemail_detection: payload.enableVoicemailDetection || false,
-            voicemail_message: payload.voicemailMessage,
-            voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs,
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined
         });
 
@@ -250,6 +288,7 @@ export async function PATCH(request: Request) {
 
         console.log("PATCH Payload received:", JSON.stringify(payload, null, 2));
 
+        await enrichSipCredentials(payload, supabaseAdmin);
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
         // El prompt llega ya procesado desde el wizard (fuente de verdad).
@@ -333,9 +372,6 @@ export async function PATCH(request: Request) {
                 ambient_sound: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined,
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
                 normalize_for_speech: payload.normalizeForSpeech,
-                enable_voicemail_detection: payload.enableVoicemailDetection !== undefined ? payload.enableVoicemailDetection : currentAgent.configuration?.enableVoicemailDetection,
-                voicemail_message: payload.voicemailMessage !== undefined ? payload.voicemailMessage : currentAgent.configuration?.voicemailMessage,
-                voicemail_detection_timeout_ms: payload.voicemailDetectionTimeoutMs !== undefined ? payload.voicemailDetectionTimeoutMs : currentAgent.configuration?.voicemailDetectionTimeoutMs,
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : []
             });
         }

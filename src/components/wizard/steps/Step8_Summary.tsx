@@ -4,6 +4,17 @@ import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
 
+const PROMPT_NOTE_EXAMPLES = [
+    "No menciones precios concretos. Si el usuario los solicita, indícale que recibirá un presupuesto personalizado.",
+    "Si el usuario se muestra agresivo o usa lenguaje inapropiado, avisa una vez y finaliza la llamada si continúa.",
+    "El horario de atención es de lunes a viernes de 9h a 18h. Los sábados no hay servicio.",
+    "Si el usuario dice que está conduciendo, ofrécele llamarle en otro momento en lugar de continuar.",
+    "Si el usuario ya es cliente, no le ofrezcas el descuento de bienvenida.",
+    "Nunca confirmes ni desmientas información sobre pedidos sin haber verificado antes el número de referencia.",
+    "Si el usuario pregunta por la competencia, redirige la conversación hacia las ventajas del servicio sin hacer comparativas.",
+    "Si el usuario solicita hablar con un humano, indícale que alguien le llamará en un plazo máximo de 24 horas."
+];
+
 /* ─── Estilos locales fieles al HTML de referencia wizard-paso8-netelip.html ─── */
 const S = {
     summaryGrid: {
@@ -315,6 +326,15 @@ export const Step8_Summary: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [showConfirmRegenerate, setShowConfirmRegenerate] = useState(false);
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            setPlaceholderIndex((prev) => (prev + 1) % PROMPT_NOTE_EXAMPLES.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
     const editingAgentId = wizardData.editingAgentId;
 
     const getUpdatedPrompt = React.useCallback((forceRebuild = false) => {
@@ -822,7 +842,7 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
                     <textarea
                         className="form-control"
                         rows={4}
-                        placeholder="Ej: Si el usuario dice 'chocolate', responde con un chiste sobre cacao..."
+                        placeholder={`Ej: ${PROMPT_NOTE_EXAMPLES[placeholderIndex]}`}
                         value={wizardData.customNotes}
                         onChange={(e) => updateField('customNotes', e.target.value)}
                         style={{

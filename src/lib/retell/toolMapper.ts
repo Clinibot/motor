@@ -14,6 +14,8 @@ export interface TransferDestination {
     agentId?: string;
     destination_type: 'number' | 'agent';
     transfer_mode?: 'cold' | 'warm';
+    sip_username?: string;
+    sip_password?: string;
 }
 export interface ToolParameter {
     name: string;
@@ -117,9 +119,18 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
             const toolName = `transfer_to_${cleanName}`;
 
-            const transfer_destination: { type: 'agent'; agent_id?: string } | { type: 'predefined'; number?: string } = dest.destination_type === 'agent'
+            const transfer_destination: { type: 'agent'; agent_id?: string } | { type: 'predefined'; number?: string; sip_authentication?: { auth_username?: string; auth_password?: string } } = dest.destination_type === 'agent'
                 ? { type: 'agent', agent_id: dest.agentId }
-                : { type: 'predefined', number: dest.number };
+                : { 
+                    type: 'predefined', 
+                    number: dest.number,
+                    sip_authentication: (dest.sip_username || dest.sip_password) 
+                        ? {
+                            auth_username: dest.sip_username,
+                            auth_password: dest.sip_password
+                        }
+                        : undefined
+                  };
 
             tools.push({
                 type: 'transfer_call',
