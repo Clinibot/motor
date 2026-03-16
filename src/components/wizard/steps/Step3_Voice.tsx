@@ -291,8 +291,8 @@ export const Step3_Voice: React.FC = () => {
         // 3. Ordenación : España > Latam > Resto
         return [...filtered].sort((a, b) => {
             // Prioridad absoluta para voces clonadas por el usuario
-            if (a.provider === 'platform' && b.provider !== 'platform') return -1;
-            if (a.provider !== 'platform' && b.provider === 'platform') return 1;
+            if (a.provider === 'cloned' && b.provider !== 'cloned') return -1;
+            if (a.provider !== 'cloned' && b.provider === 'cloned') return 1;
 
             // Prioridad para España
             if (a.accent === 'spain' && b.accent !== 'spain') return -1;
