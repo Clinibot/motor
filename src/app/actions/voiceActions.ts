@@ -60,14 +60,14 @@ export async function cloneVoiceAction(formData: FormData) {
             return { success: false, error: "No se encontró la API Key de Retell" };
         }
 
-        console.log(`[Action] Llamando a Retell SDK para clonación...`);
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
-
         const voice = await retellClient.voice.clone({
             voice_name,
             files: files,
-            voice_provider: 'elevenlabs'
+            voice_provider: 'cartesia'
         });
+        
+        console.log(`[Action] VOZ CREADA EXITOSAMENTE:`, JSON.stringify(voice, null, 2));
 
         if (!voice || !voice.voice_id) {
             console.error("[Action] Retell devolvió un objeto vacío o inválido");
