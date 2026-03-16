@@ -848,11 +848,14 @@ export const Step3_Voice: React.FC = () => {
                                         type="file"
                                         className="form-control"
                                         multiple
-                                        accept="audio/*"
+                                        accept="audio/mpeg,audio/wav,audio/mp3"
                                         onChange={(e) => setCloneFiles(e.target.files)}
                                         required
                                         disabled={isProcessingCustom}
                                     />
+                                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', fontStyle: 'italic' }}>
+                                        * Tamaño máximo total recomendado: 20MB (.mp3 o .wav)
+                                    </p>
                                     <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '8px' }}>
                                         Sube entre 1 y 25 archivos para una mejor calidad. Retell procesará la clonación.
                                     </p>
