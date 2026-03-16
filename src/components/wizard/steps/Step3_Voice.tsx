@@ -317,37 +317,52 @@ export const Step3_Voice: React.FC = () => {
                     formData.append('files', cloneFiles[i]);
                 }
             }
+            console.log("Iniciando fetch de clonación...");
             res = await fetch('/api/retell/voices/clone', {
                 method: 'POST',
                 body: formData
             });
 
+            console.log("Respuesta recibida, status:", res.status);
+            
             let data;
             const responseText = await res.text();
+            console.log("Contenido de la respuesta (primeros 100 caracteres):", responseText.substring(0, 100));
+
             try {
                 data = JSON.parse(responseText);
-            } catch (e) {
-                console.error("Response is not JSON:", responseText);
-                if (res.status === 413 || responseText.includes("Request Entity Too Large")) {
-                    alert("Error: Los archivos son demasiado grandes para el servidor. Intenta subir menos archivos o de menor tamaño.");
+            } catch (parseError) {
+                console.error("Error al parsear JSON:", parseError);
+                console.error("Texto que falló:", responseText);
+                
+                if (res.status === 413 || responseText.toLowerCase().includes("too large") || responseText.includes("Request Entity Too Large")) {
+                    alert("Error 413: Los archivos son demasiado grandes para el servidor. Por favor, intenta subir archivos más pequeños (máximo 4MB en total).");
+                } else if (res.status === 504 || responseText.toLowerCase().includes("timeout")) {
+                    alert("Error 504: Tiempo de espera agotado. El procesamiento de los audios ha tardado demasiado.");
                 } else {
-                    alert("Error del servidor: La respuesta no es válida. " + (res.status === 504 ? "Tiempo de espera agotado." : ""));
+                    alert("Error del servidor (respuesta no válida): " + responseText.substring(0, 50) + "...");
                 }
                 setIsProcessingCustom(false);
                 return;
             }
+
             if (data.success) {
                 alert("Voz clonada con éxito");
                 setShowCustomModal(false);
                 setCustomName('');
                 setCloneFiles(null);
-                fetchVoices(); // Refrescar lista
+                fetchVoices();
             } else {
-                alert("Error: " + data.error);
+                alert("Error de Retell: " + (data.error || "Ocurrió un problema al clonar la voz."));
             }
-        } catch (error) {
-            console.error("Error processing custom voice:", error);
-            alert("Ocurrió un error inesperado.");
+        } catch (error: any) {
+            console.error("Error crítico en handleCustomVoiceSubmit:", error);
+            // Si el error es una SyntaxError, significa que algo falló antes de lo previsto
+            if (error instanceof SyntaxError || error.name === 'SyntaxError') {
+                alert("Error de formato en la respuesta. Es muy probable que los archivos sean demasiado grandes.");
+            } else {
+                alert("Error al procesar la voz: " + (error.message || "Error desconocido"));
+            }
         } finally {
             setIsProcessingCustom(false);
         }

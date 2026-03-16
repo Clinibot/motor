@@ -28,6 +28,11 @@ export async function POST(req: Request) {
         const voice_name = (formData.get('voice_name') as string || '').trim();
         const files = formData.getAll('files') as File[];
 
+        console.log(`[Clone] Received ${files.length} files for voice: ${voice_name}`);
+        files.forEach((f, i) => {
+            console.log(`[Clone] File ${i}: name=${f.name}, size=${f.size} bytes, type=${f.type}`);
+        });
+
         if (!voice_name || !files || files.length === 0) {
             return NextResponse.json({ success: false, error: "Missing voice name or audio files" }, { status: 400 });
         }
