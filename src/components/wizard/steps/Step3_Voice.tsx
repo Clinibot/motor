@@ -83,7 +83,7 @@ export const Step3_Voice: React.FC = () => {
         try {
             const response = await fetch('/api/retell/voices');
             const data = await response.json();
-            if (data.success && data.voices && data.voices.length > 0) {
+            if (data?.success && data?.voices && data?.voices.length > 0) {
                 // Normalizar datos de Retell
                 const normalized = data.voices.map((v: Voice) => {
                     const voiceName = (v.voice_name || '').toLowerCase();
@@ -324,6 +324,7 @@ export const Step3_Voice: React.FC = () => {
                 }
             }
             
+            console.log("--- CLONE_VOICE_VER_2024_03_16_1915 ---");
             console.log("Iniciando clonación mediante API Route...");
             const res = await fetch('/api/retell/voices/clone', {
                 method: 'POST',
