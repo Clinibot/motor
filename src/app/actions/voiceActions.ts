@@ -76,11 +76,12 @@ export async function cloneVoiceAction(formData: FormData) {
             }
         };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[Action] Error CRÍTICO en Server Action:", error);
+        const errorMessage = error instanceof Error ? error.message : "Error interno en el servidor al clonar la voz";
         return {
             success: false,
-            error: error?.message || "Error interno en el servidor al clonar la voz"
+            error: errorMessage
         };
     }
 }
