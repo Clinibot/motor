@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
+import { cloneVoiceAction } from '../../../app/actions/voiceActions';
 
 interface Voice {
     voice_id: string;
@@ -322,34 +323,8 @@ export const Step3_Voice: React.FC = () => {
                     formData.append('files', cloneFiles[i]);
                 }
             }
-            console.log("Iniciando fetch de clonación...");
-            const res = await fetch('/api/retell/voices/clone', {
-                method: 'POST',
-                body: formData
-            });
-
-            console.log("Respuesta recibida, status:", res.status);
-            
-            let data;
-            const responseText = await res.text();
-            console.log("Contenido de la respuesta (primeros 100 caracteres):", responseText.substring(0, 100));
-
-            try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error("Error al parsear JSON:", parseError);
-                console.error("Texto que falló:", responseText);
-                
-                if (res.status === 413 || responseText.toLowerCase().includes("too large") || responseText.includes("Request Entity Too Large")) {
-                    alert("Error 413: Los archivos son demasiado grandes para el servidor. El límite actual es de 20MB. Si tus archivos pesan más de 5MB y estás en Vercel, es posible que la plataforma lo bloquee automáticamente.");
-                } else if (res.status === 504 || responseText.toLowerCase().includes("timeout")) {
-                    alert("Error 504: Tiempo de espera agotado. El procesamiento de los audios ha tardado demasiado.");
-                } else {
-                    alert("Error del servidor (respuesta no válida): " + responseText.substring(0, 50) + "...");
-                }
-                setIsProcessingCustom(false);
-                return;
-            }
+            console.log("Iniciando clonación mediante Server Action...");
+            const data = await cloneVoiceAction(formData);
 
             if (data.success) {
                 alert("Voz clonada con éxito");
@@ -358,14 +333,15 @@ export const Step3_Voice: React.FC = () => {
                 setCloneFiles(null);
                 fetchVoices();
             } else {
-                alert("Error de Retell: " + (data.error || "Ocurrió un problema al clonar la voz."));
+                alert("Error: " + (data.error || "Ocurrió un problema al clonar la voz."));
             }
         } catch (error: unknown) {
             const err = error as Error;
             console.error("Error crítico en handleCustomVoiceSubmit:", err);
-            // Si el error es una SyntaxError, significa que algo falló antes de lo previsto
-            if (err instanceof SyntaxError || err.name === 'SyntaxError') {
-                alert("Error de formato en la respuesta. Es muy probable que los archivos sean demasiado grandes.");
+            
+            // Si el error es de tamaño de body en Next.js, a veces lanza un error específico o falla la red
+            if (err.message?.includes("body size limit") || err.name === 'PayloadTooLargeError') {
+                alert("Error: Los archivos exceden el límite de 25MB permitido por el servidor.");
             } else {
                 alert("Error al procesar la voz: " + (err.message || "Error desconocido"));
             }
