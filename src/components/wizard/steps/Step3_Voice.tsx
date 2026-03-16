@@ -89,10 +89,15 @@ export const Step3_Voice: React.FC = () => {
                     const voiceName = (v.voice_name || '').toLowerCase();
                     const voiceLangAttr = (v.language || '').toLowerCase();
                     const voiceAccentAttr = (v.accent || '').toLowerCase();
+                    const id = (v.voice_id || '').toLowerCase();
 
-                    // Detección extremadamente flexible de español
+                    // 1. Normalizar lenguaje
                     let lang = voiceLangAttr;
-                    if (lang.startsWith('es') ||
+                    
+                    // Si es una voz clonada, asumimos español por defecto si no viene definido
+                    if (id.startsWith('custom_voice_')) {
+                        lang = 'es';
+                    } else if (lang.startsWith('es') ||
                         lang.includes('spanish') ||
                         lang.includes('espanol') ||
                         lang.includes('español') ||
@@ -108,6 +113,8 @@ export const Step3_Voice: React.FC = () => {
                         lang = 'pt';
                     } else if (lang.startsWith('fr') || lang.includes('french')) {
                         lang = 'fr';
+                    } else {
+                        lang = 'en';
                     }
 
                     // Detección flexible de acento (Prioridad España)
@@ -157,7 +164,6 @@ export const Step3_Voice: React.FC = () => {
 
                     // Normalizar proveedor de forma agresiva
                     let provider = (v.provider || '').toLowerCase();
-                    const id = (v.voice_id || '').toLowerCase();
                     
                     // PRIORIDAD ABSOLUTA: Si el ID empieza por custom_voice_, es una voz clonada (Clonadas)
                     if (id.startsWith('custom_voice_')) {
