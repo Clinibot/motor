@@ -104,7 +104,8 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                     type: 'agent_swap',
                     name: toolName,
                     description: dest.description || `Transfiere la llamada a ${dest.name}.`,
-                    agent_id: dest.agentId
+                    agent_id: dest.agentId,
+                    post_call_analysis_setting: 'both_agents'
                 });
             } else {
                 // EXTERNAL NUMBER TRANSFER
