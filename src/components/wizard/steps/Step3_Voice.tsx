@@ -276,6 +276,14 @@ export const Step3_Voice: React.FC = () => {
                     return;
                 }
 
+                if (trimmedVoiceId === trimmedUserId) {
+                    const confirmSame = window.confirm("Has introducido el mismo ID para 'Voice ID' y 'Public User ID'. Normalmente son diferentes. ¿Estás seguro de que quieres continuar?");
+                    if (!confirmSame) {
+                        setIsProcessingCustom(false);
+                        return;
+                    }
+                }
+
                 res = await fetch('/api/retell/voices/import', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -786,16 +794,22 @@ export const Step3_Voice: React.FC = () => {
                             {customTab === 'import' ? (
                                 <>
                                     <div className="form-group">
-                                        <label className="form-label">Provider Voice ID (ElevenLabs)</label>
+                                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            Provider Voice ID (ElevenLabs)
+                                            <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>OBLIGATORIO</span>
+                                        </label>
                                         <input
                                             type="text"
                                             className="form-control"
-                                            placeholder="Pega el ID de ElevenLabs aquí"
+                                            placeholder="Ej: pMsXpInD..."
                                             value={importVoiceId}
                                             onChange={(e) => setImportVoiceId(e.target.value)}
                                             required
                                             disabled={isProcessingCustom}
                                         />
+                                        <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                                            <i className="bi bi-info-circle"></i> Es el ID único de la voz en la librería de ElevenLabs.
+                                        </p>
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

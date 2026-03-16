@@ -72,11 +72,18 @@ export async function POST(req: Request) {
             voice: voice
         });
 
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error importing voice to Retell:", error);
+        let message = error instanceof Error ? error.message : "Failed to import voice";
+        
+        // Handle specific Retell error for ElevenLabs community voices
+        if (message.includes('addCommunityVoice11labs error')) {
+            message = "Error en ElevenLabs: El 'Voice ID' o el 'Public User ID' son incorrectos. Por favor, verifica que no sean el mismo ID y que el ID del usuario sea correcto en ElevenLabs.";
+        }
+
         return NextResponse.json({
             success: false,
-            error: error instanceof Error ? error.message : "Failed to import voice"
+            error: message
         }, { status: 500 });
     }
 }
