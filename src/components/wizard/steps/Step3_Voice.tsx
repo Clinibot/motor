@@ -334,6 +334,16 @@ export const Step3_Voice: React.FC = () => {
             if (!res.ok) {
                 if (res.status === 413) {
                     alert("Error 413: El archivo de audio es demasiado grande para el servidor. Por favor, intenta subir un archivo más pequeño (menos de 4.5 MB si estás en Vercel) o comprimido.");
+                } else if (res.status === 500) {
+                    try {
+                        const errorData = await res.json();
+                        alert(`Error Servidor (500): ${errorData.error || "Error interno"}`);
+                        console.error("Detalles del servidor:", errorData);
+                    } catch {
+                        const text = await res.text();
+                        alert("Error 500: El servidor falló con una respuesta no válida.");
+                        console.error("HTML de error del servidor:", text);
+                    }
                 } else {
                     const text = await res.text();
                     alert(`Error ${res.status}: El servidor respondió con un error al procesar el audio.`);

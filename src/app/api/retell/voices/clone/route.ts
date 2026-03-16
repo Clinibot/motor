@@ -16,11 +16,13 @@ function getSupabaseAdmin() {
 }
 
 export async function POST(req: Request) {
+    console.log("[Clone] POST request received");
     try {
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
 
         if (!session) {
+            console.error("[Clone] Unauthorized: No session found");
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
@@ -28,12 +30,9 @@ export async function POST(req: Request) {
         const voice_name = (formData.get('voice_name') as string || '').trim();
         const files = formData.getAll('files') as File[];
 
-        console.log(`[Clone] Received ${files.length} files for voice: ${voice_name}`);
-        files.forEach((f, i) => {
-            console.log(`[Clone] File ${i}: name=${f.name}, size=${f.size} bytes, type=${f.type}`);
-        });
-
-        if (!voice_name || !files || files.length === 0) {
+        console.log(`[Clone] Processing ${files.length} files for voice: ${voice_name}`);
+        
+        if (!voice_name || files.length === 0) {
             return NextResponse.json({ success: false, error: "Missing voice name or audio files" }, { status: 400 });
         }
 
@@ -46,39 +45,59 @@ export async function POST(req: Request) {
             .eq('id', userId)
             .single();
 
-        if (!userProfile || !userProfile.workspace_id) {
-            return NextResponse.json({ success: false, error: "No workspace assigned to user" }, { status: 400 });
+        if (!userProfile?.workspace_id) {
+            return NextResponse.json({ success: false, error: "No workspace assigned" }, { status: 400 });
         }
 
-        const { data: workspace, error: wsError } = await supabaseAdmin
+        const { data: workspace } = await supabaseAdmin
             .from('workspaces')
             .select('retell_api_key')
             .eq('id', userProfile.workspace_id)
             .single();
 
-        if (wsError || !workspace || !workspace.retell_api_key) {
+        if (!workspace?.retell_api_key) {
             return NextResponse.json({ success: false, error: "Workspace API Key not found" }, { status: 400 });
         }
 
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
-        // Retell SDK clone method expects files
+        // IMPORTANT: Convert Files to Buffers to avoid SDK issues with Blob/File objects in Node environment
+        const processedFiles = await Promise.all(
+            files.map(async (file) => {
+                const arrayBuffer = await file.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+                // Return a structure that is guaranteed to be compatible
+                return buffer; 
+            })
+        );
+
+        console.log(`[Clone] Calling Retell SDK with ${processedFiles.length} buffers`);
+        
         const voice = await retellClient.voice.clone({
             voice_name,
-            files: files,
-            voice_provider: 'elevenlabs' // Default to ElevenLabs for cloning in this context
+            files: processedFiles as any, // Cast as any to bypass potential SDK type mismatches with direct buffers
+            voice_provider: 'elevenlabs'
         });
 
+        console.log(`[Clone] Success! Created voice_id: ${voice.voice_id}`);
+        
         return NextResponse.json({
             success: true,
             voice: voice
         });
 
     } catch (error: unknown) {
-        console.error("Error cloning voice in Retell:", error);
-        return NextResponse.json({
+        console.error("CRITICAL ERROR during voice cloning:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to clone voice";
+        
+        // Ensure we ALWAYS return JSON, even if it's an error
+        return new Response(JSON.stringify({
             success: false,
-            error: error instanceof Error ? error.message : "Failed to clone voice"
-        }, { status: 500 });
+            error: errorMessage,
+            details: error instanceof Error ? error.stack : undefined
+        }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
