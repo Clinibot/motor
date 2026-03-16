@@ -61,7 +61,7 @@ export const Step3_Voice: React.FC = () => {
     const [isProcessingCustom, setIsProcessingCustom] = useState(false);
     const [showCustomModal, setShowCustomModal] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [customTab, setCustomTab] = useState<'clone'>('clone');
+    // const [customTab, setCustomTab] = useState<'clone'>('clone');
     // const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
     const [activeProvider, setActiveProvider] = useState('all');
 
@@ -265,7 +265,6 @@ export const Step3_Voice: React.FC = () => {
         setIsProcessingCustom(true);
 
         try {
-            let res;
 
             /* 
             // CÓDIGO COMENTADO - IMPORTACIÓN ELEVENLABS
@@ -318,7 +317,7 @@ export const Step3_Voice: React.FC = () => {
                 }
             }
             console.log("Iniciando fetch de clonación...");
-            res = await fetch('/api/retell/voices/clone', {
+            const res = await fetch('/api/retell/voices/clone', {
                 method: 'POST',
                 body: formData
             });
@@ -355,13 +354,14 @@ export const Step3_Voice: React.FC = () => {
             } else {
                 alert("Error de Retell: " + (data.error || "Ocurrió un problema al clonar la voz."));
             }
-        } catch (error: any) {
-            console.error("Error crítico en handleCustomVoiceSubmit:", error);
+        } catch (error: unknown) {
+            const err = error as Error;
+            console.error("Error crítico en handleCustomVoiceSubmit:", err);
             // Si el error es una SyntaxError, significa que algo falló antes de lo previsto
-            if (error instanceof SyntaxError || error.name === 'SyntaxError') {
+            if (err instanceof SyntaxError || err.name === 'SyntaxError') {
                 alert("Error de formato en la respuesta. Es muy probable que los archivos sean demasiado grandes.");
             } else {
-                alert("Error al procesar la voz: " + (error.message || "Error desconocido"));
+                alert("Error al procesar la voz: " + (err.message || "Error desconocido"));
             }
         } finally {
             setIsProcessingCustom(false);
