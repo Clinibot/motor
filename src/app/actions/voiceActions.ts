@@ -14,37 +14,37 @@ function getSupabaseAdmin() {
 }
 
 export async function cloneVoiceAction(formData: FormData) {
+    console.log("[Action] Iniciando cloneVoiceAction");
     try {
         const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (!session) {
-            throw new Error("Unauthorized");
+        if (sessionError || !session) {
+            console.error("[Action] No session found:", sessionError);
+            return { success: false, error: "No autorizado o sesión expirada" };
         }
 
         const voice_name = (formData.get('voice_name') as string || '').trim();
         const files = formData.getAll('files') as File[];
 
-        console.log(`[Action Clone] Received ${files.length} files for voice: ${voice_name}`);
-        files.forEach((f, i) => {
-            console.log(`[Action Clone] File ${i}: name=${f.name}, size=${f.size} bytes, type=${f.type}`);
-        });
+        console.log(`[Action] Datos: ${files.length} archivos, nombre: ${voice_name}`);
 
         if (!voice_name || !files || files.length === 0) {
-            throw new Error("Missing voice name or audio files");
+            return { success: false, error: "Falta el nombre o los archivos de audio" };
         }
 
         const userId = session.user.id;
         const supabaseAdmin = getSupabaseAdmin();
 
-        const { data: userProfile } = await supabaseAdmin
+        const { data: userProfile, error: profileError } = await supabaseAdmin
             .from('users')
             .select('workspace_id')
             .eq('id', userId)
             .single();
 
-        if (!userProfile || !userProfile.workspace_id) {
-            throw new Error("No workspace assigned to user");
+        if (profileError || !userProfile?.workspace_id) {
+            console.error("[Action] Error perfil/workspace:", profileError);
+            return { success: false, error: "No se encontró el workspace del usuario" };
         }
 
         const { data: workspace, error: wsError } = await supabaseAdmin
@@ -53,19 +53,20 @@ export async function cloneVoiceAction(formData: FormData) {
             .eq('id', userProfile.workspace_id)
             .single();
 
-        if (wsError || !workspace || !workspace.retell_api_key) {
-            throw new Error("Workspace API Key not found");
+        if (wsError || !workspace?.retell_api_key) {
+            console.error("[Action] Error API Key Retell:", wsError);
+            return { success: false, error: "No se encontró la API Key de Retell" };
         }
 
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
-        console.log(`[Action Clone] Calling Retell SDK clone...`);
+        console.log(`[Action] Llamando a Retell SDK...`);
         const voice = await retellClient.voice.clone({
             voice_name,
             files: files,
             voice_provider: 'elevenlabs'
         });
-        console.log(`[Action Clone] Success:`, voice.voice_id);
+        console.log(`[Action] Retell éxito:`, voice.voice_id);
 
         return {
             success: true,
@@ -75,11 +76,11 @@ export async function cloneVoiceAction(formData: FormData) {
             }
         };
 
-    } catch (error: unknown) {
-        console.error("Error cloning voice in Server Action:", error);
+    } catch (error: any) {
+        console.error("[Action] Error CRÍTICO en Server Action:", error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : "Failed to clone voice"
+            error: error?.message || "Error interno en el servidor al clonar la voz"
         };
     }
 }
