@@ -201,7 +201,6 @@ export const Step3_Voice: React.FC = () => {
                             // If user specifically asked for it in female, we can consider it.
                         }
                     }
-
                     return {
                         ...v,
                         language: lang,
@@ -211,10 +210,17 @@ export const Step3_Voice: React.FC = () => {
                         raw_accent: v.accent
                     };
                 });
-                console.log("Voces normalizadas:", normalized.length);
-                console.log("Español (España):", normalized.filter((v: Voice) => v.language === 'es' && v.accent === 'spain').length);
-                console.log("Cartesia:", normalized.filter((v: Voice) => v.provider === 'cartesia').length);
-                setVoices(normalized);
+                
+                // 3. Deduplicar por voice_id (por si vienen repetidas de la API)
+                const uniqueNormalized = Array.from(new Map(normalized.map((v: Voice) => [v.voice_id, v])).values()) as Voice[];
+                
+                // 4. Filtrar voces indeseadas (como las de Victor que aparecen repetidas o no deseadas)
+                const finalVoices = uniqueNormalized.filter((v: Voice) => 
+                    !v.voice_name.toLowerCase().includes('victor')
+                );
+
+                console.log("Voces normalizadas y deduplicadas:", finalVoices.length);
+                setVoices(finalVoices);
                 
                 // Debug log para voces en español sin acento reconocido
                 const unknownAccent = normalized.filter((v: Voice) => v.language === 'es' && v.accent !== 'spain' && v.accent !== 'latam');
