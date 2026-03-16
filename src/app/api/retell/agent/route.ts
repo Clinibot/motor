@@ -25,31 +25,48 @@ async function enrichSipCredentials(payload: any, supabaseAdmin: any) {
             dest.sip_username = undefined;
             dest.sip_password = undefined;
 
-            const cleanNumber = dest.number.replace(/\s+/g, '');
-            console.log(`Searching DB for SIP credentials for number: ${cleanNumber}`);
+            const baseNumber = dest.number.replace(/\s+/g, '');
+            // Si empieza por +34 lo probamos tal cual. Si no, probamos con +34 y sin +
+            const variations = [baseNumber];
+            if (!baseNumber.startsWith('+')) {
+                variations.push('+' + baseNumber);
+                if (baseNumber.startsWith('34')) {
+                    variations.push('+' + baseNumber); // duplicado pero seguro
+                } else {
+                    variations.push('+34' + baseNumber);
+                }
+            } else {
+                variations.push(baseNumber.substring(1)); // quitar el +
+            }
+
+            // Eliminar duplicados de variaciones
+            const uniqueVariations = Array.from(new Set(variations));
+            
+            console.log(`Searching DB for SIP credentials using variations: ${uniqueVariations.join(', ')}`);
             
             const { data: phoneData, error } = await supabaseAdmin
                 .from('phone_numbers')
-                .select('sip_username, sip_password')
-                .eq('phone_number', cleanNumber)
+                .select('sip_username, sip_password, phone_number')
+                .in('phone_number', uniqueVariations)
                 .maybeSingle();
 
             if (error) {
-                console.error(`Error searching SIP credentials for ${cleanNumber}:`, error);
+                console.error(`Error searching SIP credentials for ${baseNumber}:`, error);
                 continue;
             }
 
             if (phoneData) {
+                console.log(`Match found in DB for number: ${phoneData.phone_number}`);
                 if (phoneData.sip_username) {
-                    console.log(`Found SIP username for ${cleanNumber} in DB: ${phoneData.sip_username}`);
+                    console.log(`Enriching with SIP username: ${phoneData.sip_username}`);
                     dest.sip_username = phoneData.sip_username;
                 }
                 if (phoneData.sip_password) {
-                    console.log(`Found SIP password for ${cleanNumber} in DB (obfuscated)`);
+                    console.log(`Enriching with SIP password (length: ${phoneData.sip_password.length})`);
                     dest.sip_password = phoneData.sip_password;
                 }
             } else {
-                console.log(`No records found for ${cleanNumber} in phone_numbers table.`);
+                console.warn(`No records found for any variation of ${baseNumber} in phone_numbers table.`);
             }
         }
     }
