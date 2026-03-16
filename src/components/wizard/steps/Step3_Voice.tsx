@@ -423,11 +423,21 @@ export const Step3_Voice: React.FC = () => {
                     </div>
                     <button
                         type="button"
-                        className="btn btn-primary"
-                        style={{ padding: '8px 16px', fontSize: '13px', background: 'var(--oscuro)' }}
+                        className="btn"
+                        style={{ 
+                            padding: '6px 14px', 
+                            fontSize: '13px', 
+                            background: 'transparent',
+                            border: '1px solid #cbd5e1',
+                            color: '#475569',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}
                         onClick={() => setShowCustomModal(true)}
                     >
-                        <i className="bi bi-plus-circle"></i> Añadir Voz Personalizada
+                        <i className="bi bi-mic" style={{ fontSize: '14px' }}></i> Clona tu voz
                     </button>
                 </div>
 
@@ -762,8 +772,23 @@ export const Step3_Voice: React.FC = () => {
                         boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0 }}>Añadir Voz Personalizada</h2>
+                            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0 }}>Clona tu propia voz</h2>
                             <button type="button" onClick={() => setShowCustomModal(false)} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--gris-texto)' }}>&times;</button>
+                        </div>
+
+                        <div style={{ 
+                            background: '#fffbeb', 
+                            border: '1px solid #fde68a', 
+                            borderRadius: '12px', 
+                            padding: '16px', 
+                            marginBottom: '24px',
+                            display: 'flex',
+                            gap: '12px'
+                        }}>
+                            <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', fontSize: '18px' }}></i>
+                            <p style={{ fontSize: '13px', color: '#92400e', margin: 0, lineHeight: 1.5 }}>
+                                <strong>Importante:</strong> La fidelidad de la voz clonada depende directamente de la calidad de tus audios. Asegúrate de que no haya ruido de fondo y que la voz sea clara para obtener el mejor resultado.
+                            </p>
                         </div>
 
                         {/* 

@@ -59,15 +59,20 @@ export async function cloneVoiceAction(formData: FormData) {
 
         const retellClient = new Retell({ apiKey: workspace.retell_api_key });
 
+        console.log(`[Action Clone] Calling Retell SDK clone...`);
         const voice = await retellClient.voice.clone({
             voice_name,
             files: files,
             voice_provider: 'elevenlabs'
         });
+        console.log(`[Action Clone] Success:`, voice.voice_id);
 
         return {
             success: true,
-            voice: voice
+            voice: {
+                voice_id: voice.voice_id,
+                voice_name: voice.voice_name
+            }
         };
 
     } catch (error: unknown) {
