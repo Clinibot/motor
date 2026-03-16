@@ -333,6 +333,8 @@ export const Step3_Voice: React.FC = () => {
             if (!res.ok) {
                 if (res.status === 413) {
                     alert("Error 413: El archivo de audio es demasiado grande para el servidor. Por favor, intenta subir un archivo más pequeño (menos de 4.5 MB si estás en Vercel) o comprimido.");
+                } else if (res.status === 504) {
+                    alert("Error 504 (Tiempo excedido): La clonación está tardando demasiado para los límites de Vercel (10 segundos). \n\nSugerencia: Intenta subir un archivo de audio más corto (ej: 5-10 segundos) o un solo archivo en lugar de varios para que el proceso termine más rápido.");
                 } else if (res.status === 500) {
                     try {
                         const errorData = await res.json();
