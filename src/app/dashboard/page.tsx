@@ -276,6 +276,69 @@ export default function DashboardPage() {
         router.push('/login');
     };
 
+    const handleExportCSV = () => {
+        if (filteredCalls.length === 0) return;
+
+        const headers = [
+            'Fecha',
+            'Nombre Cliente',
+            'Número Cliente',
+            'Agente',
+            'Duración',
+            'Sentimiento',
+            'Estado',
+            'Coste',
+            'Resumen',
+            'Datos Extraídos'
+        ];
+
+        const rows = filteredCalls.map(call => {
+            const date = new Date(call.created_at).toLocaleString('es-ES');
+            const agentName = getAgentName(call.retell_agent_id);
+            const duration = formatDuration(call.duration_ms);
+            const sentiment = sentimentLabel(call.call_analysis?.user_sentiment);
+            const status = call.call_analysis?.call_successful ? 'Exitosa' : 'Fallida';
+            const cost = `€${Number(call.call_cost || 0).toFixed(3)}`;
+            const summary = (call.call_analysis?.call_summary || '').replace(/"/g, '""');
+            
+            const customVars = (call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data || {}) as Record<string, unknown>;
+            const extractedData = Object.entries(customVars)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join('; ')
+                .replace(/"/g, '""');
+
+            return [
+                `"${date}"`,
+                `"${(call.customer_name || 'Web Call').replace(/"/g, '""')}"`,
+                `"${call.customer_number || 'WEB'}"`,
+                `"${agentName.replace(/"/g, '""')}"`,
+                `"${duration}"`,
+                `"${sentiment}"`,
+                `"${status}"`,
+                `"${cost}"`,
+                `"${summary}"`,
+                `"${extractedData}"`
+            ];
+        });
+
+        // UTF-8 BOM for Excel compatibility with special characters
+        const BOM = '\uFEFF';
+        const csvContent = BOM + [
+            headers.join(','),
+            ...rows.map(r => r.join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `llamadas_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const getAgentName = (retellAgentId: string | null) => {
         if (!retellAgentId) return 'Desconocido';
         const a = agents.find(ag => ag.retell_agent_id === retellAgentId);
@@ -611,7 +674,7 @@ export default function DashboardPage() {
                                     <div className="table-header">
                                         <h3 className="table-title">Llamadas recientes</h3>
                                         <div className="table-actions">
-                                            <button className="btn-secondary">
+                                            <button className="btn-secondary" onClick={handleExportCSV}>
                                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                                                 </svg>
