@@ -90,6 +90,25 @@ export async function POST(request: NextRequest) {
             .single();
 
         // 2. Build the call record, merging with existing data if present
+        const direction = callData.direction;
+        const fromNumber = callData.from_number;
+        const toNumber = callData.to_number;
+        
+        let detectedCustomerNumber = existingCall?.customer_number;
+        if (callData.call_type === 'web_call') {
+            detectedCustomerNumber = 'Web Call';
+        } else if (direction === 'outbound') {
+            detectedCustomerNumber = toNumber || fromNumber;
+        } else if (direction === 'inbound') {
+            detectedCustomerNumber = fromNumber || toNumber;
+        } else {
+            detectedCustomerNumber = fromNumber || toNumber || 'Unknown';
+        }
+
+        // Handle analysis data normalization
+        const analysisData = callData.call_analysis || {};
+        const customVars = analysisData.custom_variables || analysisData.custom_analysis_data || {};
+        
         const callRecord = {
             id: existingCall?.id, // Keep same ID if exists
             workspace_id: workspaceId,
@@ -105,12 +124,12 @@ export async function POST(request: NextRequest) {
             call_cost: callData.call_cost?.combined_cost ? (callData.call_cost.combined_cost / 100) : (existingCall?.call_cost || null),
             disconnection_reason: callData.disconnection_reason || existingCall?.disconnection_reason || null,
             call_analysis: (callData.call_analysis && Object.keys(callData.call_analysis).length > 0)
-                ? callData.call_analysis
+                ? { ...callData.call_analysis, custom_variables: customVars } // Ensure custom_variables is present
                 : (existingCall?.call_analysis || {}),
             raw_payload: payload,
-            customer_number: callData.from_number || existingCall?.customer_number || (callData.call_type === 'web_call' ? 'Web Call' : 'Unknown'),
-            customer_name: callData.call_analysis?.custom_variables?.name || existingCall?.customer_name || null,
-            call_type: callData.call_type || existingCall?.call_type || 'web_call',
+            customer_number: detectedCustomerNumber,
+            customer_name: customVars.nombre || customVars.name || existingCall?.customer_name || null,
+            call_type: callData.call_type || existingCall?.call_type || (fromNumber || toNumber ? 'phone_call' : 'web_call'),
             cost_breakdown: (callData.call_cost && Object.keys(callData.call_cost).length > 0)
                 ? callData.call_cost
                 : (existingCall?.cost_breakdown || null),

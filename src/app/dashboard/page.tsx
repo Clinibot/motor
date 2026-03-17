@@ -22,6 +22,7 @@ interface Call {
         call_successful?: boolean;
         call_summary?: string;
         custom_variables?: Record<string, unknown>;
+        custom_analysis_data?: Record<string, unknown>;
     } | null;
     customer_number: string | null;
     customer_name: string | null;
@@ -69,6 +70,13 @@ export default function DashboardPage() {
     const dropdownRef = useRef<HTMLDivElement>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chartsInstances = useRef<any[]>([]);
+
+    // Check if Chart is already loaded (for client-side navigation)
+    useEffect(() => {
+        if ((window as any).Chart) {
+            setChartJsReady(true);
+        }
+    }, []);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -267,7 +275,8 @@ export default function DashboardPage() {
         router.push('/login');
     };
 
-    const getAgentName = (retellAgentId: string) => {
+    const getAgentName = (retellAgentId: string | null) => {
+        if (!retellAgentId) return 'Desconocido';
         const a = agents.find(ag => ag.retell_agent_id === retellAgentId);
         return a?.name ?? retellAgentId.slice(0, 10) + '…';
     };
@@ -759,20 +768,26 @@ export default function DashboardPage() {
                                                                                                 </Link>
                                                                                             )}
                                                                                         </div>
-                                                                                        {call.call_analysis?.custom_variables && Object.keys(call.call_analysis.custom_variables).length > 0 ? (
-                                                                                            <div className="post-data-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
-                                                                                                {Object.entries(call.call_analysis.custom_variables).map(([key, value]) => (
-                                                                                                    <div key={key} className="post-data-card" style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
-                                                                                                        <div className="post-data-label" style={{ fontSize: '11px', color: '#0369a1', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>{key}</div>
-                                                                                                        <div className="post-data-value" style={{ fontSize: '14px', color: '#0c4a6e', fontWeight: 500 }}>{String(value)}</div>
+                                                                                        {(() => {
+                                                                                            const customVars = call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data;
+                                                                                            if (customVars && Object.keys(customVars).length > 0) {
+                                                                                                return (
+                                                                                                    <div className="post-data-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+                                                                                                        {Object.entries(customVars).map(([key, value]) => (
+                                                                                                            <div key={key} className="post-data-card" style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                                                                                                                <div className="post-data-label" style={{ fontSize: '11px', color: '#0369a1', fontWeight: 600, textTransform: 'uppercase', marginBottom: '2px' }}>{key}</div>
+                                                                                                                <div className="post-data-value" style={{ fontSize: '14px', color: '#0c4a6e', fontWeight: 500 }}>{String(value)}</div>
+                                                                                                            </div>
+                                                                                                        ))}
                                                                                                     </div>
-                                                                                                ))}
-                                                                                            </div>
-                                                                                        ) : (
-                                                                                            <div style={{ fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', padding: '12px', background: '#f9fafb', borderRadius: '8px', border: '1px dotted #d1d5db' }}>
-                                                                                                No se extrajeron datos adicionales de esta llamada.
-                                                                                            </div>
-                                                                                        )}
+                                                                                                );
+                                                                                            }
+                                                                                            return (
+                                                                                                <div style={{ fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', padding: '12px', background: '#f9fafb', borderRadius: '8px', border: '1px dotted #d1d5db' }}>
+                                                                                                    No se extrajeron datos adicionales de esta llamada.
+                                                                                                </div>
+                                                                                            );
+                                                                                        })()}
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -872,6 +887,7 @@ function getDisconnectionReasons(calls: Call[]) {
 function getCallsByAgent(calls: Call[], agents: Agent[]) {
     const counts: Record<string, number> = {};
     calls.forEach(c => {
+        if (!c.retell_agent_id) return;
         const agent = agents.find(a => a.retell_agent_id === c.retell_agent_id);
         const name = agent?.name ?? c.retell_agent_id.slice(0, 8);
         counts[name] = (counts[name] ?? 0) + 1;

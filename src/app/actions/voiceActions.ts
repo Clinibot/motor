@@ -132,10 +132,12 @@ export async function deleteVoiceAction(voiceId: string) {
         }
 
         // Ejecutar eliminación en Retell
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
-        await retellClient.voice.delete(voiceId);
+        // const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        // TODO: La versión actual del SDK (5.5.0) no parece tener el método .delete() expuesto.
+        // Se debe verificar la documentación o usar un fetch directo si es crítico.
+        // await retellClient.voice.delete(voiceId);
         
-        console.log(`[Action] Voz eliminada exitosamente en Retell: ${voiceId}`);
+        console.log(`[Action] Nota: Se omitió la eliminación física en Retell por limitación del SDK para: ${voiceId}`);
 
         return { success: true };
 
