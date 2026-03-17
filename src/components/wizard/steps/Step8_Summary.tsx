@@ -415,9 +415,15 @@ Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca 
             : '';
 
         const kbInnerContent = wizardData.kbFiles.length > 0
-            ? `Tienes acceso a una base de conocimientos documentada que puedes consultar para responder dudas de los usuarios.\n\n` +
-            `Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retell_name || f.name}`).join('\n') +
-            (wizardData.kbUsageInstructions ? `\n\nInstrucciones sobre cuándo o cómo consultarlos:\n- ${wizardData.kbUsageInstructions}` : '')
+            ? `Tienes acceso a una base de conocimientos documentada que puedes consultar para responder dudas de los usuarios.
+
+### REGLAS CRÍTICAS DE BÚSQUEDA (BASE DE CONOCIMIENTOS):
+- Si el usuario realiza una pregunta y la respuesta **no se encuentra de forma explícita** en la información proporcionada en la base de conocimientos, di amablemente que no dispones de esa información específica en este momento, pero que dejas nota de su consulta para que un compañero pueda contactarle y facilitársela. 
+- **NUNCA inventes información** que no esté en los documentos. 
+- Si la información es ambigua o parcial, aclara lo que sabes y ofrece pasar nota para el resto.
+
+Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retell_name || f.name}`).join('\n') +
+            (wizardData.kbUsageInstructions ? `\n\nInstrucciones adicionales sobre cuándo o cómo consultarlos:\n- ${wizardData.kbUsageInstructions}` : '')
             : '';
 
         const kbSection = kbInnerContent
