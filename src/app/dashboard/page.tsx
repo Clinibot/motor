@@ -770,8 +770,22 @@ export default function DashboardPage() {
                                                                                             )}
                                                                                         </div>
                                                                                         {(() => {
-                                                                                            const customVars = call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data;
+                                                                                            let customVars = call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data;
+                                                                                            
+                                                                                            // Transformation to fix '0' or empty phone values on UI
                                                                                             if (customVars && Object.keys(customVars).length > 0) {
+                                                                                                const phoneKeyPatterns = ['telefono', 'phone', 'numero', 'movil', 'cell'];
+                                                                                                const transformedVars = { ...customVars };
+                                                                                                
+                                                                                                Object.keys(transformedVars).forEach(key => {
+                                                                                                    const val = transformedVars[key];
+                                                                                                    const isPhoneKey = phoneKeyPatterns.some(pattern => key.toLowerCase().includes(pattern));
+                                                                                                    if (isPhoneKey && (val === '0' || val === 0 || !val || val === 'unknown')) {
+                                                                                                        transformedVars[key] = call.customer_number || '—';
+                                                                                                    }
+                                                                                                });
+                                                                                                customVars = transformedVars;
+
                                                                                                 return (
                                                                                                     <div className="post-data-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
                                                                                                         {Object.entries(customVars).map(([key, value]) => (

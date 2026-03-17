@@ -107,7 +107,19 @@ export async function POST(request: NextRequest) {
 
         // Handle analysis data normalization
         const analysisData = callData.call_analysis || {};
-        const customVars = analysisData.custom_variables || analysisData.custom_analysis_data || {};
+        const customVars = { ...(analysisData.custom_variables || analysisData.custom_analysis_data || {}) };
+        
+        // Patch common phone variables if they are missing or invalid (like '0')
+        const phoneKeyPatterns = ['telefono', 'phone', 'numero', 'movil', 'cell'];
+        Object.keys(customVars).forEach(key => {
+            const val = customVars[key];
+            const normalizedKey = key.toLowerCase();
+            const isPhoneKey = phoneKeyPatterns.some(pattern => normalizedKey.includes(pattern));
+            
+            if (isPhoneKey && (val === '0' || val === 0 || !val || val === 'unknown')) {
+                customVars[key] = detectedCustomerNumber;
+            }
+        });
         
         const callRecord = {
             id: existingCall?.id, // Keep same ID if exists
@@ -128,7 +140,7 @@ export async function POST(request: NextRequest) {
                 : (existingCall?.call_analysis || {}),
             raw_payload: payload,
             customer_number: detectedCustomerNumber,
-            customer_name: customVars.nombre || customVars.name || existingCall?.customer_name || null,
+            customer_name: customVars.nombre || customVars.name || customVars.nombre_cliente || customVars.cliente_nombre || customVars.NOMBRE || existingCall?.customer_name || null,
             call_type: callData.call_type || existingCall?.call_type || (fromNumber || toNumber ? 'phone_call' : 'web_call'),
             cost_breakdown: (callData.call_cost && Object.keys(callData.call_cost).length > 0)
                 ? callData.call_cost
