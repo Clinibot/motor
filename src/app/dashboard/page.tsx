@@ -73,6 +73,7 @@ export default function DashboardPage() {
 
     // Check if Chart is already loaded (for client-side navigation)
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((window as any).Chart) {
             setChartJsReady(true);
         }
