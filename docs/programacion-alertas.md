@@ -1,8 +1,8 @@
-# 🛠️ Guía del Desarrollador: Cómo añadir nuevas alertas
+#  Guía del Desarrollador: Cómo añadir nuevas alertas
 
 Este documento explica paso a paso la arquitectura del sistema de **Alertas por Email (Resend)** para que cualquier desarrollador pueda extenderlo fácilmente y añadir nuevas métricas o disparadores en el futuro.
 
-## 🏗️ Arquitectura actual
+##  Arquitectura actual
 
 El sistema de alertas se basa en **3 pilares principales**:
 1. **Frontend (`AlertSettings.tsx`)**: La interfaz donde el usuario activa sus preferencias y define umbrales.
@@ -14,7 +14,7 @@ El sistema de alertas se basa en **3 pilares principales**:
 
 ---
 
-## 🚀 Pasos para añadir una NUEVA ALERTA
+##  Pasos para añadir una NUEVA ALERTA
 
 Imaginemos que quieres crear una alerta llamada **"Discurso muy largo del agente"** (que salte si el bot habla más del 80% del tiempo de la llamada). Debes tocar los siguientes archivos en este orden:
 
