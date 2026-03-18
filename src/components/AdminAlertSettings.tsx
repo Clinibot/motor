@@ -158,7 +158,7 @@ export default function AdminAlertSettings() {
                           <input 
                              type="email"
                              value={email}
-                             placeholder={`admin${idx+1}@tuempresa.com`}
+                             placeholder={`admin${idx+1}@netelip.com`}
                              onChange={e => updateEmail(idx, e.target.value)}
                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
@@ -250,7 +250,7 @@ export default function AdminAlertSettings() {
                <li>En el campo inferior <strong>Webhook URL</strong>, deberás pegar SIEMPRE nuestra ruta especializada adjuntando el ID del cliente:</li>
              </ol>
              <div className="mt-4 p-3 bg-white border border-indigo-200 rounded text-xs font-mono text-indigo-600 break-all select-all">
-                https://app.tu-dominio.com/api/retell/alerts-webhook?workspace_id=ID_DEL_WORKSPACE_AQUI
+                https://lafabrica.netelip.com/api/retell/alerts-webhook?workspace_id=ID_DEL_WORKSPACE_AQUI
              </div>
              <p className="text-xs text-indigo-500 mt-3 font-semibold">
                * Nuestro sistema interceptará esa llamada y la validará usando la API Key privada del workspace para que sea 100% segura antes de avisarte vía Email o Webhook externo.

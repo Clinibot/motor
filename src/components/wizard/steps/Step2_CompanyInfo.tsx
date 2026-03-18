@@ -169,7 +169,7 @@ export const Step2_CompanyInfo: React.FC = () => {
                                         className="form-control"
                                         value={companyWebsite}
                                         onChange={(e) => updateField('companyWebsite', e.target.value)}
-                                        placeholder="https://www.tuempresa.com"
+                                        placeholder="https://www.netelip.com"
                                     />
                                 </div>
                             </div>
