@@ -42,7 +42,13 @@ export async function POST(req: Request) {
       const total = calls?.length ?? 0;
       const successful = calls?.filter(c => c.call_analysis?.call_successful).length ?? 0;
       const negative = calls?.filter(c => c.call_analysis?.user_sentiment === 'negative').length ?? 0;
-      const totalCost = calls?.reduce((sum, c) => sum + Number(c.call_cost || 0), 0) ?? 0;
+      
+      // Calculate transfer failures using basic heuristic if exact flag is not uniformly present
+      const transferFailures = calls?.filter(c => {
+         const analysis = c.call_analysis as Record<string, unknown> | null;
+         return analysis && analysis.call_transfer_failed === true;
+      }).length ?? 0;
+
       const successRate = total > 0 ? (successful / total) * 100 : 0;
       const negativeSentimentRate = total > 0 ? (negative / total) * 100 : 0;
 
@@ -53,17 +59,41 @@ export async function POST(req: Request) {
         .eq('id', setting.workspace_id)
         .maybeSingle();
 
+      // Get first agent name
+      const { data: agent } = await supabase
+        .from('agents')
+        .select('name')
+        .eq('workspace_id', setting.workspace_id)
+        .limit(1)
+        .maybeSingle();
+      
+      const agentName = agent?.name ?? 'Tu Agente';
+
       const period = new Date().toLocaleDateString('es-ES', {
         day: '2-digit', month: 'long', year: 'numeric'
       });
 
+      let contextMsg = 'Todos los sistemas e indicadores base funcionan correctamente.';
+      if (successRate < (setting.low_success_rate_threshold || 70)) {
+        contextMsg = 'La tasa de éxito está por debajo de tu nivel esperado. Te sugiero revisar las transcripciones para identificar cuellos de botella.';
+      } else if (negativeSentimentRate > (setting.high_negative_sentiment_threshold || 40)) {
+        contextMsg = 'Me he dado cuenta de que el descontento de algunos usuarios ha superado el límite. Por favor revisa los últimos audios.';
+      }
+
       await sendDailySummaryEmail(setting.alert_email!, {
-        workspaceName: workspace?.name ?? 'Tu espacio de trabajo',
+        workspaceName: workspace?.name ?? 'Tu entorno',
+        agentName: agentName,
+        clientName: workspace?.name ?? 'Cliente',
         totalCalls: total,
         successRate,
+        successThreshold: setting.low_success_rate_threshold || 70,
         negativeSentimentRate,
-        totalCost,
+        sentimentThreshold: setting.high_negative_sentiment_threshold || 40,
+        transferFailures,
+        transferThreshold: 5, // Default hardcoded or fallback
         period,
+        contextMessage: contextMsg,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.netelip.com'}/dashboard`
       });
 
       sent++;
