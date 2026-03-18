@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     const todayCost = todayCalls?.reduce((sum, c) => sum + Number(c.call_cost || 0), 0) ?? 0;
 
     const alerts: Promise<unknown>[] = [];
+    const notificationsToInsert: any[] = [];
 
     if (settings.low_success_rate_enabled && successRate < settings.low_success_rate_threshold) {
       alerts.push(sendThresholdAlertEmail(settings.alert_email, {
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
         threshold: settings.low_success_rate_threshold,
         workspaceName,
       }));
+      notificationsToInsert.push({ workspace_id, alert_type: 'low_success_rate', content: { currentValue: successRate, threshold: settings.low_success_rate_threshold, workspaceName } });
     }
 
     if (settings.high_negative_sentiment_enabled && negativeRate > settings.high_negative_sentiment_threshold) {
@@ -72,6 +74,7 @@ export async function POST(req: NextRequest) {
         threshold: settings.high_negative_sentiment_threshold,
         workspaceName,
       }));
+      notificationsToInsert.push({ workspace_id, alert_type: 'high_negative_sentiment', content: { currentValue: negativeRate, threshold: settings.high_negative_sentiment_threshold, workspaceName } });
     }
 
     if (settings.high_cost_enabled && todayCost > settings.high_cost_threshold) {
@@ -81,6 +84,11 @@ export async function POST(req: NextRequest) {
         threshold: settings.high_cost_threshold,
         workspaceName,
       }));
+      notificationsToInsert.push({ workspace_id, alert_type: 'high_cost', content: { currentValue: todayCost, threshold: settings.high_cost_threshold, workspaceName } });
+    }
+
+    if (notificationsToInsert.length > 0) {
+      await supabase.from('alert_notifications').insert(notificationsToInsert);
     }
 
     await Promise.allSettled(alerts);

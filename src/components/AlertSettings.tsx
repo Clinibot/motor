@@ -24,11 +24,12 @@ const DEFAULT: AlertSettingsData = {
   high_cost_threshold: 5,
 };
 
-export default function AlertSettings() {
-  const [step, setStep] = useState<'loading' | 'email' | 'settings'>('loading');
+export default function AlertSettings({ isDropdown = false }: { isDropdown?: boolean }) {
+  const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<AlertSettingsData>(DEFAULT);
   const [emailInput, setEmailInput] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   const showToast = (type: 'success' | 'error', msg: string) => {
@@ -43,40 +44,40 @@ export default function AlertSettings() {
         const data = await res.json();
         if (data.settings) {
           setSettings({ ...DEFAULT, ...data.settings });
-          setStep(data.settings.alert_email ? 'settings' : 'email');
-        } else {
-          setStep('email');
+          setEmailInput(data.settings.alert_email || '');
         }
-      } catch {
-        setStep('email');
+      } catch (e) {
+        console.error("Error fetching settings:", e);
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
 
-  const handleSetEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSetEmail = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!emailInput.trim()) return;
-    setSaving(true);
+    setSavingEmail(true);
     try {
+      const payload = { ...settings, alert_email: emailInput };
       const res = await fetch('/api/alerts/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...settings, alert_email: emailInput }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
-        setSettings(s => ({ ...s, alert_email: emailInput }));
-        setStep('settings');
-        showToast('success', 'Email guardado correctamente');
+        setSettings(payload);
+        showToast('success', 'Email guardado');
       } else throw new Error();
     } catch {
       showToast('error', 'Error al guardar el email');
     } finally {
-      setSaving(false);
+      setSavingEmail(false);
     }
   };
 
-  const handleSave = async () => {
-    setSaving(true);
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
     try {
       const res = await fetch('/api/alerts/settings', {
         method: 'POST',
@@ -88,19 +89,21 @@ export default function AlertSettings() {
     } catch {
       showToast('error', 'Error al guardar las alertas');
     } finally {
-      setSaving(false);
+      setSavingSettings(false);
     }
   };
 
   const toggle = (key: keyof AlertSettingsData) => {
+    if (!settings.alert_email) return; // disabled
     setSettings(s => ({ ...s, [key]: !s[key] }));
   };
 
   const setThreshold = (key: keyof AlertSettingsData, value: number) => {
+    if (!settings.alert_email) return; // disabled
     setSettings(s => ({ ...s, [key]: value }));
   };
 
-  if (step === 'loading') {
+  if (loading) {
     return (
       <div style={{ padding: '32px', textAlign: 'center' }}>
         <div style={{ width: 28, height: 28, border: '3px solid #e5e7eb', borderTop: '3px solid #267ab0', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
@@ -108,59 +111,9 @@ export default function AlertSettings() {
     );
   }
 
-  if (step === 'email') {
-    return (
-      <div style={{ padding: '8px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#eff6fb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-            <svg width="26" height="26" fill="none" stroke="#267ab0" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1a1a1a', margin: '0 0 6px' }}>Configura tus alertas</h3>
-          <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
-            Introduce el email donde quieres recibir los avisos de tu agente.
-          </p>
-        </div>
-        <form onSubmit={handleSetEmail}>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-            Email para alertas
-          </label>
-          <input
-            type="email"
-            required
-            value={emailInput}
-            onChange={e => setEmailInput(e.target.value)}
-            placeholder="tu@empresa.com"
-            style={{
-              width: '100%', padding: '10px 14px', fontSize: 14, borderRadius: 8,
-              border: '1px solid #e5e7eb', outline: 'none', boxSizing: 'border-box',
-              fontFamily: 'inherit', transition: 'border-color .2s',
-            }}
-            onFocus={e => (e.target.style.borderColor = '#267ab0')}
-            onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
-          />
-          <button
-            type="submit"
-            disabled={saving}
-            style={{
-              marginTop: 14, width: '100%', padding: '11px 0', background: '#267ab0',
-              color: '#fff', border: 'none', borderRadius: 8, fontSize: 14,
-              fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
-              fontFamily: 'inherit',
-            }}
-          >
-            {saving ? 'Guardando…' : 'Continuar →'}
-          </button>
-        </form>
-        {toast && <ToastBanner type={toast.type} msg={toast.msg} />}
-      </div>
-    );
-  }
-
   const alertCards = [
     {
-      icon: '📋',
+      icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>,
       title: 'Resumen diario',
       description: 'Recibe cada día un resumen con el total de llamadas, tasa de éxito, sentimiento y coste.',
       enabledKey: 'daily_summary_enabled' as keyof AlertSettingsData,
@@ -171,18 +124,18 @@ export default function AlertSettings() {
       thresholdMax: null,
     },
     {
-      icon: '📉',
+      icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>,
       title: 'Tasa de éxito baja',
       description: 'Avísame si la tasa de éxito de las llamadas cae por debajo del umbral.',
       enabledKey: 'low_success_rate_enabled' as keyof AlertSettingsData,
       thresholdKey: 'low_success_rate_threshold' as keyof AlertSettingsData,
       thresholdLabel: 'Alertar si la tasa de éxito baja de',
       thresholdUnit: '%',
-      thresholdMin: 10,
+      thresholdMin: 1,
       thresholdMax: 100,
     },
     {
-      icon: '😟',
+      icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>,
       title: 'Sentimiento negativo',
       description: 'Avísame si el porcentaje de llamadas con sentimiento negativo sube del umbral.',
       enabledKey: 'high_negative_sentiment_enabled' as keyof AlertSettingsData,
@@ -193,7 +146,7 @@ export default function AlertSettings() {
       thresholdMax: 100,
     },
     {
-      icon: '💸',
+      icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
       title: 'Coste elevado',
       description: 'Avísame si el gasto acumulado del día supera el límite que elijas.',
       enabledKey: 'high_cost_enabled' as keyof AlertSettingsData,
@@ -205,42 +158,71 @@ export default function AlertSettings() {
     },
   ];
 
+  const hasEmail = Boolean(settings.alert_email);
+  const emailMissingAlert = !hasEmail && (
+    <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: 8, color: '#991b1b', fontSize: 13, marginBottom: 16 }}>
+      Configura un email de alertas para poder activar y guardar tus preferencias.
+    </div>
+  );
+
   return (
-    <div>
-      {/* Email row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f0f9ff', borderRadius: 10, border: '1px solid #bae6fd', marginBottom: 20, gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <svg width="16" height="16" fill="none" stroke="#267ab0" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <span style={{ fontSize: 13, color: '#0369a1', fontWeight: 500 }}>{settings.alert_email}</span>
-        </div>
-        <button
-          onClick={() => setStep('email')}
-          style={{ fontSize: 12, color: '#267ab0', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0, fontFamily: 'inherit' }}
-        >
-          Cambiar
-        </button>
+    <div style={{ width: '100%' }}>
+      {/* Email Configurator section */}
+      <div style={{ marginBottom: 24, padding: isDropdown ? 0 : '16px 20px', background: isDropdown ? 'transparent' : '#f8fafc', borderRadius: 12, border: isDropdown ? 'none' : '1px solid #e2e8f0' }}>
+        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+          Email para recibir alertas
+        </label>
+        <form onSubmit={handleSetEmail} style={{ display: 'flex', gap: 10 }}>
+          <input
+            type="email"
+            required
+            value={emailInput}
+            onChange={e => setEmailInput(e.target.value)}
+            placeholder="Introduce tu correo electrónico"
+            style={{
+              flex: 1, padding: '10px 14px', fontSize: 14, borderRadius: 8,
+              border: '1px solid #e5e7eb', outline: 'none',
+              fontFamily: 'inherit', transition: 'border-color .2s',
+            }}
+            onFocus={e => (e.target.style.borderColor = '#267ab0')}
+            onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
+          />
+          <button
+            type="submit"
+            disabled={savingEmail || !emailInput.trim()}
+            style={{
+              padding: '0 16px', background: emailInput.trim() !== settings.alert_email ? '#267ab0' : '#e5e7eb',
+              color: emailInput.trim() !== settings.alert_email ? '#fff' : '#6b7280', 
+              border: 'none', borderRadius: 8, fontSize: 14,
+              fontWeight: 600, cursor: (savingEmail || !emailInput.trim()) ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit', whiteSpace: 'nowrap'
+            }}
+          >
+            {savingEmail ? 'Guardando...' : settings.alert_email ? 'Actualizar' : 'Guardar Email'}
+          </button>
+        </form>
       </div>
 
-      {/* Alert cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {emailMissingAlert}
+
+      <div style={{ display: 'grid', gridTemplateColumns: isDropdown ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
         {alertCards.map(card => {
           const enabled = !!settings[card.enabledKey];
           return (
             <div key={card.title} style={{
-              border: `1px solid ${enabled ? '#267ab0' : '#e5e7eb'}`,
+              border: `1px solid ${!hasEmail ? '#e5e7eb' : enabled ? '#267ab0' : '#e5e7eb'}`,
               borderRadius: 12,
               padding: '16px',
-              transition: 'border-color .2s, box-shadow .2s',
-              boxShadow: enabled ? '0 0 0 3px rgba(38,122,176,0.08)' : 'none',
-              background: enabled ? '#fafcff' : '#fff',
+              transition: 'all .2s',
+              boxShadow: enabled && hasEmail ? '0 0 0 3px rgba(38,122,176,0.08)' : 'none',
+              background: !hasEmail ? '#f9fafb' : enabled ? '#fafcff' : '#fff',
+              opacity: !hasEmail ? 0.6 : 1,
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                <div style={{ display: 'flex', gap: 10, flex: 1 }}>
-                  <span style={{ fontSize: 20, lineHeight: 1 }}>{card.icon}</span>
+                <div style={{ display: 'flex', gap: 12, flex: 1, color: enabled && hasEmail ? '#267ab0' : '#4b5563' }}>
+                  <div style={{ marginTop: 2 }}>{card.icon}</div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 3 }}>{card.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: !hasEmail ? '#9ca3af' : '#1a1a1a', marginBottom: 3 }}>{card.title}</div>
                     <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>{card.description}</div>
                   </div>
                 </div>
@@ -248,25 +230,31 @@ export default function AlertSettings() {
                 <button
                   onClick={() => toggle(card.enabledKey)}
                   style={{
-                    width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
-                    background: enabled ? '#267ab0' : '#d1d5db',
+                    width: 44, height: 24, borderRadius: 12, border: 'none', 
+                    cursor: hasEmail ? 'pointer' : 'not-allowed',
+                    background: enabled && hasEmail ? '#267ab0' : '#d1d5db',
                     position: 'relative', transition: 'background .2s', flexShrink: 0,
                   }}
+                  disabled={!hasEmail}
                   aria-label={enabled ? 'Desactivar' : 'Activar'}
                 >
                   <span style={{
-                    position: 'absolute', top: 3, left: enabled ? 23 : 3,
+                    position: 'absolute', top: 3, left: (enabled && hasEmail) ? 23 : 3,
                     width: 18, height: 18, borderRadius: '50%', background: '#fff',
                     transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,.2)',
                   }} />
                 </button>
               </div>
 
-              {/* Threshold (only when enabled and has a threshold) */}
-              {enabled && card.thresholdKey && (
-                <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #e5e7eb' }}>
+              {/* Threshold */}
+              {card.thresholdKey && (
+                <div style={{ 
+                  marginTop: 14, paddingTop: 14, borderTop: `1px solid ${enabled && hasEmail ? '#bfdbfe' : '#e5e7eb'}`,
+                  opacity: enabled ? 1 : 0.5,
+                  pointerEvents: enabled && hasEmail ? 'auto' : 'none'
+                }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151' }}>
-                    <span style={{ flex: 1 }}>{card.thresholdLabel}</span>
+                    <span style={{ flex: 1, color: !hasEmail ? '#9ca3af' : '#374151' }}>{card.thresholdLabel}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       {card.thresholdUnit === '€' && <span style={{ fontSize: 13, color: '#6b7280' }}>€</span>}
                       <input
@@ -275,10 +263,12 @@ export default function AlertSettings() {
                         max={card.thresholdMax!}
                         value={settings[card.thresholdKey] as number}
                         onChange={e => setThreshold(card.thresholdKey!, Number(e.target.value))}
+                        disabled={!hasEmail || !enabled}
                         style={{
                           width: 64, padding: '5px 8px', border: '1px solid #d1d5db',
                           borderRadius: 6, fontSize: 13, fontFamily: 'inherit',
                           outline: 'none', textAlign: 'center', fontWeight: 600, color: '#267ab0',
+                          background: (!hasEmail || !enabled) ? '#f3f4f6' : '#fff'
                         }}
                       />
                       {card.thresholdUnit !== '€' && <span style={{ fontSize: 13, color: '#6b7280' }}>{card.thresholdUnit}</span>}
@@ -291,18 +281,17 @@ export default function AlertSettings() {
         })}
       </div>
 
-      {/* Save button */}
       <button
-        onClick={handleSave}
-        disabled={saving}
+        onClick={handleSaveSettings}
+        disabled={savingSettings || !hasEmail}
         style={{
-          marginTop: 20, width: '100%', padding: '12px 0', background: '#267ab0',
+          marginTop: 24, width: '100%', padding: '12px 0', background: '#267ab0',
           color: '#fff', border: 'none', borderRadius: 10, fontSize: 14,
-          fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer',
-          opacity: saving ? 0.7 : 1, fontFamily: 'inherit', transition: 'all .2s',
+          fontWeight: 600, cursor: (savingSettings || !hasEmail) ? 'not-allowed' : 'pointer',
+          opacity: (savingSettings || !hasEmail) ? 0.6 : 1, fontFamily: 'inherit', transition: 'all .2s',
         }}
       >
-        {saving ? 'Guardando…' : 'Guardar alertas'}
+        {savingSettings ? 'Guardando…' : 'Guardar alertas'}
       </button>
 
       {toast && <ToastBanner type={toast.type} msg={toast.msg} />}

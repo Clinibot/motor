@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
 import { useWizardStore } from '../../store/wizardStore';
 import Script from 'next/script';
-import AlertSettings from '../../components/AlertSettings';
+import NotificationsPanel from '../../components/NotificationsPanel';
 
 interface Call {
     id: string;
@@ -548,23 +548,10 @@ export default function DashboardPage() {
                                         position: 'absolute', top: 'calc(100% + 10px)', right: 0,
                                         width: 380, background: '#fff', borderRadius: 16,
                                         border: '1px solid #e5e7eb', boxShadow: '0 20px 40px -8px rgba(0,0,0,0.12)',
-                                        zIndex: 1000, overflow: 'hidden',
+                                        zIndex: 1000, overflow: 'hidden', padding: 0,
                                         animation: 'slideDown 0.2s cubic-bezier(0.16,1,0.3,1)',
                                     }}>
-                                        <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                <svg width="18" height="18" fill="none" stroke="#267ab0" strokeWidth="2" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                                </svg>
-                                                <span style={{ fontWeight: 700, fontSize: 15, color: '#1a1a1a' }}>Alertas por email</span>
-                                            </div>
-                                            <button onClick={() => setIsAlertPanelOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}>
-                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                                            </button>
-                                        </div>
-                                        <div style={{ padding: '20px', maxHeight: '70vh', overflowY: 'auto' }}>
-                                            <AlertSettings />
-                                        </div>
+                                        <NotificationsPanel workspaceId={user?.workspace_id || undefined} />
                                     </div>
                                 )}
                             </div>

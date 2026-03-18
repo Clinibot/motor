@@ -76,7 +76,7 @@ export default function SettingsPage() {
           </header>
 
           <div className="content">
-            <div style={{ maxWidth: 640 }}>
+            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
               {/* ALERTS SECTION */}
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 24 }}>
