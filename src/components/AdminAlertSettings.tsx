@@ -234,6 +234,30 @@ export default function AdminAlertSettings() {
               </div>
       </div>
 
+      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-5 flex gap-4 items-start shadow-sm mt-4">
+         <div className="bg-white p-2 rounded-lg shadow-sm">
+             <Globe className="w-5 h-5 text-indigo-600" />
+         </div>
+         <div className="flex-1">
+             <h4 className="text-sm font-bold text-indigo-900 mb-2">Pasos obligatorios para la activación real en Retell:</h4>
+             <p className="text-sm text-indigo-800 leading-relaxed mb-3">
+                 Retell no expone API pública para la configuración de alertas. Tras activar estos interruptores aquí, deberás configurar el envío del Webhook manualmente en la cuenta de Retell de cada cliente (Tenant) para que la Fábrica sea notificada:
+             </p>
+             <ol className="list-decimal ml-4 space-y-2 text-sm text-indigo-800">
+               <li>Accede al Dashboard de <strong>Retell AI</strong> y selecciona el Workspace del cliente.</li>
+               <li>Navega a la sección secundaria <strong>Alerting</strong> y haz click en <strong>Create Rule</strong>.</li>
+               <li>Selecciona la métrica a medir (ej. Call Count &gt; 20 para concurrencia o API Error Count &gt; 0).</li>
+               <li>En el campo inferior <strong>Webhook URL</strong>, deberás pegar SIEMPRE nuestra ruta especializada adjuntando el ID del cliente:</li>
+             </ol>
+             <div className="mt-4 p-3 bg-white border border-indigo-200 rounded text-xs font-mono text-indigo-600 break-all select-all">
+                https://app.tu-dominio.com/api/retell/alerts-webhook?workspace_id=ID_DEL_WORKSPACE_AQUI
+             </div>
+             <p className="text-xs text-indigo-500 mt-3 font-semibold">
+               * Nuestro sistema interceptará esa llamada y la validará usando la API Key privada del workspace para que sea 100% segura antes de avisarte vía Email o Webhook externo.
+             </p>
+         </div>
+      </div>
+
       <div className="flex items-center gap-4 border-t pt-6">
         <button
            onClick={handleSave}
