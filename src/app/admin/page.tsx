@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Plus, Users, Key, Loader2, Building, Trash2, Pencil, Check, X, HelpCircle, Info } from 'lucide-react';
+import { Settings, Plus, Users, Key, Loader2, Building, Trash2, Pencil, Check, X, HelpCircle, Info, Bell } from 'lucide-react';
+import AdminAlertSettings from '../../components/AdminAlertSettings';
 
 interface Workspace {
     id: string;
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
     const [error, setError] = useState('');
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
-    const [activeTab, setActiveTab] = useState<'workspaces' | 'users'>('workspaces');
+    const [activeTab, setActiveTab] = useState<'workspaces' | 'users' | 'alerts'>('workspaces');
     const [users, setUsers] = useState<AdminUser[]>([]);
 
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -225,6 +226,13 @@ export default function AdminDashboard() {
                         <Users className="w-5 h-5" />
                         Usuarios
                     </button>
+                    <button
+                        onClick={() => setActiveTab('alerts')}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium transition-colors ${activeTab === 'alerts' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        <Bell className="w-5 h-5" />
+                        Alertas Globales
+                    </button>
                 </nav>
 
                 <div className="mt-auto border-t border-gray-200 pt-4">
@@ -242,7 +250,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            {activeTab === 'workspaces' ? 'Workspaces (Tenants)' : 'Usuarios'}
+                            {activeTab === 'workspaces' ? 'Workspaces (Tenants)' : activeTab === 'users' ? 'Usuarios' : 'Alertas del Sistema'}
                             <button 
                                 onClick={() => setShowHelp(true)}
                                 className="text-gray-400 hover:text-indigo-600 transition-colors"
@@ -254,7 +262,8 @@ export default function AdminDashboard() {
                         <p className="text-gray-500 mt-1">
                             {activeTab === 'workspaces'
                                 ? 'Gestiona los clientes y sus credenciales de Retell AI.'
-                                : 'Detalle de registros, consumos y teléfonos de clientes.'}
+                                : activeTab === 'users' ? 'Detalle de registros, consumos y teléfonos de clientes.'
+                                : 'Ajustes globales de monitorización para detectar fallos'}
                         </p>
                     </div>
                     <button
@@ -421,6 +430,8 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
+                ) : activeTab === 'alerts' ? (
+                    <AdminAlertSettings />
                 ) : (
                     /* Global Users View */
                     <div className="space-y-6">

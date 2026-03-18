@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     const todayCost = todayCalls?.reduce((sum, c) => sum + Number(c.call_cost || 0), 0) ?? 0;
 
     const alerts: Promise<unknown>[] = [];
-    const notificationsToInsert: any[] = [];
+    const notificationsToInsert: { workspace_id: string, alert_type: string, content: Record<string, unknown> }[] = [];
 
     if (settings.low_success_rate_enabled && successRate < settings.low_success_rate_threshold) {
       alerts.push(sendThresholdAlertEmail(settings.alert_email, {

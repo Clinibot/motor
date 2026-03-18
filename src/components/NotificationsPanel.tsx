@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import AlertSettings from './AlertSettings';
 import { useRouter } from 'next/navigation';
+type BaseNotification = { id: string, created_at: string, alert_type: string, content: { currentValue?: number, threshold?: number } };
 
 export default function NotificationsPanel({ workspaceId }: { workspaceId: string | undefined }) {
   const [view, setView] = useState<'notifications' | 'settings'>('notifications');
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<BaseNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -24,14 +25,14 @@ export default function NotificationsPanel({ workspaceId }: { workspaceId: strin
       });
   }, [workspaceId]);
 
-  const getAlertDetails = (n: any) => {
+  const getAlertDetails = (n: BaseNotification) => {
     switch (n.alert_type) {
       case 'low_success_rate':
-        return { icon: '📉', title: 'Tasa bajó a ' + n.content.currentValue.toFixed(1) + '%' };
+        return { icon: '📉', title: 'Tasa bajó a ' + Number(n.content.currentValue || 0).toFixed(1) + '%' };
       case 'high_negative_sentiment':
-        return { icon: '😠', title: 'Sentimiento negativo superó ' + n.content.threshold + '%' };
+        return { icon: '😠', title: 'Sentimiento negativo superó ' + Number(n.content.threshold || 0) + '%' };
       case 'high_cost':
-        return { icon: '💰', title: 'Coste diario alcanzó ' + n.content.currentValue.toFixed(2) + '€' };
+        return { icon: '💰', title: 'Coste diario alcanzó ' + Number(n.content.currentValue || 0).toFixed(2) + '€' };
       default:
         return { icon: '🔔', title: 'Nueva alerta' };
     }
