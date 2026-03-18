@@ -227,6 +227,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let payload: any = null;
     try {
         const supabaseAdmin = getSupabaseAdmin();

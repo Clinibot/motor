@@ -183,7 +183,7 @@ export async function sendElioAlertEmail(to: string[], data: AlertData) {
   return results;
 }
 
-export async function sendFactoryErrorAlert(to: string[], origin: string, error: string, context?: any) {
+export async function sendFactoryErrorAlert(to: string[], origin: string, error: string, context?: unknown) {
     return sendElioAlertEmail(to, {
         agentName: 'ELIO',
         clientName: 'Soporte',
@@ -204,7 +204,7 @@ export async function sendFactoryErrorAlert(to: string[], origin: string, error:
  * Checks if factory errors are enabled in global admin settings
  * and dispatches an Elio-style alert if they are.
  */
-export async function reportFactoryError(origin: string, error: string, context?: any) {
+export async function reportFactoryError(origin: string, error: string, context?: unknown) {
     try {
         const { data: settings } = await supabase
             .from('admin_alert_settings')

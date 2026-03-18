@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
 import DashboardSidebar from '../../../components/DashboardSidebar';

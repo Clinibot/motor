@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
 import AlertSettings from '../../../components/AlertSettings';
