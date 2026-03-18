@@ -165,6 +165,17 @@ export async function POST(request: NextRequest) {
         }
 
         console.log(`✅ Webhook [${eventType}] saved for workspace ${workspaceId}, call ${callData.call_id}`);
+
+        // Fire threshold alert check after a fully analyzed call (non-blocking)
+        if (eventType === 'call_analyzed') {
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            fetch(`${baseUrl}/api/alerts/check-thresholds`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ workspace_id: workspaceId }),
+            }).catch(err => console.warn('[alerts] Threshold check fire-and-forget error:', err));
+        }
+
         return NextResponse.json({ received: true });
 
     } catch (error: unknown) {

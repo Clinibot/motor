@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
 import { useWizardStore } from '../../store/wizardStore';
 import Script from 'next/script';
+import AlertSettings from '../../components/AlertSettings';
 
 interface Call {
     id: string;
@@ -68,6 +69,8 @@ export default function DashboardPage() {
     const agentsChartRef = useRef<HTMLCanvasElement>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [isAlertPanelOpen, setIsAlertPanelOpen] = useState(false);
+    const alertPanelRef = useRef<HTMLDivElement>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chartsInstances = useRef<any[]>([]);
 
@@ -251,6 +254,9 @@ export default function DashboardPage() {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false);
+            }
+            if (alertPanelRef.current && !alertPanelRef.current.contains(event.target as Node)) {
+                setIsAlertPanelOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -480,7 +486,7 @@ export default function DashboardPage() {
                             { label: 'Mis agentes IA', href: '/dashboard/agents', icon: 'M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z', active: false },
                             { label: 'Mis números', href: '/dashboard/numbers', icon: 'M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z', active: false },
                             { label: 'Biblioteca de plantillas', href: '/dashboard/templates', icon: 'M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z', active: false },
-                            { label: 'Configuración', href: '#', icon: 'M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z', active: false },
+                            { label: 'Configuración', href: '/dashboard/settings', icon: 'M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z', active: false },
                             { label: 'Ayuda y soporte', href: '#', icon: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z', active: false },
                         ].map(item => (
                             <Link key={item.label} href={item.href} className={`nav-item${item.active ? ' active' : ''}`}>
@@ -526,12 +532,42 @@ export default function DashboardPage() {
                                 <span>Balance:</span>
                                 <span className="balance-amount">€{totalCost.toFixed(3)}</span>
                             </div>
-                            <button className="notification-bell">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                                </svg>
-                                <span className="notification-badge" />
-                            </button>
+                            <div style={{ position: 'relative' }} ref={alertPanelRef}>
+                                <button
+                                    className="notification-bell"
+                                    onClick={() => setIsAlertPanelOpen(o => !o)}
+                                    title="Alertas"
+                                    style={{ background: isAlertPanelOpen ? '#eff6fb' : undefined }}
+                                >
+                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                                    </svg>
+                                </button>
+                                {isAlertPanelOpen && (
+                                    <div style={{
+                                        position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+                                        width: 380, background: '#fff', borderRadius: 16,
+                                        border: '1px solid #e5e7eb', boxShadow: '0 20px 40px -8px rgba(0,0,0,0.12)',
+                                        zIndex: 1000, overflow: 'hidden',
+                                        animation: 'slideDown 0.2s cubic-bezier(0.16,1,0.3,1)',
+                                    }}>
+                                        <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <svg width="18" height="18" fill="none" stroke="#267ab0" strokeWidth="2" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                                </svg>
+                                                <span style={{ fontWeight: 700, fontSize: 15, color: '#1a1a1a' }}>Alertas por email</span>
+                                            </div>
+                                            <button onClick={() => setIsAlertPanelOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}>
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                                            </button>
+                                        </div>
+                                        <div style={{ padding: '20px', maxHeight: '70vh', overflowY: 'auto' }}>
+                                            <AlertSettings />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                             <div className="user-profile-container" ref={dropdownRef}>
                                 <button
                                     className="user-avatar"
