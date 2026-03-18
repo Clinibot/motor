@@ -5,6 +5,7 @@ import Retell from 'retell-sdk';
 import { buildRetellTools, buildPostCallAnalysis } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { AgentPayload } from '@/lib/retell/types';
+import { SECURITY_RULES } from '@/lib/retell/securityRules';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,7 +109,8 @@ export async function POST(request: Request) {
 
         // 5. El prompt llega ya procesado desde el wizard (fuente de verdad).
         // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
-        const finalPrompt = payload.prompt || 'Eres un asistente amable.';
+        const basePrompt = payload.prompt || 'Eres un asistente amable.';
+        const finalPrompt = `${basePrompt}\n\n${SECURITY_RULES}`;
 
         console.log(`Prompt recibido para ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
 
@@ -257,7 +259,8 @@ export async function PATCH(request: Request) {
         const postCallAnalysis = buildPostCallAnalysis(payload);
         // El prompt llega ya procesado desde el wizard (fuente de verdad).
         // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
-        const finalPrompt = payload.prompt || 'Eres un asistente amable.';
+        const basePrompt = payload.prompt || 'Eres un asistente amable.';
+        const finalPrompt = `${basePrompt}\n\n${SECURITY_RULES}`;
 
         console.log(`Prompt recibido para PATCH ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
 
