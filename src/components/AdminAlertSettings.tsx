@@ -10,7 +10,9 @@ interface AdminAlertSettingsData {
   transfer_failures_enabled: boolean;
   custom_functions_enabled: boolean;
   concurrency_enabled: boolean;
-  factory_errors_enabled: boolean;
+  db_errors_enabled: boolean;
+  edge_errors_enabled: boolean;
+  backend_errors_enabled: boolean;
 }
 
 export default function AdminAlertSettings() {
@@ -23,7 +25,9 @@ export default function AdminAlertSettings() {
     transfer_failures_enabled: false,
     custom_functions_enabled: false,
     concurrency_enabled: false,
-    factory_errors_enabled: false,
+    db_errors_enabled: false,
+    edge_errors_enabled: false,
+    backend_errors_enabled: false,
   });
   const [toast, setToast] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
@@ -131,11 +135,25 @@ export default function AdminAlertSettings() {
       color: 'text-orange-500', bg: 'bg-orange-100'
     },
     {
-      key: 'factory_errors_enabled' as const,
-      title: 'Errores Técnicos de la Fábrica',
-      description: 'Notificar fallos en el backend propio (Base de Datos, Vercel, Edge Functions).',
-      icon: <Wrench className="w-5 h-5" />,
+      key: 'db_errors_enabled' as const,
+      title: 'Fallos en Base de Datos',
+      description: 'Notificar errores de conexión, bloqueos o fallos en Supabase / Postgres.',
+      icon: <Globe className="w-5 h-5" />,
       color: 'text-purple-500', bg: 'bg-purple-100'
+    },
+    {
+      key: 'edge_errors_enabled' as const,
+      title: 'Errores en Edge Functions',
+      description: 'Detectar fallos en el despliegue o ejecución de las funciones de borde (Supabase Functions).',
+      icon: <Activity className="w-5 h-5" />,
+      color: 'text-rose-500', bg: 'bg-rose-100'
+    },
+    {
+      key: 'backend_errors_enabled' as const,
+      title: 'Errores Generales del Backend',
+      description: 'Avisar sobre errores 500 o excepciones no controladas en el servidor Vercel / Next.js.',
+      icon: <Wrench className="w-5 h-5" />,
+      color: 'text-indigo-500', bg: 'bg-indigo-100'
     }
   ];
 

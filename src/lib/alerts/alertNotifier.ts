@@ -212,7 +212,12 @@ export async function reportFactoryError(origin: string, error: string, context?
             .limit(1)
             .maybeSingle();
 
-        if (settings?.factory_errors_enabled && settings?.emails?.length > 0) {
+        const shouldAlert = 
+            (origin.toLowerCase().includes('db') || origin.toLowerCase().includes('supabase')) ? settings?.db_errors_enabled :
+            (origin.toLowerCase().includes('edge') || origin.toLowerCase().includes('webhook')) ? settings?.edge_errors_enabled :
+            settings?.backend_errors_enabled;
+
+        if (shouldAlert && settings?.emails?.length > 0) {
             console.log(`[ALERT] Dispatching Factory Error from ${origin}: ${error}`);
             return await sendFactoryErrorAlert(settings.emails, origin, error, context);
         }
