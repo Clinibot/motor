@@ -36,7 +36,6 @@ export async function POST(req: NextRequest) {
 
     const successful = recentCalls?.filter(c => c.call_analysis?.call_successful).length ?? 0;
     const negative = recentCalls?.filter(c => c.call_analysis?.user_sentiment === 'negative').length ?? 0;
-    const hourCost = recentCalls?.reduce((sum, c) => sum + Number(c.call_cost || 0), 0) ?? 0;
 
     const successRate = (successful / total) * 100;
     const negativeRate = (negative / total) * 100;
