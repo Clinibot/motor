@@ -6,6 +6,7 @@ import { buildRetellTools, buildPostCallAnalysis } from '@/lib/retell/toolMapper
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { AgentPayload } from '@/lib/retell/types';
 import { SECURITY_RULES } from '@/lib/retell/securityRules';
+import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
 
@@ -211,6 +212,13 @@ export async function POST(request: Request) {
 
     } catch (error: unknown) {
         console.error("Error creating agent:", error);
+        
+        // Factory Error Alert
+        await reportFactoryError('API /api/retell/agent (POST)', 
+            error instanceof Error ? error.message : String(error),
+            { action: 'create_agent' }
+        );
+
         return NextResponse.json(
             { success: false, error: error instanceof Error ? error.message : "Failed to create agent" },
             { status: 500 }
@@ -219,9 +227,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+    let payload: any = null;
     try {
         const supabaseAdmin = getSupabaseAdmin();
-        const payload: AgentPayload = await request.json();
+        payload = await request.json();
 
         if (!payload.id) {
             return NextResponse.json({ success: false, error: "Entity ID is required for PATCH." }, { status: 400 });
@@ -361,6 +370,13 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ success: true, agent_id: retellAgentId, llm_id: llmId });
     } catch (error: unknown) {
         console.error("Error updating agent:", error);
+
+        // Factory Error Alert
+        await reportFactoryError('API /api/retell/agent (PATCH)', 
+            error instanceof Error ? error.message : String(error),
+            { action: 'update_agent', id: payload?.id }
+        );
+
         return NextResponse.json(
             { success: false, error: error instanceof Error ? error.message : "Failed to update agent" },
             { status: 500 }

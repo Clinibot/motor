@@ -33,6 +33,7 @@ export async function GET() {
         transfer_failures_enabled: false,
         custom_functions_enabled: false,
         concurrency_enabled: false,
+        factory_errors_enabled: false,
     };
 
     return NextResponse.json({ success: true, settings });
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
         transfer_failures_enabled: !!payload.transfer_failures_enabled,
         custom_functions_enabled: !!payload.custom_functions_enabled,
         concurrency_enabled: !!payload.concurrency_enabled,
+        factory_errors_enabled: !!payload.factory_errors_enabled,
         updated_at: new Date().toISOString()
     };
 

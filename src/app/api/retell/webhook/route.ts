@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
 
@@ -154,6 +155,13 @@ export async function POST(request: NextRequest) {
 
         if (upsertError) {
             console.error('Error saving call to DB:', upsertError);
+            
+            // Factory Error Alert
+            await reportFactoryError('Webhook [call_event]', 
+                `Error persistiendo llamada ${callData.call_id}: ${upsertError.message}`, 
+                { workspace_id: workspaceId, event: eventType }
+            );
+
             if (supabaseAdmin) {
                 await supabaseAdmin.from('webhook_logs').insert([{
                     event_type: 'error_db_upsert',
@@ -180,6 +188,13 @@ export async function POST(request: NextRequest) {
 
     } catch (error: unknown) {
         console.error('Webhook error:', error);
+        
+        // Factory Error Alert
+        await reportFactoryError('Webhook Catch-All', 
+            error instanceof Error ? error.message : String(error),
+            { event: payload.event, call_id: payload.call?.call_id }
+        );
+
         if (supabaseAdmin) {
             await supabaseAdmin.from('webhook_logs').insert([{
                 event_type: 'error_catch',

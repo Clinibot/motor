@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendThresholdAlertEmail } from '@/lib/resend';
+import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 // Called internally from the Retell webhook after each call is stored.
 // Checks thresholds and sends alerts if exceeded.
@@ -95,6 +96,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ checked: true, alertsSent: alerts.length });
   } catch (err) {
     console.error('[alerts/check-thresholds]', err);
+    
+    // Factory Error Alert
+    await reportFactoryError('API /api/alerts/check-thresholds', 
+        err instanceof Error ? err.message : String(err),
+        { action: 'check_thresholds' }
+    );
+
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

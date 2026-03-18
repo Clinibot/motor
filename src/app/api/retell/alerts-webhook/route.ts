@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
-import { Resend } from 'resend';
+import { sendElioAlertEmail } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,36 +109,24 @@ export async function POST(request: NextRequest) {
             const workspaceName = workspace.name || 'Desconocido';
             const emails: string[] = adminSettings.emails || [];
             
-            // Send Emails
+            // Send Emails via the new Premium Elio Notifier
             if (emails.length > 0 && process.env.RESEND_API_KEY) {
-                const resend = new Resend(process.env.RESEND_API_KEY);
-                const htmlContent = `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f3f4f6; border-radius: 8px;">
-                        <h2 style="color: #dc2626; margin-top: 0;">ALERTA CRÍTICA: ${alertLabel}</h2>
-                        <p style="color: #374151;">Se ha disparado una alerta en la infraestructura de Retell para uno de tus clientes.</p>
-                        
-                        <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0;">
-                            <p style="margin: 0 0 10px 0;"><strong>Cliente (Workspace):</strong> ${workspaceName}</p>
-                            <p style="margin: 0 0 10px 0;"><strong>Regla Detonada:</strong> ${alert.name}</p>
-                            <p style="margin: 0 0 10px 0;"><strong>Métrica:</strong> ${alert.metric_type}</p>
-                            <p style="margin: 0 0 10px 0;"><strong>Valor Actual:</strong> <span style="color: #dc2626; font-weight: bold;">${alert.current_value}</span></p>
-                            <p style="margin: 0;"><strong>Umbral Configurado:</strong> ${alert.threshold_value}</p>
-                        </div>
-                        <p style="font-size: 12px; color: #9ca3af; text-align: center; margin-top: 30px;">
-                            ID Incidente: ${alert.alert_incident_id}<br/>
-                            Reportado el: ${new Date().toISOString()}
-                        </p>
-                    </div>
-                `;
-
-                for (const email of emails) {
-                    await resend.emails.send({
-                        from: 'Alertas Sistema <onboarding@resend.dev>',
-                        to: email,
-                        subject: `[CRÍTICO] ${alertLabel} - ${workspaceName}`,
-                        html: htmlContent
-                    });
-                }
+                await sendElioAlertEmail(emails, {
+                    agentName: 'ELIO', // Supervisor name
+                    clientName: 'Equipo de Soporte',
+                    workspaceName: workspaceName,
+                    alerts: [{
+                        type: alert.metric_type.includes('api') ? 'api' : 
+                              alert.metric_type.includes('transfer') ? 'transfer' : 
+                              alert.metric_type.includes('function') ? 'function' : 'concurrency',
+                        label: alertLabel,
+                        level: alert.metric_type.includes('concurrency') ? 'Info' : (alert.metric_type.includes('api') || alert.metric_type.includes('transfer') ? 'Crítico' : 'Advertencia'),
+                        description: alert.name || 'Alerta disparada desde Retell AI',
+                        value: alert.current_value,
+                        threshold: alert.threshold_value,
+                        client: workspaceName
+                    }]
+                });
             }
 
             // Send to Webhook Configured by Admin
