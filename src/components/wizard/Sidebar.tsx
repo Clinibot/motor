@@ -6,70 +6,151 @@ import { useWizardStore } from '../../store/wizardStore';
 
 const stepsMeta = [
     { id: 1, name: 'Información básica', desc: 'Nombre y empresa' },
-    { id: 2, name: 'Configuración LLM', desc: 'Modelo y tono' },
-    { id: 3, name: 'Selección de voz', desc: 'Voz del agente' },
-    { id: 4, name: 'Audio y STT', desc: 'Volumen y ambiente' },
-    { id: 5, name: 'Herramientas', desc: 'Integraciones y funciones' },
-    { id: 6, name: 'Resumen', desc: 'Revisar y finalizar' },
+    { id: 2, name: 'Personalidad y tono', desc: 'Modelo y comportamiento' },
+    { id: 3, name: 'Voz del agente', desc: 'Selección de voz' },
+    { id: 4, name: 'Configuración de audio', desc: 'Volumen y ambiente' },
+    { id: 5, name: 'Herramientas', desc: 'Funcionalidades' },
+    { id: 6, name: 'Resumen y confirmación', desc: 'Revisar y finalizar' },
 ];
 
 export const Sidebar: React.FC = () => {
     const currentStep = useWizardStore((state) => state.currentStep);
     const setStep = useWizardStore((state) => state.setStep);
-    const isSidebarOpen = useWizardStore((state) => state.isSidebarOpen);
+    
+    // Calcular porcentaje
+    const progressPercent = Math.round(((currentStep - 1) / (stepsMeta.length - 1)) * 100);
 
     return (
-        <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#fff', borderRight: '1px solid #e5e7eb' }}>
-            <div className="sidebar-header" style={{ padding: '24px 20px', borderBottom: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <Link href="/dashboard" style={{ color: '#6b7280', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                           <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                    </Link>
-                    <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>Crear agente IA</h2>
-                </div>
-                <Link href="/dashboard" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', marginLeft: '24px', display: 'block' }}>
-                    Volver al dashboard
+        <div className="sidebar" style={{ 
+            width: '320px', 
+            height: '100vh', 
+            background: 'white', 
+            borderRight: '1px solid #f1f5f9',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            zIndex: 10
+        }}>
+            {/* Header */}
+            <div style={{ padding: '32px 24px 24px' }}>
+                <Link href="/dashboard/agents" style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    textDecoration: 'none',
+                    color: '#64748b',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    marginBottom: '20px'
+                }}>
+                    <div style={{ 
+                        width: '32px', 
+                        height: '32px', 
+                        borderRadius: '10px', 
+                        border: '1px solid #e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'white'
+                    }}>
+                        <i className="bi bi-chevron-left" style={{ fontSize: '14px' }}></i>
+                    </div>
+                    Volver
                 </Link>
+                <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#1e293b', margin: 0 }}>Crear agente IA</h1>
+                <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px', fontWeight: 500 }}>Configuración paso a paso</p>
             </div>
 
-            <div className="steps-container" style={{ padding: '20px 10px', flex: 1, overflowY: 'auto' }}>
-                {stepsMeta.map((step) => {
-                    const isActive = currentStep === step.id;
-                    const isCompleted = currentStep > step.id;
-                    // In a real wizard, you might not allow clicking ahead if not enabled, 
-                    // but we will allow clicking completed ones to go backwards.
-                    const isDisabled = currentStep < step.id;
+            {/* Steps Container */}
+            <div style={{ padding: '10px 24px', flex: 1, overflowY: 'auto' }}>
+                <div style={{ position: 'relative' }}>
+                    {/* Vertical Line Connector */}
+                    <div style={{ 
+                        position: 'absolute', 
+                        left: '17px', 
+                        top: '20px', 
+                        bottom: '20px', 
+                        width: '2px', 
+                        background: '#f1f5f9',
+                        zIndex: 1
+                    }}></div>
 
-                    let className = "step-item";
-                    if (isActive) className += " active";
-                    if (isCompleted) className += " completed";
-                    if (isDisabled) className += " disabled";
+                    {stepsMeta.map((step) => {
+                        const isActive = currentStep === step.id;
+                        const isCompleted = currentStep > step.id;
+                        
+                        return (
+                            <div 
+                                key={step.id} 
+                                onClick={() => isCompleted && setStep(step.id)}
+                                style={{ 
+                                    display: 'flex', 
+                                    gap: '16px', 
+                                    marginBottom: '32px', 
+                                    position: 'relative', 
+                                    zIndex: 2,
+                                    cursor: isCompleted ? 'pointer' : 'default',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {/* Circle Indicator */}
+                                <div style={{ 
+                                    width: '36px', 
+                                    height: '36px', 
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    transition: 'all 0.3s',
+                                    background: isActive ? '#267ab0' : (isCompleted ? '#10b981' : 'white'),
+                                    color: isActive || isCompleted ? 'white' : '#94a3b8',
+                                    border: isActive || isCompleted ? 'none' : '2px solid #f1f5f9',
+                                    boxShadow: isActive ? '0 0 0 4px rgba(38, 122, 176, 0.15)' : 'none'
+                                }}>
+                                    {isCompleted ? <i className="bi bi-check-lg"></i> : step.id}
+                                </div>
 
-                    return (
-                        <div
-                            key={step.id}
-                            className={className}
-                            onClick={() => {
-                                if (!isDisabled) setStep(step.id);
-                            }}
-                        >
-                            <div className="step-number">{step.id}</div>
-                            <div className="step-info">
-                                <span className="step-name">{step.name}</span>
+                                {/* Text Info */}
+                                <div style={{ paddingTop: '4px' }}>
+                                    <div style={{ 
+                                        fontSize: '14px', 
+                                        fontWeight: 700, 
+                                        color: isActive ? '#1e293b' : (isCompleted ? '#475569' : '#94a3b8'),
+                                        lineHeight: 1.2
+                                    }}>
+                                        {step.name}
+                                    </div>
+                                    <div style={{ 
+                                        fontSize: '11px', 
+                                        color: isActive ? '#267ab0' : '#cbd5e1',
+                                        fontWeight: 600,
+                                        marginTop: '4px'
+                                    }}>
+                                        {step.desc}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
 
-            <div className="sidebar-footer" style={{ padding: '20px', borderTop: '1px solid #e5e7eb', background: '#fff' }}>
-                <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500, marginBottom: '8px' }}>Paso {currentStep} de 6</div>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                    {[1, 2, 3, 4, 5, 6].map(step => (
-                        <div key={step} style={{ height: '4px', flex: 1, background: step <= currentStep ? '#267ab0' : '#e5e7eb', borderRadius: '2px', transition: 'background 0.3s' }} />
-                    ))}
+            {/* Footer / Progress Bar */}
+            <div style={{ padding: '24px', background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Progreso</span>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#267ab0' }}>{progressPercent}%</span>
+                </div>
+                <div style={{ width: '100%', height: '8px', background: 'white', borderRadius: '10px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+                    <div style={{ 
+                        width: `${progressPercent}%`, 
+                        height: '100%', 
+                        background: `linear-gradient(90deg, #267ab0 0%, #3b82f6 100%)`,
+                        borderRadius: '10px',
+                        transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}></div>
                 </div>
             </div>
         </div>

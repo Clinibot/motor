@@ -13,25 +13,10 @@ interface AvailableAgent {
 
 // Toggle switch component
 const ToggleSwitch: React.FC<{ checked: boolean; onChange: (v: boolean) => void; id: string }> = ({ checked, onChange, id }) => (
-    <label htmlFor={id} style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px', cursor: 'pointer', flexShrink: 0 }}>
-        <input type="checkbox" id={id} checked={checked} onChange={e => onChange(e.target.checked)} style={{ opacity: 0, width: 0, height: 0 }} />
-        <span style={{
-            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: checked ? '#267ab0' : '#cbd5e1',
-            borderRadius: '24px',
-            transition: 'background-color 0.2s'
-        }}>
-            <span style={{
-                position: 'absolute',
-                content: '',
-                height: '18px', width: '18px',
-                left: checked ? 'calc(100% - 21px)' : '3px',
-                bottom: '3px',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                transition: 'left 0.2s',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-            }} />
+    <label htmlFor={id} className="relative inline-block w-11 h-6 cursor-pointer flex-shrink-0">
+        <input type="checkbox" id={id} checked={checked} onChange={e => onChange(e.target.checked)} className="opacity-0 w-0 h-0" />
+        <span className={`absolute inset-0 rounded-full transition-colors duration-200 ${checked ? 'bg-[#00a884]' : 'bg-[#cbd5e1]'}`}>
+            <span className={`absolute bg-white rounded-full w-[18px] h-[18px] top-[3px] transition-all duration-200 shadow-sm ${checked ? 'left-[calc(100%-21px)]' : 'left-[3px]'}`} />
         </span>
     </label>
 );
@@ -40,8 +25,8 @@ export const Step5_Tools: React.FC = () => {
     const {
         enableCalBooking, calUrl, calApiKey, calEventId, calSearchDays,
         enableTransfer, transferDestinations,
-        extractionVariables, agentName, leadQuestions,
-        updateField, prevStep, nextStep, editingAgentId
+        extractionVariables, leadQuestions, enableAnalysis,
+        updateField, prevStep, nextStep, editingAgentId, agentName
     } = useWizardStore();
 
     const [availableAgents, setAvailableAgents] = useState<AvailableAgent[]>([]);
@@ -94,11 +79,7 @@ export const Step5_Tools: React.FC = () => {
 
         if (enableCalBooking) {
             if (!calApiKey) newErrors.calApiKey = 'La API Key de Cal.com es obligatoria.';
-            if (!calEventId) {
-                newErrors.calEventId = 'El ID de evento es obligatorio.';
-            } else if (isNaN(parseInt(calEventId, 10))) {
-                newErrors.calEventId = 'El ID de evento debe ser un número.';
-            }
+            if (!calEventId) newErrors.calEventId = 'El ID de evento es obligatorio.';
         }
 
         if (enableTransfer) {
@@ -106,21 +87,23 @@ export const Step5_Tools: React.FC = () => {
                 newErrors.transfer = 'Debes añadir al menos un destino de transferencia si la función está activa.';
             } else {
                 transferDestinations.forEach((dest, idx) => {
-                    if (!dest.name.trim()) newErrors[`transfer_${idx}_name`] = 'El nombre es obligatorio.';
+                    if (!dest.name.trim()) newErrors[`transfer_${idx}_name`] = 'Obligatorio';
                     if (dest.destination_type === 'number' && !dest.number?.trim()) {
-                        newErrors[`transfer_${idx}_number`] = 'El número de teléfono es obligatorio.';
+                        newErrors[`transfer_${idx}_number`] = 'Obligatorio';
                     }
                     if (dest.destination_type === 'agent' && !dest.agentId) {
-                        newErrors[`transfer_${idx}_agent`] = 'Debes seleccionar un agente.';
+                        newErrors[`transfer_${idx}_agent`] = 'Obligatorio';
                     }
                 });
             }
         }
 
         extractionVariables.forEach((v, idx) => {
-            if (!v.name.trim()) newErrors[`extraction_${idx}_name`] = 'El nombre de la variable es obligatorio.';
-            if (!v.description.trim()) newErrors[`extraction_${idx}_desc`] = 'La descripción es obligatoria.';
+            if (!v.name.trim()) newErrors[`extraction_${idx}_name`] = 'Obligatorio';
         });
+
+        // For lead questions, enable setting validation only if there's at least one question added
+        // Actually, no strict validation needed as per prototype.
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -130,8 +113,6 @@ export const Step5_Tools: React.FC = () => {
         e.preventDefault();
         if (validate()) {
             nextStep();
-        } else {
-            alert("Por favor, corrige los errores en la configuración antes de continuar.");
         }
     };
 
@@ -145,479 +126,404 @@ export const Step5_Tools: React.FC = () => {
         }]);
     };
 
-    const addVariable = () => {
-        updateField('extractionVariables', [...extractionVariables, { name: '', type: 'string', description: '', required: true }]);
+    const addVariable = (type: string = 'string') => {
+        updateField('extractionVariables', [...extractionVariables, { name: '', type, description: '', required: true }]);
     };
 
     const addLeadQuestion = () => {
-        updateField('leadQuestions', [...leadQuestions, { question: '', key: '' }]);
-    };
-
-    const sectionStyle = {
-        background: 'white',
-        border: '1px solid #edf2f7',
-        borderRadius: '16px',
-        padding: '24px',
-        marginBottom: '20px'
-    };
-
-    const sectionHeaderStyle = {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '0'
+        if (leadQuestions.length >= 3) return;
+        updateField('leadQuestions', [...leadQuestions, { question: '', key: '', failAction: 'end_call' } as any]);
     };
 
     return (
         <div className="content-area">
-            <div className="form-card">
+            <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
                 <WizardStepHeader
                     title="Herramientas del agente"
-                    subtitle="Activa las funciones que necesite tu agente para realizar su tarea."
+                    subtitle="Activa las acciones que tu agente puede realizar durante las llamadas."
                 />
 
-                <form onSubmit={handleNext}>
+                <form onSubmit={handleNext} className="mt-8 space-y-6">
 
-                    {/* ═══ 1. CUALIFICACIÓN DE LEAD ═══ */}
-                    <div style={sectionStyle}>
-                        <div style={sectionHeaderStyle}>
-                            <div>
-                                <div style={{ fontWeight: 700, fontSize: '16px', color: '#1a2428', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <i className="bi bi-funnel-fill" style={{ color: '#267ab0' }}></i>
-                                    Cualificar leads antes de actuar
-                                </div>
-                                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                    Define qué preguntas hace el agente para cualificar al contacto antes de actuar
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ marginTop: '20px' }}>
-                            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '20px' }}>
-                                <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', marginTop: '2px' }}></i>
-                                <span style={{ fontSize: '13px', color: '#92400e', lineHeight: '1.6' }}>
-                                    <strong>Preguntas de cualificación:</strong> El agente preguntará esta información para cualificar al lead. Si la respuesta no es satisfactoria, finalizará la llamada.
-                                </span>
-                            </div>
-
-                            {leadQuestions.length > 0 && leadQuestions.map((q, idx) => (
-                                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', marginBottom: '12px', alignItems: 'end' }}>
-                                    <div>
-                                        <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pregunta</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Ej: ¿Cuál es su presupuesto?"
-                                            value={q.question}
-                                            onChange={e => {
-                                                const updated = [...leadQuestions];
-                                                updated[idx].question = e.target.value;
-                                                updateField('leadQuestions', updated);
-                                            }}
-                                            style={{ borderRadius: '10px', padding: '10px 14px' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Variable (clave)</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Ej: presupuesto"
-                                            value={q.key}
-                                            onChange={e => {
-                                                const updated = [...leadQuestions];
-                                                updated[idx].key = e.target.value;
-                                                updateField('leadQuestions', updated);
-                                            }}
-                                            style={{ borderRadius: '10px', padding: '10px 14px' }}
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => updateField('leadQuestions', leadQuestions.filter((_, i) => i !== idx))}
-                                        style={{ border: 'none', background: 'transparent', color: '#ef4444', padding: '10px', cursor: 'pointer' }}
-                                    >
-                                        <i className="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            ))}
-
-                            <button
-                                type="button"
-                                onClick={addLeadQuestion}
-                                style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '10px', padding: '10px 20px', fontSize: '14px', fontWeight: 600, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                            >
-                                <i className="bi bi-plus-lg"></i> Añadir pregunta
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* ═══ 2. TRANSFERENCIA DE LLAMADA ═══ */}
-                    <div style={{
-                        ...sectionStyle,
-                        borderColor: enableTransfer ? '#bfdbfe' : '#edf2f7',
-                        background: enableTransfer ? '#f0f7ff' : 'white'
-                    }}>
-                        <div style={sectionHeaderStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                    width: '40px', height: '40px', borderRadius: '12px',
-                                    background: enableTransfer ? '#267ab0' : '#f1f5f9',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: enableTransfer ? 'white' : '#64748b', fontSize: '18px'
-                                }}>
-                                    <i className="bi bi-telephone-forward"></i>
+                    {/* 1. CUALIFICACIÓN */}
+                    <div className={`border rounded-2xl p-6 ${leadQuestions.length > 0 || true ? 'border-[#e2e8f0]' : 'border-[#e2e8f0]'}`}>
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-4">
+                                <div className={`w-6 h-6 rounded flex items-center justify-center mt-0.5 text-white ${leadQuestions.length > 0 ? 'bg-[#267ab0]' : 'bg-[#e2e8f0] text-[#94a3b8]'}`}>
+                                    {leadQuestions.length > 0 ? <i className="bi bi-check2"></i> : <i className="bi bi-dash"></i>}
                                 </div>
                                 <div>
-                                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1a2428' }}>Transferir llamada</div>
-                                    <div style={{ fontSize: '13px', color: '#64748b' }}>Transfiere la llamada a un número específico o persona determinada</div>
+                                    <h3 className="text-[16px] font-bold text-[#1e293b]">Cualificar contacto antes de actuar</h3>
+                                    <p className="text-[14px] text-[#64748b] mt-1">Filtra leads automáticamente según tus criterios antes de agendar o transferir</p>
+                                </div>
+                            </div>
+                            <ToggleSwitch
+                                checked={leadQuestions.length > 0}
+                                onChange={(val) => {
+                                    if (val && leadQuestions.length === 0) addLeadQuestion();
+                                    else if (!val) updateField('leadQuestions', []);
+                                }}
+                                id="qualifyToggle"
+                            />
+                        </div>
+
+                        {leadQuestions.length > 0 && (
+                            <div className="mt-8 pl-10 border-t border-[#f1f5f9] pt-6">
+                                <h4 className="text-[12px] font-bold text-[#64748b] tracking-wider uppercase mb-2">Preguntas de cualificación</h4>
+                                <p className="text-[14px] text-[#475569] mb-4">Define hasta 3 preguntas que el agente hará al contacto. Cada una tiene un criterio: si no lo cumple, la llamada termina o se redirige.</p>
+                                
+                                <div className="bg-[#fffbeb] border border-[#fde68a] rounded-lg p-3 flex gap-3 items-start mb-6">
+                                    <i className="bi bi-exclamation-triangle-fill text-[#d97706] mt-0.5"></i>
+                                    <span className="text-[13px] text-[#92400e]"><strong>Máximo 3 preguntas.</strong> En voz, más preguntas aumentan el abandono de la llamada.</span>
+                                </div>
+
+                                <div className="text-right text-[12px] text-[#64748b] font-medium mb-4">
+                                    {leadQuestions.length} / 3 preguntas
+                                </div>
+
+                                {leadQuestions.map((q: any, idx) => (
+                                    <div key={idx} className="bg-white border border-[#e2e8f0] rounded-xl p-5 mb-4 shadow-sm relative group">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className="px-3 py-1 bg-[#f0f9ff] text-[#0284c7] text-[12px] font-bold rounded-full border border-[#bae6fd]">
+                                                Pregunta {idx + 1}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const updated = leadQuestions.filter((_, i) => i !== idx);
+                                                    updateField('leadQuestions', updated);
+                                                }}
+                                                className="text-[#ef4444] bg-[#fef2f2] hover:bg-[#fee2e2] w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                            >
+                                                <i className="bi bi-trash3"></i>
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-[13px] font-bold text-[#1e293b] mb-1">
+                                                    ¿Qué pregunta hará el agente? <span className="text-[#ef4444]">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full border border-[#e2e8f0] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]"
+                                                    placeholder="Ej: ¿Tienen un presupuesto mensual definido para este servicio?"
+                                                    value={q.question}
+                                                    onChange={e => {
+                                                        const updated = [...leadQuestions] as any[];
+                                                        updated[idx].question = e.target.value;
+                                                        updateField('leadQuestions', updated);
+                                                    }}
+                                                />
+                                                <p className="text-[12px] text-[#64748b] mt-1">Escríbela tal como la diría el agente en voz alta.</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">
+                                                        Cualifica si... <span className="text-[#ef4444]">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full border border-[#e2e8f0] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]"
+                                                        placeholder="Ej: Menciona cualquier cifra o rango concreto"
+                                                        value={q.key}
+                                                        onChange={e => {
+                                                            const updated = [...leadQuestions] as any[];
+                                                            if (!updated[idx]) return;
+                                                            updated[idx].key = e.target.value;
+                                                            updateField('leadQuestions', updated);
+                                                        }}
+                                                    />
+                                                    <p className="text-[12px] text-[#64748b] mt-1">Describe qué respuesta indica interés real.</p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">
+                                                        Si no cualifica
+                                                    </label>
+                                                    <select
+                                                        className="w-full border border-[#e2e8f0] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0] bg-white appearance-none"
+                                                        value={q.failAction || 'end_call'}
+                                                        onChange={e => {
+                                                            const updated = [...leadQuestions] as any[];
+                                                            if (!updated[idx]) return;
+                                                            updated[idx].failAction = e.target.value;
+                                                            updateField('leadQuestions', updated);
+                                                        }}
+                                                        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' fill=\'currentColor\' class=\'bi bi-chevron-down\' viewBox=\'0 0 16 16\'%3E%3Cpath fill-rule=\'evenodd\' d=\'M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+                                                    >
+                                                        <option value="end_call">Terminar llamada amablemente</option>
+                                                        <option value="transfer">Transferir a un humano</option>
+                                                    </select>
+                                                    <p className="text-[12px] text-[#64748b] mt-1">Acción si la respuesta no es válida.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {leadQuestions.length < 3 && (
+                                    <button
+                                        type="button"
+                                        onClick={addLeadQuestion}
+                                        className="text-[#64748b] border border-[#e2e8f0] bg-white rounded-lg px-4 py-2 text-[13px] font-bold hover:bg-[#f8fafc] transition-colors flex items-center gap-2"
+                                    >
+                                        <i className="bi bi-plus" style={{ fontSize: '18px', margin: '-4px' }}></i> Añadir pregunta
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 2. TRANSFERENCIA */}
+                    <div className="border border-[#e2e8f0] rounded-2xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-6 h-6 rounded flex items-center justify-center bg-[#e2e8f0] text-[#94a3b8]">
+                                    <i className="bi bi-dash"></i>
+                                </div>
+                                <div>
+                                    <h3 className="text-[16px] font-bold text-[#1e293b]">Transferir llamada</h3>
+                                    <p className="text-[14px] text-[#64748b] mt-1">Transfiere a un número específico o persona determinada</p>
                                 </div>
                             </div>
                             <ToggleSwitch checked={enableTransfer} onChange={(v) => updateField('enableTransfer', v)} id="enableTransfer" />
                         </div>
-
+                        
                         {enableTransfer && (
-                            <div style={{ marginTop: '24px' }}>
-                                <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '4px', marginBottom: '16px' }}>
-                                    <div style={{ fontSize: '13px', color: '#64748b', padding: '12px 12px 2px' }}>¿Cuándo debe transferir el agente?</div>
-                                    <textarea
-                                        className="form-control"
-                                        rows={2}
-                                        placeholder="Ej: Si el cliente ya es paciente o tiene una cita previa, transfiere al equipo de clínica."
-                                        style={{ border: 'none', background: 'transparent', resize: 'none', padding: '8px 12px', fontSize: '14px' }}
-                                    ></textarea>
-                                </div>
-
-                                <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: 600 }}>Destinos de transferencia</div>
-
-                                {transferDestinations.map((dest, idx) => (
-                                    <div key={idx} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '12px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#1a2428' }}>Destino #{idx + 1}</span>
-                                            <button type="button" onClick={() => updateField('transferDestinations', transferDestinations.filter((_, i) => i !== idx))} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}>
-                                                <i className="bi bi-trash"></i>
+                            <div className="mt-6 pl-10 border-t border-[#f1f5f9] pt-6">
+                                <div className="space-y-4">
+                                    {transferDestinations.map((dest, idx) => (
+                                        <div key={idx} className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-5 relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateField('transferDestinations', transferDestinations.filter((_, i) => i !== idx))}
+                                                className="absolute top-4 right-4 text-[#ef4444] hover:text-[#dc2626]"
+                                            >
+                                                <i className="bi bi-trash3"></i>
                                             </button>
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                                            <div>
-                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nombre del contacto <span style={{ color: '#ef4444' }}>*</span></label>
-                                                <input
-                                                    type="text"
-                                                    className={`form-control ${errors[`transfer_${idx}_name`] ? 'is-invalid' : ''}`}
-                                                    placeholder="Ej: Sonia / Soporte"
-                                                    value={dest.name}
-                                                    onChange={e => {
-                                                        const d = [...transferDestinations];
-                                                        d[idx].name = e.target.value;
-                                                        updateField('transferDestinations', d);
-                                                    }}
-                                                    style={{ borderRadius: '10px' }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Instrucción para el agente</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    placeholder="Ej: Si el cliente pide hablar con administración"
-                                                    value={dest.description}
-                                                    onChange={e => {
-                                                        const d = [...transferDestinations];
-                                                        d[idx].description = e.target.value;
-                                                        updateField('transferDestinations', d);
-                                                    }}
-                                                    style={{ borderRadius: '10px' }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                            <div>
-                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Tipo de destino</label>
-                                                <select
-                                                    className="form-select"
-                                                    value={dest.destination_type || 'number'}
-                                                    onChange={e => {
-                                                        const d = [...transferDestinations];
-                                                        const type = e.target.value as 'number' | 'agent';
-                                                        d[idx].destination_type = type;
-                                                        if (type === 'number') d[idx].agentId = '';
-                                                        else d[idx].number = '';
-                                                        updateField('transferDestinations', d);
-                                                    }}
-                                                    style={{ borderRadius: '10px' }}
-                                                >
-                                                    <option value="number">Humano (Número)</option>
-                                                    <option value="agent">Otro Agente (Retell)</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>
-                                                    {dest.destination_type === 'agent' ? 'Seleccionar agente' : 'Número de teléfono'} <span style={{ color: '#ef4444' }}>*</span>
-                                                </label>
-                                                {dest.destination_type === 'agent' ? (
-                                                    <select
-                                                        className={`form-select ${errors[`transfer_${idx}_agent`] ? 'is-invalid' : ''}`}
-                                                        value={dest.agentId || ''}
-                                                        onChange={e => {
-                                                            const d = [...transferDestinations];
-                                                            d[idx].agentId = e.target.value;
-                                                            updateField('transferDestinations', d);
-                                                        }}
-                                                        style={{ borderRadius: '10px' }}
-                                                    >
-                                                        <option value="">Selecciona un agente...</option>
-                                                        {availableAgents.map(a => (
-                                                            <option key={a.id} value={a.retell_agent_id!}>{a.name}</option>
-                                                        ))}
-                                                        {availableAgents.length === 0 && !isLoadingAgents && (
-                                                            <option disabled>No tienes más agentes</option>
-                                                        )}
-                                                    </select>
-                                                ) : (
+                                            <div className="grid grid-cols-2 gap-4 pr-8">
+                                                <div>
+                                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">Nombre / Departamento <span className="text-[#ef4444]">*</span></label>
                                                     <input
                                                         type="text"
-                                                        className={`form-control ${errors[`transfer_${idx}_number`] ? 'is-invalid' : ''}`}
-                                                        placeholder="+34..."
-                                                        value={dest.number}
+                                                        className="w-full border border-[#cbd5e1] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]"
+                                                        placeholder="Ej: Equipo de ventas"
+                                                        value={dest.name}
+                                                        onChange={e => {
+                                                            const d = [...transferDestinations];
+                                                            d[idx].name = e.target.value;
+                                                            updateField('transferDestinations', d);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">Número de teléfono <span className="text-[#ef4444]">*</span></label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full border border-[#cbd5e1] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]"
+                                                        placeholder="+34 600..."
+                                                        value={dest.number || ''}
                                                         onChange={e => {
                                                             const d = [...transferDestinations];
                                                             d[idx].number = e.target.value;
                                                             updateField('transferDestinations', d);
                                                         }}
-                                                        style={{ borderRadius: '10px' }}
                                                     />
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-
-                                <button
-                                    type="button"
-                                    onClick={addTransfer}
-                                    style={{ border: '1px dashed #bfdbfe', background: '#f0f7ff', borderRadius: '10px', padding: '10px 20px', fontSize: '14px', fontWeight: 600, color: '#267ab0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                                >
-                                    <i className="bi bi-plus-lg"></i> Añadir destino
-                                </button>
-                                {errors.transfer && <div className="text-danger small mt-2">{errors.transfer}</div>}
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={addTransfer}
+                                        className="text-[#64748b] border border-[#e2e8f0] bg-white rounded-lg px-4 py-2 text-[13px] font-bold hover:bg-[#f8fafc] transition-colors flex items-center gap-2"
+                                    >
+                                        <i className="bi bi-plus" style={{ fontSize: '18px', margin: '-4px' }}></i> Añadir destino
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
 
-                    {/* ═══ 3. CAL.COM BOOKING ═══ */}
-                    <div style={{
-                        ...sectionStyle,
-                        borderColor: enableCalBooking ? '#bfdbfe' : '#edf2f7',
-                        background: enableCalBooking ? '#f0f7ff' : 'white'
-                    }}>
-                        <div style={sectionHeaderStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                    width: '40px', height: '40px', borderRadius: '12px',
-                                    background: enableCalBooking ? '#267ab0' : '#f1f5f9',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: enableCalBooking ? 'white' : '#64748b', fontSize: '18px'
-                                }}>
-                                    <i className="bi bi-calendar-event"></i>
+                    {/* 3. CAL.COM */}
+                    <div className="border border-[#e2e8f0] rounded-2xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-6 h-6 rounded flex items-center justify-center bg-[#e2e8f0] text-[#94a3b8]">
+                                    <i className="bi bi-dash"></i>
                                 </div>
                                 <div>
-                                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1a2428' }}>Reservar cita en el calendario (Cal.com)</div>
-                                    <div style={{ fontSize: '13px', color: '#64748b' }}>Integra tu calendario con Cal.com para agendar citas automáticamente</div>
+                                    <h3 className="text-[16px] font-bold text-[#1e293b]">Reservar cita en el calendario (Cal.com)</h3>
+                                    <p className="text-[14px] text-[#64748b] mt-1">Integración nativa con Cal.com para agendar citas automáticamente</p>
                                 </div>
                             </div>
                             <ToggleSwitch checked={enableCalBooking} onChange={(v) => updateField('enableCalBooking', v)} id="enableCalBooking" />
                         </div>
-
+                        
                         {enableCalBooking && (
-                            <div style={{ marginTop: '24px', background: 'white', borderRadius: '12px', border: '1px solid #dbeafe', padding: '20px' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                                    <div>
-                                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Cal.com API Key <span style={{ color: '#ef4444' }}>*</span></label>
-                                        <input
-                                            type="password"
-                                            className={`form-control ${errors.calApiKey ? 'is-invalid' : ''}`}
-                                            value={calApiKey}
-                                            onChange={e => updateField('calApiKey', e.target.value)}
-                                            placeholder="cal_live_..."
-                                            style={{ borderRadius: '10px' }}
-                                        />
-                                        {errors.calApiKey && <div className="invalid-feedback">{errors.calApiKey}</div>}
-                                    </div>
-                                    <div>
-                                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Event Type ID <span style={{ color: '#ef4444' }}>*</span></label>
-                                        <input
-                                            type="text"
-                                            className={`form-control ${errors.calEventId ? 'is-invalid' : ''}`}
-                                            value={calEventId}
-                                            onChange={e => updateField('calEventId', e.target.value)}
-                                            placeholder="123456"
-                                            style={{ borderRadius: '10px' }}
-                                        />
-                                        {errors.calEventId && <div className="invalid-feedback">{errors.calEventId}</div>}
-                                    </div>
-                                </div>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Zona horaria</label>
-                                    <select className="form-select" style={{ borderRadius: '10px' }}>
-                                        <option>Selecciona una zona horaria</option>
-                                        <option value="Europe/Madrid">Europe/Madrid (UTC+1/+2)</option>
-                                        <option value="America/New_York">America/New_York</option>
-                                        <option value="America/Mexico_City">America/Mexico_City</option>
-                                    </select>
-                                </div>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Cal Link (preview)</label>
-                                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#64748b', fontFamily: 'monospace' }}>
-                                        {calUrl || 'https://cal.com/usuario/event'}
-                                    </div>
+                             <div className="mt-6 pl-10 border-t border-[#f1f5f9] pt-6 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">Cal.com API Key <span className="text-[#ef4444]">*</span></label>
+                                    <input
+                                        type="password"
+                                        className={`w-full border ${errors.calApiKey ? 'border-[#ef4444]' : 'border-[#cbd5e1]'} rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]`}
+                                        value={calApiKey}
+                                        onChange={e => updateField('calApiKey', e.target.value)}
+                                        placeholder="cal_live_..."
+                                    />
+                                    {errors.calApiKey && <span className="text-[12px] text-[#ef4444]">{errors.calApiKey}</span>}
                                 </div>
                                 <div>
-                                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Días a consultar para disponibilidad</label>
+                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">Event Type ID <span className="text-[#ef4444]">*</span></label>
                                     <input
-                                        type="number"
-                                        min="1"
-                                        max="60"
-                                        className="form-control"
-                                        value={calSearchDays}
-                                        onChange={e => updateField('calSearchDays', parseInt(e.target.value) || 6)}
-                                        style={{ borderRadius: '10px', maxWidth: '120px' }}
+                                        type="text"
+                                        className={`w-full border ${errors.calEventId ? 'border-[#ef4444]' : 'border-[#cbd5e1]'} rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]`}
+                                        value={calEventId}
+                                        onChange={e => updateField('calEventId', e.target.value)}
+                                        placeholder="123456"
                                     />
-                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Cuántos días a futuro buscará el agente para ofrecer citas.</div>
+                                    {errors.calEventId && <span className="text-[12px] text-[#ef4444]">{errors.calEventId}</span>}
                                 </div>
-
-                                <div style={{ marginTop: '16px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                                    <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', marginTop: '2px' }}></i>
-                                    <div>
-                                        <strong style={{ fontSize: '13px', color: '#92400e' }}>Aviso importante — necesita número de teléfono:</strong>
-                                        <div style={{ fontSize: '12px', color: '#92400e', marginTop: '4px', lineHeight: '1.6' }}>
-                                            Para que el agente pueda buscar y ofrecer disponibilidad de horarios, debes asignarle un número de teléfono (ya que funciona vía Webhook en llamadas entrantes).
-                                        </div>
-                                        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
-                                                <input type="radio" name="calMode" defaultChecked style={{ marginTop: '3px' }} />
-                                                <div>
-                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2428' }}>Consultar disponibilidad</div>
-                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>El agente busca en el calendario y ofrece los horarios disponibles. <span style={{ background: '#fde68a', padding: '1px 6px', borderRadius: '4px', fontSize: '11px' }}>Requiere número</span></div>
-                                                </div>
-                                            </label>
-                                            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
-                                                <input type="radio" name="calMode" style={{ marginTop: '3px' }} />
-                                                <div>
-                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2428' }}>Agendar solo</div>
-                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>El usuario dice la fecha y el agente la agenda. No consulta disponibilidad.</div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                             </div>
                         )}
                     </div>
 
-                    {/* ═══ 4. DATOS A RECOGER AL FINALIZAR LA LLAMADA ═══ */}
-                    <div style={{ ...sectionStyle, borderColor: '#e2e8f0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                            <i className="bi bi-clipboard-data" style={{ color: '#267ab0', fontSize: '18px' }}></i>
-                            <div style={{ fontWeight: 700, fontSize: '16px', color: '#1a2428' }}>Datos a recoger al finalizar la llamada</div>
-                        </div>
+                    <div className="h-px bg-[#f1f5f9] my-10"></div>
 
-                        <div style={{ background: '#f0f7ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px', fontSize: '13px', color: '#1e40af', lineHeight: '1.6' }}>
-                            Al finalizar la llamada, el sistema de IA extraerá automáticamente la información de la transcripción y la guardará en los datos del contacto. Puedes añadir campos personalizados, o editarlos en <strong>Ajustes de workspace → Extracción de datos de llamada</strong>.
+                    {/* DATOS A RECOGER */}
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <i className="bi bi-bar-chart-fill text-[#267ab0] text-[20px]"></i>
+                            <h2 className="text-[18px] font-bold text-[#1e293b]">Datos a recoger al finalizar la llamada</h2>
                         </div>
+                        <p className="text-[14px] text-[#64748b] mb-6">Análisis automático post-llamada — extrae información valiosa de cada conversación</p>
 
-                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#475569', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Análisis de la llamada
-                        </div>
-
-                        {/* Fixed extraction fields */}
-                        {[
-                            { label: 'Resumen de la llamada', desc: 'Resumen breve de lo que se habló durante la llamada', key: 'summary', type: 'Texto' },
-                            { label: 'Nivel de interés', desc: 'Evalúa el nivel de interés del cliente (1-5). Considera factores como el tono, claridad de necesidades y disposición.', key: 'interest_level', type: 'Número' },
-                            { label: 'Sentimiento del cliente', desc: 'Analiza el sentimiento general del cliente durante la llamada', key: 'sentiment', type: 'Texto' },
-                        ].map(field => (
-                            <div key={field.key} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'start', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
-                                <div>
-                                    <div style={{ fontWeight: 600, fontSize: '14px', color: '#1a2428' }}>{field.label}</div>
-                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{field.desc}</div>
-                                </div>
-                                <div style={{ background: '#f1f5f9', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>{field.type}</div>
+                        <div className="bg-[#eff6ff] border border-[#dbeafe] rounded-lg p-4 flex gap-3 items-start mb-8">
+                            <i className="bi bi-info-circle-fill text-[#3b82f6] mt-0.5"></i>
+                            <div className="text-[13px] text-[#1e40af] leading-relaxed">
+                                El análisis posterior a la llamada analiza automáticamente las conversaciones una vez finalizadas. Ofrecemos variables predefinidas que <strong>no puedes modificar</strong>, y puedes añadir categorías personalizadas adaptadas a tu negocio.<br/>
+                                <strong>Nota:</strong> Los campos no se completarán en llamadas que no llegaron a conectarse o en las que no hubo conversación.
                             </div>
-                        ))}
-
-                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#475569', marginBottom: '12px', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Añadir variables
                         </div>
 
-                        {/* Dynamic extraction variables */}
-                        {extractionVariables.length > 0 ? (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                                {extractionVariables.map((variable, idx) => (
-                                    <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Texto</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                placeholder="Nombre de la variable"
-                                                value={variable.name}
-                                                onChange={e => {
-                                                    const v = [...extractionVariables];
-                                                    v[idx].name = e.target.value;
-                                                    updateField('extractionVariables', v);
-                                                }}
-                                                style={{ borderRadius: '10px' }}
-                                            />
+                        <h4 className="text-[12px] font-bold text-[#64748b] tracking-wider uppercase mb-3">Variables Predefinidas</h4>
+                        <div className="space-y-3 mb-10">
+                            {[
+                                { title: 'Resumen de la llamada', desc: 'Escribe un resumen de 1 a 3 frases basado en la transcripción, capturando la información importante y acciones tomadas.', type: 'Texto', icon: 'bi-text-paragraph' },
+                                { title: 'Llamada exitosa', desc: 'Evalúa si el agente tuvo una llamada exitosa: conversación completa, tarea finalizada, sin problemas técnicos ni buzón de voz.', type: 'Sí/No', icon: 'bi-check-circle' },
+                                { title: 'Sentimiento del usuario', desc: 'Evalúa el sentimiento, estado de ánimo y nivel de satisfacción del usuario durante la llamada.', type: 'Texto', icon: 'bi-emoji-smile' },
+                            ].map((item, i) => (
+                                <div key={i} className="bg-[#f8fafc] border border-[#f1f5f9] rounded-xl p-4 flex items-center justify-between pointer-events-none">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-6 h-6 rounded flex items-center justify-center text-[#94a3b8] mt-0.5">
+                                            <i className={`bi ${item.icon}`}></i>
                                         </div>
-                                        <div style={{ flex: 1 }}>
-                                            <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Valor esperado</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                placeholder="Descripción"
-                                                value={variable.description}
-                                                onChange={e => {
-                                                    const v = [...extractionVariables];
-                                                    v[idx].description = e.target.value;
-                                                    updateField('extractionVariables', v);
-                                                }}
-                                                style={{ borderRadius: '10px' }}
-                                            />
+                                        <div>
+                                            <div className="text-[14px] font-bold text-[#1e293b]">{item.title}</div>
+                                            <div className="text-[13px] text-[#64748b] mt-1">{item.desc}</div>
                                         </div>
+                                    </div>
+                                    <div className="border border-[#e2e8f0] bg-white text-[#64748b] text-[12px] font-bold px-3 py-1 rounded shadow-sm">
+                                        {item.type}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <h4 className="text-[12px] font-bold text-[#64748b] tracking-wider uppercase mb-3">Categorías Personalizadas</h4>
+                        <p className="text-[14px] text-[#475569] mb-4">Añade variables de análisis adaptadas a tu negocio. Elige el tipo según qué dato necesites extraer:</p>
+                        
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            {[
+                                { name: 'Texto', desc: 'Información textual.', ej: 'Ej: Resumen, puntos de acción', icon: 'bi-fonts', typeVal: 'string' },
+                                { name: 'Selector', desc: 'Lista fija de opciones.', ej: 'Ej: Tipo de incidencia, estado', icon: 'bi-ui-radios', typeVal: 'enum' },
+                                { name: 'Booleano', desc: 'Sí o No.', ej: 'Ej: ¿Es primera llamada?', icon: 'bi-toggle-on', typeVal: 'boolean' },
+                                { name: 'Número', desc: 'Valor numérico.', ej: 'Ej: Puntuación, importe', icon: 'bi-123', typeVal: 'number' },
+                            ].map((t, i) => (
+                                <div key={i} 
+                                     onClick={() => addVariable(t.typeVal)}
+                                     className="border border-[#e2e8f0] bg-[#f8fafc] hover:bg-white hover:border-[#cbd5e1] hover:shadow-sm cursor-pointer transition-all rounded-xl p-4 flex gap-3">
+                                    <div className="text-[#64748b]"><i className={`bi ${t.icon}`}></i></div>
+                                    <div>
+                                        <div className="text-[14px] font-bold text-[#1e293b]">{t.name}</div>
+                                        <div className="text-[13px] text-[#475569] mt-1">{t.desc}</div>
+                                        <div className="text-[12px] text-[#94a3b8] italic mt-1">{t.ej}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {extractionVariables.length > 0 && (
+                            <div className="space-y-4 mb-6">
+                                {extractionVariables.map((v, idx) => (
+                                    <div key={idx} className="border border-[#cbd5e1] bg-white rounded-xl p-4 relative flex gap-4">
                                         <button
                                             type="button"
                                             onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}
-                                            style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', padding: '0 4px', marginTop: '22px' }}
+                                            className="absolute top-4 right-4 text-[#ef4444] hover:text-[#dc2626]"
                                         >
-                                            <i className="bi bi-trash"></i>
+                                            <i className="bi bi-trash3"></i>
                                         </button>
+                                        <div className="mt-1">
+                                            <div className="border border-[#e2e8f0] bg-[#f8fafc] text-[#64748b] text-[12px] font-bold px-2 py-1 rounded">
+                                                {v.type === 'string' ? 'Texto' : v.type === 'boolean' ? 'Booleano' : v.type === 'number' ? 'Número' : 'Selector'}
+                                            </div>
+                                        </div>
+                                        <div className="flex-[2]">
+                                            <label className="block text-[12px] font-bold text-[#64748b] mb-1">Nombre (Inglés preferiblemente) <span className="text-[#ef4444]">*</span></label>
+                                            <input
+                                                type="text"
+                                                className="w-full border border-[#cbd5e1] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]"
+                                                placeholder="Ej: user_intent"
+                                                value={v.name}
+                                                onChange={e => {
+                                                    const updated = [...extractionVariables];
+                                                    updated[idx].name = e.target.value;
+                                                    updateField('extractionVariables', updated);
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex-[3] pr-8">
+                                            <label className="block text-[12px] font-bold text-[#64748b] mb-1">Descripción de lo que se debe extraer <span className="text-[#ef4444]">*</span></label>
+                                            <input
+                                                type="text"
+                                                className="w-full border border-[#cbd5e1] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]"
+                                                placeholder="Ej: El motivo principal por el que llama el usuario."
+                                                value={v.description}
+                                                onChange={e => {
+                                                    const updated = [...extractionVariables];
+                                                    updated[idx].description = e.target.value;
+                                                    updateField('extractionVariables', updated);
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
-                        ) : null}
+                        )}
 
                         <button
                             type="button"
-                            onClick={addVariable}
-                            style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '10px', padding: '10px 20px', fontSize: '14px', fontWeight: 600, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            onClick={() => addVariable('string')}
+                            className="bg-white border border-[#e2e8f0] text-[#1e293b] text-[14px] font-bold rounded-xl px-5 py-2.5 shadow-sm flex items-center gap-2 hover:bg-[#f8fafc] transition-colors"
                         >
                             <i className="bi bi-plus-lg"></i> Añadir variable
                         </button>
                     </div>
 
-                    {/* ACCIONES */}
-                    <div className="wizard-actions pt-4" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #edf2f7' }}>
+                    {/* ACTIONS */}
+                    <div className="border-t border-[#e2e8f0] pt-6 flex justify-between mt-12">
                         <button
                             type="button"
-                            className="btn"
                             onClick={prevStep}
-                            style={{ border: '1px solid #e2e8f0', padding: '10px 24px', borderRadius: '8px', background: '#fff', color: '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
+                            className="bg-white border border-[#e2e8f0] text-[#64748b] font-bold px-6 py-2.5 rounded-xl hover:bg-[#f8fafc] transition-colors flex items-center gap-2 text-[15px]"
                         >
                             <i className="bi bi-arrow-left"></i> Anterior
                         </button>
                         <button
                             type="submit"
-                            className="btn"
-                            style={{ background: '#267ab0', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
+                            className="bg-[#267ab0] hover:bg-[#1e6392] text-white font-bold px-8 py-2.5 rounded-xl transition-colors flex items-center gap-2 text-[15px] shadow-sm"
                         >
                             Siguiente <i className="bi bi-arrow-right"></i>
                         </button>

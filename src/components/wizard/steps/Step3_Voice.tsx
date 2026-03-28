@@ -11,20 +11,20 @@ interface Voice {
     provider: string;
     language: string;
     gender: 'male' | 'female';
-    accent: string;
+    accent?: string;
     preview_audio_url?: string;
+    isComingSoon?: boolean;
 }
 
 // Curated voices list requested by user
-const CURATED_VOICES_CONFIG = [
-    { voice_id: 'cartesia-Isabel', voice_name: 'Isabel', provider: 'cartesia', gender: 'female' as const, language: 'es' },
-    { voice_id: '11068', voice_name: 'Cristina', provider: 'retell', gender: 'female' as const, language: 'es' },
-    { voice_id: '11844', voice_name: 'Mari Carme', provider: 'retell', gender: 'female' as const, language: 'es' },
-    { voice_id: '12051', voice_name: 'Cimo', provider: 'retell', gender: 'female' as const, language: 'es' },
-    { voice_id: '12051-en', voice_id_real: '12051', voice_name: 'Cimo (English)', provider: 'retell', gender: 'female' as const, language: 'en' },
-    { voice_id: 'cartesia-Manuel', voice_name: 'Manuel', provider: 'cartesia', gender: 'male' as const, language: 'es' },
-    { voice_id: '11375', voice_name: 'Santiago', provider: 'retell', gender: 'male' as const, language: 'es' },
-    { voice_id: '11753', voice_name: 'Adrian', provider: 'retell', gender: 'male' as const, language: 'es' },
+const CURATED_VOICES_CONFIG: (Voice & { voice_id_real?: string })[] = [
+    { voice_id: 'cartesia-Isabel', voice_name: 'Isabel', provider: 'cartesia', gender: 'female', language: 'es' },
+    { voice_id: 'cartesia-Manuel', voice_name: 'Manuel', provider: 'cartesia', gender: 'male', language: 'es' },
+    { voice_id: '11375', voice_name: 'Santiago', provider: 'elevenlabs', gender: 'male', language: 'es' },
+    { voice_id: '11068', voice_name: 'Cristina', provider: 'retell', gender: 'female', language: 'es', isComingSoon: true },
+    { voice_id: '11844', voice_name: 'Mari Carme', provider: 'retell', gender: 'female', language: 'es', isComingSoon: true },
+    { voice_id: '11753', voice_name: 'Adrian', provider: 'openai', gender: 'male', language: 'en', accent: 'Americano' },
+    { voice_id: '12051', voice_name: 'Cimo', provider: 'openai', gender: 'female', language: 'ca', accent: 'Multilingüe' },
 ];
 
 const DEFAULT_VOICES: Voice[] = CURATED_VOICES_CONFIG.map(v => ({
@@ -33,7 +33,8 @@ const DEFAULT_VOICES: Voice[] = CURATED_VOICES_CONFIG.map(v => ({
     provider: v.provider,
     language: v.language,
     gender: v.gender,
-    accent: v.language === 'es' ? 'spain' : 'usa',
+    accent: v.accent || (v.language === 'es' ? 'spain' : 'usa'),
+    isComingSoon: v.isComingSoon
 }));
 
 export const Step3_Voice: React.FC = () => {
@@ -48,7 +49,6 @@ export const Step3_Voice: React.FC = () => {
     // Form states
     const [customName, setCustomName] = useState('');
     const [cloneFiles, setCloneFiles] = useState<FileList | null>(null);
-    const [filterLang, setFilterLang] = useState('es');
     const [legalConfirmed, setLegalConfirmed] = useState(false);
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
@@ -59,7 +59,6 @@ export const Step3_Voice: React.FC = () => {
             const response = await fetch('/api/retell/voices');
             const data = await response.json();
             if (data?.success && data?.voices) {
-                // We keep all voices from API but will filter them in useMemo
                 const apiVoices = data.voices.map((v: { voice_id: string; provider?: string; [key: string]: unknown }) => ({
                     ...v,
                     provider: v.voice_id.startsWith('custom_voice_') ? 'cloned' : (v.provider || 'retell')
@@ -75,7 +74,6 @@ export const Step3_Voice: React.FC = () => {
             setIsLoadingVoices(false);
         }
     };
-
 
     React.useEffect(() => {
         fetchVoices();
@@ -96,7 +94,6 @@ export const Step3_Voice: React.FC = () => {
 
         let results: Voice[] = [];
 
-        // Add curated voices
         CURATED_VOICES_CONFIG.forEach(config => {
             const actualId = config.voice_id_real || config.voice_id;
             const apiVoice = allVoices.find(v => v.voice_id === actualId);
@@ -104,10 +101,13 @@ export const Step3_Voice: React.FC = () => {
             if (apiVoice) {
                 results.push({
                     ...apiVoice,
-                    voice_id: config.voice_id, // Key for selection
+                    voice_id: config.voice_id,
                     voice_name: config.voice_name,
                     gender: config.gender,
                     language: config.language,
+                    provider: config.provider,
+                    accent: config.accent || apiVoice.accent,
+                    isComingSoon: config.isComingSoon
                 });
             } else {
                 results.push({
@@ -116,22 +116,27 @@ export const Step3_Voice: React.FC = () => {
                     provider: config.provider,
                     gender: config.gender,
                     language: config.language,
-                    accent: config.language === 'es' ? 'spain' : 'usa',
+                    accent: config.accent || (config.language === 'es' ? 'spain' : 'usa'),
+                    isComingSoon: config.isComingSoon,
                     preview_audio_url: config.language === 'en' ? 'https://storage.googleapis.com/retell-api/openai-Fable.mp3' : undefined
                 });
             }
         });
 
-        // Add cloned voices
         const clonedVoices = allVoices.filter(v => v.provider === 'cloned');
         results = [...results, ...clonedVoices];
 
         return results.filter(v => {
-            const matchesGender = activeGender === 'all' || v.gender === activeGender;
-            const matchesLang = filterLang === 'all' || v.language === filterLang;
-            return matchesGender && matchesLang;
+            if (activeGender === 'all') return true;
+            return v.gender === activeGender;
         });
-    }, [voices, activeGender, filterLang, isLoadingVoices]);
+    }, [voices, activeGender, isLoadingVoices]);
+
+    // Grouping for languages
+    const esVoices = filteredVoices.filter(v => v.language === 'es');
+    const enVoices = filteredVoices.filter(v => v.language === 'en');
+    const caVoices = filteredVoices.filter(v => v.language === 'ca');
+    const clonedGroup = filteredVoices.filter(v => v.provider === 'cloned');
 
     const handleCustomVoiceSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -168,6 +173,8 @@ export const Step3_Voice: React.FC = () => {
     };
 
     const togglePlay = (v: Voice) => {
+        if (v.isComingSoon) return;
+        
         if (playingId === v.voice_id) {
             audioRef.current?.pause();
             setPlayingId(null);
@@ -189,62 +196,148 @@ export const Step3_Voice: React.FC = () => {
         newAudio.play().catch(() => setPlayingId(null));
     };
 
+    const renderProviderTag = (provider: string, isComingSoon?: boolean) => {
+        if (isComingSoon) {
+            return (
+                <span style={{ background: '#fef3c7', color: '#b45309', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
+                    Próximamente
+                </span>
+            );
+        }
+        const lower = provider.toLowerCase();
+        if (lower.includes('cartesia')) {
+            return <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Cartesia</span>;
+        } else if (lower.includes('elevenlabs')) {
+            return <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>ElevenLabs</span>;
+        } else if (lower.includes('openai')) {
+            return <span style={{ background: '#ffedd5', color: '#c2410c', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>OpenAI</span>;
+        } else if (lower.includes('cloned')) {
+            return <span style={{ background: '#fce7f3', color: '#be185d', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Clon</span>;
+        }
+        return null;
+    };
+
+    const VoiceCard = ({ v }: { v: Voice }) => {
+        const isSelected = voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id);
+        const disabled = v.isComingSoon;
+
+        return (
+            <div
+                className={`voice-card ${isSelected ? 'selected' : ''} ${disabled ? 'disabled-card' : ''}`}
+                style={{
+                    border: isSelected ? '2px solid #267ab0' : (disabled ? '1px dashed #cbd5e1' : '1px solid #e2e8f0'),
+                    borderRadius: '12px',
+                    padding: '16px',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    background: isSelected ? '#f0f7ff' : '#fff',
+                    opacity: disabled ? 0.7 : 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                }}
+                onClick={() => {
+                    if (disabled) return;
+                    const finalId = v.voice_id.includes('12051') ? '12051' : v.voice_id;
+                    updateField('voiceId', finalId);
+                    updateField('voiceName', v.voice_name);
+                    updateField('voiceProvider', v.provider);
+                }}
+            >
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <div className="voice-avatar" style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '50%',
+                        background: disabled ? '#f8fafc' : '#f0f9ff',
+                        color: disabled ? '#94a3b8' : '#0ea5e9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        flexShrink: 0
+                    }}>
+                        {disabled ? <i className="bi bi-mic"></i> : v.voice_name.charAt(0).toUpperCase()}
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: '15px', color: disabled ? '#475569' : '#0f172a' }}>
+                            {v.voice_name}
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
+                                {v.accent === 'Americano' ? 'Americano' : (v.accent === 'Multilingüe' ? 'Multilingüe' : 'Español')}
+                            </span>
+                            <span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
+                                {v.gender === 'female' ? 'Femenino' : 'Masculino'}
+                            </span>
+                            {renderProviderTag(v.provider, v.isComingSoon)}
+                        </div>
+                    </div>
+                </div>
+
+                {!disabled && (
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); togglePlay(v); }}
+                        style={{ 
+                            border: 'none', 
+                            background: 'transparent', 
+                            color: playingId === v.voice_id ? '#267ab0' : '#64748b', 
+                            fontSize: '13px', 
+                            fontWeight: 600, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '6px',
+                            padding: 0,
+                            marginTop: '8px'
+                        }}
+                    >
+                        <i className={`bi ${playingId === v.voice_id ? 'bi-pause-circle' : 'bi-play-circle'}`} style={{ fontSize: '16px' }}></i>
+                        Preview
+                    </button>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="content-area">
             <div className="form-card">
                 <WizardStepHeader
                     title="Voz del agente"
-                    subtitle="Selecciona la voz que mejor represente a tu agente."
+                    subtitle="Elige la voz que usará tu agente. Haz clic en Preview para escuchar la muestra."
                 />
 
                 <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
-                    <div className="gender-tabs" style={{
-                        display: 'flex',
-                        gap: '24px',
-                        borderBottom: '1px solid #edf2f7',
-                        marginBottom: '32px',
-                        paddingBottom: '2px'
-                    }}>
-                        {[
-                            { id: 'all', name: 'Todos', icon: 'bi-people' },
-                            { id: 'female', name: 'Femenino', icon: 'bi-gender-female' },
-                            { id: 'male', name: 'Masculino', icon: 'bi-gender-male' }
-                        ].map(g => (
-                            <button
-                                key={g.id}
-                                type="button"
-                                onClick={() => setActiveGender(g.id)}
-                                style={{
-                                    padding: '12px 4px',
-                                    fontSize: '15px',
-                                    fontWeight: 600,
-                                    color: activeGender === g.id ? '#267ab0' : '#718096',
-                                    borderBottom: `3px solid ${activeGender === g.id ? '#267ab0' : 'transparent'}`,
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                <i className={`bi ${g.icon}`}></i>
-                                {g.name}
-                            </button>
-                        ))}
-
-                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-                            <select 
-                                className="form-select" 
-                                value={filterLang} 
-                                onChange={(e) => setFilterLang(e.target.value)}
-                                style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#475569', background: 'transparent' }}
-                            >
-                                <option value="es">Español</option>
-                                <option value="en">Inglés</option>
-                                <option value="all">Idiomas</option>
-                            </select>
+                    
+                    <div style={{ marginBottom: '24px' }}>
+                        <label style={{ fontSize: '14px', fontWeight: 700, color: '#1a2428', marginBottom: '12px', display: 'block' }}>Filtrar por género</label>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            {[
+                                { id: 'all', name: 'Todos' },
+                                { id: 'male', name: 'Masculino ♂️' },
+                                { id: 'female', name: 'Femenino ♀️' }
+                            ].map(g => (
+                                <button
+                                    key={g.id}
+                                    type="button"
+                                    onClick={() => setActiveGender(g.id)}
+                                    style={{
+                                        padding: '6px 16px',
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        borderRadius: '20px',
+                                        color: activeGender === g.id ? '#fff' : '#64748b',
+                                        border: `1px solid ${activeGender === g.id ? '#267ab0' : '#e2e8f0'}`,
+                                        background: activeGender === g.id ? '#267ab0' : '#fff',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {g.name}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -253,79 +346,95 @@ export const Step3_Voice: React.FC = () => {
                             <div className="spinner-border text-primary" role="status"></div>
                         </div>
                     ) : (
-                        <div className="voices-grid" style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                            gap: '20px'
-                        }}>
-                            {filteredVoices.map((v: Voice) => (
-                                <div
-                                    key={v.voice_id}
-                                    className={`voice-card ${voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id) ? 'selected' : ''}`}
-                                    style={{
-                                        border: voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id) ? '2px solid #267ab0' : '1px solid #edf2f7',
-                                        borderRadius: '16px',
-                                        padding: '24px',
-                                        textAlign: 'center',
-                                        cursor: 'pointer',
-                                        background: voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id) ? '#f0f7ff' : '#fff',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center'
-                                    }}
-                                    onClick={() => {
-                                        const finalId = v.voice_id.includes('12051') ? '12051' : v.voice_id;
-                                        updateField('voiceId', finalId);
-                                        updateField('voiceName', v.voice_name);
-                                        updateField('voiceProvider', v.provider);
-                                    }}
-                                >
-                                    <div className="voice-avatar" style={{
-                                        width: '60px',
-                                        height: '60px',
-                                        borderRadius: '50%',
-                                        background: '#f1f5f9',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '30px',
-                                        marginBottom: '16px',
-                                        position: 'relative'
-                                    }}>
-                                        {v.gender === 'female' ? '👱‍♀️' : '👨'}
-                                        {v.provider === 'cloned' && (
-                                            <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#ea580c', color: 'white', fontSize: '9px', padding: '2px 5px', borderRadius: '10px', fontWeight: 700 }}>CLON</div>
-                                        )}
+                        <div className="voices-sections" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                            
+                            {/* ESPAÑOL SECTION */}
+                            {esVoices.length > 0 && (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                        <span style={{ fontSize: '18px' }}>🇪🇸</span>
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>ESPAÑOL</h3>
                                     </div>
-                                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1a2428', marginBottom: '12px' }}>{v.voice_name}</div>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); togglePlay(v); }}
-                                        style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '1px solid #e5e7eb', background: playingId === v.voice_id ? '#267ab0' : '#fff', color: playingId === v.voice_id ? '#fff' : '#1a2428', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                        {esVoices.map(v => <VoiceCard key={v.voice_id} v={v} />)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* INGLÉS SECTION */}
+                            {enVoices.length > 0 && (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                        <span style={{ fontSize: '18px' }}>🇬🇧</span>
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>INGLÉS</h3>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                        {enVoices.map(v => <VoiceCard key={v.voice_id} v={v} />)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* CATALÁN SECTION */}
+                            {caVoices.length > 0 && (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                        <svg width="20" height="15" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: '2px' }}>
+                                            <rect fill="#FFC400" width="900" height="600"/>
+                                            <rect fill="#DA121A" width="900" height="66.66" y="66.66"/>
+                                            <rect fill="#DA121A" width="900" height="66.66" y="200"/>
+                                            <rect fill="#DA121A" width="900" height="66.66" y="333.33"/>
+                                            <rect fill="#DA121A" width="900" height="66.66" y="466.66"/>
+                                        </svg>
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>CATALÁN</h3>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                        {caVoices.map(v => <VoiceCard key={v.voice_id} v={v} />)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* CLONED SECTION */}
+                            {clonedGroup.length > 0 && (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                        <i className="bi bi-person-bounding-box" style={{ fontSize: '16px', color: '#8b5cf6' }}></i>
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>VOCES CLONADAS</h3>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                        {clonedGroup.map(v => <VoiceCard key={v.voice_id} v={v} />)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* PREMUIM CLONE VOZ CARD AT THE BOTTOM */}
+                            <div style={{ marginTop: '24px' }}>
+                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                            <i className="bi bi-mic" style={{ color: '#267ab0', fontSize: '16px' }}></i>
+                                            <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Clonar tu voz</span>
+                                            <span style={{ background: '#f3e8ff', color: '#7e22ce', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Premium</span>
+                                        </div>
+                                        <div style={{ fontSize: '13px', color: '#64748b' }}>
+                                            Crea un agente con tu propia voz o la de alguien de tu equipo.
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setShowCustomModal(true)}
+                                        style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                                     >
-                                        <i className={`bi ${playingId === v.voice_id ? 'bi-pause-fill' : 'bi-play-fill'}`}></i>
-                                        {playingId === v.voice_id ? 'Pausar' : 'Escuchar'}
+                                        <i className="bi bi-plus-lg"></i> Clonar voz
                                     </button>
                                 </div>
-                            ))}
-
-                            <div
-                                className="voice-card clone-card"
-                                style={{ border: '2px dashed #cbd5e1', borderRadius: '16px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '180px' }}
-                                onClick={() => setShowCustomModal(true)}
-                            >
-                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#64748b', marginBottom: '12px' }}>
-                                    <i className="bi bi-plus-lg"></i>
-                                </div>
-                                <div style={{ fontWeight: 700, fontSize: '14px', color: '#475569' }}>Clona tu voz</div>
+                            </div>
+                            
+                            <div className="wizard-actions mt-2" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #edf2f7', paddingTop: '24px' }}>
+                                <button type="button" className="btn" onClick={prevStep} style={{ border: '1px solid #e5e7eb', padding: '10px 24px', borderRadius: '8px', background: '#fff', color: '#64748b', fontWeight: 600 }}> <i className="bi bi-arrow-left"></i> Anterior </button>
+                                <button type="submit" className="btn" disabled={!voiceId} style={{ background: voiceId ? '#267ab0' : '#e2e8f0', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600 }}> Siguiente <i className="bi bi-arrow-right"></i> </button>
                             </div>
                         </div>
                     )}
-
-                    <div className="wizard-actions mt-5 pt-4" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <button type="button" className="btn" onClick={prevStep} style={{ border: '1px solid #e5e7eb', padding: '10px 24px', borderRadius: '8px', background: '#fff', color: '#64748b', fontWeight: 600 }}> Anterior </button>
-                        <button type="submit" className="btn" disabled={!voiceId} style={{ background: voiceId ? '#267ab0' : '#e2e8f0', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600 }}> Siguiente </button>
-                    </div>
                 </form>
             </div>
 
