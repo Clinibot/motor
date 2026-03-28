@@ -163,29 +163,104 @@ export const Step5_Tools: React.FC = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
                             <div style={{ flex: 1 }}>
                                 <label style={{ fontWeight: 700, fontSize: '16px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <i className="bi bi-database" style={{ color: 'var(--color-primario)' }}></i> Cualificación de lead (Extracción de datos)
+                                    <i className="bi bi-funnel-fill" style={{ color: 'var(--color-primario)' }}></i> Cualificación de lead (Extracción de datos)
                                 </label>
                                 <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Define qué información específica debe extraer el agente de cada conversación.</p>
                             </div>
                         </div>
 
                         <div style={{ background: 'white', padding: '24px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            {extractionVariables.map((variable, idx) => (
-                                <div key={idx} className="mb-3">
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr auto', gap: '12px' }}>
-                                        <input type="text" className={`form-control ${errors[`extraction_${idx}_name`] ? 'is-invalid' : ''}`} placeholder="Nombre variable" value={variable.name} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].name = e.target.value; updateField('extractionVariables', newVars); }} />
-                                        <select className="form-control" value={variable.type} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].type = e.target.value; updateField('extractionVariables', newVars); }}>
-                                            <option value="string">Texto</option><option value="number">Número</option><option value="boolean">Verdadero/Falso</option>
-                                        </select>
-                                        <input type="text" className={`form-control ${errors[`extraction_${idx}_desc`] ? 'is-invalid' : ''}`} placeholder="Descripción de qué extraer" value={variable.description} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].description = e.target.value; updateField('extractionVariables', newVars); }} />
-                                        <button type="button" className="btn btn-outline-danger" onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}><i className="bi bi-trash"></i></button>
-                                    </div>
-                                    {(errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]) && (
-                                        <div className="text-danger small mt-1">{errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]}</div>
-                                    )}
+                            {extractionVariables.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #cbd5e1', borderRadius: '8px', background: '#f8fafc', marginBottom: '16px' }}>
+                                    <i className="bi bi-plus-circle" style={{ fontSize: '24px', color: '#94a3b8', display: 'block', marginBottom: '8px' }}></i>
+                                    <span style={{ fontSize: '13px', color: '#64748b' }}>No hay variables definidas. Añade una para empezar a cualificar.</span>
                                 </div>
-                            ))}
-                            <button type="button" className="btn btn-sm btn-outline-primary mt-2" onClick={addVariable}><i className="bi bi-plus"></i> Añadir variable</button>
+                            ) : (
+                                extractionVariables.map((variable, idx) => (
+                                    <div key={idx} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '12px', position: 'relative' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">Nombre de la variable</label>
+                                                <input
+                                                    type="text"
+                                                    className={`form-control ${errors[`extraction_${idx}_name`] ? 'is-invalid' : ''}`}
+                                                    placeholder="Ej: Presupuesto"
+                                                    value={variable.name}
+                                                    onChange={(e) => {
+                                                        const newVars = [...extractionVariables];
+                                                        newVars[idx].name = e.target.value;
+                                                        updateField('extractionVariables', newVars);
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="form-group mb-0">
+                                                <label className="form-label small">Tipo de dato</label>
+                                                <select
+                                                    className="form-control"
+                                                    value={variable.type}
+                                                    onChange={(e) => {
+                                                        const newVars = [...extractionVariables];
+                                                        newVars[idx].type = e.target.value;
+                                                        updateField('extractionVariables', newVars);
+                                                    }}
+                                                >
+                                                    <option value="string">Texto</option>
+                                                    <option value="number">Número</option>
+                                                    <option value="boolean">Verdadero/Falso (Sí/No)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="form-group mb-0">
+                                            <label className="form-label small">Descripción de qué extraer</label>
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <input
+                                                        type="text"
+                                                        className={`form-control ${errors[`extraction_${idx}_desc`] ? 'is-invalid' : ''}`}
+                                                        placeholder="Ej: Cuánto planea invertir el cliente en el servicio..."
+                                                        value={variable.description}
+                                                        onChange={(e) => {
+                                                            const newVars = [...extractionVariables];
+                                                            newVars[idx].description = e.target.value;
+                                                            updateField('extractionVariables', newVars);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', alignSelf: 'center', gap: '8px', padding: '0 8px' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`req-${idx}`}
+                                                        checked={variable.required}
+                                                        onChange={(e) => {
+                                                            const newVars = [...extractionVariables];
+                                                            newVars[idx].required = e.target.checked;
+                                                            updateField('extractionVariables', newVars);
+                                                        }}
+                                                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                                    />
+                                                    <label htmlFor={`req-${idx}`} className="small mb-0" style={{ cursor: 'pointer', color: '#64748b' }}>Requerido</label>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline-danger"
+                                                    style={{ border: 'none', background: 'transparent' }}
+                                                    onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {(errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]) && (
+                                            <div className="text-danger small mt-2">
+                                                <i className="bi bi-exclamation-circle"></i> {errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                            <button type="button" className="btn btn-sm btn-outline-primary" onClick={addVariable}>
+                                <i className="bi bi-plus-lg"></i> Añadir campo de cualificación
+                            </button>
                         </div>
                     </div>
 

@@ -443,6 +443,19 @@ Tienes acceso a la información de disponibilidad inyectada en las variables din
             toolsContentArr.push(`## Transferencias\n${transfers}`);
         }
 
+        if (wizardData.extractionVariables.length > 0) {
+            const extractions = wizardData.extractionVariables
+                .map(v => `- **${v.name}**: ${v.description}${v.required ? ' (OBLIGATORIO)' : ''}`)
+                .join('\n');
+            toolsContentArr.push(`## Recogida de Información (Cualificación)
+Debes recoger los siguientes datos durante la conversación de forma natural:
+${extractions}
+
+### Reglas para la recogida:
+- No hagas todas las preguntas seguidas. Integra las consultas en el flujo de la charla.
+- Si un dato es OBLIGATORIO, no finalices la llamada sin haberlo intentado obtener al menos dos veces de forma educada.`);
+        }
+
         const toolsInnerContent = toolsContentArr.join('\n\n');
         const toolsSection = toolsInnerContent
             ? `\n\n<!-- AUTO_TOOLS_START -->\n# Herramientas\n${toolsInnerContent}\n<!-- AUTO_TOOLS_END -->\n`
@@ -625,7 +638,8 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         wizardData.personality, wizardData.tone, wizardData.customNotes,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite, wizardData.companyDescription,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
-        wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions
+        wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions,
+        wizardData.extractionVariables
     ]);
 
     const getAgentTypeName = (type: string) => {
