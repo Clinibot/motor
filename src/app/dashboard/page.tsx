@@ -367,18 +367,6 @@ export default function DashboardPage() {
             <style>{`
                 *{margin:0;padding:0;box-sizing:border-box}
                 body{font-family:'Inter',-apple-system,sans-serif;background:#f5f5f5;color:#1a1a1a}
-                .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;border-right:1px solid #e5e7eb;z-index:100;display:flex;flex-direction:column}
-                .logo-container{padding:24px 20px;border-bottom:1px solid #e5e7eb}
-                .nav-menu{flex:1;padding:20px 0;overflow-y:auto}
-                .nav-item{display:flex;align-items:center;padding:12px 20px;color:#6b7280;text-decoration:none;transition:all .2s;font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;width:100%;text-align:left}
-                .nav-item:hover{background:#f9fafb;color:#267ab0}
-                .nav-item.active{background:#eff6fb;color:#267ab0;border-right:3px solid #267ab0}
-                .nav-item.admin-item{color:#7c3aed}
-                .nav-item.admin-item:hover{background:#f5f3ff;color:#7c3aed}
-                .nav-item.admin-item.active{background:#ede9fe;color:#6d28d9;border-right:3px solid #7c3aed}
-                .nav-icon{width:20px;height:20px;margin-right:12px;flex-shrink:0}
-                .admin-sep{margin:0 20px;border-top:1px solid #e5e7eb;padding-top:16px;margin-top:8px}
-                .admin-sep span{font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;padding:0 0 8px 0;display:block}
                 .main-content{margin-left:260px;min-height:100vh;display:flex;flex-direction:column}
                 .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
                 .topbar-left h1{font-size:24px;font-weight:600;color:#1a1a1a}

@@ -270,18 +270,6 @@ export default function HelpPage() {
             <DashboardSidebar />
             <main style={{ marginLeft: '260px', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
                 <style dangerouslySetInnerHTML={{ __html: `
-                    /* Restaura estilos del Sidebar (estándar en la app) */
-                    .sidebar { width: 260px !important; background:#fff; border-right:1px solid #e5e7eb; height:100vh; position:fixed; left:0; top:0; display:flex; flex-direction:column; z-index:100; }
-                    .sidebar-logo-container { padding: 24px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f3f4f6; margin-bottom: 20px; }
-                    .logo-badge { width: 36px; height: 36px; background: linear-gradient(135deg, #267ab0 0%, #1e5a87 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; box-shadow: 0 4px 10px rgba(38,122,176,0.2); }
-                    .logo-text-group { display: flex; flex-direction: column; }
-                    .logo-main-text { font-size: 16px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.3px; line-height: 1.2; }
-                    .logo-sub-text { font-size: 12px; color: #6b7280; font-weight: 500; }
-                    .nav-menu { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
-                    .nav-icon { width: 20px !important; height: 20px !important; margin-right: 12px; flex-shrink: 0; }
-                    .nav-item { display: flex; align-items: center; padding: 12px 20px; color: #6b7280; text-decoration: none; transition: all .2s; font-size: 14px; font-weight: 500; cursor: pointer; border-right: 3px solid transparent; }
-                    .nav-item:hover { background: #f9fafb; color: #267ab0; }
-                    .nav-item.active { background: #eff6fb; color: #267ab0; border-right-color: #267ab0; font-weight: 600; }
 
                     .help-page-container {
                         --azul: #267ab0;

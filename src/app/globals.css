@@ -27,28 +27,23 @@ body {
 }
 
 /* ===== SIDEBAR ===== */
-.nav-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
 .sidebar {
   position: fixed;
-  top: 0;
   left: 0;
+  top: 0;
   bottom: 0;
-  width: 250px;
-  background: white;
-  border-right: 1px solid var(--gris-borde);
-  z-index: 2000;
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  z-index: 100;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
 }
 
-.sidebar-logo-container {
+.logo-container {
   padding: 24px 20px;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   gap: 12px;

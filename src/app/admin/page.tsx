@@ -177,8 +177,6 @@ export default function PlatformManagement() {
                 
                 .main-content{flex:1;margin-left:250px;min-height:100vh;display:flex;flex-direction:column;background:#f5f6f8}
                 
-                .nav-icon { width: 20px; height: 20px; flex-shrink: 0; }
-                
                 .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;height:64px}
                 .topbar-left h1{font-size:20px;font-weight:700;color:#1a1a1a}
                 

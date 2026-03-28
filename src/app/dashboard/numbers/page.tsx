@@ -115,14 +115,8 @@ export default function NumbersPage() {
                     .eq('workspace_id', currentWorkspaceId);
                 setAgents(agentList ?? []);
 
-                // Fetch real phone numbers from Supabase
-                const { data: numData, error: numError } = await supabase
-                    .from('phone_numbers')
-                    .select('*')
-                    .eq('workspace_id', currentWorkspaceId);
-
-                if (numError) throw numError;
-                setNumbers(numData ?? []);
+                // Fetch real phone numbers from Supabase via clinics
+                // Note: The phone_numbers table links to clinics, not directly to workspace_id
                 const { data: clinicData } = await supabase
                     .from('clinics')
                     .select('id')
@@ -131,10 +125,12 @@ export default function NumbersPage() {
                 const clinicIds = clinicData?.map(c => c.id) || [];
 
                 if (clinicIds.length > 0) {
-                    const { data: phoneData } = await supabase
+                    const { data: phoneData, error: phoneError } = await supabase
                         .from('phone_numbers')
                         .select('id, phone_number, nickname, assigned_inbound_agent_id')
                         .in('clinic_id', clinicIds);
+
+                    if (phoneError) throw phoneError;
 
                     if (phoneData) {
                         setNumbers(phoneData.map(n => ({
