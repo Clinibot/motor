@@ -49,7 +49,7 @@ export const Step2_LLM: React.FC = () => {
                                     <label className="form-label mb-3">
                                         Selecciona el modelo <span className="required">*</span>
                                     </label>
-                                    <div className="row g-3">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                         {[
                                             {
                                                 id: 'gemini-3.0-flash',
@@ -64,40 +64,39 @@ export const Step2_LLM: React.FC = () => {
                                                 icon: 'bi-robot'
                                             }
                                         ].map(m => (
-                                            <div key={m.id} className="col-md-6">
-                                                <div
-                                                    className={`selection-card ${model === m.id ? 'selected' : ''}`}
-                                                    onClick={() => updateField('model', m.id)}
-                                                    style={{
-                                                        border: `2px solid ${model === m.id ? '#267ab0' : '#e5e7eb'}`,
-                                                        borderRadius: '12px',
-                                                        padding: '24px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '16px',
-                                                        cursor: 'pointer',
-                                                        background: model === m.id ? '#f0f7ff' : '#fff',
-                                                        transition: 'all 0.2s',
-                                                        height: '100%'
-                                                    }}
-                                                >
-                                                    <div style={{
-                                                        width: '48px',
-                                                        height: '48px',
-                                                        borderRadius: '10px',
-                                                        background: model === m.id ? '#267ab0' : '#f8f9fa',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        color: model === m.id ? 'white' : '#64748b',
-                                                        fontSize: '24px'
-                                                    }}>
-                                                        <i className={`bi ${m.icon}`}></i>
-                                                    </div>
-                                                    <div>
-                                                        <div style={{ fontWeight: 700, color: '#1a2428', fontSize: '15px' }}>{m.name}</div>
-                                                        <div style={{ fontSize: '13px', color: '#64748b' }}>{m.desc}</div>
-                                                    </div>
+                                            <div
+                                                key={m.id}
+                                                className={`selection-card ${model === m.id ? 'selected' : ''}`}
+                                                onClick={() => updateField('model', m.id)}
+                                                style={{
+                                                    border: `2px solid ${model === m.id ? '#267ab0' : '#e5e7eb'}`,
+                                                    borderRadius: '12px',
+                                                    padding: '24px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '16px',
+                                                    cursor: 'pointer',
+                                                    background: model === m.id ? '#f0f7ff' : '#fff',
+                                                    transition: 'all 0.2s',
+                                                    height: '100%'
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '48px',
+                                                    height: '48px',
+                                                    borderRadius: '10px',
+                                                    background: model === m.id ? '#267ab0' : '#f8f9fa',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: model === m.id ? 'white' : '#64748b',
+                                                    fontSize: '24px'
+                                                }}>
+                                                    <i className={`bi ${m.icon}`}></i>
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 700, color: '#1a2428', fontSize: '15px' }}>{m.name}</div>
+                                                    <div style={{ fontSize: '13px', color: '#64748b' }}>{m.desc}</div>
                                                 </div>
                                             </div>
                                         ))}
@@ -122,35 +121,34 @@ export const Step2_LLM: React.FC = () => {
                                     <label className="form-label mb-3">
                                         ¿Quién habla primero? <span className="required">*</span>
                                     </label>
-                                    <div className="row g-3">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                         {[
                                             { id: 'agent', name: 'El agente habla primero', icon: 'bi-megaphone' },
                                             { id: 'user', name: 'El usuario habla primero', icon: 'bi-person' }
                                         ].map(b => (
-                                            <div key={b.id} className="col-md-6">
-                                                <div
-                                                    className={`selection-card ${whoFirst === b.id ? 'selected' : ''}`}
-                                                    onClick={() => updateField('whoFirst', b.id)}
-                                                    style={{
-                                                        border: `2px solid ${whoFirst === b.id ? '#267ab0' : '#e5e7eb'}`,
-                                                        borderRadius: '12px',
-                                                        padding: '24px',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        gap: '12px',
-                                                        cursor: 'pointer',
-                                                        background: whoFirst === b.id ? '#f0f7ff' : '#fff',
-                                                        transition: 'all 0.2s',
-                                                        height: '100%'
-                                                    }}
-                                                >
-                                                    <div style={{ fontSize: '24px', color: whoFirst === b.id ? '#267ab0' : '#64748b' }}>
-                                                        <i className={`bi ${b.icon}`}></i>
-                                                    </div>
-                                                    <div style={{ fontWeight: 700, color: '#1a2428', fontSize: '14px' }}>{b.name}</div>
+                                            <div
+                                                key={b.id}
+                                                className={`selection-card ${whoFirst === b.id ? 'selected' : ''}`}
+                                                onClick={() => updateField('whoFirst', b.id)}
+                                                style={{
+                                                    border: `2px solid ${whoFirst === b.id ? '#267ab0' : '#e5e7eb'}`,
+                                                    borderRadius: '12px',
+                                                    padding: '24px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '12px',
+                                                    cursor: 'pointer',
+                                                    background: whoFirst === b.id ? '#f0f7ff' : '#fff',
+                                                    transition: 'all 0.2s',
+                                                    height: '100%'
+                                                }}
+                                            >
+                                                <div style={{ fontSize: '24px', color: whoFirst === b.id ? '#267ab0' : '#64748b' }}>
+                                                    <i className={`bi ${b.icon}`}></i>
                                                 </div>
+                                                <div style={{ fontWeight: 700, color: '#1a2428', fontSize: '14px' }}>{b.name}</div>
                                             </div>
                                         ))}
                                     </div>
