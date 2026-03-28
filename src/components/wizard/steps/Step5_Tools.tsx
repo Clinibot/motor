@@ -40,12 +40,10 @@ export const Step5_Tools: React.FC = () => {
     const {
         enableCalBooking, calUrl, calApiKey, calEventId, calSearchDays,
         enableTransfer, transferDestinations,
-        extractionVariables, agentName,
+        extractionVariables, agentName, leadQuestions,
         updateField, prevStep, nextStep, editingAgentId
     } = useWizardStore();
 
-    // Lead qualification (custom questions) - stored separately from extractionVariables
-    const [leadQuestions, setLeadQuestions] = useState<{ question: string; key: string }[]>([]);
     const [availableAgents, setAvailableAgents] = useState<AvailableAgent[]>([]);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -152,7 +150,7 @@ export const Step5_Tools: React.FC = () => {
     };
 
     const addLeadQuestion = () => {
-        setLeadQuestions(prev => [...prev, { question: '', key: '' }]);
+        updateField('leadQuestions', [...leadQuestions, { question: '', key: '' }]);
     };
 
     const sectionStyle = {
@@ -214,7 +212,7 @@ export const Step5_Tools: React.FC = () => {
                                             onChange={e => {
                                                 const updated = [...leadQuestions];
                                                 updated[idx].question = e.target.value;
-                                                setLeadQuestions(updated);
+                                                updateField('leadQuestions', updated);
                                             }}
                                             style={{ borderRadius: '10px', padding: '10px 14px' }}
                                         />
@@ -229,14 +227,14 @@ export const Step5_Tools: React.FC = () => {
                                             onChange={e => {
                                                 const updated = [...leadQuestions];
                                                 updated[idx].key = e.target.value;
-                                                setLeadQuestions(updated);
+                                                updateField('leadQuestions', updated);
                                             }}
                                             style={{ borderRadius: '10px', padding: '10px 14px' }}
                                         />
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => setLeadQuestions(prev => prev.filter((_, i) => i !== idx))}
+                                        onClick={() => updateField('leadQuestions', leadQuestions.filter((_, i) => i !== idx))}
                                         style={{ border: 'none', background: 'transparent', color: '#ef4444', padding: '10px', cursor: 'pointer' }}
                                     >
                                         <i className="bi bi-trash"></i>

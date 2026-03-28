@@ -114,6 +114,7 @@ export interface WizardState {
     // Step 8: Extraction & Webhooks
     useTemplate: boolean;
     extractionVariables: ExtractionVariable[];
+    leadQuestions: { question: string; key: string }[];
     enableAnalysis: boolean;
     analysisModel: string;
     webhookUrl: string;
@@ -212,6 +213,7 @@ export const useWizardStore = create<WizardState>((set) => ({
 
     useTemplate: false,
     extractionVariables: [],
+    leadQuestions: [],
     enableAnalysis: false,
     analysisModel: 'gpt-4.1',
     webhookUrl: '',
@@ -250,7 +252,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         enableEndCall: true, endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
         enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '', calSearchDays: 6,
         enableTransfer: false, transferDestinations: [], enableCustomTools: false, customTools: [],
-        useTemplate: false, extractionVariables: [], enableAnalysis: false, analysisModel: 'gpt-4.1',
+        useTemplate: false, extractionVariables: [], leadQuestions: [], enableAnalysis: false, analysisModel: 'gpt-4.1',
         webhookUrl: '',
         customNotes: '',
         companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',

@@ -410,18 +410,6 @@ Tienes acceso a la información de disponibilidad inyectada en las variables din
             toolsContentArr.push(`## Transferencias\n${transfers}`);
         }
 
-        if (wizardData.extractionVariables.length > 0) {
-            const extractions = wizardData.extractionVariables
-                .map(v => `- **${v.name}**: ${v.description}${v.required ? ' (OBLIGATORIO)' : ''}`)
-                .join('\n');
-            toolsContentArr.push(`## Recogida de Información (Cualificación)
-Debes recoger los siguientes datos durante la conversación de forma natural:
-${extractions}
-
-### Reglas para la recogida:
-- No hagas todas las preguntas seguidas. Integra las consultas en el flujo de la charla.
-- Si un dato es OBLIGATORIO, no finalices la llamada sin haberlo intentado obtener al menos dos veces de forma educada.`);
-        }
 
         const toolsInnerContent = toolsContentArr.join('\n\n');
         const toolsSection = toolsInnerContent
@@ -508,6 +496,20 @@ Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retel
                     ? `gestionar citas y reuniones con los asesores de ${company} de forma eficiente.`
                     : `cualificar a los contactos que llaman a ${company} en cliente actual o potencial, y resolver sus dudas iniciales.`;
 
+            let qualificationQuestions = `    - Q1: "¿Eres ya cliente de ${company} o quieres información para empezar?"\n    - Q2: "¿En qué puedo ayudarte?"`;
+            let qIndex = 3;
+            if (wizardData.leadQuestions && wizardData.leadQuestions.length > 0) {
+                wizardData.leadQuestions.forEach(q => {
+                    if (q.question.trim()) {
+                        qualificationQuestions += `\n    - Q${qIndex}: "${q.question.trim()}" (Dato a recoger: ${q.key})`;
+                        qIndex++;
+                    }
+                });
+            }
+            if (wizardData.enableCalBooking && wizardData.calApiKey) {
+                qualificationQuestions += `\n    - Q${qIndex} (solo NO clientes): "¿Te gustaría agendar una cita con un asesor para que te dé información más detallada?"`;
+            }
+
             finalPrompt = `
 # Rol y Objetivo
 Eres ${name} y tu objetivo es ${roleObjective}
@@ -561,8 +563,7 @@ Nunca uses números para expresar horas. Habla siempre de forma natural y coloqu
 ## 1. Saludo y Cualificación
 - Saluda cordialmente, identifícate y entiende el motivo de la llamada.
 - Haz las siguientes preguntas para determinar si el contacto es cliente de ${company} y hacia dónde dirigirlo. Haz una pregunta a la vez y adapta según lo que compartan:
-    - Q1: "¿Eres ya cliente de ${company} o quieres información para empezar?"
-    - Q2: "¿En qué puedo ayudarte?"${wizardData.enableCalBooking && wizardData.calApiKey ? `\n    - Q3 (solo NO clientes): "¿Te gustaría agendar una cita con un asesor para que te dé información más detallada?"` : ''}
+${qualificationQuestions}
 
 ## 2. Resolución o Routing
 ${wizardData.agentType === 'transferencia'
@@ -606,7 +607,7 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite, wizardData.companyDescription,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
         wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions,
-        wizardData.extractionVariables
+        wizardData.extractionVariables, wizardData.leadQuestions
     ]);
 
 
