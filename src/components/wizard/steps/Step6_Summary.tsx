@@ -176,15 +176,6 @@ const S = {
     } as React.CSSProperties,
 };
 
-function SummaryRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
-    return (
-        <div style={last ? S.summaryItemLast : S.summaryItem}>
-            <span style={S.summaryLabel}>{label}</span>
-            <span style={S.summaryValue}>{value}</span>
-        </div>
-    );
-}
-
 
 const formatTimeToSpanishWords = (timeStr: string) => {
     if (!timeStr) return '';
@@ -476,7 +467,7 @@ Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retel
             if (toolsRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(toolsRegex, '___TEMP_TOOLS___');
                 finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_TOOLS_START -->[\s\S]*?<!-- AUTO_TOOLS_END -->/g, '');
-                finalPrompt = finalPrompt.replace('___TEMP_TOOLS___', () => toolsSection.trim());
+                finalPrompt = finalPrompt.replace('___TEMP_TOOLS___', toolsSection.trim());
             } else if (toolsSection) {
                 finalPrompt += `\n\n${toolsSection.trim()}`;
             }
@@ -485,7 +476,7 @@ Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retel
             if (kbRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(kbRegex, '___TEMP_KB___');
                 finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_KB_START -->[\s\S]*?<!-- AUTO_KB_END -->/g, '');
-                finalPrompt = finalPrompt.replace('___TEMP_KB___', () => kbSection.trim());
+                finalPrompt = finalPrompt.replace('___TEMP_KB___', kbSection.trim());
             } else if (kbSection) {
                 finalPrompt += `\n\n${kbSection.trim()}`;
             }
@@ -494,7 +485,7 @@ Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retel
             if (companyRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(companyRegex, '___TEMP_COMPANY___');
                 finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_COMPANY_START -->[\s\S]*?<!-- AUTO_COMPANY_END -->/g, '');
-                finalPrompt = finalPrompt.replace('___TEMP_COMPANY___', () => companySection.trim());
+                finalPrompt = finalPrompt.replace('___TEMP_COMPANY___', companySection.trim());
             } else {
                 // Si no hay marcadores de empresa, los inyectamos al final
                 finalPrompt += `\n\n${companySection.trim()}`;
@@ -506,7 +497,7 @@ Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retel
             if (notesRegex.test(finalPrompt)) {
                 finalPrompt = finalPrompt.replace(notesRegex, '___TEMP_NOTES___');
                 finalPrompt = finalPrompt.replace(/[\n]*<!-- AUTO_NOTES_START -->[\s\S]*?<!-- AUTO_NOTES_END -->/g, '');
-                finalPrompt = finalPrompt.replace('___TEMP_NOTES___', () => notesSection.trim());
+                finalPrompt = finalPrompt.replace('___TEMP_NOTES___', notesSection.trim());
             } else if (notesSection) {
                 finalPrompt += `\n\n${notesSection.trim()}`;
             }
