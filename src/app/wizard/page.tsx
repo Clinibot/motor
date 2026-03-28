@@ -110,9 +110,11 @@ function WizardContent() {
                 onClick={toggleSidebar}
             ></div>
 
-            <main className="main-content flex-1">
+            <main className="flex-1 min-h-screen bg-[#f5f6f8] relative overflow-y-auto">
                 <Topbar />
-                {renderStep()}
+                <div className="p-0">
+                    {renderStep()}
+                </div>
             </main>
         </div>
     );
