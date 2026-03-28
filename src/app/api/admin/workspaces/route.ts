@@ -113,7 +113,7 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
         }
 
-        const updates: any = {};
+        const updates: Record<string, string> = {};
         if (name) updates.name = name;
         if (retell_api_key) updates.retell_api_key = retell_api_key;
 

@@ -185,30 +185,6 @@ function SummaryRow({ label, value, last }: { label: string; value: string; last
     );
 }
 
-function SummaryCard({
-    icon, color, title, step, onEdit, children,
-    fullWidth = false,
-}: {
-    icon: string; color: string; title: string; step: number;
-    onEdit: (s: number) => void; children: React.ReactNode; fullWidth?: boolean;
-}) {
-    return (
-        <div style={fullWidth ? S.summaryCardFullWidth : S.summaryCard}>
-            <div style={S.summaryCardHeader}>
-                <div style={S.summaryCardTitle}>
-                    <div style={S.summaryCardIcon}>
-                        <i className={`bi ${icon}`} style={{ color }} />
-                    </div>
-                    <h3 style={S.summaryCardH3}>{title}</h3>
-                </div>
-                <button style={S.editBtn} onClick={() => onEdit(step)}>
-                    <i className="bi bi-pencil" /> Editar
-                </button>
-            </div>
-            <div style={S.summaryContent}>{children}</div>
-        </div>
-    );
-}
 
 const formatTimeToSpanishWords = (timeStr: string) => {
     if (!timeStr) return '';
@@ -642,24 +618,7 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         wizardData.extractionVariables
     ]);
 
-    const getAgentTypeName = (type: string) => {
-        const types: Record<string, string> = {
-            'transferencia': 'Transferencia de llamadas',
-            'agendamiento': 'Agendamiento de citas',
-            'cualificacion': 'Cualificación y atención',
-        };
-        return types[type] || type || 'No definido';
-    };
 
-    const getLanguageName = (lang: string) => {
-        const names: Record<string, string> = {
-            'es-ES': 'Español (España)', 'es-MX': 'Español (México)',
-            'es-AR': 'Español (Argentina)', 'es-419': 'Español (Latam)',
-            'en-US': 'Inglés (USA)', 'en-GB': 'Inglés (UK)',
-            'pt-BR': 'Portugués (Brasil)', 'fr-FR': 'Francés',
-        };
-        return names[lang] || lang || 'No definido';
-    };
 
     const handleCreateAgent = async () => {
         // Generar prompt final asegurando la información más actual (forceRebuild=false para "Smart Update" en caso de modo edición)
