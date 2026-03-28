@@ -55,12 +55,13 @@ body {
   height: 36px;
   background-color: var(--netelip-azul);
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: 800;
+  font-size: 22px;
+  box-shadow: 0 4px 10px rgba(38, 122, 176, 0.2);
 }
 
 .logo-text-group {
@@ -70,14 +71,16 @@ body {
 
 .logo-main-text {
   font-weight: 700;
-  font-size: 15px;
-  color: #1a202c;
+  font-size: 16px;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
   line-height: 1.2;
 }
 
 .logo-sub-text {
   font-size: 12px;
-  color: #718096;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .sidebar.open {
@@ -125,26 +128,29 @@ body {
   overflow-y: auto;
 }
 
-.step-item {
-  padding: 12px 16px;
-  margin-bottom: 4px;
+.nav-item {
   display: flex;
   align-items: center;
+  padding: 12px 20px;
+  color: #6b7280;
   text-decoration: none;
-  color: var(--gris-texto);
   transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  border-radius: 8px;
+  border-right: 3px solid transparent;
 }
 
-.step-item:hover {
-  background: var(--gris-claro);
-  color: var(--oscuro);
+.nav-item:hover {
+  background: #f9fafb;
+  color: var(--netelip-azul);
 }
 
-.step-item.active {
+.nav-item.active {
   background: #eff6fb;
   color: var(--netelip-azul);
+  border-right-color: var(--netelip-azul);
+  font-weight: 600;
 }
 
 .step-item.completed {
@@ -179,24 +185,31 @@ body {
 
 .admin-sep {
   padding: 30px 20px 10px 20px;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 20px;
+}
+
+.admin-title {
   font-size: 11px;
   font-weight: 700;
-  color: #a0aec0;
+  color: #9ca3af;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.8px;
 }
 
-.nav-item.platform-management {
-  color: #805ad5;
+.nav-item.admin-item {
+  color: #7c3aed;
 }
 
-.nav-item.platform-management .nav-icon {
-  color: #805ad5;
+.nav-item.admin-item:hover {
+  background: #f5f3ff;
+  color: #6d28d9;
 }
 
-.nav-item.platform-management:hover {
-  background: #f3f0ff;
-  color: #6b46c1;
+.nav-item.admin-item.active {
+  background: #ede9fe;
+  color: #6d28d9;
+  border-right-color: #7c3aed;
 }
 
 .step-info {
@@ -221,7 +234,7 @@ body {
 
 /* ===== MAIN CONTENT ===== */
 .main-content {
-  margin-left: 250px;
+  margin-left: 260px;
   min-height: 100vh;
   background: var(--gris-claro);
   transition: margin-left 0.3s;

@@ -30,7 +30,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
             href: '/dashboard/agents',
             icon: (
                 <svg className="nav-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15M14.25 3.104c.251.023.501.05.75.082M19.8 15h-4.375M5 14.5H2.625m16.55.5a48.11 48.11 0 010 3M2.625 14.5c0 1.064.083 2.115.245 3.141M12 12V6.75" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18V21M12 3V6M21 12H18M6 12H3M7.5 10.5V13.5M16.5 10.5V13.5M9.75 6H14.25C15.9069 6 17.25 7.34315 17.25 9V15C17.25 16.6569 15.9069 18 14.25 18H9.75C8.09315 18 6.75 16.6569 6.75 15V9C6.75 7.34315 8.09315 6 9.75 6ZM10.5 12H13.5" />
                 </svg>
             )
         },
@@ -67,8 +67,11 @@ export default function DashboardSidebar({ user }: SidebarProps) {
     return (
         <aside className="sidebar">
             <div className="logo-container">
-                <div className="logo-icon">F</div>
-                <div className="logo-text">La Fábrica de Agentes</div>
+                <div className="logo-badge">F</div>
+                <div className="logo-text-group">
+                    <span className="logo-main-text">Fábrica de Agentes IA</span>
+                    <span className="logo-sub-text">netelip</span>
+                </div>
             </div>
             <nav className="nav-menu">
                 {navItems.map((item) => (
@@ -78,7 +81,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
                         className={`nav-item ${pathname === item.href ? 'active' : ''}`}
                     >
                         {item.icon}
-                        {item.label}
+                        <span className="nav-text">{item.label}</span>
                     </Link>
                 ))}
 
@@ -94,7 +97,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
                             <svg className="nav-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                             </svg>
-                            Gestión de la Plataforma
+                            <span className="nav-text">Gestión de la Plataforma</span>
                         </Link>
                     </>
                 )}
