@@ -34,6 +34,8 @@ export default function NumbersPage() {
     const [numbers, setNumbers] = useState<PhoneNumber[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
