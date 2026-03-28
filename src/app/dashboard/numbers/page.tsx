@@ -261,9 +261,9 @@ export default function NumbersPage() {
                 .nav-item:hover{background:#f9fafb;color:#267ab0}
                 .nav-item.active{background:#eff6fb;color:#267ab0;border-right:3px solid #267ab0}
                 .nav-icon{width:20px;height:20px;margin-right:12px;flex-shrink:0}
-                .main-content{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;background:#f5f6f8;}
-                .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
-                .topbar-left h1{font-size:24px;font-weight:600;color:#1a1a1a}
+                .main-content{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;background:#f8fafc;}
+                .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;height:64px;}
+                .topbar-left h1{font-size:20px;font-weight:700;color:#1e293b;letter-spacing:-0.02em}
                 .topbar-right{display:flex;align-items:center;gap:20px}
                 .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#267ab0 0%,#1e5a87 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none}
                 
@@ -280,42 +280,46 @@ export default function NumbersPage() {
                 .user-dropdown-item.text-red:hover { background: #fef2f2; color: #b91c1c; }
                 @keyframes slideDown { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
                 
-                .content{flex:1;padding:32px}
+                .content{flex:1;padding:32px;max-width:1200px;margin:0 auto;width:100%}
                 
-                .tabs{display:flex;gap:32px;border-bottom:1px solid #e5e7eb;margin-bottom:32px}
-                .tab-item{padding:12px 0;font-size:15px;font-weight:600;color:#6b7280;cursor:pointer;position:relative;transition:all .2s}
-                .tab-item:hover{color:#1a1a1a}
-                .tab-item.active{color:#267ab0}
-                .tab-item.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:#267ab0}
-
-                .card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden}
-                .table-header{padding:24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
-                .table-title{font-size:18px;font-weight:600;color:#1a1a1a}
+                .card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden}
+                .card-intro{padding:24px 28px;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:14px;font-weight:500;}
                 
                 .numbers-table{width:100%;border-collapse:collapse}
-                .numbers-table th{padding:12px 24px;text-align:left;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;background:#f9fafb;border-bottom:1px solid #e5e7eb}
-                .numbers-table td{padding:20px 24px;border-bottom:1px solid #f3f4f6;font-size:14px;color:#1a1a1a;vertical-align:middle}
+                .numbers-table th{padding:12px 28px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;background:#fcfdfe;border-bottom:1px solid #f1f5f9;letter-spacing:0.05em}
+                .numbers-table td{padding:16px 28px;border-bottom:1px solid #f8fafc;font-size:14px;color:#1e293b;vertical-align:middle}
                 
-                .phone-box{display:flex;flex-direction:column;gap:4px}
-                .phone-number{font-weight:700;color:#1a1a1a;font-size:15px}
-                .phone-nickname{color:#6b7280;font-size:12px}
+                .phone-number{font-weight:700;color:#0f172a;font-size:15px;display:block}
+                .phone-pretty{color:#94a3b8;font-size:12px;margin-top:2px;display:block}
 
-                .agent-selector{padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;font-size:14px;color:#1a1a1a;width:240px;cursor:pointer;outline:none;transition:all .2s}
-                .agent-selector:hover{border-color:#267ab0}
-                .agent-selector:focus{border-color:#267ab0;box-shadow:0 0 0 2px rgba(38,122,176,0.1)}
+                .agent-selector-wrapper { position: relative; width: 280px; }
+                .agent-selector { 
+                    appearance: none;
+                    width: 100%;
+                    padding: 9px 36px 9px 16px;
+                    border-radius: 10px;
+                    border: 1px solid #e2e8f0;
+                    background: #fff;
+                    font-size: 14px;
+                    color: #475569;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 12px center;
+                    background-size: 14px;
+                }
+                .agent-selector:hover { border-color: #cbd5e1; }
+                .agent-selector:focus { border-color: #267ab0; box-shadow: 0 0 0 3px rgba(38,122,176,0.1); outline: none; }
 
-                .badge-status{padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;background:#dcfce7;color:#16a34a;display:inline-flex;align-items:center;gap:4px}
+                .badge-status{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#dcfce7;color:#15803d;display:inline-flex;align-items:center;gap:6px}
                 
-                .proximamente-container{padding:80px 40px;text-align:center;background:#fff;border-radius:12px;border:1px dashed #d1d5db}
-                .proximamente-icon{font-size:48px;margin-bottom:16px;display:block}
-                .proximamente-title{font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:8px}
-                .proximamente-text{color:#6b7280;max-width:400px;margin:0 auto}
-
-                .btn-add{padding:10px 20px;background:#267ab0;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
-                .btn-add:hover{background:#1e5a87;transform:translateY(-1px);box-shadow:0 4px 12px rgba(38,122,176,0.2)}
+                .btn-add{padding:9px 18px;background:#267ab0;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px}
+                .btn-add:hover{background:#1e5a87;box-shadow:0 4px 12px rgba(38,122,176,0.15)}
                 
-                .btn-delete-row{width:32px;height:32px;border-radius:8px;border:1px solid #fee2e2;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
-                .btn-delete-row:hover{background:#fef2f2;border-color:#ef4444}
+                .btn-delete-row{width:36px;height:36px;border-radius:10px;border:1px solid #fee2e2;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;opacity: 0.8;}
+                .btn-delete-row:hover{background:#fef2f2;border-color:#f87171;opacity: 1;}
 
                 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
                 .modal-content{background:#fff;border-radius:16px;width:100%;max-width:400px;padding:32px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
@@ -363,84 +367,62 @@ export default function NumbersPage() {
             <main className="main-content">
                 <header className="topbar">
                     <div className="topbar-left">
-                        <h1>Telefonía e IA</h1>
+                        <h1>Mis números</h1>
                     </div>
                     <div className="topbar-right">
-                        <div className="user-profile-container" ref={dropdownRef}>
-                            <button
-                                className="user-avatar"
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                title="Mi perfil"
-                            >
-                                {userInitial}
-                            </button>
-                            {isDropdownOpen && (
-                                <div className="user-dropdown">
-                                    <div className="user-dropdown-header">
-                                        <span className="user-dropdown-name">{user?.full_name || 'Mi cuenta'}</span>
-                                        <span className="user-dropdown-email">{user?.email || 'user@example.com'}</span>
-                                    </div>
-                                    <div className="user-dropdown-body">
-                                        <button onClick={handleLogout} className="user-dropdown-item text-red">
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                            </svg>
-                                            Cerrar sesión
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <button className="btn-add" onClick={() => setShowAddModal(true)}>
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            Añadir número
+                        </button>
                     </div>
                 </header>
 
                 <div className="content">
-                    <div className="tabs">
-                        <div className={`tab-item ${activeTab === 'inbound' ? 'active' : ''}`} onClick={() => setActiveTab('inbound')}>
-                            Recepción de Llamadas (Inbound)
+                    <div className="card">
+                        <div className="card-intro">
+                            Conecta tu número de netelip a la IA y luego asígnaselo a tu agente
                         </div>
-                        <div className={`tab-item ${activeTab === 'outbound' ? 'active' : ''}`} onClick={() => setActiveTab('outbound')}>
-                            Emisión de Llamadas (Outbound)
-                        </div>
-                    </div>
 
-                    {activeTab === 'inbound' ? (
-                        <div className="card">
-                            <div className="table-header">
-                                <h3 className="table-title">Conecta tu número de Netelip a la IA y luego asignaselo a tu agente</h3>
-                                <button className="btn-add" onClick={() => setShowAddModal(true)}>
-                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                                    </svg>
-                                    Añadir número
-                                </button>
+                        {isLoading ? (
+                            <div style={{ padding: '80px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
+                                <div className="spinner" style={{ marginBottom: '16px' }}></div>
+                                Cargando telefonía...
                             </div>
-
-                            {isLoading ? (
-                                <div style={{ padding: '60px', textAlign: 'center' }}>Cargando telefonía...</div>
-                            ) : (
-                                <table className="numbers-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Número de Teléfono</th>
-                                            <th>Estado</th>
-                                            <th>Agente IA Asignado</th>
-                                            <th style={{ textAlign: 'right' }}>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {numbers.map(num => (
-                                            <tr key={num.id}>
-                                                <td>
-                                                    <div className="phone-box">
-                                                        <span className="phone-number">{num.phone_number_pretty}</span>
-                                                        <span className="phone-nickname">{num.nickname}</span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span className="badge-status">✓ Conectado</span>
-                                                </td>
-                                                <td>
+                        ) : numbers.length === 0 ? (
+                            <div style={{ padding: '80px', textAlign: 'center', color: '#64748b' }}>
+                                <div style={{ fontSize: '48px', marginBottom: '20px', opacity: 0.5 }}>📞</div>
+                                <p style={{ fontSize: '16px', fontWeight: 600, color: '#1e293b' }}>No hay números conectados</p>
+                                <p style={{ fontSize: '14px', marginTop: '8px' }}>Empieza por añadir un número SIP de Netelip</p>
+                            </div>
+                        ) : (
+                            <table className="numbers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Número de Teléfono</th>
+                                        <th>Estado</th>
+                                        <th>Agente IA Asignado</th>
+                                        <th style={{ textAlign: 'right' }}>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {numbers.map(num => (
+                                        <tr key={num.id}>
+                                            <td>
+                                                <span className="phone-number">{num.phone_number_pretty}</span>
+                                                <span className="phone-pretty">{num.phone_number}</span>
+                                            </td>
+                                            <td>
+                                                <span className="badge-status">
+                                                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                    </svg>
+                                                    Conectado
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="agent-selector-wrapper">
                                                     <select
                                                         className="agent-selector"
                                                         value={num.agent_id || 'none'}
@@ -454,30 +436,23 @@ export default function NumbersPage() {
                                                             </option>
                                                         ))}
                                                     </select>
-                                                </td>
-                                                <td style={{ textAlign: 'right' }}>
+                                                </div>
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                                     <button className="btn-delete-row" onClick={() => handleDeleteNumber(num.id, num.phone_number)} title="Borrar número">
-                                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                                                         </svg>
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="proximamente-container">
-                            <span className="proximamente-icon">🚀</span>
-                            <h3 className="proximamente-title">Llamadas Outbound</h3>
-                            <p className="proximamente-text">
-                                Estamos trabajando para que pronto puedas realizar llamadas automáticas
-                                de seguimiento, recordatorios y ventas directamente desde tu panel.
-                            </p>
-                        </div>
-                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
                 </div>
             </main>
 
