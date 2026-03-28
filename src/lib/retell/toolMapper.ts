@@ -64,21 +64,25 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
         });
     }
 
-    // 2. Cal.com Booking & Availability (Both required for a good flow)
+    // 2. Cal.com Booking (Availability handled via Inbound Webhook variables)
     if (parseBool(p.enableCalBooking) && p.calApiKey && p.calEventId) {
-        const calSettings = {
-            cal_api_key: p.calApiKey,
-            event_type_id: parseInt(p.calEventId, 10),
-            timezone: 'Europe/Madrid',
-        };
+        const eventId = parseInt(p.calEventId, 10);
+        
+        if (!isNaN(eventId)) {
+            const calSettings = {
+                cal_api_key: p.calApiKey,
+                event_type_id: eventId,
+                timezone: 'Europe/Madrid',
+            };
 
-        // Booking tool
-        tools.push({
-            type: 'book_appointment_cal',
-            name: 'book_appointment',
-            description: 'Reserva una cita en el calendario una vez el usuario ha elegido un horario.',
-            ...calSettings,
-        });
+            // Booking tool
+            tools.push({
+                type: 'book_appointment_cal',
+                name: 'book_appointment',
+                description: 'Reserva una cita en el calendario una vez el usuario ha elegido un horario.',
+                ...calSettings,
+            });
+        }
     }
 
     // 4. Call Transfer

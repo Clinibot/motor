@@ -414,48 +414,27 @@ export const Step6_Summary: React.FC = () => {
         // Bloques de herramientas y KB para la previsualización con marcadores para evitar bucles
         const toolsContentArr: string[] = [];
         if (wizardData.enableCalBooking && wizardData.calApiKey) {
-            toolsContentArr.push(`## Gestión de Agenda y Disponibilidad
-Tienes acceso a dos herramientas para gestionar citas: \`check_availability\` y \`book_appointment\`. Úsalas siempre que el usuario quiera reservar, pregunte por horarios o quiera agendar una visita.
+            toolsContentArr.push(`## Gestión de Agenda y Citas
+Tienes acceso a la información de disponibilidad inyectada en las variables dinámicas del sistema (provenientes de una búsqueda previa en el calendario):
+- Disponibilidad rápida: {{disponibilidad_mas_temprana}}
+- Disponibilidad extendida: {{consultar_disponibilidad}}
 
-### Horario comercial — Regla crítica
-Antes de ofrecer cualquier hueco, filtra los resultados por el horario de apertura de la empresa (ver sección "Horario comercial" en Información de la Empresa). La herramienta puede devolver slots en zonas horarias incorrectas. Ignora y descarta automáticamente cualquier hueco que caiga fuera del horario indicado. Nunca menciones, ofrezcas ni confirmes un hueco fuera de ese horario, aunque la herramienta lo devuelva.
+### Proceso de Agendamiento:
+1. **Consulta / Oferta Inicial**: Cuando el contacto acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?".
+   > *Nota: Si las variables están vacías o no se muestran, pide al usuario qué día prefiere e intenta agendar a ciegas.*
+2. **Más opciones**: Si el usuario pide más horarios o los ofrecidos no le valen, revisa la disponibilidad extendida y ofrécele opciones de allí: {{consultar_disponibilidad}}.
+3. **Recogida de datos**: Una vez elegido el horario, di: "Estupendo. Para confirmar tu cita necesito un par de datos. ¿Cuál es tu nombre completo?" (Pide los datos de uno en uno).
+4. **Email y Deletreo (CRÍTICO)**: 
+   - Tras el nombre, pide el email.
+   - Una vez escuchado el email, di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien".
+   - Escucha el deletreo completo.
+5. **Ejecución de la reserva**: Inmediatamente después de confirmar los datos, di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta la herramienta \`book_appointment\`.
+6. **Confirmación final**: Tras el éxito de la herramienta, confirma la fecha y hora final y menciona que recibirá un correo de confirmación.
 
-### Escenario 1 — El usuario pide una fecha y hora concretas
-Ejecuta \`check_availability\` con esos datos exactos.
-- Si está libre: confírmale de forma natural que está disponible y pasa a recoger los datos para la reserva antes de ejecutar \`book_appointment\`.
-- Si no está libre: ejecuta \`check_availability\` dos veces más — una para buscar otro hueco ese mismo día, otra para buscar esa misma hora al día siguiente. Preséntale ambas alternativas y espera que elija.
-- Si ninguna encaja: pregúntale si quieres buscar en otro rango y aplica el Escenario 3.
-
-### Escenario 2 — El usuario solo da una fecha sin hora
-Pregúntale si prefiere mañana o tarde. Ejecuta \`check_availability\` para ese día filtrando por la franja elegida. Selecciona los dos huecos más cercanos y preséntaselos. Cuando confirme, recoge los datos y ejecuta \`book_appointment\`.
-Si no hay huecos ese día, busca el siguiente con \`check_availability\` e informa del cambio de día antes de ofrecer opciones.
-
-### Escenario 3 — El usuario da un rango o no tiene fecha fija
-Pregunta primero si prefiere mañana o tarde (si no lo ha dicho). Ejecuta \`check_availability\` sobre el rango completo. Filtra por horario comercial y franja elegida. Selecciona los dos huecos más próximos priorizando diversidad horaria (si el primero es de mañana, el segundo de tarde, y viceversa).
-Preséntaselos así: "Tenemos disponibilidad el [hueco 1] y el [hueco 2]. ¿Cuál te viene mejor?"
-Si el usuario pide más opciones, presenta todos los huecos disponibles agrupados por día.
-
-### Escenario 4 — El usuario quiere cancelar o cambiar una cita
-Indícale que para cancelaciones o modificaciones debe contactar directamente con el equipo, ya que no tienes herramienta para esa acción. Ofrécete a reservar una nueva cita si lo necesita.
-
-### Escenario 5 — La herramienta no devuelve resultados o da error
-Si \`check_availability\` no devuelve huecos: "En ese período no tenemos huecos disponibles. ¿Quieres que busque en otra franja o en otra semana?"
-Si hay error técnico, discúlpate brevemente y pide que repita los datos. No uses palabras como "error" o "fallo del sistema". Usa frases como "no me ha llegado bien esa información, ¿me lo repites?"
-
-### Recogida de datos antes de reservar
-Una vez confirmado el hueco, recoge los datos en este orden, de uno en uno y esperando respuesta antes de preguntar lo siguiente:
-1. Nombre completo: "¿Me dices tu nombre completo para la reserva?"
-2. Email: "¿Y tu correo electrónico?"
-3. Motivo de la cita: "¿Cuál es el motivo de la visita?"
-El teléfono del usuario se envía automáticamente como {{user_number}}, no lo preguntes.
-
-### Confirmación final antes de reservar
-Antes de ejecutar \`book_appointment\`, confirma todos los datos en voz alta:
-"Entonces te reservo el [día] a las [hora], a nombre de [nombre completo], con el correo [email] y el motivo [motivo]. ¿Es todo correcto?"
-Solo ejecuta \`book_appointment\` cuando el usuario confirme afirmativamente.
-
-### Regla general
-Consulta siempre la disponibilidad real antes de ofrecer cualquier hueco. Nunca inventes ni supongas disponibilidad.`);
+### Reglas de formato de voz:
+- Día: "martes dieciocho", "miércoles diecinueve".
+- Horas: Di siempre las horas con PALABRAS (diez de la mañana, cuatro de la tarde). No uses formato 24h.
+- Para la una: "la una" (jamás digas "un").`);
         }
         if (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) {
             const transfers = wizardData.transferDestinations

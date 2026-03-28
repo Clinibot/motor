@@ -21,6 +21,7 @@ export const Step5_Tools: React.FC = () => {
 
     const [availableAgents, setAvailableAgents] = useState<AvailableAgent[]>([]);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (window.location.hash === '#extraction') {
@@ -75,9 +76,57 @@ export const Step5_Tools: React.FC = () => {
         }
     }, [enableTransfer, editingAgentId, agentName]);
 
+    const validate = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (enableCalBooking) {
+            if (!calApiKey) newErrors.calApiKey = 'La API Key de Cal.com es obligatoria.';
+            if (!calEventId) {
+                newErrors.calEventId = 'El ID de evento es obligatorio.';
+            } else if (isNaN(parseInt(calEventId, 10))) {
+                newErrors.calEventId = 'El ID de evento debe ser un número.';
+            }
+        }
+
+        if (enableTransfer) {
+            if (transferDestinations.length === 0) {
+                newErrors.transfer = 'Debes añadir al menos un destino de transferencia si la función está activa.';
+            } else {
+                transferDestinations.forEach((dest, idx) => {
+                    if (!dest.name.trim()) newErrors[`transfer_${idx}_name`] = 'El nombre es obligatorio.';
+                    if (dest.destination_type === 'number' && !dest.number?.trim()) {
+                        newErrors[`transfer_${idx}_number`] = 'El número de teléfono es obligatorio.';
+                    }
+                    if (dest.destination_type === 'agent' && !dest.agentId) {
+                        newErrors[`transfer_${idx}_agent`] = 'Debes seleccionar un agente.';
+                    }
+                });
+            }
+        }
+
+        // Variable extraction validation
+        extractionVariables.forEach((v, idx) => {
+            if (!v.name.trim()) newErrors[`extraction_${idx}_name`] = 'El nombre de la variable es obligatorio.';
+            if (!v.description.trim()) newErrors[`extraction_${idx}_desc`] = 'La descripción es obligatoria.';
+        });
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
-        nextStep();
+        if (validate()) {
+            nextStep();
+        } else {
+            // Scroll to the first error
+            const firstErrorKey = Object.keys(errors)[0];
+            if (firstErrorKey) {
+                console.warn("Validation failed in Step 5:", errors);
+            }
+            // Simple alert for immediate feedback
+            alert("Por favor, corrige los errores en la configuración antes de continuar.");
+        }
     };
 
     const addTransfer = () => {
@@ -122,13 +171,18 @@ export const Step5_Tools: React.FC = () => {
 
                         <div style={{ background: 'white', padding: '24px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                             {extractionVariables.map((variable, idx) => (
-                                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr auto', gap: '12px', marginBottom: '12px' }}>
-                                    <input type="text" className="form-control" placeholder="Nombre variable" value={variable.name} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].name = e.target.value; updateField('extractionVariables', newVars); }} />
-                                    <select className="form-control" value={variable.type} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].type = e.target.value; updateField('extractionVariables', newVars); }}>
-                                        <option value="string">Texto</option><option value="number">Número</option><option value="boolean">Verdadero/Falso</option>
-                                    </select>
-                                    <input type="text" className="form-control" placeholder="Descripción de qué extraer" value={variable.description} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].description = e.target.value; updateField('extractionVariables', newVars); }} />
-                                    <button type="button" className="btn btn-outline-danger" onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}><i className="bi bi-trash"></i></button>
+                                <div key={idx} className="mb-3">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr auto', gap: '12px' }}>
+                                        <input type="text" className={`form-control ${errors[`extraction_${idx}_name`] ? 'is-invalid' : ''}`} placeholder="Nombre variable" value={variable.name} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].name = e.target.value; updateField('extractionVariables', newVars); }} />
+                                        <select className="form-control" value={variable.type} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].type = e.target.value; updateField('extractionVariables', newVars); }}>
+                                            <option value="string">Texto</option><option value="number">Número</option><option value="boolean">Verdadero/Falso</option>
+                                        </select>
+                                        <input type="text" className={`form-control ${errors[`extraction_${idx}_desc`] ? 'is-invalid' : ''}`} placeholder="Descripción de qué extraer" value={variable.description} onChange={(e) => { const newVars = [...extractionVariables]; newVars[idx].description = e.target.value; updateField('extractionVariables', newVars); }} />
+                                        <button type="button" className="btn btn-outline-danger" onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}><i className="bi bi-trash"></i></button>
+                                    </div>
+                                    {(errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]) && (
+                                        <div className="text-danger small mt-1">{errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]}</div>
+                                    )}
                                 </div>
                             ))}
                             <button type="button" className="btn btn-sm btn-outline-primary mt-2" onClick={addVariable}><i className="bi bi-plus"></i> Añadir variable</button>
@@ -162,7 +216,7 @@ export const Step5_Tools: React.FC = () => {
                                         background: '#f8fafc',
                                         padding: '20px',
                                         borderRadius: '12px',
-                                        border: '1px solid #e2e8f0',
+                                        border: `1px solid ${errors[`transfer_${idx}_name`] || errors[`transfer_${idx}_number`] || errors[`transfer_${idx}_agent`] ? '#ef4444' : '#e2e8f0'}`,
                                         marginBottom: '16px',
                                         position: 'relative'
                                     }}>
@@ -183,7 +237,7 @@ export const Step5_Tools: React.FC = () => {
                                                 <label className="form-label small">Nombre del contacto</label>
                                                 <input
                                                     type="text"
-                                                    className="form-control"
+                                                    className={`form-control ${errors[`transfer_${idx}_name`] ? 'is-invalid' : ''}`}
                                                     placeholder="Ej: Sonia / Soporte"
                                                     value={dest.name}
                                                     onChange={(e) => {
@@ -192,6 +246,7 @@ export const Step5_Tools: React.FC = () => {
                                                         updateField('transferDestinations', newDests);
                                                     }}
                                                 />
+                                                {errors[`transfer_${idx}_name`] && <div className="text-danger small mt-1">{errors[`transfer_${idx}_name`]}</div>}
                                             </div>
                                             <div className="form-group mb-0">
                                                 <label className="form-label small">Instrucción para el agente (Cuándo transferir)</label>
@@ -232,8 +287,8 @@ export const Step5_Tools: React.FC = () => {
                                                 <label className="form-label small">{dest.destination_type === 'agent' ? "Seleccionar Agente de Retell" : "Número de teléfono"}</label>
                                                 {dest.destination_type === 'agent' ? (
                                                     <select
-                                                        className="form-control"
-                                                        style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
+                                                        className={`form-control ${errors[`transfer_${idx}_agent`] ? 'is-invalid' : ''}`}
+                                                        style={{ border: errors[`transfer_${idx}_agent`] ? '1px solid #ef4444' : '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
                                                         value={dest.agentId || ''}
                                                         onChange={(e) => {
                                                             const newDests = [...transferDestinations];
@@ -254,8 +309,8 @@ export const Step5_Tools: React.FC = () => {
                                                 ) : (
                                                     <input
                                                         type="text"
-                                                        className="form-control"
-                                                        style={{ border: '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
+                                                        className={`form-control ${errors[`transfer_${idx}_number`] ? 'is-invalid' : ''}`}
+                                                        style={{ border: errors[`transfer_${idx}_number`] ? '1px solid #ef4444' : '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
                                                         placeholder="+34..."
                                                         value={dest.number}
                                                         onChange={(e) => {
@@ -265,6 +320,8 @@ export const Step5_Tools: React.FC = () => {
                                                         }}
                                                     />
                                                 )}
+                                                {errors[`transfer_${idx}_agent`] && <div className="text-danger small mt-1">{errors[`transfer_${idx}_agent`]}</div>}
+                                                {errors[`transfer_${idx}_number`] && <div className="text-danger small mt-1">{errors[`transfer_${idx}_number`]}</div>}
                                             </div>
                                         </div>
                                     </div>
@@ -272,6 +329,7 @@ export const Step5_Tools: React.FC = () => {
                                 <button type="button" className="btn btn-sm btn-outline-primary" onClick={addTransfer}>
                                     <i className="bi bi-plus"></i> Añadir destino
                                 </button>
+                                {errors.transfer && <div className="text-danger small mt-2">{errors.transfer}</div>}
                             </div>
                         )}
                     </div>
@@ -300,21 +358,23 @@ export const Step5_Tools: React.FC = () => {
                                     <label className="form-label">Cal.com API Key</label>
                                     <input
                                         type="password"
-                                        className="form-control"
+                                        className={`form-control ${errors.calApiKey ? 'is-invalid' : ''}`}
                                         value={calApiKey}
                                         onChange={(e) => updateField('calApiKey', e.target.value)}
                                         placeholder="cal_live_..."
                                     />
+                                    {errors.calApiKey && <div className="invalid-feedback">{errors.calApiKey}</div>}
                                 </div>
                                 <div className="form-group mb-0">
                                     <label className="form-label">Event Type ID</label>
                                     <input
                                         type="text"
-                                        className="form-control"
+                                        className={`form-control ${errors.calEventId ? 'is-invalid' : ''}`}
                                         value={calEventId}
                                         onChange={(e) => updateField('calEventId', e.target.value)}
                                         placeholder="123456"
                                     />
+                                    {errors.calEventId && <div className="invalid-feedback">{errors.calEventId}</div>}
                                 </div>
                                 <div className="form-group mb-0" style={{ gridColumn: '1 / -1' }}>
                                     <label className="form-label">Cal.com Link (opcional)</label>

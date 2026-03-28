@@ -213,14 +213,29 @@ export async function POST(request: Request) {
     } catch (error: unknown) {
         console.error("Error creating agent:", error);
         
+        let errorMsg = error instanceof Error ? error.message : String(error);
+        if (typeof error === 'object' && error !== null && 'response' in error) {
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const resp = (error as any).response;
+                if (resp && typeof resp.text === 'function') {
+                    const detail = await resp.text();
+                    console.error("Retell API Error Detail:", detail);
+                    errorMsg += ` - Detail: ${detail}`;
+                }
+            } catch (e) {
+                console.warn("Could not parse Retell error detail", e);
+            }
+        }
+
         // Factory Error Alert
         await reportFactoryError('API /api/retell/agent (POST)', 
-            error instanceof Error ? error.message : String(error),
+            errorMsg,
             { action: 'create_agent' }
         );
 
         return NextResponse.json(
-            { success: false, error: error instanceof Error ? error.message : "Failed to create agent" },
+            { success: false, error: errorMsg },
             { status: 500 }
         );
     }
@@ -372,14 +387,29 @@ export async function PATCH(request: Request) {
     } catch (error: unknown) {
         console.error("Error updating agent:", error);
 
+        let errorMsg = error instanceof Error ? error.message : String(error);
+        if (typeof error === 'object' && error !== null && 'response' in error) {
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const resp = (error as any).response;
+                if (resp && typeof resp.text === 'function') {
+                    const detail = await resp.text();
+                    console.error("Retell API Error Detail (PATCH):", detail);
+                    errorMsg += ` - Detail: ${detail}`;
+                }
+            } catch (e) {
+                console.warn("Could not parse Retell error detail in PATCH", e);
+            }
+        }
+
         // Factory Error Alert
         await reportFactoryError('API /api/retell/agent (PATCH)', 
-            error instanceof Error ? error.message : String(error),
+            errorMsg,
             { action: 'update_agent', id: payload?.id }
         );
 
         return NextResponse.json(
-            { success: false, error: error instanceof Error ? error.message : "Failed to update agent" },
+            { success: false, error: errorMsg },
             { status: 500 }
         );
     }
