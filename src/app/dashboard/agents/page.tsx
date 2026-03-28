@@ -17,6 +17,8 @@ interface Agent {
     type: string;
     status: string;
     created_at: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    configuration?: any;
 }
 
 interface UserProfile {
@@ -248,17 +250,17 @@ export default function AgentsPage() {
                 .agent-title{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
                 .agent-type{font-size:13px;color:#6b7280;font-weight:500;}
                 .agent-status{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;background:#dcfce7;color:#16a34a}
-                .agent-meta{margin-top:auto;padding-top:16px;border-top:1px solid #f3f4f6;display:flex;flex-direction:column;gap:8px;font-size:13px;color:#6b7280}
-                .agent-actions{display:flex;gap:10px;margin-top:20px}
-                .btn-edit{flex:1;padding:8px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;font-size:13px;font-weight:600;color:#267ab0;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none}
-                .btn-edit:hover{background:#eff6fb;border-color:#267ab0}
+                .agent-meta{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:#6b7280}
+                .agent-actions{display:flex;gap:10px;margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb;}
+                .btn-edit{flex:1;padding:8px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;color:#4b5563;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+                .btn-edit:hover{background:#f9fafb;border-color:#d1d5db;color:#1a1a1a;}
                 .btn-delete{padding:8px 12px;border:1px solid #fee2e2;background:#fff;border-radius:8px;color:#ef4444;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
                 .btn-delete:hover{background:#fef2f2;border-color:#ef4444}
                 .spinner{border:3px solid #f3f4f6;border-top:3px solid #267ab0;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 16px}
                 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
                 .empty-state{padding:80px 40px;text-align:center;color:#6b7280;background:#fff;border-radius:12px;border:1px dashed #d1d5db}
                 .empty-icon{font-size:48px;color:#9ca3af;margin-bottom:16px}
-                .btn-test{flex:1;padding:8px;border:1px solid #e5e7eb;background:#267ab0;border-radius:8px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+                .btn-test{flex:1;padding:8px;background:#267ab0;border:1px solid #267ab0;border-radius:8px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
                 .btn-test:hover{background:#1e5a87;border-color:#1e5a87}
                 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
                 .modal-content{background:#fff;border-radius:24px;width:100%;max-width:480px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);overflow:hidden;animation:modal-enter 0.3s cubic-bezier(0.16,1,0.3,1)}
@@ -362,66 +364,97 @@ export default function AgentsPage() {
                         </div>
                     ) : (
                         <div className="agents-grid">
-                            {agents.map(agent => (
-                                <div key={agent.id} className="agent-card">
-                                    <div className="agent-header">
-                                        <div className="agent-info-left">
-                                            <div className="agent-avatar-lg">
-                                                {agent.name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <h3 className="agent-title">{agent.name}</h3>
-                                                <div className="agent-type">{getAgentTypeName(agent.type)}</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {agents.map(agent => {
+                                const modelNames: Record<string, string> = {
+                                    'gpt-4.1': 'gpt-4.1',
+                                    'gpt-5.1': 'gpt-5.1',
+                                    'gpt-5.2': 'gpt-5.2',
+                                    'gemini-3.0-flash': 'gemini-3.0-flash',
+                                    'gemini-2.5-pro': 'gemini-2.5-pro',
+                                    'claude-3.5-sonnet': 'claude-3.5-sonnet'
+                                };
+                                const _mdl = agent.configuration?.model || 'gpt-4.1';
+                                const displayModel = modelNames[_mdl] || _mdl;
 
-                                    <div className="agent-meta">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <span>Estado:</span>
-                                            <span className="agent-status">
-                                                {agent.status === 'active' ? '✓ Activo' : agent.status}
+                                const displayVoiceMap: Record<string, string> = {
+                                    '11labs-Adrian': 'Voz Adrián',
+                                    'cartesia-Isabel': 'Voz Isabel',
+                                    '11068': 'Voz Cristina',
+                                    '11844': 'Voz Mari Carme',
+                                    '12051': 'Voz Cimo',
+                                    'cartesia-Manuel': 'Voz Manuel',
+                                    '11375': 'Voz Santiago',
+                                    '11753': 'Voz Adrian'
+                                };
+                                const _voice = agent.configuration?.voiceId || '11labs-Adrian';
+                                const displayVoice = displayVoiceMap[_voice] || ('Voz ' + _voice.split('-').pop());
+
+                                return (
+                                    <div key={agent.id} className="agent-card">
+                                        <div className="agent-header">
+                                            <div className="agent-info-left">
+                                                <div className="agent-avatar-lg" style={{ background: agent.type === 'transferencia' ? '#fff7ed' : '#eff6fb', color: agent.type === 'transferencia' ? '#f97316' : '#267ab0' }}>
+                                                    {agent.type === 'transferencia' ? (
+                                                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 5h6m0 0v6m0-6l-7 7" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h3 className="agent-title">{agent.name}</h3>
+                                                    <div className="agent-type">
+                                                        {getAgentTypeName(agent.type)}
+                                                        {agent.type === 'cualificacion' && ' y atención'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="agent-status" style={{ background: agent.status === 'active' ? '#dcfce7' : undefined, color: agent.status === 'active' ? '#16a34a' : undefined }}>
+                                                {agent.status === 'active' ? '● Activo' : agent.status}
                                             </span>
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <span>Creación:</span>
-                                            <span suppressHydrationWarning style={{ color: '#1a1a1a', fontWeight: 500 }}>
-                                                {new Date(agent.created_at).toLocaleDateString('es-ES')}
-                                            </span>
-                                        </div>
-                                    </div>
 
-                                    <div className="agent-actions">
-                                        <button className="btn-test" onClick={() => setTestAgent(agent)}>
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Probar
-                                        </button>
-                                        <Link href={`/wizard?editId=${agent.id}`} className="btn-edit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ marginRight: '6px' }}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                            Editar
-                                        </Link>
-                                        <button
-                                            className="btn-delete"
-                                            title="Eliminar agente"
-                                            onClick={() => handleDelete(agent.id, agent.name)}
-                                            disabled={isDeletingId === agent.id}
-                                        >
-                                            {isDeletingId === agent.id ? (
-                                                <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', marginBottom: 0, borderColor: '#ef4444', borderTopColor: 'transparent' }} />
-                                            ) : (
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        <div className="agent-meta">
+                                            <div style={{ paddingBottom: '0px', color: '#6b7280', fontSize: '13px', display: 'flex', gap: '4px' }}>
+                                                {displayModel} · {displayVoice} · <span suppressHydrationWarning>{new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="agent-actions">
+                                            <Link href={`/wizard?editId=${agent.id}`} className="btn-edit">
+                                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                 </svg>
-                                            )}
-                                        </button>
+                                                Editar
+                                            </Link>
+                                            <button
+                                                className="btn-delete"
+                                                title="Eliminar agente"
+                                                onClick={() => handleDelete(agent.id, agent.name)}
+                                                disabled={isDeletingId === agent.id}
+                                            >
+                                                {isDeletingId === agent.id ? (
+                                                    <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', marginBottom: 0, borderColor: '#ef4444', borderTopColor: 'transparent' }} />
+                                                ) : (
+                                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                            <button className="btn-test" onClick={() => setTestAgent(agent)}>
+                                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                </svg>
+                                                Probar
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
