@@ -743,30 +743,21 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
             <div className="form-card">
                 <WizardStepHeader
                     title="Resumen y confirmación"
-                    subtitle="Revisa la configuración final de tu agente antes de crearlo o guardarlo."
-                    tooltipContent={
-                        <>
-                            <strong>Paso final.</strong> Aquí puedes ver un resumen de todas las decisiones tomadas y una previsualización del prompt generado.
-                        </>
-                    }
+                    subtitle="Revisa toda la configuración de tu agente. Puedes editar cualquier campo directamente o volver al paso correspondiente."
                 />
 
                 {/* BANNER ÉXITO CONFIGURACIÓN */}
-                <div style={S.alertSuccess}>
-                    <i className="bi bi-check-circle-fill" style={{ fontSize: '32px', color: '#10b981' }} />
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <i className="bi bi-check-circle-fill" style={{ fontSize: '24px', color: '#10b981', flexShrink: 0 }} />
                     <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1a2428', margin: '0 0 6px 0' }}>
-                            ¡Configuración completada!
-                        </h3>
-                        <p style={{ fontSize: '14px', color: '#6c757d', margin: 0 }}>
-                            Has completado todos los pasos. Revisa el resumen y crea tu agente.
-                        </p>
+                        <div style={{ fontWeight: 700, fontSize: '15px', color: '#166534' }}>Configuración completada</div>
+                        <div style={{ fontSize: '13px', color: '#16a34a', marginTop: '2px' }}>Todos los pasos están bien. Revisa el resumen y activa el agente cuando estés listo.</div>
                     </div>
                 </div>
 
                 {/* ERROR */}
                 {showError && (
-                    <div style={S.alertDanger}>
+                    <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                         <span style={{ fontSize: '14px', color: '#ef4444', fontWeight: 500 }}>
                             <i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '8px' }} />
                             {errorMessage}
@@ -775,188 +766,307 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
                     </div>
                 )}
 
-                {/* SUMMARY GRID */}
-                <div style={S.summaryGrid}>
-                    {/* Paso 1 */}
-                    <SummaryCard icon="bi-info-circle-fill" color="#267ab0" title="Paso 1: Información básica" step={1} onEdit={setStep}>
-                        <SummaryRow label="Nombre del agente" value={wizardData.agentName || '—'} />
-                        <SummaryRow label="Empresa" value={wizardData.companyName || '—'} />
-                        <SummaryRow label="Actividad" value={wizardData.companyDescription || '—'} last />
-                    </SummaryCard>
+                {/* ─── STEP CARDS ─── */}
+                {([
+                    {
+                        step: 1, icon: 'bi-info-circle', color: '#267ab0', label: 'Información básica', stepLabel: 'Paso 1',
+                        content: (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Nombre del agente</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a2428' }}>{wizardData.agentName || '—'}</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Nombre de la empresa</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a2428' }}>{wizardData.companyName || '—'}</div>
+                                </div>
+                                {wizardData.companyDescription && (
+                                    <div style={{ gridColumn: '1 / -1' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Descripción de la empresa</div>
+                                        <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.5' }}>{wizardData.companyDescription}</div>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    },
+                    {
+                        step: 2, icon: 'bi-cpu', color: '#8b5cf6', label: 'Modelo de IA y comportamiento', stepLabel: 'Paso 2',
+                        content: (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Modelo IA</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a2428' }}>{wizardData.model === 'gemini-2.0-flash' ? 'Gemini 3.0 Flash' : wizardData.model === 'gpt-4.1' ? 'GPT-4.1' : wizardData.model || '—'}</span>
+                                        {wizardData.model === 'gemini-2.0-flash' && <span style={{ background: '#f0fdf4', color: '#16a34a', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px' }}>Recomendado</span>}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Quién habla primero</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a2428' }}>{wizardData.beginMessage ? 'El agente habla primero' : 'El usuario habla primero'}</div>
+                                </div>
+                                {wizardData.personality.length > 0 && (
+                                    <div>
+                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Personalidad</div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {wizardData.personality.map((p: string) => (
+                                                <span key={p} style={{ background: '#267ab0', color: 'white', fontSize: '12px', fontWeight: 600, padding: '3px 10px', borderRadius: '20px' }}>{p}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Tono</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a2428' }}>{wizardData.tone || '—'}</div>
+                                </div>
+                                {wizardData.beginMessage && (
+                                    <div style={{ gridColumn: '1 / -1' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Mensaje de inicio</div>
+                                        <div style={{ fontSize: '13px', color: '#475569', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', borderLeft: '3px solid #267ab0', lineHeight: '1.6' }}>{wizardData.beginMessage}</div>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    },
+                    {
+                        step: 3, icon: 'bi-mic', color: '#10b981', label: 'Voz seleccionada', stepLabel: 'Paso 3',
+                        content: (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc', borderRadius: '12px', padding: '14px 16px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#267ab0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '16px', flexShrink: 0 }}>
+                                    {(wizardData.voiceName || 'V').charAt(0)}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1a2428' }}>{wizardData.voiceName || '—'}</div>
+                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Voz seleccionada · ElevenLabs</div>
+                                </div>
+                                <i className="bi bi-volume-up" style={{ color: '#267ab0', fontSize: '18px' }}></i>
+                            </div>
+                        )
+                    },
+                    {
+                        step: 4, icon: 'bi-sliders', color: '#f59e0b', label: 'Configuración de audio', stepLabel: 'Paso 4',
+                        content: (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Volumen del agente</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ flex: 1, height: '6px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${(wizardData.volume * 100).toFixed(0)}%`, background: '#267ab0', borderRadius: '6px' }}></div>
+                                        </div>
+                                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#1a2428' }}>{(wizardData.volume * 100).toFixed(0)}%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Sonido ambiente</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a2428' }}>
+                                        {wizardData.enableAmbientSound ? (wizardData.ambientSound || 'Activado') : '— Ninguno'}
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    },
+                ] as Array<{ step: number; icon: string; color: string; label: string; stepLabel: string; content: React.ReactNode }>).map(({ step, icon, color, label, stepLabel, content }) => (
+                    <div key={step} style={{ background: 'white', border: '1px solid #edf2f7', borderRadius: '14px', marginBottom: '16px', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #edf2f7' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <i className={`bi ${icon}`} style={{ color, fontSize: '16px' }}></i>
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1a2428' }}>{label}</div>
+                                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>{stepLabel}</div>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setStep(step)}
+                                style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', color: '#64748b', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            >
+                                <i className="bi bi-pencil"></i> ir al paso {step}
+                            </button>
+                        </div>
+                        <div style={{ padding: '16px 20px' }}>{content}</div>
+                    </div>
+                ))}
 
-                    {/* Paso 2 */}
-                    <SummaryCard icon="bi-cpu-fill" color="#267ab0" title="Paso 2: Cerebro LLM" step={2} onEdit={setStep}>
-                        <SummaryRow label="Modelo de IA" value={wizardData.model || '—'} />
-                        <SummaryRow label="Idioma" value={getLanguageName(wizardData.language)} />
-                        <SummaryRow label="Tono" value={wizardData.tone || '—'} last />
-                    </SummaryCard>
-
-                    {/* Paso 3 */}
-                    <SummaryCard icon="bi-mic-fill" color="#10b981" title="Paso 3: Voz" step={3} onEdit={setStep}>
-                        <SummaryRow label="Voz seleccionada" value={wizardData.voiceName || '—'} last />
-                    </SummaryCard>
-
-                    {/* Paso 4 */}
-                    <SummaryCard icon="bi-volume-up-fill" color="#267ab0" title="Paso 4: Audio" step={4} onEdit={setStep}>
-                        <SummaryRow label="Volumen agente" value={(wizardData.volume * 100).toFixed(0) + '%'} />
-                        <SummaryRow label="Ruido ambiente" value={wizardData.enableAmbientSound ? (wizardData.ambientSound || 'Activado') : 'Desactivado'} last />
-                    </SummaryCard>
-
-                    {/* Paso 5 Full Width */}
-                    <SummaryCard icon="bi-box-seam-fill" color="#f59e0b" title="Paso 5: Tipo y Herramientas" step={5} onEdit={setStep} fullWidth>
-                        <SummaryRow label="Tipo de agente" value={getAgentTypeName(wizardData.agentType)} />
-                        <SummaryRow label="Reserva de citas" value={wizardData.enableCalBooking ? 'Activado' : 'Desactivado'} />
-                        <SummaryRow label="Transferencias" value={wizardData.enableTransfer ? `Sí (${wizardData.transferDestinations.length} destinos)` : 'No'} />
-                        <SummaryRow label="Variables extracción" value={`${wizardData.extractionVariables.length} variable(s)`} last />
-                    </SummaryCard>
-                </div>
-
-                {/* KNOWLEDGE BASE */}
-                <div style={{ marginBottom: '32px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                        <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#1a2428', margin: 0 }}>
-                            <i className="bi bi-book-half me-2" /> Base de conocimientos
-                        </h4>
-                        <div className="custom-tooltip">
-                            <i className="bi bi-question-circle-fill tooltip-icon" style={{ fontSize: '14px' }}></i>
-                            <div className="tooltip-content shadow" style={{ width: '280px' }}>
-                                Sube documentos para que tu agente responda con información precisa.
-                                Límite: 3 archivos, máx 10 MB cada uno (.md, .txt, .pdf, .docx).
+                {/* ─── HERRAMIENTAS ACTIVAS ─── */}
+                <div style={{ background: 'white', border: '1px solid #edf2f7', borderRadius: '14px', marginBottom: '16px', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #edf2f7' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <i className="bi bi-tools" style={{ color: '#f59e0b', fontSize: '16px' }}></i>
+                            </div>
+                            <div>
+                                <div style={{ fontWeight: 700, fontSize: '14px', color: '#1a2428' }}>Herramientas activas</div>
+                                <div style={{ fontSize: '11px', color: '#94a3b8' }}>Paso 5</div>
                             </div>
                         </div>
+                        <button type="button" onClick={() => setStep(5)} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', color: '#64748b', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <i className="bi bi-pencil"></i> ir al paso 5
+                        </button>
                     </div>
+                    <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[
+                            { icon: 'bi-funnel-fill', color: '#267ab0', name: 'Cualificación de lead', desc: 'Nombre, email, motivo de la llamada', active: true },
+                            { icon: 'bi-telephone-forward', color: '#8b5cf6', name: 'Transferencia de llamadas', desc: `${wizardData.transferDestinations.length} destino(s) configurado(s)`, active: wizardData.enableTransfer },
+                            { icon: 'bi-calendar-event', color: '#10b981', name: 'Reservar cita (Cal.com)', desc: 'Sin configurar', active: wizardData.enableCalBooking },
+                        ].map(tool => (
+                            <div key={tool.name} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#f8fafc', borderRadius: '10px' }}>
+                                <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: `${tool.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <i className={`bi ${tool.icon}`} style={{ color: tool.color, fontSize: '15px' }}></i>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a2428' }}>{tool.name}</div>
+                                    <div style={{ fontSize: '12px', color: '#64748b' }}>{tool.desc}</div>
+                                </div>
+                                <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px', background: tool.active ? '#f0fdf4' : '#f1f5f9', color: tool.active ? '#16a34a' : '#94a3b8' }}>
+                                    {tool.active ? 'Activo' : 'Desactivado'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
-                    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                {/* ─── BASE DE CONOCIMIENTO ─── */}
+                <div style={{ background: 'white', border: '1px solid #edf2f7', borderRadius: '14px', marginBottom: '16px', overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid #edf2f7', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eff6fb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <i className="bi bi-book" style={{ color: '#267ab0', fontSize: '16px' }}></i>
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: 700, fontSize: '14px', color: '#1a2428' }}>Base de conocimiento</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Sube documentos con información sobre tu empresa. El agente los usará para responder preguntas con mayor precisión.</div>
+                        </div>
+                    </div>
+                    <div style={{ padding: '20px' }}>
                         {uploadError && (
                             <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '14px', color: '#ef4444', fontWeight: 600 }}>
                                 <span><i className="bi bi-exclamation-circle-fill me-2" />{uploadError}</span>
                                 <button onClick={() => setUploadError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '20px', lineHeight: 1 }}>×</button>
                             </div>
                         )}
-
-                        <div>
-                            <label htmlFor="kb-upload" style={{ cursor: isUploading ? 'default' : 'pointer', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: isUploading ? 0.5 : 1 }}>
+                        <label htmlFor="kb-upload" style={{ cursor: isUploading ? 'default' : 'pointer', display: 'block' }}>
+                            <div style={{ border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '32px', textAlign: 'center', background: '#f8fafc', opacity: isUploading ? 0.5 : 1 }}>
                                 {isUploading ? (
-                                    <div className="py-3 text-center">
+                                    <div>
                                         <div className="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
-                                        <div style={{ color: '#267ab0', fontWeight: 'bold' }}>Subiendo...</div>
+                                        <div style={{ color: '#267ab0', fontWeight: 700 }}>Subiendo...</div>
                                     </div>
                                 ) : (
-                                    <div className="w-100 text-center py-3">
-                                        <i className="bi bi-cloud-arrow-up" style={{ fontSize: '24px', color: '#64748b' }}></i>
-                                        <div style={{ fontSize: '15px', color: '#1a2428', fontWeight: 600, marginTop: '8px' }}>
-                                            Haz clic para subir archivos
-                                        </div>
-                                    </div>
+                                    <>
+                                        <i className="bi bi-cloud-arrow-up" style={{ fontSize: '32px', color: '#94a3b8', display: 'block', marginBottom: '10px' }}></i>
+                                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a2428', marginBottom: '4px' }}>Arrastra archivos aquí o haz clic para subir</div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>PDF, TXT, MD · Máx. 25 MB por archivo</div>
+                                    </>
                                 )}
-                            </label>
-                            <input
-                                type="file"
-                                id="kb-upload"
-                                style={{ display: 'none' }}
-                                multiple
-                                accept=".md,.txt,.pdf,.docx"
-                                onChange={handleFileUpload}
-                                disabled={isUploading}
-                            />
-                        </div>
-
+                            </div>
+                        </label>
+                        <input type="file" id="kb-upload" style={{ display: 'none' }} multiple accept=".md,.txt,.pdf,.docx" onChange={handleFileUpload} disabled={isUploading} />
                         {wizardData.kbFiles.length > 0 && (
                             <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {wizardData.kbFiles.map((file, idx) => (
-                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 14px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                                            <i className="bi bi-file-earmark-text text-primary"></i>
-                                            <span style={{ fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 14px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <i className="bi bi-file-earmark-text" style={{ color: '#267ab0' }}></i>
+                                            <span style={{ fontSize: '13px', fontWeight: 600 }}>{file.name}</span>
                                             <span style={{ fontSize: '12px', color: '#94a3b8' }}>({file.size})</span>
                                         </div>
-                                        <button type="button" onClick={() => removeFile(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Eliminar">
+                                        <button type="button" onClick={() => removeFile(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
                                             <i className="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 ))}
                             </div>
                         )}
-
-                        <div className="mt-3">
-                            <label style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px', display: 'block' }}>Instrucciones de uso de la base</label>
-                            <textarea
-                                className="form-control"
-                                rows={2}
-                                style={{ borderRadius: '8px', fontSize: '13px' }}
-                                placeholder="Ej: Consulta esta información solo para dudas técnicas sobre precios."
-                                value={wizardData.kbUsageInstructions}
-                                onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
-                            />
+                        <div style={{ marginTop: '16px', background: '#f0f7ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '12px 14px', fontSize: '12px', color: '#1e40af', lineHeight: '1.6' }}>
+                            <i className="bi bi-info-circle-fill" style={{ marginRight: '6px' }}></i>
+                            Al subir archivos XLSX, haremos el procesado de la información (el estado de que se haya actualizado se indicará con una marca de estado). <strong>Recuerda documentar correctamente tus documentos para que el agente los pueda procesar.</strong>
                         </div>
                     </div>
                 </div>
 
-                {/* NOTAS PERSONALIZADAS */}
-                <div style={{ marginBottom: '32px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                        <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#1a2428', margin: 0 }}>
-                            <i className="bi bi-pencil-square me-2" /> Notas adicionales del prompt
-                        </h4>
-                        <div className="custom-tooltip">
-                            <i className="bi bi-question-circle-fill tooltip-icon" style={{ fontSize: '14px' }}></i>
-                            <div className="tooltip-content shadow" style={{ width: '280px' }}>
-                                <strong>Instrucciones personalizadas</strong><br />
-                                Todo lo que escribas aquí se añadirá al final del prompt en una sección llamada &quot;# Notas&quot;.
-                                <br /><br />
-                                Ideal para reglas específicas, comportamientos únicos o datos que no están en los otros pasos.
+                {/* ─── NOTAS ADICIONALES ─── */}
+                <div style={{ background: 'white', border: '1px solid #edf2f7', borderRadius: '14px', marginBottom: '24px', overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid #edf2f7', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <i className="bi bi-pencil-square" style={{ color: '#267ab0' }}></i>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1a2428' }}>Notas adicionales <span style={{ fontWeight: 400, fontSize: '12px', color: '#94a3b8' }}>(opcional)</span></div>
+                    </div>
+                    <div style={{ padding: '16px 20px' }}>
+                        <textarea
+                            className="form-control"
+                            rows={3}
+                            placeholder={`Ej: ${PROMPT_NOTE_EXAMPLES[placeholderIndex]}`}
+                            value={wizardData.customNotes}
+                            onChange={(e) => updateField('customNotes', e.target.value)}
+                            style={{ borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', resize: 'vertical', padding: '12px 14px' }}
+                        />
+                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
+                            <i className="bi bi-info-circle me-1"></i>Estas notas se añadirán al final del prompt para personalizar el comportamiento del agente.
+                        </div>
+                    </div>
+                </div>
+
+                {/* ─── TU AGENTE ESTARÁ LISTO PARA ─── */}
+                <div style={{ background: '#f8fafc', border: '1px solid #edf2f7', borderRadius: '14px', padding: '20px 24px', marginBottom: '28px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1a2428', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="bi bi-lightning-fill" style={{ color: '#f59e0b' }}></i> Tu agente estará listo para:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {([
+                            { icon: 'bi-telephone-fill', label: 'Atender llamadas entrantes en nombre de ' + (wizardData.companyName || 'netelip'), show: true },
+                            { icon: 'bi-funnel-fill', label: 'Cualificar contactos y recoger datos', show: true },
+                            { icon: 'bi-arrow-left-right', label: 'Transferir al equipo cuando sea necesario', show: wizardData.enableTransfer },
+                            { icon: 'bi-shield-check', label: 'Identificarse como IA y avisar de la grabación (LOPD)', show: true },
+                        ] as Array<{ icon: string; label: string; show: boolean }>).filter(i => i.show).map(item => (
+                            <div key={item.label} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <i className={`bi ${item.icon}`} style={{ color: '#267ab0', marginTop: '2px', flexShrink: 0 }}></i>
+                                <span style={{ fontSize: '13px', color: '#475569', lineHeight: '1.5' }}>{item.label}</span>
                             </div>
-                        </div>
+                        ))}
                     </div>
-                    <textarea
-                        className="form-control"
-                        rows={4}
-                        placeholder={`Ej: ${PROMPT_NOTE_EXAMPLES[placeholderIndex]}`}
-                        value={wizardData.customNotes}
-                        onChange={(e) => updateField('customNotes', e.target.value)}
-                        style={{
-                            minHeight: '100px',
-                            background: '#fff',
-                            border: '1px solid #ced4da',
-                            borderRadius: '12px',
-                            padding: '16px',
-                            fontSize: '14px',
-                            resize: 'vertical',
-                            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)'
-                        }}
-                    />
-                    <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px' }}>
-                        <i className="bi bi-info-circle me-1" /> Estas notas se mantendrán incluso si cambias otras configuraciones.
-                    </p>
                 </div>
 
-                {/* ACTION BUTTONS */}
-                <div style={S.actionButtons}>
+                {/* ─── BIG CTA ─── */}
+                <button
+                    onClick={handleCreateAgent}
+                    disabled={isCreating}
+                    style={{
+                        width: '100%',
+                        padding: '16px',
+                        background: editingAgentId ? '#267ab0' : '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        cursor: isCreating ? 'not-allowed' : 'pointer',
+                        opacity: isCreating ? 0.7 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        transition: 'all 0.2s',
+                        marginBottom: '10px'
+                    }}
+                >
+                    {isCreating ? (
+                        <><span className="spinner-border spinner-border-sm" /> {editingAgentId ? 'Guardando cambios...' : 'Creando agente...'}</>
+                    ) : (
+                        <><i className={editingAgentId ? 'bi bi-floppy' : 'bi bi-robot'} style={{ fontSize: '18px' }} />
+                            {editingAgentId ? 'Guardar Cambios' : 'Crear agente IA'}</>
+                    )}
+                </button>
+                <div style={{ textAlign: 'center', fontSize: '12px', color: '#94a3b8', marginBottom: '28px' }}>
+                    Puedes editar y volver al agente desde &quot;Mis agentes&quot; en cualquier momento.
+                </div>
+
+                {/* ANTERIOR */}
+                <div style={{ paddingTop: '20px', borderTop: '1px solid #edf2f7' }}>
                     <button
-                        onClick={handleCreateAgent}
+                        onClick={prevStep}
                         disabled={isCreating}
-                        style={{
-                            ...S.btnCreateAgent,
-                            background: editingAgentId ? '#267ab0' : '#10b981',
-                            opacity: isCreating ? 0.6 : 1,
-                            cursor: isCreating ? 'not-allowed' : 'pointer',
-                            fontSize: '15px',
-                        }}
+                        style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 20px', fontSize: '13px', fontWeight: 600, color: '#64748b', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                        {isCreating ? (
-                            <><span className="spinner-border spinner-border-sm" /> {editingAgentId ? 'Guardando cambios...' : 'Creando agente...'}</>
-                        ) : (
-                            <><i className={editingAgentId ? 'bi bi-floppy' : 'bi bi-rocket-takeoff-fill'} />
-                                {editingAgentId ? 'Guardar Cambios' : 'Crear Agente IA'}
-                            </>
-                        )}
-                    </button>
-                </div>
-
-                {/* WIZARD ACTIONS */}
-                <div style={S.wizardActions}>
-                    <button style={S.btnBack} onClick={prevStep} disabled={isCreating}>
-                        <i className="bi bi-arrow-left" /> Anterior
+                        <i className="bi bi-arrow-left"></i> Anterior
                     </button>
                 </div>
             </div>

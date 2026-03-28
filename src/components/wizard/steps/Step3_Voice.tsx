@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
-import { deleteVoiceAction } from '@/app/actions/voiceActions';
 import { toast } from 'react-hot-toast';
 
 interface Voice {
@@ -52,7 +51,6 @@ export const Step3_Voice: React.FC = () => {
     const [filterLang, setFilterLang] = useState('es');
     const [legalConfirmed, setLegalConfirmed] = useState(false);
     const [playingId, setPlayingId] = useState<string | null>(null);
-    const [deletingId, setDeletingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
     const fetchVoices = async () => {
@@ -62,42 +60,22 @@ export const Step3_Voice: React.FC = () => {
             const data = await response.json();
             if (data?.success && data?.voices) {
                 // We keep all voices from API but will filter them in useMemo
-                const apiVoices = data.voices.map((v: any) => ({
+                const apiVoices = data.voices.map((v: { voice_id: string; provider?: string; [key: string]: unknown }) => ({
                     ...v,
                     provider: v.voice_id.startsWith('custom_voice_') ? 'cloned' : (v.provider || 'retell')
                 }));
-                setVoices(apiVoices);
+                setVoices(apiVoices as Voice[]);
             } else {
                 setVoices(DEFAULT_VOICES);
             }
-        } catch (error) {
-            console.error("Error loading voices:", error);
+        } catch (_err) {
+            console.error('Error loading voices:', _err);
             setVoices(DEFAULT_VOICES);
         } finally {
             setIsLoadingVoices(false);
         }
     };
 
-    const handleVoiceDelete = async (e: React.MouseEvent, voice: Voice) => {
-        e.stopPropagation();
-        if (!confirm(`¿Estás seguro de que quieres eliminar la voz "${voice.voice_name}"?`)) return;
-
-        setDeletingId(voice.voice_id);
-        try {
-            const result = await deleteVoiceAction(voice.voice_id);
-            if (result.success) {
-                toast.success('Voz eliminada');
-                setVoices(prev => prev.filter(v => v.voice_id !== voice.voice_id));
-                if (voiceId === voice.voice_id) updateField('voiceId', '');
-            } else {
-                toast.error(result.error || 'Error');
-            }
-        } catch (error) {
-            toast.error('Error inesperado');
-        } finally {
-            setDeletingId(null);
-        }
-    };
 
     React.useEffect(() => {
         fetchVoices();
@@ -181,7 +159,8 @@ export const Step3_Voice: React.FC = () => {
             } else {
                 toast.error(data?.error || "Error al clonar");
             }
-        } catch (error) {
+        } catch (_err) {
+            console.error('Error cloning voice:', _err);
             toast.error("Error al procesar la voz");
         } finally {
             setIsProcessingCustom(false);
