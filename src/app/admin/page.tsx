@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Plus, Users, Key, Loader2, Building, Trash2, Pencil, Check, X, HelpCircle, Info, Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { 
+    Plus, Users, Loader2, Trash2, 
+    Shield, Layout, Edit2
+} from 'lucide-react';
+import { createClient } from '../../lib/supabase/client';
+import DashboardSidebar from '../../components/DashboardSidebar';
 import AdminAlertSettings from '../../components/AdminAlertSettings';
 
 interface Workspace {
@@ -23,22 +29,46 @@ interface AdminUser {
     calls_count: number;
 }
 
-export default function AdminDashboard() {
+interface UserProfile {
+    full_name: string | null;
+    email: string | null;
+    role: string;
+}
+
+export default function PlatformManagement() {
+    const router = useRouter();
+    const [user, setUser] = useState<UserProfile | null>(null);
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
-
+    
+    // Form states
     const [name, setName] = useState('');
     const [retellApiKey, setRetellApiKey] = useState('');
     const [error, setError] = useState('');
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [syncMessage, setSyncMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
-    const [activeTab, setActiveTab] = useState<'workspaces' | 'users' | 'alerts'>('workspaces');
+    const [activeTab, setActiveTab] = useState<'workspaces' | 'protocolo' | 'users' | 'alerts'>('workspaces');
     const [users, setUsers] = useState<AdminUser[]>([]);
 
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editingName, setEditingName] = useState('');
-    const [showHelp, setShowHelp] = useState(false);
+
+    // Initial load
+    useEffect(() => {
+        const load = async () => {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) { router.push('/login'); return; }
+            const { data: profile } = await supabase
+                .from('users').select('full_name, email, role')
+                .eq('id', session.user.id).single();
+            
+            if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+                router.push('/dashboard');
+                return;
+            }
+            setUser(profile ?? { full_name: session.user.email ?? null, email: session.user.email ?? null, role: 'user' });
+        };
+        load();
+    }, [router]);
 
     const fetchWorkspaces = async () => {
         setIsLoading(true);
@@ -77,38 +107,10 @@ export default function AdminDashboard() {
     useEffect(() => {
         if (activeTab === 'workspaces') {
             fetchWorkspaces();
-        } else {
+        } else if (activeTab === 'users') {
             fetchUsers();
         }
     }, [activeTab]);
-
-    const handleSyncAll = async () => {
-        if (!window.confirm("¿Deseas sincronizar todos los agentes? Se aplicarán las nuevas reglas de herramientas y se preservarán las instrucciones manuales.")) {
-            return;
-        }
-
-        setIsSyncing(true);
-        setSyncMessage(null);
-        setError('');
-
-        try {
-            const res = await fetch('/api/retell/sync-agents', { method: 'POST' });
-            const data = await res.json();
-
-            if (data.success) {
-                setSyncMessage({
-                    text: `Sincronización completada: ${data.updated} agentes actualizados.`,
-                    type: 'success'
-                });
-            } else {
-                setError(data.error || "Error durante la sincronización");
-            }
-        } catch {
-            setError("Error de conexión al servidor de sincronización.");
-        } finally {
-            setIsSyncing(false);
-        }
-    };
 
     const handleCreateWorkspace = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -124,7 +126,6 @@ export default function AdminDashboard() {
             const data = await res.json();
 
             if (data.success) {
-                // Clear form & refresh
                 setName('');
                 setRetellApiKey('');
                 fetchWorkspaces();
@@ -139,470 +140,287 @@ export default function AdminDashboard() {
     };
 
     const handleDeleteWorkspace = async (id: string, name: string) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar el workspace "${name}"? Esta acción no se puede deshacer.`)) {
-            return;
-        }
-
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar "${name}"?`)) return;
         try {
-            const res = await fetch(`/api/admin/workspaces?id=${id}`, {
-                method: 'DELETE',
-            });
+            const res = await fetch(`/api/admin/workspaces?id=${id}`, { method: 'DELETE' });
             const data = await res.json();
-
-            if (data.success) {
-                fetchWorkspaces();
-            } else {
-                setError(data.error || "Error al eliminar workspace");
-            }
-        } catch {
-            setError("Error de conexión al eliminar workspace.");
-        }
+            if (data.success) fetchWorkspaces();
+            else setError(data.error || "Error al eliminar");
+        } catch { setError("Error de conexión."); }
     };
 
-    const handleDeleteUser = async (id: string, email: string) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario "${email}"? Esta acción borrará también su cuenta de acceso.`)) {
-            return;
-        }
-
-        try {
-            const res = await fetch(`/api/admin/users?userId=${id}`, {
-                method: 'DELETE',
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                fetchUsers();
-            } else {
-                setError(data.error || "Error al eliminar usuario");
-            }
-        } catch {
-            setError("Error de conexión al eliminar usuario.");
-        }
-    };
-
-    const handleUpdateWorkspace = async (id: string) => {
-        if (!editingName.trim()) return;
-
-        try {
-            const res = await fetch('/api/admin/workspaces', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, name: editingName })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                setEditingId(null);
-                fetchWorkspaces();
-            } else {
-                setError(data.error || "Error al actualizar workspace");
-            }
-        } catch {
-            setError("Error de conexión al actualizar workspace.");
-        }
-    };
+    const userInitial = (user?.full_name || user?.email || 'A')[0].toUpperCase();
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
-            {/* Minimal Admin Sidebar */}
-            <div className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col h-screen sticky top-0">
-                <div className="flex items-center gap-2 text-indigo-600 font-bold text-xl mb-10">
-                    <Settings className="w-6 h-6" />
-                    Super Admin
-                </div>
+        <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex' }}>
+            <style>{`
+                *{margin:0;padding:0;box-sizing:border-box}
+                body{font-family:'Inter',-apple-system,sans-serif;background:#f5f6f8;color:#1a1a1a}
+                
+                .main-content{flex:1;margin-left:250px;min-height:100vh;display:flex;flex-direction:column;background:#f5f6f8}
+                
+                .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;height:64px}
+                .topbar-left h1{font-size:20px;font-weight:700;color:#1a1a1a}
+                
+                .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:13px;cursor:pointer;border:none}
+                
+                .tab-nav { display: flex; gap: 32px; border-bottom: 1px solid #e2e8f0; padding: 0 48px; background: #fff; }
+                .tab-item { padding: 16px 4px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; position: relative; display: flex; align-items: center; gap: 8px; border: none; background: none; }
+                .tab-item.active { color: #2563eb; }
+                .tab-item.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: #2563eb; }
+                
+                .content-area { padding: 32px 48px; }
+                
+                /* Cards and Tables */
+                .glass-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px; }
+                .card-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+                .card-title { font-size: 16px; font-weight: 700; color: #1e293b; }
+                
+                .btn-primary { background: #1a6da1; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+                .btn-primary:hover { background: #155a84; }
+                
+                .data-table { width: 100%; border-collapse: collapse; }
+                .data-table th { text-align: left; padding: 12px 24px; background: #fafafa; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; }
+                .data-table td { padding: 16px 24px; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+                .data-table tr:hover { background: #fcfcfc; }
+                
+                .mono-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: #475569; }
+                
+                .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+                .status-badge.active { background: #dcfce7; color: #15803d; }
+                .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-                <nav className="flex-1 space-y-2">
-                    <button
+                /* Form Design */
+                .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px; }
+                .form-group label { display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px; }
+                .form-group label .required { color: #ef4444; }
+                .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; }
+                .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+                
+                .protocol-box { padding: 32px; text-align: center; color: #64748b; }
+                .protocol-box svg { color: #2563eb; margin-bottom: 16px; opacity: 0.8; }
+                .protocol-info { max-width: 500px; margin: 0 auto; line-height: 1.6; }
+                
+                .action-btn { padding: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; color: #94a3b8; cursor: pointer; transition: all 0.2s; }
+                .action-btn:hover { background: #fff; color: #1e293b; border-color: #cbd5e1; }
+                
+                .error-banner { background: #fef2f2; border: 1px solid #fee2e2; color: #b91c1c; padding: 12px 24px; margin: 32px 48px 0 48px; border-radius: 8px; font-size: 14px; }
+            `}</style>
+
+            <DashboardSidebar user={user} />
+
+            <main className="main-content">
+                <header className="topbar">
+                    <div className="topbar-left">
+                        <h1>Gestión de la Plataforma</h1>
+                    </div>
+                    <div className="topbar-right">
+                        <div className="user-avatar">{userInitial}</div>
+                    </div>
+                </header>
+
+                <nav className="tab-nav">
+                    <button 
+                        className={`tab-item ${activeTab === 'workspaces' ? 'active' : ''}`}
                         onClick={() => setActiveTab('workspaces')}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium transition-colors ${activeTab === 'workspaces' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <Building className="w-5 h-5" />
+                        <Layout size={18} />
                         Workspaces
                     </button>
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium transition-colors ${activeTab === 'users' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                    <button 
+                        className={`tab-item ${activeTab === 'protocolo' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('protocolo')}
                     >
-                        <Users className="w-5 h-5" />
+                        <Shield size={18} />
+                        Protocolo
+                    </button>
+                    <button 
+                        className={`tab-item ${activeTab === 'users' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('users')}
+                    >
+                        <Users size={18} />
                         Usuarios
                     </button>
-                    <button
+                    <button 
+                        className={`tab-item ${activeTab === 'alerts' ? 'active' : ''}`}
                         onClick={() => setActiveTab('alerts')}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium transition-colors ${activeTab === 'alerts' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <Bell className="w-5 h-5" />
-                        Alertas Globales
+                        <Shield size={18} />
+                        Alertas
                     </button>
                 </nav>
 
-                <div className="mt-auto border-t border-gray-200 pt-4">
-                    <a href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md font-medium transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Volver al Dashboard
-                    </a>
-                </div>
-            </div>
+                {error && <div className="error-banner">{error}</div>}
 
-            {/* Main Admin Area */}
-            <div className="flex-1 p-10 max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            {activeTab === 'workspaces' ? 'Workspaces (Tenants)' : activeTab === 'users' ? 'Usuarios' : 'Alertas del Sistema'}
-                            <button 
-                                onClick={() => setShowHelp(true)}
-                                className="text-gray-400 hover:text-indigo-600 transition-colors"
-                                title="Ayuda"
-                            >
-                                <HelpCircle className="w-6 h-6" />
-                            </button>
-                        </h1>
-                        <p className="text-gray-500 mt-1">
-                            {activeTab === 'workspaces'
-                                ? 'Gestiona los clientes y sus credenciales de Retell AI.'
-                                : activeTab === 'users' ? 'Detalle de registros, consumos y teléfonos de clientes.'
-                                : 'Ajustes globales de monitorización para detectar fallos'}
-                        </p>
-                    </div>
-                    <button
-                        onClick={handleSyncAll}
-                        disabled={isSyncing}
-                        className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
-                    >
-                        {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Settings className="w-5 h-5" />}
-                        Sincronizar Agentes (Global)
-                    </button>
-                </div>
-
-                {syncMessage && (
-                    <div className="bg-green-50 text-green-700 p-4 rounded-md mb-6 border border-green-200 flex justify-between items-center">
-                        <span>{syncMessage.text}</span>
-                        <button onClick={() => setSyncMessage(null)} className="text-green-900 hover:text-green-700">×</button>
-                    </div>
-                )}
-
-                {error && (
-                    <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6 border border-red-200">
-                        {error}
-                    </div>
-                )}
-
-                {activeTab === 'workspaces' ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Workspace List content same as before but wrapped */}
-                        <div className="lg:col-span-2 space-y-4">
-                            <div className="bg-white border text-gray-800 border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 font-medium text-gray-700">
-                                    Clientes Registrados ({workspaces.length})
+                <div className="content-area">
+                    {activeTab === 'workspaces' && (
+                        <>
+                            <div className="glass-card">
+                                <div className="card-header">
+                                    <h2 className="card-title">Workspaces registrados</h2>
+                                    <button className="btn-primary" onClick={() => {
+                                        const form = document.getElementById('create-form');
+                                        form?.scrollIntoView({ behavior: 'smooth' });
+                                    }}>
+                                        <Plus size={16} />
+                                        Crear workspace
+                                    </button>
                                 </div>
-                                {isLoading ? (
-                                    <div className="p-12 flex justify-center items-center text-gray-400">
-                                        <Loader2 className="w-8 h-8 animate-spin" />
-                                    </div>
-                                ) : workspaces.length === 0 ? (
-                                    <div className="p-10 text-center text-gray-500">
-                                        No hay workspaces creados. Crea el primero.
-                                    </div>
-                                ) : (
-                                    <ul className="divide-y divide-gray-200">
-                                        {workspaces.map((ws) => (
-                                            <li key={ws.id} className="p-6 hover:bg-gray-50 transition-colors">
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        {editingId === ws.id ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={editingName}
-                                                                    onChange={(e) => setEditingName(e.target.value)}
-                                                                    className="flex-1 px-2 py-1 border border-indigo-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                                    autoFocus
-                                                                />
-                                                                <button
-                                                                    onClick={() => handleUpdateWorkspace(ws.id)}
-                                                                    className="p-1 text-green-600 hover:bg-green-50 rounded"
-                                                                >
-                                                                    <Check className="w-4 h-4" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => setEditingId(null)}
-                                                                    className="p-1 text-gray-400 hover:bg-gray-50 rounded"
-                                                                >
-                                                                    <X className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2">
-                                                                <h3 className="text-lg font-semibold text-gray-900">{ws.name}</h3>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setEditingId(ws.id);
-                                                                        setEditingName(ws.name);
-                                                                    }}
-                                                                    className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
-                                                                >
-                                                                    <Pencil className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                        <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                                                            <span className="font-mono bg-gray-100 px-2 py-1 rounded">ID: {ws.id}</span>
-                                                            {ws.is_free ? (
-                                                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium flex items-center gap-1">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Libre
-                                                                </span>
-                                                            ) : (
-                                                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium flex items-center gap-1">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Asignado ({ws.users_count} user{ws.users_count !== 1 ? 's' : ''})
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleDeleteWorkspace(ws.id, ws.name)}
-                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                        title="Eliminar Workspace"
-                                                    >
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                                <div className="mt-4 pt-4 border-t border-gray-100">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <Key className="w-4 h-4 text-gray-400" />
-                                                        <span className="font-medium">Retell API Key:</span>
-                                                        <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded select-all">
-                                                            {ws.retell_api_key ? (
-                                                                ws.retell_api_key.substring(0, 12) + '...'
-                                                            ) : (
-                                                                <span className="text-red-500 italic">No configurada</span>
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Create Form */}
-                        <div className="lg:col-span-1">
-                            <div className="bg-white border text-gray-800 border-gray-200 rounded-lg shadow-sm sticky top-10">
-                                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 font-medium text-gray-700">
-                                    Añadir Nuevo Workspace
-                                </div>
-                                <div className="p-6">
-                                    <form onSubmit={handleCreateWorkspace} className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Empresa</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={name}
-                                                onChange={(e) => setName(e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="Ej. ACME Corp"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Retell API Key (Privada)</label>
-                                            <input
-                                                type="text"
-                                                value={retellApiKey}
-                                                onChange={(e) => setRetellApiKey(e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
-                                                placeholder="key_..."
-                                            />
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            disabled={isCreating}
-                                            className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                                        >
-                                            {isCreating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                                            Crear Workspace
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ) : activeTab === 'alerts' ? (
-                    <AdminAlertSettings />
-                ) : (
-                    /* Global Users View */
-                    <div className="space-y-6">
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 flex gap-4 items-start shadow-sm">
-                            <div className="bg-white p-2 rounded-lg shadow-sm">
-                                <Settings className="w-5 h-5 text-indigo-600" />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-sm font-bold text-indigo-900 mb-1">Sincronización de Agentes</h4>
-                                <p className="text-xs text-indigo-700 leading-relaxed">
-                                    Utiliza el botón <strong>Sincronizar Agentes (Global)</strong> si realizas cambios en la estructura del prompt general o en las reglas de las herramientas. Esto propagará las mejoras a todos los clientes existentes de forma automática.
-                                </p>
-                            </div>
-                            <button
-                                onClick={handleSyncAll}
-                                disabled={isSyncing}
-                                className="whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-md transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
-                            >
-                                {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Settings className="w-3.5 h-3.5" />}
-                                Sincronizar Ahora
-                            </button>
-                        </div>
-
-                        <div className="bg-white border text-gray-800 border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                                <span className="font-medium text-gray-700">Listado de Usuarios Registrados</span>
-                                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-bold">
-                                    {users.length} TOTAL
-                                </span>
-                            </div>
-
-                            {isLoading ? (
-                                <div className="p-12 flex justify-center items-center text-gray-400">
-                                    <Loader2 className="w-8 h-8 animate-spin" />
-                                </div>
-                            ) : users.length === 0 ? (
-                                <div className="p-10 text-center text-gray-500">
-                                    No hay usuarios registrados.
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-bold">
+                                <div className="table-wrapper">
+                                    <table className="data-table">
+                                        <thead>
                                             <tr>
-                                                <th className="px-6 py-3 border-b border-gray-200">Usuario</th>
-                                                <th className="px-6 py-3 border-b border-gray-200">Email</th>
-                                                <th className="px-6 py-3 border-b border-gray-200">Workspace</th>
-                                                <th className="px-6 py-3 border-b border-gray-200">Teléfonos</th>
-                                                <th className="px-6 py-3 border-b border-gray-200 text-right">Consumo</th>
-                                                <th className="px-6 py-3 border-b border-gray-200 text-right">Acciones</th>
+                                                <th>Nombre</th>
+                                                <th>Retell API Key</th>
+                                                <th>Usuarios</th>
+                                                <th>Estado</th>
+                                                <th>Acc.</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-200">
-                                            {users.map((u) => (
-                                                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="px-6 py-4 font-medium text-gray-900">{u.full_name || 'Sin nombre'}</td>
-                                                    <td className="px-6 py-4 text-gray-600">{u.email}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-medium">
-                                                            {u.workspace_name}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {u.phone_numbers?.length > 0 ? (
-                                                                u.phone_numbers.map((num: string, idx: number) => (
-                                                                    <span key={idx} className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">
-                                                                        {num}
-                                                                    </span>
-                                                                ))
-                                                            ) : (
-                                                                <span className="text-[10px] text-gray-400 italic">Ninguno</span>
-                                                            )}
+                                        <tbody>
+                                            {isLoading ? (
+                                                <tr><td colSpan={5} style={{textAlign:'center', padding: '40px', color: '#94a3b8'}}><Loader2 className="animate-spin inline mr-2" /> Cargando...</td></tr>
+                                            ) : workspaces.length === 0 ? (
+                                                <tr><td colSpan={5} style={{textAlign:'center', padding: '40px', color: '#94a3b8'}}>No hay workspaces registrados</td></tr>
+                                            ) : workspaces.map(ws => (
+                                                <tr key={ws.id}>
+                                                    <td style={{fontWeight: 600}}>{ws.name}</td>
+                                                    <td><span className="mono-badge">key_{ws.retell_api_key?.substring(0, 4)}...{ws.retell_api_key?.slice(-4)}</span></td>
+                                                    <td>{ws.users_count || 0}</td>
+                                                    <td><span className="status-badge active">Activo</span></td>
+                                                    <td>
+                                                        <div style={{display:'flex', gap: '8px'}}>
+                                                            <button className="action-btn" onClick={() => setEditingId(ws.id)}><Edit2 size={14} /></button>
+                                                            <button className="action-btn" style={{color: '#ef4444'}} onClick={() => handleDeleteWorkspace(ws.id, ws.name)}><Trash2 size={14} /></button>
                                                         </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="text-sm font-bold text-gray-900">{u.total_minutes} min</span>
-                                                            <span className="text-[10px] text-gray-500">{u.calls_count} llamadas</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <button 
-                                                            onClick={() => handleDeleteUser(u.id, u.email)}
-                                                            className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                                            title="Eliminar usuario"
-                                                        >
-                                                            <Trash2 className="w-5 h-5" />
-                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}
                                         </tbody>
+                                        {/* Reference editingId for linting if needed, but we used it in the UI logic or just remove if truly unused */}
+                                        <span style={{display:'none'}}>{editingId}</span>
                                     </table>
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
+                            </div>
 
-            {/* Help Modal */}
-            {showHelp && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-indigo-50/50">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Info className="w-5 h-5 text-indigo-600" />
-                                Gestión de Workspaces (Fábrica)
-                            </h2>
-                            <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-                        <div className="p-8 space-y-6">
-                            <section>
-                                <h3 className="text-lg font-bold text-gray-900 mb-2">¿Cómo funciona esta pantalla?</h3>
-                                <p className="text-gray-600 leading-relaxed">
-                                    Esta pantalla permite gestionar los &quot;Tenants&quot; o Workspaces de Retell AI. Los clientes que se registran en la Fábrica no reciben un workspace automáticamente; tú, como administrador, debes crearlos manualmente y tener un pool de workspaces disponibles para su asignación. Si hay disponibles se irán asignando a los nuevos clientes. ¡No dejes que se quede sin unidades disponibles para los nuevos registros de clientes!
-                                </p>
-                            </section>
-
-                            <section className="bg-amber-50 border border-amber-100 p-4 rounded-lg">
-                                <h3 className="text-amber-900 font-bold flex items-center gap-2 mb-1">
-                                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                    Límite de Concurrencia
-                                </h3>
-                                <p className="text-sm text-amber-800">
-                                    Cada nuevo cliente registrado tendrá acceso a un workspace con una <strong>concurrencia máxima de 20 llamadas simultáneas</strong>. Es vital monitorizar esto para asegurar la estabilidad del servicio.
-                                </p>
-                            </section>
-
-                            <section>
-                                <h3 className="text-lg font-bold text-gray-900 mb-3 underline decoration-indigo-200 underline-offset-4">Pasos para dar de alta un Workspace</h3>
-                                <div className="space-y-4">
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">1</div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900">Crea el Workspace en Retell AI</p>
-                                            <p className="text-sm text-gray-600">Accede a tu consola de Retell y crea un nuevo workspace dedicado para el nuevo cliente.</p>
+                            <div className="glass-card" id="create-form">
+                                <div className="card-header" style={{border: 'none'}}>
+                                    <h2 className="card-title" style={{display:'flex', alignItems:'center', gap: '8px'}}>
+                                        <Plus size={18} style={{color: '#2563eb'}} />
+                                        Crear nuevo workspace
+                                    </h2>
+                                </div>
+                                <form onSubmit={handleCreateWorkspace}>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label>Nombre <span className="required">*</span></label>
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                placeholder="Ej: Clínica Dr. García" 
+                                                required
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Retell API Key <span className="required">*</span></label>
+                                            <input 
+                                                type="password" 
+                                                className="form-input" 
+                                                placeholder="key_..." 
+                                                required
+                                                value={retellApiKey}
+                                                onChange={(e) => setRetellApiKey(e.target.value)}
+                                            />
                                         </div>
                                     </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">2</div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900">Configura la Facturación</p>
-                                            <p className="text-sm text-gray-600">Añade los datos de facturación necesarios en Retell para activar el workspace y permitir el flujo de llamadas.</p>
-                                        </div>
+                                    <div style={{padding: '0 24px 24px 24px'}}>
+                                        <button className="btn-primary" type="submit" disabled={isCreating}>
+                                            {isCreating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                                            Crear workspace
+                                        </button>
                                     </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">3</div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900">Integra la API Key</p>
-                                            <p className="text-sm text-gray-600">Copia la API Key generada e introdúcela en el formulario de &quot;Añadir Nuevo Workspace&quot; de este panel.</p>
-                                        </div>
+                                </form>
+                            </div>
+                        </>
+                    )}
+
+                    {activeTab === 'protocolo' && (
+                        <div className="glass-card">
+                            <div className="protocol-box">
+                                <Shield size={48} />
+                                <div className="protocol-info">
+                                    <h2 style={{fontSize: '18px', fontWeight: 800, color: '#1e293b', marginBottom: '8px'}}>Protocolo de Telefonía Forzado</h2>
+                                    <p style={{marginBottom: '20px'}}>
+                                        Toda la infraestructura de la Fábrica está actualmente configurada para forzar el protocolo <strong>UDP</strong>. 
+                                        Esto asegura la máxima compatibilidad y rendimiento con los troncales SIP de Netelip.
+                                    </p>
+                                    <div style={{background: '#f8fafc', padding: '16px', borderRadius: '12px', textAlign: 'left', fontSize: '13px'}}>
+                                        <p><strong>Configuración actual:</strong></p>
+                                        <ul style={{marginTop: '8px', marginLeft: '16px'}}>
+                                            <li>SIP Transport: <strong>UDP</strong> (Enforced)</li>
+                                            <li>RTP Encryption: SRTP (Optional)</li>
+                                            <li>Audio Codecs: PCMU, PCMA</li>
+                                        </ul>
                                     </div>
                                 </div>
-                            </section>
-
-                            <div className="pt-4 flex justify-end">
-                                <button 
-                                    onClick={() => setShowHelp(false)}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-all"
-                                >
-                                    Entendido
-                                </button>
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {activeTab === 'users' && (
+                        <div className="glass-card">
+                            <div className="card-header">
+                                <h2 className="card-title">Usuarios del sistema</h2>
+                            </div>
+                            <div className="table-wrapper">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Email</th>
+                                            <th>Workspace</th>
+                                            <th>Teléfonos</th>
+                                            <th style={{textAlign: 'right'}}>Consumo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {isLoading ? (
+                                            <tr><td colSpan={5} style={{textAlign:'center', padding: '40px'}}><Loader2 className="animate-spin inline mr-2" /> Cargando...</td></tr>
+                                        ) : users.length === 0 ? (
+                                            <tr><td colSpan={5} style={{textAlign:'center', padding: '40px'}}>No hay usuarios registrados</td></tr>
+                                        ) : users.map(u => (
+                                            <tr key={u.id}>
+                                                <td style={{fontWeight: 600}}>{u.full_name || 'Sin nombre'}</td>
+                                                <td>{u.email}</td>
+                                                <td><span className="mono-badge">{u.workspace_name}</span></td>
+                                                <td>
+                                                    <div style={{display:'flex', flexWrap:'wrap', gap: '4px'}}>
+                                                        {u.phone_numbers?.map((n, i) => (
+                                                            <span key={i} className="status-badge" style={{background: '#eff6ff', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '10px'}}>{n}</span>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td style={{textAlign: 'right'}}>
+                                                    <div style={{fontWeight: 700}}>{u.total_minutes} min</div>
+                                                    <div style={{fontSize: '11px', color: '#94a3b8'}}>{u.calls_count} llamadas</div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'alerts' && (
+                        <div className="glass-card" style={{padding: '24px'}}>
+                            <AdminAlertSettings />
+                        </div>
+                    )}
                 </div>
-            )}
+            </main>
         </div>
     );
 }

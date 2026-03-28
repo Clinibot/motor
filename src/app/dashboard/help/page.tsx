@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
 import DashboardSidebar from '../../../components/DashboardSidebar';
+import { Search, Rocket, PhoneCall, ShieldCheck, ChevronRight, MessageSquare, Send } from 'lucide-react';
 
 interface UserProfile {
     full_name: string | null;
@@ -16,6 +17,7 @@ export default function HelpPage() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const load = async () => {
@@ -46,135 +48,116 @@ export default function HelpPage() {
 
     const userInitial = (user?.full_name || user?.email || 'U')[0].toUpperCase();
 
-    const helpCards = [
-        {
-            title: 'Primeros pasos',
-            description: 'Aprende a crear tu primer agente y configurar los flujos básicos de atención.',
-            icon: (
-                <svg className="card-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-            )
-        },
-        {
-            title: 'Configuración avanzada',
-            description: 'Personaliza el comportamiento, la voz y las instrucciones de tus agentes IA.',
-            icon: (
-                <svg className="card-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-            )
-        },
-        {
-            title: 'Gestión de números',
-            description: 'Cómo conectar y administrar tus números de teléfono con la plataforma.',
-            icon: (
-                <svg className="card-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-            )
-        },
-        {
-            title: 'Historial y grabaciones',
-            description: 'Accede a todas las llamadas, transcripciones y grabaciones de audio.',
-            icon: (
-                <svg className="card-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            )
-        },
-        {
-            title: 'Métricas de rendimiento',
-            description: 'Analiza el éxito de tus agentes con gráficos detallados y KPIs.',
-            icon: (
-                <svg className="card-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-            )
-        },
-        {
-            title: 'Soporte Directo',
-            description: '¿Tienes dudas específicas? Contacta con nuestro equipo de expertos.',
-            icon: (
-                <svg className="card-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-            )
-        }
+    const helpArticles = [
+        { title: 'Crear tu primer agente', category: 'Primeros pasos' },
+        { title: 'Qué es la Fábrica de Agentes IA', category: 'Primeros pasos' },
+        { title: 'Tipos de agente disponibles', category: 'Primeros pasos' },
+        { title: 'Requisitos previos para empezar', category: 'Primeros pasos' },
+        { title: 'Paso 1 — Información básica', category: 'Guía del Wizard' },
+        { title: 'Paso 2 — Configurar el LLM', category: 'Guía del Wizard' },
+        { title: 'Paso 3 — Elegir una voz', category: 'Guía del Wizard' }
     ];
 
     return (
-        <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex' }}>
             <style>{`
                 *{margin:0;padding:0;box-sizing:border-box}
                 body{font-family:'Inter',-apple-system,sans-serif;background:#f5f6f8;color:#1a1a1a}
-                .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;border-right:1px solid #e5e7eb;z-index:100;display:flex;flex-direction:column}
-                .logo-container{padding:24px 20px;border-bottom:1px solid #e5e7eb}
-                .nav-menu{flex:1;padding:20px 0;overflow-y:auto}
-                .nav-item{display:flex;align-items:center;padding:12px 20px;color:#6b7280;text-decoration:none;transition:all .2s;font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;width:100%;text-align:left}
-                .nav-item:hover{background:#f9fafb;color:#267ab0}
-                .nav-item.active{background:#eff6fb;color:#267ab0;border-right:3px solid #267ab0}
-                .nav-icon{width:20px;height:20px;margin-right:12px;flex-shrink:0}
-                .admin-sep{margin:0 20px;border-top:1px solid #e5e7eb;padding-top:16px;margin-top:8px}
-                .admin-sep span{font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;padding:0 0 8px 0;display:block}
                 
-                .main-content{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;background:#f5f6f8}
-                .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
-                .topbar-left h1{font-size:24px;font-weight:600;color:#1a1a1a}
-                .topbar-right{display:flex;align-items:center;gap:20px}
-                .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#267ab0 0%,#1e5a87 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none}
+                .main-content{flex:1;margin-left:250px;min-height:100vh;display:flex;flex-direction:column;background:#f5f6f8}
+                
+                .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;height:64px}
+                .topbar-left h1{font-size:20px;font-weight:700;color:#1a1a1a}
+                .topbar-right{display:flex;align-items:center;gap:16px}
+                
+                .elio-cta-btn { display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s; }
+                .elio-cta-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+                
+                .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2563eb 0%,#1e40af 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:13px;cursor:pointer;border:none}
                 .user-profile-container { position: relative; }
-                .user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 220px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden; animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: top right; }
+                .user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 220px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden; animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: top right; }
                 .user-dropdown-header { padding: 16px; border-bottom: 1px solid #f3f4f6; background: #f9fafb; text-align: center; }
-                .user-dropdown-name { margin: 0; font-size: 14px; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-                .user-dropdown-email { margin: 4px 0 0; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+                .user-dropdown-name { margin: 0; font-size: 14px; font-weight: 600; color: #1a1a1a; display: block; }
+                .user-dropdown-email { margin: 4px 0 0; font-size: 12px; color: #6b7280; display: block; }
                 .user-dropdown-body { padding: 8px; }
                 .user-dropdown-item { width: 100%; padding: 10px 12px; display: flex; align-items: center; gap: 10px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 8px; transition: all 0.2s; color: #4b5563; }
                 .user-dropdown-item:hover { background: #f3f4f6; color: #1a1a1a; }
                 .user-dropdown-item.text-red { color: #dc2626; }
-                .user-dropdown-item.text-red:hover { background: #fef2f2; color: #b91c1c; }
-                @keyframes slideDown { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-                .content-area{flex:1;padding:48px 64px;max-width:1200px;margin:0 auto;width:100%}
-                .hero-section{margin-bottom:48px;text-align:left}
-                .hero-title{font-size:32px;font-weight:800;color:#0f172a;margin-bottom:12px}
-                .hero-subtitle{font-size:16px;color:#64748b}
-
-                .help-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px}
-                .help-card{background:#fff;border-radius:16px;padding:32px;border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:20px;position:relative;overflow:hidden;transition:all .3s ease;cursor:default}
-                .help-card.disabled{opacity:0.9}
-                .help-card.disabled:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,0.05);border-color:#267ab0}
-                .card-icon-wrapper{width:48px;height:48px;background:#eff6fb;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#267ab0}
-                .card-icon-svg{width:24px;height:24px}
-                .card-title{font-size:18px;font-weight:700;color:#0f172a}
-                .card-description{font-size:14px;color:#64748b;line-height:1.6}
+                .content-area{flex:1;padding:32px 48px;max-width:1400px;margin:0 auto;width:100%}
                 
-                .coming-soon-badge{position:absolute;top:16px;right:16px;background:#f1f5f9;color:#475569;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:0.5px;border:1px solid #e2e8f0}
+                .search-container { position: relative; max-width: 600px; margin-bottom: 32px; }
+                .search-input { width: 100%; padding: 14px 20px 14px 48px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 15px; transition: all 0.2s; outline: none; }
+                .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+                .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 20px; height: 20px; }
 
+                .featured-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }
+                .f-card { padding: 28px; border-radius: 16px; border: 1px solid #e2e8f0; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; gap: 16px; min-height: 160px; }
+                .f-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.1); }
+                .f-card.blue { background: #1e5f91; color: #fff; border: none; }
+                .f-card.blue .card-icon { background: rgba(255,255,255,0.1); color: #fff; }
+                .f-card.white { background: #fff; color: #1e293b; }
+                .f-card.white .card-icon { background: #f1f5f9; color: #2563eb; }
+                .f-card.white .card-icon.orange { color: #f59e0b; background: #fff7ed; }
+                
+                .card-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+                .card-title { font-size: 17px; font-weight: 700; }
+                .card-desc { font-size: 14px; opacity: 0.9; line-height: 1.5; }
 
-                .user-profile-container{position:fixed;top:16px;right:32px;z-index:60}
-                .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#267ab0 0%,#1e5a87 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none}
-                .user-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:220px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 25px -5px rgba(0,0,0,.1);z-index:1000;overflow:hidden;animation:slideDown .2s cubic-bezier(.16,1,.3,1);transform-origin:top right}
-                .user-dropdown-header{padding:16px;border-bottom:1px solid #f3f4f6;background:#f9fafb;text-align:center}
-                .user-dropdown-name{font-size:14px;font-weight:600;color:#1a1a1a;display:block}
-                .user-dropdown-email{margin:4px 0 0;font-size:12px;color:#6b7280;display:block}
-                .user-dropdown-body{padding:8px}
-                .user-dropdown-item{width:100%;padding:10px 12px;display:flex;align-items:center;gap:10px;border:none;background:transparent;cursor:pointer;font-size:14px;font-weight:500;border-radius:8px;transition:all .2s;color:#4b5563}
-                .user-dropdown-item:hover{background:#f3f4f6;color:#1a1a1a}
-                .user-dropdown-item.text-red{color:#dc2626}
-                .user-avatar:focus { outline: none; }
+                .main-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+                
+                /* Left Column: Articles */
+                .articles-container { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; }
+                .section-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; background: #fafafa; }
+                .section-header h2 { font-size: 16px; font-weight: 700; color: #334155; }
+                
+                .article-item { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; cursor: pointer; }
+                .article-item:last-child { border-bottom: none; }
+                .article-item:hover { background: #f8fafc; }
+                .article-info h3 { font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 4px; }
+                .article-info span { font-size: 12px; color: #94a3b8; }
+                .chevron { color: #cbd5e1; width: 18px; height: 18px; }
+
+                /* Right Column: Elio Box */
+                .elio-box { background: #1a2c3d; border-radius: 16px; padding: 24px; color: #fff; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 88px; }
+                .elio-header { display: flex; align-items: center; gap: 12px; }
+                .elio-avatar { width: 40px; height: 40px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid rgba(255,255,255,0.1); }
+                .elio-title h4 { font-size: 15px; font-weight: 700; margin: 0; }
+                .elio-title p { font-size: 12px; color: #94a3b8; margin: 0; }
+                
+                .elio-message { font-size: 14px; color: #cbd5e1; line-height: 1.6; }
+                
+                .suggestions { display: flex; flex-direction: column; gap: 8px; }
+                .suggestion-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px 16px; border-radius: 8px; color: #e2e8f0; font-size: 13px; text-align: left; cursor: pointer; transition: all 0.2s; }
+                .suggestion-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+                
+                .elio-main-cta { background: #fff; color: #1a2c3d; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; margin-top: 8px; }
+                .elio-main-cta:hover { background: #f8fafc; transform: translateY(-1px); }
+
+                .floating-chat-btn { position: fixed; bottom: 32px; right: 32px; width: 60px; height: 60px; border-radius: 50%; background: #1a2c3d; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(0,0,0,0.2); cursor: pointer; transition: all 0.3s ease; z-index: 1000; border: none; }
+                .floating-chat-btn:hover { transform: scale(1.1); background: #2563eb; }
+
                 @keyframes slideDown{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+                
+                @media (max-width: 1100px) {
+                    .main-layout { grid-template-columns: 1fr; }
+                    .elio-box { position: static; }
+                    .featured-cards { grid-template-columns: 1fr; }
+                }
             `}</style>
 
             <DashboardSidebar user={user} />
  
-            {/* MAIN AREA */}
             <main className="main-content">
                 <header className="topbar">
                     <div className="topbar-left">
-                        <h1>Ayuda y Soporte</h1>
+                        <h1>Ayuda y soporte</h1>
                     </div>
                     <div className="topbar-right">
+                        <button className="elio-cta-btn">
+                            <MessageSquare size={16} />
+                            Preguntarle a Elio
+                        </button>
                         <div ref={dropdownRef} className="user-profile-container">
                             <button className="user-avatar" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
                                 {userInitial}
@@ -187,9 +170,7 @@ export default function HelpPage() {
                                     </div>
                                     <div className="user-dropdown-body">
                                         <button onClick={handleLogout} className="user-dropdown-item text-red">
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                            </svg>
+                                            <Send size={16} style={{ transform: 'rotate(-45deg)' }} />
                                             Cerrar sesión
                                         </button>
                                     </div>
@@ -200,26 +181,105 @@ export default function HelpPage() {
                 </header>
 
                 <div className="content-area">
-                    <section className="hero-section">
-                        <h1 className="hero-title">¿Cómo podemos ayudarte?</h1>
-                        <p className="hero-subtitle">Explora nuestras guías o contacta con nuestro equipo para resolver tus dudas.</p>
-                    </section>
- 
-                    <div className="help-grid">
-                        {helpCards.map((card, i) => (
-                            <div key={i} className="help-card disabled">
-                                <div className="coming-soon-badge">Próximamente</div>
-                                <div className="card-icon-wrapper">
-                                    {card.icon}
+                    {/* Search Section */}
+                    <div className="search-container">
+                        <Search className="search-icon" />
+                        <input 
+                            type="text" 
+                            className="search-input" 
+                            placeholder="Buscar en el centro de ayuda..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Featured Cards */}
+                    <div className="featured-cards">
+                        <div className="f-card blue">
+                            <div className="card-icon">
+                                <Rocket size={24} />
+                            </div>
+                            <div className="card-content">
+                                <h3 className="card-title">Crear tu primer agente</h3>
+                                <p className="card-desc">Guía paso a paso en 6 pasos.</p>
+                            </div>
+                        </div>
+                        <div className="f-card white">
+                            <div className="card-icon">
+                                <PhoneCall size={24} />
+                            </div>
+                            <div className="card-content">
+                                <h3 className="card-title">Asignar un número</h3>
+                                <p className="card-desc">Conecta tu número SIP de netelip.</p>
+                            </div>
+                        </div>
+                        <div className="f-card white">
+                            <div className="card-icon orange">
+                                <ShieldCheck size={24} />
+                            </div>
+                            <div className="card-content">
+                                <h3 className="card-title">RGPD y LOPD</h3>
+                                <p className="card-desc">Cumplimiento legal en España.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content Layout */}
+                    <div className="main-layout">
+                        {/* Articles Column */}
+                        <div className="articles-column">
+                            <div className="articles-container">
+                                <div className="section-header">
+                                    <h2>Artículos de ayuda</h2>
                                 </div>
-                                <div>
-                                    <h3 className="card-title">{card.title}</h3>
-                                    <p className="card-description" style={{ marginTop: '8px' }}>{card.description}</p>
+                                <div className="articles-list">
+                                    {helpArticles.map((article, i) => (
+                                        <div key={i} className="article-item">
+                                            <div className="article-info">
+                                                <h3>{article.title}</h3>
+                                                <span>{article.category}</span>
+                                            </div>
+                                            <ChevronRight className="chevron" />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        ))}
+                        </div>
+
+                        {/* Elio AIS Column */}
+                        <div className="elio-column">
+                            <div className="elio-box">
+                                <div className="elio-header">
+                                    <div className="elio-avatar">E</div>
+                                    <div className="elio-title">
+                                        <h4>Pregúntale a Elio</h4>
+                                        <p>Asistente de la Fábrica</p>
+                                    </div>
+                                </div>
+                                
+                                <p className="elio-message">
+                                    Elio conoce toda la documentación y puede resolver tus dudas al instante.
+                                </p>
+                                
+                                <div className="suggestions">
+                                    <button className="suggestion-btn">¿Cómo creo un agente?</button>
+                                    <button className="suggestion-btn">¿Cómo asigno un número?</button>
+                                    <button className="suggestion-btn">¿Qué es la tasa de éxito?</button>
+                                </div>
+                                
+                                <button className="elio-main-cta">
+                                    <MessageSquare size={16} />
+                                    Abrir chat con Elio
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {/* Floating Chat Button */}
+                <button className="floating-chat-btn">
+                    <MessageSquare size={28} />
+                </button>
             </main>
         </div>
     );
