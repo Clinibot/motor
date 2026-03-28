@@ -72,14 +72,6 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             timezone: 'Europe/Madrid',
         };
 
-        // Availability tool
-        tools.push({
-            type: 'check_availability_cal',
-            name: 'check_availability',
-            description: 'Consulta los horarios disponibles en el calendario antes de proponer una cita.',
-            ...calSettings,
-        });
-
         // Booking tool
         tools.push({
             type: 'book_appointment_cal',
@@ -316,26 +308,29 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         blocks.push(`## Finalizar llamada\nUsa la herramienta \`end_call\` para cerrar la llamada de forma cordial cuando termines.`);
     }
 
-    if (p.enableCalBooking && p.calApiKey && !lowerPrompt.includes('check_availability')) {
+    if (p.enableCalBooking && p.calApiKey && !lowerPrompt.includes('book_appointment')) {
         const today = new Date();
         const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' };
         const dateStr = today.toLocaleDateString('es-ES', options);
 
         blocks.push(`## Gestión de Agenda y Citas
 Hoy es ${dateStr}.
-Usa \`check_availability\` cuando el usuario quiera agendar, pregunte por huecos o quiera programar una visita.
- 
+
+Tienes la información de disponibilidad inyectada en las variables dinámicas del sistema (si provienen de una llamada entrante):
+- Disponibilidad rápida: {{disponibilidad_mas_temprana}}
+- Disponibilidad extendida: {{consultar_disponibilidad}}
+
 ### Proceso de Agendamiento:
-1. **Consulta**: Cuando el contacto acepta agendar, di: "Excelente. Déjame consultar qué horarios tenemos disponibles..." y ejecuta \`check_availability\`.
-2. **Oferta**: Ofrece los 2 horarios más tempranos (mañana/tarde). "Tenemos disponibilidad el [hueco 1] y [hueco 2]. ¿Cuál te viene mejor?".
-3. **Más opciones**: Si no le valen, busca en los próximos 6 días y agrupa slots.
-4. **Recogida de datos**: Una vez elegido el horario, di: "Estupendo. Para confirmar tu cita necesito un par de datos. ¿Cuál es tu número de teléfono?"
-5. **Email y Deletreo (CRÍTICO)**: 
+1. **Consulta / Oferta Inicial**: Cuando el contacto acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?".
+   > *Nota: Si las fechas no se muestran, pide al usuario qué día prefiere e intenta agendar a ciegas.*
+2. **Más opciones**: Si no le valen, revisa la disponibilidad extendida y ofrécele algo de allí: {{consultar_disponibilidad}}.
+3. **Recogida de datos**: Una vez elegido el horario, di: "Estupendo. Para confirmar tu cita necesito un par de datos. ¿Cuál es tu número de teléfono?"
+4. **Email y Deletreo (CRÍTICO)**: 
    - Tras el teléfono, pide el email.
    - Una vez escuchado el email, di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien".
    - Escucha el deletreo completo.
-6. **Ejecución**: Inmediatamente después del deletreo, di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\`.
-7. **Confirmación**: Tras el éxito, confirma fecha/hora y menciona que recibirá un correo.
+5. **Ejecución**: Inmediatamente después del deletreo, di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\`.
+6. **Confirmación**: Tras el éxito, confirma fecha/hora y menciona que recibirá un correo.
 
 ### Reglas de formato de voz:
 - Día: "martes dieciocho".

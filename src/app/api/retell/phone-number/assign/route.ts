@@ -55,6 +55,20 @@ export async function POST(request: Request) {
             retellAgentId = agentData.retell_agent_id;
         }
 
+        // Fetch agent configuration to check if Cal.com webhook is needed
+        let needsInboundWebhook = false;
+        if (localAgentId) {
+            const { data: agentConfig } = await supabaseAdmin
+                .from('agents')
+                .select('configuration')
+                .eq('id', localAgentId)
+                .single();
+            
+            if (agentConfig?.configuration?.enableCalBooking) {
+                needsInboundWebhook = true;
+            }
+        }
+
         // 2. Obtener API Key de Retell del workspace
         const { data: workspace, error: wsError } = await supabaseAdmin
             .from('workspaces')
@@ -71,9 +85,15 @@ export async function POST(request: Request) {
         // 3. Actualizar en Retell
         console.log(`Updating Retell phone number ${phone_number} with agent ${retellAgentId}`);
 
-        await retellClient.phoneNumber.update(phone_number, {
+        const updatePayload: any = {
             inbound_agent_id: retellAgentId
-        });
+        };
+        
+        if (needsInboundWebhook && process.env.NEXT_PUBLIC_SITE_URL) {
+            updatePayload.inbound_webhook_url = `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook/inbound`;
+        }
+
+        await retellClient.phoneNumber.update(phone_number, updatePayload);
 
         // 4. Actualizar en nuestra DB con el UUID local
         const { error: dbError } = await supabaseAdmin

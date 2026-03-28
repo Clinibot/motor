@@ -13,7 +13,7 @@ interface AvailableAgent {
 
 export const Step7_Tools: React.FC = () => {
     const {
-        enableCalBooking, calUrl, calApiKey, calEventId,
+        enableCalBooking, calUrl, calApiKey, calEventId, calSearchDays,
         enableTransfer, transferDestinations,
         enableCustomTools, customTools,
         extractionVariables, agentName,
@@ -171,6 +171,24 @@ export const Step7_Tools: React.FC = () => {
                                         onChange={(e) => updateField('calUrl', e.target.value)}
                                         placeholder="https://cal.com/usuario/evento"
                                     />
+                                </div>
+                                <div className="form-group mb-0" style={{ gridColumn: '1 / -1' }}>
+                                    <label className="form-label">Días a consultar disponibilidad</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="60"
+                                        className="form-control"
+                                        value={calSearchDays}
+                                        onChange={(e) => updateField('calSearchDays', parseInt(e.target.value) || 6)}
+                                    />
+                                    <small className="text-muted d-block mt-1">Cuántos días a futuro buscará el agente para ofrecer citas.</small>
+                                </div>
+                                <div style={{ gridColumn: '1 / -1', background: '#fffbeb', border: '1px solid #fde68a', padding: '12px', borderRadius: '8px', color: '#92400e', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                                    <i className="bi bi-exclamation-triangle-fill" style={{ marginTop: '2px' }}></i>
+                                    <div>
+                                        <strong>Aviso importante:</strong> Para que el agente pueda buscar y ofrecer disponibilidad de horarios, debes asignarle un número de teléfono (ya que funciona vía Webhook en llamadas entrantes). Si no le asignas un número, el agente solo podrá agendar o cancelar citas solicitadas directamente por el usuario.
+                                    </div>
                                 </div>
                             </div>
                         )}

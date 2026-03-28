@@ -192,7 +192,7 @@ export default function AlertSettings({ isDropdown = false }: { isDropdown?: boo
             disabled={savingEmail || !emailInput.trim()}
             style={{
               padding: '0 16px', background: emailInput.trim() !== settings.alert_email ? '#267ab0' : '#e5e7eb',
-              color: emailInput.trim() !== settings.alert_email ? '#fff' : '#6b7280', 
+              color: emailInput.trim() !== settings.alert_email ? '#fff' : '#6b7280',
               border: 'none', borderRadius: 8, fontSize: 14,
               fontWeight: 600, cursor: (savingEmail || !emailInput.trim()) ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit', whiteSpace: 'nowrap'
@@ -230,7 +230,7 @@ export default function AlertSettings({ isDropdown = false }: { isDropdown?: boo
                 <button
                   onClick={() => toggle(card.enabledKey)}
                   style={{
-                    width: 44, height: 24, borderRadius: 12, border: 'none', 
+                    width: 44, height: 24, borderRadius: 12, border: 'none',
                     cursor: hasEmail ? 'pointer' : 'not-allowed',
                     background: enabled && hasEmail ? '#267ab0' : '#d1d5db',
                     position: 'relative', transition: 'background .2s', flexShrink: 0,
@@ -248,7 +248,7 @@ export default function AlertSettings({ isDropdown = false }: { isDropdown?: boo
 
               {/* Threshold */}
               {card.thresholdKey && (
-                <div style={{ 
+                <div style={{
                   marginTop: 14, paddingTop: 14, borderTop: `1px solid ${enabled && hasEmail ? '#bfdbfe' : '#e5e7eb'}`,
                   opacity: enabled ? 1 : 0.5,
                   pointerEvents: enabled && hasEmail ? 'auto' : 'none'
