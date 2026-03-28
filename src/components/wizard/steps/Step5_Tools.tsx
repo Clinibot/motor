@@ -22,7 +22,7 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (v: boolean) => void;
 
 export const Step5_Tools: React.FC = () => {
     const {
-        enableCalBooking, calApiKey, calEventId,
+        enableCalBooking, calApiKey, calEventId, calTimezone, calUrl,
         enableTransfer, transferDestinations,
         extractionVariables, leadQuestions,
         updateField, prevStep, nextStep
@@ -30,6 +30,18 @@ export const Step5_Tools: React.FC = () => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [showCalGuide, setShowCalGuide] = useState(false);
+
+    const timezones = [
+        'Europe/Madrid',
+        'Europe/London',
+        'Europe/Paris',
+        'America/New_York',
+        'America/Los_Angeles',
+        'America/Mexico_City',
+        'America/Bogota',
+        'America/Argentina/Buenos_Aires',
+    ];
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
@@ -37,6 +49,7 @@ export const Step5_Tools: React.FC = () => {
         if (enableCalBooking) {
             if (!calApiKey) newErrors.calApiKey = 'La API Key de Cal.com es obligatoria.';
             if (!calEventId) newErrors.calEventId = 'El ID de evento es obligatorio.';
+            if (!calTimezone) newErrors.calTimezone = 'La zona horaria es obligatoria.';
         }
 
         if (enableTransfer) {
@@ -299,11 +312,11 @@ export const Step5_Tools: React.FC = () => {
                     </div>
 
                     {/* 3. CAL.COM */}
-                    <div className="border border-[#e2e8f0] rounded-2xl p-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-6 h-6 rounded flex items-center justify-center bg-[#e2e8f0] text-[#94a3b8]">
-                                    <i className="bi bi-dash"></i>
+                    <div className="border border-[#e2e8f0] rounded-2xl p-6 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-4">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${enableCalBooking ? 'bg-[#267ab0]' : 'bg-[#e2e8f0] text-[#94a3b8]'}`}>
+                                    <i className="bi bi-calendar-check" style={{ fontSize: '18px' }}></i>
                                 </div>
                                 <div>
                                     <h3 className="text-[16px] font-bold text-[#1e293b]">Reservar cita en el calendario (Cal.com)</h3>
@@ -314,28 +327,85 @@ export const Step5_Tools: React.FC = () => {
                         </div>
                         
                         {enableCalBooking && (
-                             <div className="mt-6 pl-10 border-t border-[#f1f5f9] pt-6 grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">Cal.com API Key <span className="text-[#ef4444]">*</span></label>
-                                    <input
-                                        type="password"
-                                        className={`w-full border ${errors.calApiKey ? 'border-[#ef4444]' : 'border-[#cbd5e1]'} rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]`}
-                                        value={calApiKey}
-                                        onChange={e => updateField('calApiKey', e.target.value)}
-                                        placeholder="cal_live_..."
-                                    />
-                                    {errors.calApiKey && <span className="text-[12px] text-[#ef4444]">{errors.calApiKey}</span>}
+                             <div className="mt-8 pt-8 border-t border-[#f1f5f9]">
+                                <div className="flex items-center justify-between mb-6">
+                                    <p className="text-[14px] text-[#64748b]">Configura la integración con Cal.com para que tu agente pueda consultar disponibilidad y reservar citas.</p>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowCalGuide(true)}
+                                        className="flex items-center gap-2 px-4 py-2 border border-[#e2e8f0] rounded-xl text-[13px] font-bold text-[#1e293b] hover:bg-[#f8fafc] transition-all"
+                                    >
+                                        <i className="bi bi-book"></i> Ver guía
+                                    </button>
                                 </div>
-                                <div>
-                                    <label className="block text-[13px] font-bold text-[#1e293b] mb-1">Event Type ID <span className="text-[#ef4444]">*</span></label>
-                                    <input
-                                        type="text"
-                                        className={`w-full border ${errors.calEventId ? 'border-[#ef4444]' : 'border-[#cbd5e1]'} rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0]`}
-                                        value={calEventId}
-                                        onChange={e => updateField('calEventId', e.target.value)}
-                                        placeholder="123456"
-                                    />
-                                    {errors.calEventId && <span className="text-[12px] text-[#ef4444]">{errors.calEventId}</span>}
+
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[#1e293b] mb-1.5 flex items-center gap-1">
+                                            Cal.com API Key <span className="text-[#ef4444]">*</span>
+                                        </label>
+                                        <input
+                                            type="password"
+                                            className={`w-full border ${errors.calApiKey ? 'border-[#ef4444]' : 'border-[#e2e8f0]'} rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#267ab0] bg-white shadow-sm transition-all`}
+                                            value={calApiKey}
+                                            onChange={e => updateField('calApiKey', e.target.value)}
+                                            placeholder="Introduce tu clave de API de Cal.com"
+                                        />
+                                        <div className="mt-1.5 flex items-center gap-1.5 text-[12px] text-[#94a3b8]">
+                                            <i className="bi bi-lock-fill"></i>
+                                            <span>Guardada de forma segura. Obténla desde Cal.com → Configuración → Developer → API Keys</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[#1e293b] mb-1.5">
+                                            Event Type ID <span className="text-[#ef4444]">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className={`w-full border ${errors.calEventId ? 'border-[#ef4444]' : 'border-[#e2e8f0]'} rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#267ab0] bg-white shadow-sm transition-all`}
+                                            value={calEventId}
+                                            onChange={e => updateField('calEventId', e.target.value)}
+                                            placeholder="Ej: 1427703"
+                                        />
+                                        <div className="mt-1.5 flex items-center gap-1.5 text-[12px] text-[#94a3b8]">
+                                            <i className="bi bi-lightbulb"></i>
+                                            <span>Encuéntralo en la URL de tu evento: https://app.cal.com/usuario/evento/<strong>1427703</strong></span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[#1e293b] mb-1.5">
+                                            Zona horaria <span className="text-[#ef4444]">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full border border-[#e2e8f0] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#267ab0] bg-white appearance-none shadow-sm"
+                                                value={calTimezone}
+                                                onChange={e => updateField('calTimezone', e.target.value)}
+                                            >
+                                                <option value="" disabled>Seleccionar zona horaria</option>
+                                                {timezones.map(tz => (
+                                                    <option key={tz} value={tz}>{tz}</option>
+                                                ))}
+                                            </select>
+                                            <i className="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none"></i>
+                                        </div>
+                                        <p className="text-[12px] text-[#94a3b8] mt-1.5">Zona horaria para comprobar disponibilidad y confirmar citas.</p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[#1e293b] mb-1.5">
+                                            Cal.com Link <span className="text-[#94a3b8] font-normal">(opcional)</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="w-full border border-[#e2e8f0] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#267ab0] bg-white shadow-sm transition-all"
+                                            value={calUrl}
+                                            onChange={e => updateField('calUrl', e.target.value)}
+                                            placeholder="https://cal.com/usuario/evento"
+                                        />
+                                    </div>
                                 </div>
                              </div>
                         )}
@@ -525,6 +595,96 @@ export const Step5_Tools: React.FC = () => {
                     </div>
                 </form>
             </div>
+
+            {/* MODAL GUÍA CAL.COM */}
+            {showCalGuide && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowCalGuide(false)}></div>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[500px] z-10 overflow-hidden animate-in fade-in zoom-in duration-300">
+                        <div className="p-8 pb-0">
+                            <div className="flex items-center gap-3 mb-2">
+                                <i className="bi bi-book text-[#267ab0] text-[24px]"></i>
+                                <h2 className="text-[22px] font-bold text-[#1e293b]">Guía de integración Cal.com</h2>
+                            </div>
+                            <p className="text-[15px] text-[#64748b]">Integra la reserva de citas de Cal.com con tu agente de voz.</p>
+                        </div>
+
+                        <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                            {/* Requisitos */}
+                            <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-2xl p-6">
+                                <h3 className="text-[14px] font-bold text-[#92400e] mb-4 flex items-center gap-2">
+                                    <i className="bi bi-exclamation-triangle-fill"></i> Antes de empezar necesitas:
+                                </h3>
+                                <ul className="space-y-2.5">
+                                    {[
+                                        'Una cuenta en Cal.com (cal.com)',
+                                        'Un Event Type creado en tu cuenta',
+                                        'Tu API Key desde Configuración → Developer'
+                                    ].map((item, i) => (
+                                        <li key={i} className="flex items-center gap-2 text-[13px] text-[#92400e] font-medium">
+                                            <i className="bi bi-check-circle-fill text-[#d97706]"></i> {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="mt-6">
+                                    <p className="text-[12px] font-bold text-[#92400e] uppercase tracking-wider mb-3">Cal.com se integra con:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['Google Calendar', 'HubSpot', 'Outlook', 'Salesforce', 'Zoom', 'Notion'].map(p => (
+                                            <span key={p} className="bg-white px-3 py-1 rounded-full text-[11px] font-bold text-[#92400e] border border-[#fef3c7]">
+                                                {p}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Pasos */}
+                            <div className="space-y-8">
+                                {[
+                                    { step: 1, title: 'Crea una cuenta en Cal.com', desc: <>Visita <strong>cal.com</strong> y crea tu cuenta si no tienes una.</> },
+                                    { step: 2, title: 'Configura un tipo de evento', desc: <>En tu panel de Cal.com: <strong>Tipos de evento → Nuevo</strong> → Configura duración, disponibilidad, nombre → <strong>Guardar</strong>.</> },
+                                    { step: 3, title: 'Obtén el Event Type ID', desc: <>Abre el tipo de evento y mira la URL del navegador. El ID es el número al final:</>, code: 'https://app.cal.com/usuario/evento/1427703' },
+                                    { step: 4, title: 'Obtén tu API Key', desc: <>En Cal.com: <strong>Configuración → Developer → API Keys</strong> → copia tu clave.</> },
+                                    { step: 5, title: 'Pega los datos en la Fábrica', desc: <>Introduce la API Key, el Event Type ID y la zona horaria. El agente podrá consultar disponibilidad y reservar citas automáticamente durante las llamadas.</> }
+                                ].map((s, i) => (
+                                    <div key={i} className="flex gap-4">
+                                        <div className="w-8 h-8 rounded-full bg-[#267ab0] text-white flex items-center justify-center font-bold text-[14px] flex-shrink-0">
+                                            {s.step}
+                                        </div>
+                                        <div className="pt-1">
+                                            <h4 className="font-bold text-[#1e293b] text-[15px] mb-1">{s.title}</h4>
+                                            <p className="text-[14px] text-[#64748b] leading-relaxed">{s.desc}</p>
+                                            {s.code && (
+                                                <div className="mt-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3 font-mono text-[13px] text-[#267ab0]">
+                                                    {s.code.split('1427703')[0]}<strong>1427703</strong>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Footer info */}
+                            <div className="bg-[#eff6ff] border border-[#dbeafe] rounded-2xl p-5 flex gap-4 items-start">
+                                <i className="bi bi-info-circle-fill text-[#267ab0] text-[18px] mt-0.5"></i>
+                                <p className="text-[13px] text-[#1e40af] leading-relaxed">
+                                    Para más detalles consulta el <strong>Centro de ayuda</strong> de la plataforma → sección Cal.com.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-8 pt-0">
+                            <button
+                                type="button"
+                                onClick={() => setShowCalGuide(false)}
+                                className="w-full bg-[#267ab0] hover:bg-[#1e6392] text-white font-bold py-3.5 rounded-2xl transition-all shadow-lg active:scale-[0.98]"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
