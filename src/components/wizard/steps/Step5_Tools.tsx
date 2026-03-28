@@ -22,7 +22,7 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (v: boolean) => void;
 
 export const Step5_Tools: React.FC = () => {
     const {
-        enableCalBooking, calApiKey, calEventId, calTimezone, calUrl,
+        enableCalBooking, calApiKey, calEventId, calTimezone, calUrl, enableCalCancellation,
         enableTransfer, transferDestinations,
         extractionVariables, leadQuestions,
         updateField, prevStep, nextStep
@@ -31,6 +31,29 @@ export const Step5_Tools: React.FC = () => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showCalGuide, setShowCalGuide] = useState(false);
+
+    // Auto-add phone variable if Cal.com is enabled
+    React.useEffect(() => {
+        if (enableCalBooking) {
+            const hasPhone = extractionVariables.some(v => 
+                v.name.toLowerCase().includes('tel') || 
+                v.name.toLowerCase().includes('phone') ||
+                v.description.toLowerCase().includes('tel')
+            );
+            
+            if (!hasPhone) {
+                updateField('extractionVariables', [
+                    ...extractionVariables,
+                    { 
+                        name: 'telefono', 
+                        type: 'string', 
+                        description: 'Número de teléfono del usuario para identificación y contacto.',
+                        required: true 
+                    }
+                ]);
+            }
+        }
+    }, [enableCalBooking, extractionVariables, updateField]);
 
     const timezones = [
         'Europe/Madrid',
@@ -405,6 +428,27 @@ export const Step5_Tools: React.FC = () => {
                                             onChange={e => updateField('calUrl', e.target.value)}
                                             placeholder="https://cal.com/usuario/evento"
                                         />
+                                    </div>
+
+                                    <div className="pt-4 border-t border-[#f1f5f9]">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h4 className="text-[14px] font-bold text-[#1e293b]">Permitir cancelación de citas</h4>
+                                                <p className="text-[13px] text-[#64748b] mt-0.5">Activa esta opción para que el agente pueda cancelar citas existentes.</p>
+                                            </div>
+                                            <ToggleSwitch 
+                                                checked={enableCalCancellation} 
+                                                onChange={(v) => updateField('enableCalCancellation', v)} 
+                                                id="enableCalCancellation" 
+                                            />
+                                        </div>
+                                        
+                                        <div className="mt-4 bg-[#eff6ff] border border-[#dbeafe] rounded-xl p-4 flex gap-3 items-start">
+                                            <i className="bi bi-info-circle-fill text-[#267ab0] text-[16px] mt-0.5"></i>
+                                            <div className="text-[13px] text-[#1e40af] leading-relaxed">
+                                                <strong>Lógica de reagendado:</strong> Si un usuario desea cambiar su cita, el agente está instruido para primero cancelar la cita actual y posteriormente agendar una nueva. Es necesario tener activada la cancelación para esta funcionalidad.
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                              </div>

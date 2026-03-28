@@ -195,7 +195,15 @@ export const Step6_Summary: React.FC = () => {
 
         const toolsContentArr: string[] = [];
         if (wizardData.enableCalBooking && wizardData.calApiKey) {
-            toolsContentArr.push(`## Gestión de Agenda y Citas\nTienes acceso a la disponibilidad...`);
+            let calInstructions = `## Gestión de Agenda y Citas\nTienes acceso a la disponibilidad de la agenda de ${company} para agendar citas directamente.`;
+            
+            if (wizardData.enableCalCancellation) {
+                calInstructions += `\n- **Cancelaciones y Reagendados**: Tienes permiso para cancelar citas existentes. Si un usuario desea cambiar o reagendar su cita, es obligatorio que primero canceles la cita actual usando la herramienta de cancelación y later agendes la nueva.`;
+            } else {
+                calInstructions += `\n- **Cancelaciones**: No tienes permiso para cancelar citas. Si el usuario lo solicita, indícale que debe hacerlo manualmente.`;
+            }
+            
+            toolsContentArr.push(calInstructions);
         }
         if (wizardData.enableTransfer && wizardData.transferDestinations.length > 0) {
             const transfers = wizardData.transferDestinations
@@ -209,7 +217,7 @@ export const Step6_Summary: React.FC = () => {
             : '';
 
         const kbSection = wizardData.kbFiles.length > 0
-            ? `\n\n<!-- AUTO_KB_START -->\n# Base de Conocimientos\nTienes acceso a una base de conocimientos...\nBases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retell_name || f.name}`).join('\n') + `\n<!-- AUTO_KB_END -->\n`
+            ? `\n\n<!-- AUTO_KB_START -->\n# Base de Conocimientos\nTienes acceso a una base de conocimientos de la empresa para responder preguntas específicas.\nBases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retell_name || f.name}`).join('\n') + `\n<!-- AUTO_KB_END -->\n`
             : '';
 
         const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de la Empresa\n${wizardData.companyDescription ? `- Actividad: ${wizardData.companyDescription}\n` : ''}- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono: ${formatPhoneForTTS(wizardData.companyPhone || '')}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '')}\n\n## Horario comercial\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
@@ -235,7 +243,7 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         wizardData.agentName, wizardData.companyName, wizardData.language,
         wizardData.businessHours, wizardData.personality, wizardData.tone, wizardData.customNotes,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite, wizardData.companyDescription,
-        wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
+        wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableCalCancellation, wizardData.enableTransfer,
         wizardData.transferDestinations, wizardData.kbFiles
     ]);
 

@@ -106,6 +106,7 @@ export interface WizardState {
     calApiKey: string;
     calEventId: string;
     calTimezone: string;
+    enableCalCancellation: boolean;
     calSearchDays: number;
     enableTransfer: boolean;
     transferDestinations: TransferDestination[];
@@ -207,6 +208,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     calApiKey: '',
     calEventId: '',
     calTimezone: 'Europe/Madrid',
+    enableCalCancellation: false,
     calSearchDays: 6,
     enableTransfer: false,
     transferDestinations: [],
@@ -252,7 +254,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         volume: 1.0, enableAmbientSound: false, ambientSound: 'none', ambientSoundVolume: 0.2,
         sttMode: 'accurate', enableTranscriptionFormatting: true,
         enableEndCall: true, endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
-        enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '', calTimezone: 'Europe/Madrid', calSearchDays: 6,
+        enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '', calTimezone: 'Europe/Madrid', enableCalCancellation: false, calSearchDays: 6,
         enableTransfer: false, transferDestinations: [], enableCustomTools: false, customTools: [],
         useTemplate: false, extractionVariables: [], leadQuestions: [], enableAnalysis: false, analysisModel: 'gpt-4.1',
         webhookUrl: '',
