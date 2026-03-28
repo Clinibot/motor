@@ -32,13 +32,51 @@ body {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 280px;
+  width: 250px;
   background: white;
   border-right: 1px solid var(--gris-borde);
   z-index: 2000;
   display: flex;
   flex-direction: column;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-logo-container {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.logo-badge {
+  width: 36px;
+  height: 36px;
+  background-color: var(--netelip-azul);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.logo-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-main-text {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1a202c;
+  line-height: 1.2;
+}
+
+.logo-sub-text {
+  font-size: 12px;
+  color: #718096;
 }
 
 .sidebar.open {
@@ -137,9 +175,26 @@ body {
   color: white;
 }
 
-.step-item.completed .step-number {
-  background: var(--exito);
-  color: white;
+.admin-sep {
+  padding: 30px 20px 10px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.nav-item.platform-management {
+  color: #805ad5;
+}
+
+.nav-item.platform-management .nav-icon {
+  color: #805ad5;
+}
+
+.nav-item.platform-management:hover {
+  background: #f3f0ff;
+  color: #6b46c1;
 }
 
 .step-info {
@@ -164,7 +219,7 @@ body {
 
 /* ===== MAIN CONTENT ===== */
 .main-content {
-  margin-left: 280px;
+  margin-left: 250px;
   min-height: 100vh;
   background: var(--gris-claro);
   transition: margin-left 0.3s;

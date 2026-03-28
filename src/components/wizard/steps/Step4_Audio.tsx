@@ -4,10 +4,9 @@ import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
 
-export const Step6_Audio: React.FC = () => {
+export const Step4_Audio: React.FC = () => {
     const {
         volume, enableAmbientSound, ambientSound, ambientSoundVolume,
-        sttMode,
         updateField, nextStep, prevStep
     } = useWizardStore();
 
@@ -94,32 +93,7 @@ export const Step6_Audio: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="section-divider"></div>
-
-                    {/* SECCIÓN 2: SPEECH TO TEXT (STT) */}
-                    <div className="step-section">
-                        <h3 className="step-section-title">
-                            <i className="bi bi-mic me-2"></i>
-                            Procesamiento de voz (STT)
-                        </h3>
-
-                        <div className="form-group">
-                            <label className="form-label">Modo de reconocimiento</label>
-                            <div className="radio-cards">
-                                <label className={`radio-card-option ${sttMode === 'accurate' ? 'active' : ''}`}>
-                                    <input type="radio" value="accurate" checked={sttMode === 'accurate'} onChange={() => updateField('sttMode', 'accurate')} />
-                                    <span>Precisión máxima</span>
-                                </label>
-                                <label className={`radio-card-option ${sttMode === 'fast' ? 'active' : ''}`}>
-                                    <input type="radio" value="fast" checked={sttMode === 'fast'} onChange={() => updateField('sttMode', 'fast')} />
-                                    <span>Velocidad extrema</span>
-                                </label>
-                            </div>
-                            <div className="form-text mt-2">
-                                {sttMode === 'accurate' ? 'Ideal para capturar nombres y datos complejos.' : 'Ideal para conversaciones muy fluidas con baja latencia.'}
-                            </div>
-                        </div>
-                    </div>
+                    {/* FUNCIONALIDADES AVANZADAS STT OCULTAS EN V2 */}
 
                     <div className="wizard-actions mt-5">
                         <button type="button" className="btn btn-secondary" onClick={prevStep}>

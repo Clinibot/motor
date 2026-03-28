@@ -6,15 +6,12 @@ import { createClient } from '../../lib/supabase/client';
 import { Sidebar } from '../../components/wizard/Sidebar';
 import { Topbar } from '../../components/wizard/Topbar';
 import { useWizardStore } from '../../store/wizardStore';
-import { Step1_Type } from '../../components/wizard/steps/Step1_Type';
+import { Step1_BasicInfo } from '../../components/wizard/steps/Step1_BasicInfo';
 import { Step2_LLM } from '../../components/wizard/steps/Step2_LLM';
-import { Step2_CompanyInfo } from '../../components/wizard/steps/Step2_CompanyInfo';
 import { Step3_Voice } from '../../components/wizard/steps/Step3_Voice';
-import { Step4_Conversation } from '../../components/wizard/steps/Step4_Conversation';
-import { Step5_Timings } from '../../components/wizard/steps/Step5_Timings';
-import { Step6_Audio } from '../../components/wizard/steps/Step6_Audio';
-import { Step7_Tools } from '../../components/wizard/steps/Step7_Tools';
-import { Step8_Summary } from '../../components/wizard/steps/Step8_Summary';
+import { Step4_Audio } from '../../components/wizard/steps/Step4_Audio';
+import { Step5_Tools } from '../../components/wizard/steps/Step5_Tools';
+import { Step6_Summary } from '../../components/wizard/steps/Step6_Summary';
 
 function WizardContent() {
     const currentStep = useWizardStore((state) => state.currentStep);
@@ -45,7 +42,7 @@ function WizardContent() {
                         setEditingAgent(editId, agent.configuration);
                         if (targetStep) {
                             const stepNum = parseInt(targetStep);
-                            if (!isNaN(stepNum) && stepNum >= 1 && stepNum <= 9) {
+                            if (!isNaN(stepNum) && stepNum >= 1 && stepNum <= 6) {
                                 useWizardStore.getState().setStep(stepNum);
                             }
                         }
@@ -83,16 +80,13 @@ function WizardContent() {
 
     const renderStep = () => {
         switch (currentStep) {
-            case 1: return <Step1_Type />;
+            case 1: return <Step1_BasicInfo />;
             case 2: return <Step2_LLM />;
-            case 3: return <Step2_CompanyInfo />;
-            case 4: return <Step3_Voice />;
-            case 5: return <Step4_Conversation />;
-            case 6: return <Step5_Timings />;
-            case 7: return <Step6_Audio />;
-            case 8: return <Step7_Tools />;
-            case 9: return <Step8_Summary />;
-            default: return <Step1_Type />;
+            case 3: return <Step3_Voice />;
+            case 4: return <Step4_Audio />;
+            case 5: return <Step5_Tools />;
+            case 6: return <Step6_Summary />;
+            default: return <Step1_BasicInfo />;
         }
     };
 

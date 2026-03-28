@@ -176,9 +176,9 @@ export const useWizardStore = create<WizardState>((set) => ({
     voiceTemperature: 1.0,
 
     language: 'es-ES',
-    responsiveness: 1.0,
+    responsiveness: 0.8,
     interruptionSensitivity: 0.8,
-    enableBackchannel: false,
+    enableBackchannel: true,
     backchannelFrequency: 0.9,
     backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
     boostedKeywords: [],
@@ -186,7 +186,7 @@ export const useWizardStore = create<WizardState>((set) => ({
 
     beginMessageDelayMs: 200,
     endCallAfterSilenceMs: 59000,
-    maxCallDurationMs: 600000,
+    maxCallDurationMs: 540000,
     reminderTriggerMs: 30000,
     reminderMaxCount: 1,
     ringDurationMs: 30000,
@@ -224,14 +224,14 @@ export const useWizardStore = create<WizardState>((set) => ({
     isSidebarOpen: false,
 
     updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
-    nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 9), isSidebarOpen: false })),
+    nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6), isSidebarOpen: false })),
     prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1), isSidebarOpen: false })),
     setStep: (step) => set({ currentStep: step, isSidebarOpen: false }),
     setEditingAgent: (agentId, agentData) => set((state) => ({
         ...state,
         ...agentData,
         editingAgentId: agentId,
-        currentStep: 9, // Go straight to summary
+        currentStep: 6, // Go straight to summary
         isSidebarOpen: false
     })),
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
@@ -240,10 +240,10 @@ export const useWizardStore = create<WizardState>((set) => ({
         model: 'gemini-3.0-flash', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
         personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
         voiceId: '11labs-Adrian', voiceName: 'Adrián', voiceProvider: 'retell', voiceDescription: 'Voz profesional y clara de España', voiceSpeed: 1.0, voiceTemperature: 1.0,
-        language: 'es-ES', responsiveness: 1.0, interruptionSensitivity: 0.8,
-        enableBackchannel: false, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
+        language: 'es-ES', responsiveness: 0.8, interruptionSensitivity: 0.8,
+        enableBackchannel: true, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
         boostedKeywords: [], normalizeForSpeech: true,
-        beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 600000,
+        beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 540000,
         reminderTriggerMs: 30000, reminderMaxCount: 1, ringDurationMs: 30000,
         volume: 1.0, enableAmbientSound: false, ambientSound: 'none', ambientSoundVolume: 0.2,
         sttMode: 'accurate', enableTranscriptionFormatting: true,

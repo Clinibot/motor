@@ -56,7 +56,7 @@ const DEFAULT_VOICES: Voice[] = [
 ];
 
 export const Step3_Voice: React.FC = () => {
-    const { voiceId, voiceSpeed, voiceTemperature, updateField, prevStep, nextStep } = useWizardStore();
+    const { voiceId, updateField, prevStep, nextStep } = useWizardStore();
 
     const [voices, setVoices] = useState<Voice[]>([]);
     const [isLoadingVoices, setIsLoadingVoices] = useState(true);
@@ -65,7 +65,7 @@ export const Step3_Voice: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     // const [customTab, setCustomTab] = useState<'clone'>('clone');
     // const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
-    const [activeProvider, setActiveProvider] = useState('all');
+    const [activeProvider, setActiveProvider] = useState('elevenlabs');
 
     // Form states
     const [customName, setCustomName] = useState('');
@@ -75,7 +75,6 @@ export const Step3_Voice: React.FC = () => {
 
     const [filterLang, setFilterLang] = useState('es');
     const [filterGender, setFilterGender] = useState('');
-    const [filterAccent, setFilterAccent] = useState('');
     const [legalConfirmed, setLegalConfirmed] = useState(false);
     const [playingId, setPlayingId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -280,7 +279,7 @@ export const Step3_Voice: React.FC = () => {
     // Reset expansion when filters change
     React.useEffect(() => {
         setIsExpanded(false);
-    }, [activeProvider, filterLang, filterGender, filterAccent]);
+    }, [activeProvider, filterLang, filterGender]);
 
     // Limpieza de audio al desmontar
     React.useEffect(() => {
@@ -298,27 +297,13 @@ export const Step3_Voice: React.FC = () => {
         // Si no se han cargado voces aún, usar DEFAULT_VOICES
         if (list.length === 0 && !isLoadingVoices) list = DEFAULT_VOICES;
 
-        // 1. Filtrar solo las curadas si estamos en la pestaña "Recomendadas" y NO hay filtros específicos
-        // Importante: filterLang NO debe disparar la lista completa si es el valor por defecto ('es')
-        const isFiltering = filterAccent || filterGender || (filterLang && filterLang !== 'es');
-
-        if (activeProvider === 'all' && !isFiltering) {
-            const recommended = list.filter(v => 
-                CURATED_VOICE_IDS.includes(v.voice_id) || v.provider === 'cloned'
-            );
-            if (recommended.length > 0) list = recommended;
-        }
-
         // 2. Aplicar filtros de UI
         const filtered = list.filter(v => {
-            const matchesProvider = activeProvider === 'all'
-                ? true
-                : v.provider === activeProvider;
+            const matchesProvider = v.provider === activeProvider;
 
             const matchesLang = !filterLang || v.language === filterLang;
             const matchesGender = !filterGender || v.gender === filterGender;
-            const matchesAccent = !filterAccent || v.accent === filterAccent;
-            return matchesProvider && matchesLang && matchesGender && matchesAccent;
+            return matchesProvider && matchesLang && matchesGender;
         });
 
         // 3. Ordenación : España > Latam > Resto
@@ -337,7 +322,7 @@ export const Step3_Voice: React.FC = () => {
 
             return 0;
         });
-    }, [voices, activeProvider, filterLang, filterGender, filterAccent, isLoadingVoices]);
+    }, [voices, activeProvider, filterLang, filterGender, isLoadingVoices]);
 
     const handleCustomVoiceSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -555,12 +540,9 @@ export const Step3_Voice: React.FC = () => {
                         paddingBottom: '2px'
                     }}>
                         {[
-                            { id: 'all', name: 'Recomendadas', icon: 'bi-star-fill' },
                             { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' },
                             { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
                             { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
-                            { id: 'minimax', name: 'MiniMax', icon: 'bi-mic-fill' },
-                            { id: 'fish_audio', name: 'Fish Audio', icon: 'bi-water' },
                             { id: 'cloned', name: 'Clonadas', icon: 'bi-mic-fill' }
                         ].map(p => (
                             <button
@@ -597,7 +579,7 @@ export const Step3_Voice: React.FC = () => {
                         borderRadius: '12px',
                         marginBottom: '24px',
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
                         gap: '16px'
                     }}>
                         <div>
@@ -616,17 +598,6 @@ export const Step3_Voice: React.FC = () => {
                                 <option value="">Todos</option>
                                 <option value="female">Femenino</option>
                                 <option value="male">Masculino</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="form-label" style={{ fontSize: '13px', fontWeight: 600 }}>Acento</label>
-                            <select className="form-control" value={filterAccent} onChange={(e) => setFilterAccent(e.target.value)}>
-                                <option value="">Todos los acentos</option>
-                                <option value="spain">España</option>
-                                <option value="latam">Latinoamérica</option>
-                                <option value="usa">USA</option>
-                                <option value="uk">UK</option>
-                                <option value="france">Francia</option>
                             </select>
                         </div>
                     </div>
@@ -816,7 +787,6 @@ export const Step3_Voice: React.FC = () => {
                                         style={{ marginTop: '16px', color: 'var(--color-primario)' }}
                                         onClick={() => {
                                             setFilterLang('');
-                                            setFilterAccent('');
                                             setFilterGender('');
                                         }}
                                     >
@@ -829,57 +799,7 @@ export const Step3_Voice: React.FC = () => {
 
 
 
-                    {/* CONFIGURACIÓN ADICIONAL */}
-                    <div className="section-divider">
-                        <h3><i className="bi bi-sliders"></i> Ajustes de voz</h3>
-                        <p>Ajusta el tono y la velocidad de la voz seleccionada.</p>
-                    </div>
-
-                    <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                        <div className="form-group">
-                            <label className="form-label">
-                                Voice speed
-                                <span className="custom-tooltip">
-                                    <i className="bi bi-info-circle tooltip-icon"></i>
-                                    <span className="tooltip-content">
-                                        <strong>Velocidad de habla:</strong><br />
-                                        Controla qué tan rápido habla el agente. Valores entre 0.9 y 1.1 suenan más naturales.
-                                    </span>
-                                </span>
-                            </label>
-                            <div className="slider-container">
-                                <div className="slider-value">{voiceSpeed.toFixed(1)}x</div>
-                                <input
-                                    type="range"
-                                    min="0.5" max="2.0" step="0.1"
-                                    value={voiceSpeed}
-                                    onChange={(e) => updateField('voiceSpeed', parseFloat(e.target.value))}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">
-                                Voice temperature
-                                <span className="custom-tooltip">
-                                    <i className="bi bi-info-circle tooltip-icon"></i>
-                                    <span className="tooltip-content">
-                                        <strong>Variación emocional:</strong><br />
-                                        A mayor temperatura, la voz tendrá más inflexiones y sonará más expresiva y humana.
-                                    </span>
-                                </span>
-                            </label>
-                            <div className="slider-container">
-                                <div className="slider-value">{voiceTemperature.toFixed(1)}</div>
-                                <input
-                                    type="range"
-                                    min="0" max="1.0" step="0.1"
-                                    value={voiceTemperature}
-                                    onChange={(e) => updateField('voiceTemperature', parseFloat(e.target.value))}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    {/* CONFIGURACIÓN ADICIONAL HIDDEN EN V2 FOR SIMPLICITY */}
 
                     <div className="wizard-actions">
                         <button type="button" className="btn btn-secondary" onClick={prevStep}>

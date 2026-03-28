@@ -16,21 +16,20 @@ export default function DashboardSidebar({ user }: SidebarProps) {
     const pathname = usePathname();
 
     const navItems = [
-        { label: 'Dashboard', href: '/dashboard', iconPath: 'M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z' },
-        { label: 'Mis agentes IA', href: '/dashboard/agents', iconPath: 'M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z' },
-        { label: 'Mis números', href: '/dashboard/numbers', iconPath: 'M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z' },
-        { label: 'Configuración', href: '/dashboard/settings', iconPath: 'M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z' },
-        { label: 'Ayuda y soporte', href: '/dashboard/help', iconPath: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z' },
+        { label: 'Dashboard', href: '/dashboard', iconPath: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+        { label: 'Mis agentes IA', href: '/dashboard/agents', iconPath: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+        { label: 'Mis números', href: '/dashboard/numbers', iconPath: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' },
+        { label: 'Ayuda y soporte', href: '/dashboard/help', iconPath: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     ];
 
     return (
         <aside className="sidebar">
-            <div className="logo-container">
-                <Link href="/dashboard" style={{ textDecoration: 'none' }}>
-                    <svg width="120" height="30" viewBox="0 0 120 30">
-                        <text x="5" y="22" fontFamily="Inter, sans-serif" fontSize="20" fontWeight="700" fill="#267ab0">netelip</text>
-                    </svg>
-                </Link>
+            <div className="sidebar-logo-container">
+                <div className="logo-badge">F</div>
+                <div className="logo-text-group">
+                    <span className="logo-main-text">Fábrica de Agentes IA</span>
+                    <span className="logo-sub-text">netelip</span>
+                </div>
             </div>
             <nav className="nav-menu">
                 {navItems.map((item) => (
@@ -49,25 +48,16 @@ export default function DashboardSidebar({ user }: SidebarProps) {
                 {user?.role === 'superadmin' && (
                     <>
                         <div className="admin-sep">
-                            <span>Administración</span>
+                            <span>EQUIPO NETELIP</span>
                         </div>
                         <Link
-                            href="/dashboard/templates"
-                            className={`nav-item admin-item ${pathname === '/dashboard/templates' ? 'active' : ''}`}
-                        >
-                            <svg className="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" clipRule="evenodd" />
-                            </svg>
-                            Biblioteca de plantillas
-                        </Link>
-                        <Link
                             href="/admin"
-                            className={`nav-item admin-item ${pathname === '/admin' ? 'active' : ''}`}
+                            className={`nav-item admin-item platform-management ${pathname === '/admin' ? 'active' : ''}`}
                         >
-                            <svg className="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clipRule="evenodd" />
+                            <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
-                            Panel de Admin
+                            Gestión de la Plataforma
                         </Link>
                     </>
                 )}

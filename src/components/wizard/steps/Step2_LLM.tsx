@@ -6,8 +6,6 @@ import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step2_LLM: React.FC = () => {
     const {
-        temperature,
-        highPriority,
         whoFirst,
         beginMessage,
         personality,
@@ -81,59 +79,6 @@ export const Step2_LLM: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="form-group mb-4">
-                                    <label className="form-label">
-                                        Temperature
-                                        <div className="custom-tooltip ms-1">
-                                            <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                            <div className="tooltip-content shadow">
-                                                <strong>Controla la creatividad:</strong><br />
-                                                <strong>0.0-0.2:</strong> Consistente (Recomendado)<br />
-                                                <strong>0.3-0.6:</strong> Balanceado<br />
-                                                <strong>0.7-1.0:</strong> Creativo (Ventas)
-                                            </div>
-                                        </div>
-                                    </label>
-                                    <div className="slider-wrapper-premium">
-                                        <div className="slider-value-badge-v2">{temperature}</div>
-                                        <input
-                                            type="range"
-                                            className="form-range custom-range"
-                                            min="0" max="1" step="0.1"
-                                            value={temperature}
-                                            onChange={(e) => updateField('temperature', parseFloat(e.target.value))}
-                                        />
-                                    </div>
-                                    <div className="form-text mt-2 d-flex align-items-center">
-                                        <i className="bi bi-thermometer-half me-2 icon-soft"></i>
-                                        <span>Mayor valor = respuestas más creativas y variadas</span>
-                                    </div>
-                                </div>
-
-                                <div className="form-group mb-0">
-                                    <div className="form-check custom-check">
-                                        <input
-                                            className="form-check-input"
-                                            type="checkbox"
-                                            id="highPriority"
-                                            checked={highPriority}
-                                            onChange={(e) => updateField('highPriority', e.target.checked)}
-                                        />
-                                        <label className="form-check-label fw-600" htmlFor="highPriority">
-                                            Activar modelo de alta prioridad
-                                            <div className="custom-tooltip ms-1">
-                                                <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                                <div className="tooltip-content shadow">
-                                                    Reduce la latencia garantizando recursos dedicados. Recomendado para tráfico alto.
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                    <div className="form-text ms-4 d-flex align-items-center">
-                                        <i className="bi bi-lightning-charge me-2 icon-soft"></i>
-                                        <span>Garantiza respuestas más rápidas en momentos de alto tráfico</span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

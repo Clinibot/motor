@@ -85,7 +85,7 @@ export async function POST(request: Request) {
         // 3. Actualizar en Retell
         console.log(`Updating Retell phone number ${phone_number} with agent ${retellAgentId}`);
 
-        const updatePayload: any = {
+        const updatePayload: Record<string, string> = {
             inbound_agent_id: retellAgentId
         };
         

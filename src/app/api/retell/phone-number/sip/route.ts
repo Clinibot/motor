@@ -25,7 +25,6 @@ export async function POST(request: Request) {
             sip_trunk_username,
             sip_trunk_password,
             nickname,
-            outbound_transport,
             workspace_id
         } = payload;
 
@@ -66,7 +65,7 @@ export async function POST(request: Request) {
                 termination_uri: termination_uri,
                 auth_username: sip_trunk_username || undefined,
                 auth_password: sip_trunk_password || undefined,
-                transport: ((outbound_transport || 'UDP').toUpperCase()) as 'TCP' | 'UDP' | 'TLS'
+                transport: 'UDP' // Forzado a UDP por requerimiento técnico (Netelip)
             }
         };
 

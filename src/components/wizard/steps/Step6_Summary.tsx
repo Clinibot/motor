@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
+import { createClient } from '../../../lib/supabase/client';
 
 const PROMPT_NOTE_EXAMPLES = [
     "No menciones precios concretos. Si el usuario los solicita, indícale que recibirá un presupuesto personalizado.",
@@ -313,7 +314,7 @@ const cleanPromptForDeployment = (prompt: string) => {
         .trim();
 };
 
-export const Step8_Summary: React.FC = () => {
+export const Step6_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const { setStep, prevStep, updateField } = wizardData;
 
@@ -324,9 +325,63 @@ export const Step8_Summary: React.FC = () => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [showConfirmRegenerate, setShowConfirmRegenerate] = useState(false);
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const files = Array.from(e.target.files);
+        const inputElement = e.target;
+        inputElement.value = '';
+
+        if (wizardData.kbFiles.length + files.length > 3) {
+            setUploadError('Máximo 3 archivos permitidos en la base de conocimientos.');
+            return;
+        }
+        setUploadError(null);
+        setIsUploading(true);
+        const newFiles = [...wizardData.kbFiles];
+
+        for (const f of files) {
+            const formData = new FormData();
+            formData.append('file', f);
+            try {
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    const { data: user } = await supabase.from('users').select('workspace_id').eq('id', session.user.id).single();
+                    if (user && user.workspace_id) {
+                        formData.append('workspace_id', user.workspace_id);
+                    }
+                }
+                const res = await fetch('/api/retell/knowledge-base', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success && data.knowledge_base_id) {
+                    newFiles.push({
+                        id: data.knowledge_base_id,
+                        name: data.name,
+                        retell_name: data.retell_name,
+                        size: data.size,
+                        type: data.type
+                    });
+                } else {
+                    setUploadError('Error al subir archivo ' + f.name + ': ' + data.error);
+                }
+            } catch {
+                setUploadError('Error de conexión al subir archivo ' + f.name);
+            }
+        }
+        updateField('kbFiles', newFiles);
+        setIsUploading(false);
+    };
+
+    const removeFile = (index: number) => {
+        const newFiles = [...wizardData.kbFiles];
+        newFiles.splice(index, 1);
+        updateField('kbFiles', newFiles);
+    };
 
     React.useEffect(() => {
         const interval = setInterval(() => {
@@ -433,10 +488,10 @@ Bases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retel
         const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de la Empresa\n${wizardData.companyDescription ? `- Actividad: ${wizardData.companyDescription}\n` : ''}- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(wizardData.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '') || 'No especificada'}\n\n## Horario comercial\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
         let finalPrompt = '';
-        const currentPrompt = promptRef.current || '';
+        const currentPrompt = wizardData.prompt || '';
 
         // Si ya hay un prompt y no es el por defecto, intentamos "Smart Update"
-        // EXCEPTO si forceRebuild=true (botón Regenerar): en ese caso reconstruimos desde cero
+        // EXCEPTO si forceRebuild=true: en ese caso reconstruimos desde cero
         if (!forceRebuild && currentPrompt && currentPrompt !== 'Eres un asistente útil.') {
             finalPrompt = currentPrompt;
 
@@ -585,6 +640,7 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         }
         return finalPrompt;
     }, [
+        wizardData.prompt,
         wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
         wizardData.businessHours,
         wizardData.personality, wizardData.tone, wizardData.customNotes,
@@ -592,32 +648,6 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
         wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions
     ]);
-
-    // Referencia para evitar bucles en el prompt
-    const promptRef = React.useRef(wizardData.prompt);
-    React.useEffect(() => {
-        promptRef.current = wizardData.prompt;
-    }, [wizardData.prompt]);
-
-    // Asegurar visibilidad del prompt
-    const [hasGeneratedPrompt, setHasGeneratedPrompt] = useState(
-        !!editingAgentId || (!!wizardData.prompt && wizardData.prompt !== '' && wizardData.prompt !== 'Eres un asistente útil.')
-    );
-
-    // Efecto para asegurar que en modo edición el prompt sea visible directamente
-    // y se mantenga sincronizado con los cambios de herramientas/KB
-    React.useEffect(() => {
-        if (editingAgentId || (wizardData.prompt && wizardData.prompt !== 'Eres un asistente útil.')) {
-            setHasGeneratedPrompt(true);
-        }
-
-        if (editingAgentId) {
-            const updated = getUpdatedPrompt();
-            if (updated !== wizardData.prompt) {
-                updateField('prompt', updated);
-            }
-        }
-    }, [editingAgentId, getUpdatedPrompt, updateField, wizardData.prompt]);
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
@@ -638,36 +668,16 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         return names[lang] || lang || 'No definido';
     };
 
-    const generateAllInstructions = () => {
-        setIsGenerating(true);
-        // forceRebuild=true: siempre reconstruye el prompt desde cero, sin Smart Update
-        const finalPrompt = getUpdatedPrompt(true);
-        setTimeout(() => {
-            updateField('prompt', finalPrompt);
-            setIsGenerating(false);
-            setHasGeneratedPrompt(true);
-        }, 1500);
-    };
-
-    const handleConfirmRegenerate = () => {
-        setShowConfirmRegenerate(true);
-    };
-
-    const handleExecuteRegenerate = () => {
-        setShowConfirmRegenerate(false);
-        generateAllInstructions();
-    };
-
     const handleCreateAgent = async () => {
+        // Generar prompt final asegurando la información más actual (forceRebuild=false para "Smart Update" en caso de modo edición)
+        const finalGeneratedPrompt = getUpdatedPrompt(false);
         // LIMPIEZA CRÍTICA: Eliminar secciones auto-generadas y espacios extra antes de enviar a Retell.
-        // Las secciones AUTO_* se re-inyectan en el servidor via injectToolInstructions.
-        const cleanedPrompt = cleanPromptForDeployment(wizardData.prompt);
+        const cleanedPrompt = cleanPromptForDeployment(finalGeneratedPrompt);
 
         const missing = [];
         if (!wizardData.agentName) missing.push('Nombre del agente');
         if (!wizardData.model) missing.push('Modelo LLM');
         if (!wizardData.voiceId) missing.push('Voz');
-        if (!cleanedPrompt || cleanedPrompt.length < 50) missing.push('Prompt (necesitas generarlo)');
 
         if (missing.length > 0) {
             setErrorMessage(`Faltan campos obligatorios: ${missing.join(', ')}`);
@@ -774,59 +784,119 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
 
                 {/* SUMMARY GRID */}
                 <div style={S.summaryGrid}>
-
                     {/* Paso 1 */}
                     <SummaryCard icon="bi-info-circle-fill" color="#267ab0" title="Paso 1: Información básica" step={1} onEdit={setStep}>
                         <SummaryRow label="Nombre del agente" value={wizardData.agentName || '—'} />
-                        <SummaryRow label="Tipo de agente" value={getAgentTypeName(wizardData.agentType)} />
-                        <SummaryRow label="Empresa" value={wizardData.companyName || '—'} last />
+                        <SummaryRow label="Empresa" value={wizardData.companyName || '—'} />
+                        <SummaryRow label="Actividad" value={wizardData.companyDescription || '—'} last />
                     </SummaryCard>
 
                     {/* Paso 2 */}
-                    <SummaryCard icon="bi-robot" color="#267ab0" title="Paso 2: Configuración LLM" step={2} onEdit={setStep}>
+                    <SummaryCard icon="bi-cpu-fill" color="#267ab0" title="Paso 2: Cerebro LLM" step={2} onEdit={setStep}>
                         <SummaryRow label="Modelo de IA" value={wizardData.model || '—'} />
-                        <SummaryRow label="Temperature" value={String(wizardData.temperature)} />
-                        <SummaryRow label="Base de conocimientos" value={`${wizardData.kbFiles.length} archivo(s)`} last />
-                    </SummaryCard>
-
-                    {/* Paso 3 */}
-                    <SummaryCard icon="bi-building" color="#267ab0" title="Paso 3: Empresa y horarios" step={3} onEdit={setStep}>
-                        <SummaryRow label="Empresa" value={wizardData.companyName || '—'} />
-                        <SummaryRow label="Web" value={wizardData.companyWebsite || '—'} />
-                        <SummaryRow label="Días activos" value={`${wizardData.businessHours.filter(h => !h.closed).length} días`} last />
-                    </SummaryCard>
-
-                    {/* Paso 4 */}
-                    <SummaryCard icon="bi-mic-fill" color="#10b981" title="Paso 4: Voz" step={4} onEdit={setStep}>
-                        <SummaryRow label="Voz seleccionada" value={wizardData.voiceName || '—'} />
-                        <SummaryRow label="Velocidad" value={`${wizardData.voiceSpeed}x`} last />
-                    </SummaryCard>
-
-                    {/* Paso 5 */}
-                    <SummaryCard icon="bi-chat-dots-fill" color="#267ab0" title="Paso 5: Conversación" step={5} onEdit={setStep}>
                         <SummaryRow label="Idioma" value={getLanguageName(wizardData.language)} />
-                        <SummaryRow label="Personalidad" value={wizardData.personality.join(', ') || '—'} />
                         <SummaryRow label="Tono" value={wizardData.tone || '—'} last />
                     </SummaryCard>
 
-                    {/* Paso 6 */}
-                    <SummaryCard icon="bi-clock-fill" color="#f59e0b" title="Paso 6: Tiempos" step={6} onEdit={setStep}>
-                        <SummaryRow label="Tiempo máx. silencio" value={`${Math.round((wizardData.endCallAfterSilenceMs ?? 0) / 1000)}s`} />
-                        <SummaryRow label="Tiempo máx. llamada" value={`${Math.round((wizardData.maxCallDurationMs ?? 0) / 60000)} min`} last />
+                    {/* Paso 3 */}
+                    <SummaryCard icon="bi-mic-fill" color="#10b981" title="Paso 3: Voz" step={3} onEdit={setStep}>
+                        <SummaryRow label="Voz seleccionada" value={wizardData.voiceName || '—'} last />
                     </SummaryCard>
 
-                    {/* Paso 7 */}
-                    <SummaryCard icon="bi-mic-fill" color="#267ab0" title="Paso 7: Audio y STT" step={7} onEdit={setStep}>
+                    {/* Paso 4 */}
+                    <SummaryCard icon="bi-volume-up-fill" color="#267ab0" title="Paso 4: Audio" step={4} onEdit={setStep}>
                         <SummaryRow label="Volumen agente" value={(wizardData.volume * 100).toFixed(0) + '%'} />
-                        <SummaryRow label="Ruido ambiente" value={wizardData.enableAmbientSound ? (wizardData.ambientSound || 'Activado') : 'Desactivado'} />
-                        <SummaryRow label="Modo STT" value={wizardData.sttMode === 'accurate' ? 'Precisión' : 'Velocidad'} last />
+                        <SummaryRow label="Ruido ambiente" value={wizardData.enableAmbientSound ? (wizardData.ambientSound || 'Activado') : 'Desactivado'} last />
                     </SummaryCard>
 
-                    {/* Paso 8 Full Width */}
-                    <SummaryCard icon="bi-gear-fill" color="#267ab0" title="Paso 8: Herramientas" step={8} onEdit={setStep} fullWidth>
-                        <SummaryRow label="Transferencias activas" value={wizardData.enableTransfer ? `Sí (${wizardData.transferDestinations.length} destinos)` : 'No'} />
-                        <SummaryRow label="Variables de extracción" value={`${wizardData.extractionVariables.length} variable(s)`} />
+                    {/* Paso 5 Full Width */}
+                    <SummaryCard icon="bi-box-seam-fill" color="#f59e0b" title="Paso 5: Tipo y Herramientas" step={5} onEdit={setStep} fullWidth>
+                        <SummaryRow label="Tipo de agente" value={getAgentTypeName(wizardData.agentType)} />
+                        <SummaryRow label="Reserva de citas" value={wizardData.enableCalBooking ? 'Activado' : 'Desactivado'} />
+                        <SummaryRow label="Transferencias" value={wizardData.enableTransfer ? `Sí (${wizardData.transferDestinations.length} destinos)` : 'No'} />
+                        <SummaryRow label="Variables extracción" value={`${wizardData.extractionVariables.length} variable(s)`} last />
                     </SummaryCard>
+                </div>
+
+                {/* KNOWLEDGE BASE */}
+                <div style={{ marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#1a2428', margin: 0 }}>
+                            <i className="bi bi-book-half me-2" /> Base de conocimientos
+                        </h4>
+                        <div className="custom-tooltip">
+                            <i className="bi bi-question-circle-fill tooltip-icon" style={{ fontSize: '14px' }}></i>
+                            <div className="tooltip-content shadow" style={{ width: '280px' }}>
+                                Sube documentos para que tu agente responda con información precisa.
+                                Límite: 3 archivos, máx 10 MB cada uno (.md, .txt, .pdf, .docx).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                        {uploadError && (
+                            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '14px', color: '#ef4444', fontWeight: 600 }}>
+                                <span><i className="bi bi-exclamation-circle-fill me-2" />{uploadError}</span>
+                                <button onClick={() => setUploadError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '20px', lineHeight: 1 }}>×</button>
+                            </div>
+                        )}
+
+                        <div>
+                            <label htmlFor="kb-upload" style={{ cursor: isUploading ? 'default' : 'pointer', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: isUploading ? 0.5 : 1 }}>
+                                {isUploading ? (
+                                    <div className="py-3 text-center">
+                                        <div className="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                        <div style={{ color: '#267ab0', fontWeight: 'bold' }}>Subiendo...</div>
+                                    </div>
+                                ) : (
+                                    <div className="w-100 text-center py-3">
+                                        <i className="bi bi-cloud-arrow-up" style={{ fontSize: '24px', color: '#64748b' }}></i>
+                                        <div style={{ fontSize: '15px', color: '#1a2428', fontWeight: 600, marginTop: '8px' }}>
+                                            Haz clic para subir archivos
+                                        </div>
+                                    </div>
+                                )}
+                            </label>
+                            <input
+                                type="file"
+                                id="kb-upload"
+                                style={{ display: 'none' }}
+                                multiple
+                                accept=".md,.txt,.pdf,.docx"
+                                onChange={handleFileUpload}
+                                disabled={isUploading}
+                            />
+                        </div>
+
+                        {wizardData.kbFiles.length > 0 && (
+                            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {wizardData.kbFiles.map((file, idx) => (
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 14px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                                            <i className="bi bi-file-earmark-text text-primary"></i>
+                                            <span style={{ fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
+                                            <span style={{ fontSize: '12px', color: '#94a3b8' }}>({file.size})</span>
+                                        </div>
+                                        <button type="button" onClick={() => removeFile(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Eliminar">
+                                            <i className="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="mt-3">
+                            <label style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px', display: 'block' }}>Instrucciones de uso de la base</label>
+                            <textarea
+                                className="form-control"
+                                rows={2}
+                                style={{ borderRadius: '8px', fontSize: '13px' }}
+                                placeholder="Ej: Consulta esta información solo para dudas técnicas sobre precios."
+                                value={wizardData.kbUsageInstructions}
+                                onChange={(e) => updateField('kbUsageInstructions', e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {/* NOTAS PERSONALIZADAS */}
@@ -863,101 +933,20 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
                         }}
                     />
                     <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px' }}>
-                        <i className="bi bi-info-circle me-1" /> Estas notas se mantendrán incluso si regeneras el prompt o cambias otras configuraciones.
+                        <i className="bi bi-info-circle me-1" /> Estas notas se mantendrán incluso si cambias otras configuraciones.
                     </p>
                 </div>
-
-                {/* PROMPT */}
-                {(!hasGeneratedPrompt && !editingAgentId) ? (
-                    <div style={{
-                        background: 'linear-gradient(145deg, #f8f9fa, #e9ecef)',
-                        border: '1px dashed #ced4da',
-                        borderRadius: '12px',
-                        padding: '48px',
-                        textAlign: 'center',
-                        marginBottom: '32px',
-                    }}>
-                        <i className="bi bi-robot" style={{ fontSize: '48px', color: '#267ab0', opacity: 0.8, display: 'block', marginBottom: '16px' }} />
-                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1a2428', marginBottom: '12px' }}>¡Casi listo!</h3>
-                        <p style={{ fontSize: '14px', color: '#6c757d', maxWidth: '480px', margin: '0 auto 24px' }}>
-                            Genera el Prompt (las instrucciones maestras del agente) basado en toda tu configuración.
-                        </p>
-                        <button
-                            onClick={generateAllInstructions}
-                            disabled={isGenerating}
-                            style={{
-                                ...S.btnCreateAgent,
-                                padding: '14px 32px',
-                                borderRadius: '30px',
-                                fontSize: '16px',
-                                fontWeight: 700,
-                                boxShadow: '0 8px 20px rgba(38,122,176,0.3)',
-                                background: isGenerating ? '#6c757d' : '#267ab0',
-                                cursor: isGenerating ? 'wait' : 'pointer',
-                            }}
-                        >
-                            {isGenerating ? (
-                                <><span className="spinner-border spinner-border-sm me-2" /> Redactando instrucciones...</>
-                            ) : (
-                                <><i className="bi bi-magic" /> Generar Prompt Mágico</>
-                            )}
-                        </button>
-                    </div>
-                ) : (
-                    <div style={{ marginBottom: '32px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '12px' }}>
-                            <div>
-                                <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#1a2428', marginBottom: '4px' }}>
-                                    <i className="bi bi-terminal me-2" /> Instrucciones del Agente
-                                </h4>
-                                <p style={{ fontSize: '13px', color: '#10b981', fontWeight: 600, margin: 0 }}>
-                                    <i className="bi bi-check-circle-fill me-1" /> {editingAgentId ? 'Instrucciones maestras del agente (se auto-actualizan al guardar).' : 'Generadas correctamente. Puedes editarlas.'}
-                                </p>
-                            </div>
-                            {showConfirmRegenerate ? (
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>¿Borrar cambios?</span>
-                                    <button onClick={() => setShowConfirmRegenerate(false)} style={{ ...S.editBtn, padding: '4px 8px' }}>No</button>
-                                    <button onClick={handleExecuteRegenerate} style={{ ...S.editBtn, borderColor: '#ef4444', color: '#ef4444', padding: '4px 8px' }}>Sí, borrar</button>
-                                </div>
-                            ) : (
-                                <button onClick={handleConfirmRegenerate} disabled={isGenerating}
-                                    style={{ ...S.editBtn, borderColor: '#267ab0', color: '#267ab0' }}>
-                                    {isGenerating ? 'Regenerando...' : <><i className="bi bi-arrow-clockwise" /> Regenerar</>}
-                                </button>
-                            )}
-                        </div>
-                        <textarea
-                            rows={18}
-                            value={wizardData.prompt}
-                            onChange={(e) => updateField('prompt', e.target.value)}
-                            style={{
-                                width: '100%',
-                                fontFamily: 'monospace',
-                                fontSize: '13.5px',
-                                lineHeight: '1.6',
-                                backgroundColor: '#272822',
-                                color: '#f8f8f2',
-                                border: 'none',
-                                borderRadius: '8px',
-                                padding: '16px',
-                                resize: 'vertical',
-                                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
-                            }}
-                        />
-                    </div>
-                )}
 
                 {/* ACTION BUTTONS */}
                 <div style={S.actionButtons}>
                     <button
                         onClick={handleCreateAgent}
-                        disabled={isCreating || !hasGeneratedPrompt}
+                        disabled={isCreating}
                         style={{
                             ...S.btnCreateAgent,
                             background: editingAgentId ? '#267ab0' : '#10b981',
-                            opacity: (!hasGeneratedPrompt || isCreating) ? 0.6 : 1,
-                            cursor: (!hasGeneratedPrompt || isCreating) ? 'not-allowed' : 'pointer',
+                            opacity: isCreating ? 0.6 : 1,
+                            cursor: isCreating ? 'not-allowed' : 'pointer',
                             fontSize: '15px',
                         }}
                     >

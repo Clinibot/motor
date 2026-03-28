@@ -300,7 +300,7 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
             }
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Error handling call_inbound webhook:", err);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }

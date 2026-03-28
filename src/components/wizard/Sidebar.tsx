@@ -5,15 +5,12 @@ import Link from 'next/link';
 import { useWizardStore } from '../../store/wizardStore';
 
 const stepsMeta = [
-    { id: 1, name: 'Información básica', desc: 'Nombre y sector' },
-    { id: 2, name: 'Configuración LLM', desc: 'Modelo y conocimiento' },
-    { id: 3, name: 'Información de la empresa', desc: 'Horarios y contacto' },
-    { id: 4, name: 'Selección de voz', desc: 'Voz y personalidad' },
-    { id: 5, name: 'Conversación', desc: 'Idioma y respuestas' },
-    { id: 6, name: 'Tiempos', desc: 'Duraciones y delays' },
-    { id: 7, name: 'Audio y STT', desc: 'Sonido ambiente' },
-    { id: 8, name: 'Herramientas', desc: 'Integraciones' },
-    { id: 9, name: 'Resumen', desc: 'Revisar y crear' },
+    { id: 1, name: 'Información básica', desc: 'Nombre y empresa' },
+    { id: 2, name: 'Configuración LLM', desc: 'Modelo y tono' },
+    { id: 3, name: 'Selección de voz', desc: 'Voz del agente' },
+    { id: 4, name: 'Audio y STT', desc: 'Volumen y ambiente' },
+    { id: 5, name: 'Herramientas', desc: 'Integraciones y funciones' },
+    { id: 6, name: 'Resumen', desc: 'Revisar y finalizar' },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -28,7 +25,7 @@ export const Sidebar: React.FC = () => {
                     <i className="bi bi-arrow-left"></i> Volver al dashboard
                 </Link>
                 <h2 className="wizard-title">Crear agente IA</h2>
-                <p className="wizard-subtitle">Sigue los 7 pasos para configurar tu agente</p>
+                <p className="wizard-subtitle">Sigue los 6 pasos para configurar tu agente</p>
             </div>
 
             <div className="steps-container">
