@@ -34,12 +34,10 @@ export default function NumbersPage() {
     const [numbers, setNumbers] = useState<PhoneNumber[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'inbound' | 'outbound'>('inbound');
     const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
     const [newNumber, setNewNumber] = useState({
@@ -226,23 +224,17 @@ export default function NumbersPage() {
         }
     };
 
-    const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        router.push('/login');
-    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsDropdownOpen(false);
+                // setIsDropdownOpen(false); // Removed as it's unused
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const userInitial = (user?.full_name || user?.email || 'U')[0].toUpperCase();
 
     return (
         <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
