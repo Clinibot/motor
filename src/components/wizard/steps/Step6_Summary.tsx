@@ -5,35 +5,6 @@ import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
 import { createClient } from '../../../lib/supabase/client';
 
-const PROMPT_NOTE_EXAMPLES = [
-    "No menciones precios concretos. Si el usuario los solicita, indícale que recibirá un presupuesto personalizado.",
-    "Si el usuario se muestra agresivo o usa lenguaje inapropiado, avisa una vez y finaliza la llamada si continúa.",
-    "El horario de atención es de lunes a viernes de 9h a 18h. Los sábados no hay servicio.",
-    "Si el usuario dice que está conduciendo, ofrécele llamarle en otro momento en lugar de continuar.",
-    "Si el usuario ya es cliente, no le ofrezcas el descuento de bienvenida.",
-    "Nunca confirmes ni desmientas información sobre pedidos sin haber verificado antes el número de referencia.",
-    "Si el usuario pregunta por la competencia, redirige la conversación hacia las ventajas del servicio sin hacer comparativas.",
-    "Si el usuario solicita hablar con un humano, indícale que alguien le llamará en un plazo máximo de 24 horas."
-];
-
-const S = {
-    btnCreateAgent: {
-        padding: '14px 20px',
-        borderRadius: '8px',
-        fontWeight: 600,
-        fontSize: '14px',
-        border: 'none',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
-        background: '#10b981',
-        color: 'white',
-        transition: 'all 0.2s',
-    } as React.CSSProperties,
-};
-
 const formatTimeToSpanishWords = (timeStr: string) => {
     if (!timeStr) return '';
     const [hoursStr, minutesStr] = timeStr.split(':');
@@ -141,10 +112,8 @@ export const Step6_Summary: React.FC = () => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
     const [isUploading, setIsUploading] = useState(false);
-    const [uploadError, setUploadError] = useState<string | null>(null);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -153,10 +122,10 @@ export const Step6_Summary: React.FC = () => {
         inputElement.value = '';
 
         if (wizardData.kbFiles.length + files.length > 5) {
-            setUploadError('Máximo 5 archivos permitidos en la base de conocimientos.');
+            setErrorMessage('Máximo 5 archivos permitidos en la base de conocimientos.');
+            setShowError(true);
             return;
         }
-        setUploadError(null);
         setIsUploading(true);
         const newFiles = [...wizardData.kbFiles];
 
@@ -183,10 +152,12 @@ export const Step6_Summary: React.FC = () => {
                         type: data.type
                     });
                 } else {
-                    setUploadError('Error al subir archivo ' + f.name + ': ' + data.error);
+                    setErrorMessage('Error al subir archivo ' + f.name + ': ' + data.error);
+                    setShowError(true);
                 }
             } catch {
-                setUploadError('Error de conexión al subir archivo ' + f.name);
+                setErrorMessage('Error de conexión al subir archivo ' + f.name);
+                setShowError(true);
             }
         }
         updateField('kbFiles', newFiles);
@@ -200,15 +171,12 @@ export const Step6_Summary: React.FC = () => {
     };
 
     React.useEffect(() => {
-        const interval = setInterval(() => {
-            setPlaceholderIndex((prev) => (prev + 1) % PROMPT_NOTE_EXAMPLES.length);
-        }, 4000);
-        return () => clearInterval(interval);
+        // No-op for now as examples logic was removed
     }, []);
 
     const editingAgentId = wizardData.editingAgentId;
 
-    const getUpdatedPrompt = React.useCallback((forceRebuild = false) => {
+    const getUpdatedPrompt = React.useCallback(() => {
         const name = wizardData.agentName || 'Elio';
         const company = wizardData.companyName || 'netelip';
         const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -246,7 +214,7 @@ export const Step6_Summary: React.FC = () => {
 
         const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de la Empresa\n${wizardData.companyDescription ? `- Actividad: ${wizardData.companyDescription}\n` : ''}- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono: ${formatPhoneForTTS(wizardData.companyPhone || '')}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '')}\n\n## Horario comercial\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
-        let finalPrompt = `
+        const finalPrompt = `
 # Rol y Objetivo
 Eres ${name} y tu objetivo es atender a los clientes de ${company}.
 
@@ -264,16 +232,15 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
 
         return finalPrompt;
     }, [
-        wizardData.prompt, wizardData.agentName, wizardData.companyName, wizardData.agentType, wizardData.language,
+        wizardData.agentName, wizardData.companyName, wizardData.language,
         wizardData.businessHours, wizardData.personality, wizardData.tone, wizardData.customNotes,
         wizardData.companyAddress, wizardData.companyPhone, wizardData.companyWebsite, wizardData.companyDescription,
         wizardData.enableCalBooking, wizardData.calApiKey, wizardData.enableTransfer,
-        wizardData.transferDestinations, wizardData.kbFiles, wizardData.kbUsageInstructions,
-        wizardData.extractionVariables, wizardData.leadQuestions
+        wizardData.transferDestinations, wizardData.kbFiles
     ]);
 
     const handleCreateAgent = async () => {
-        const finalGeneratedPrompt = getUpdatedPrompt(false);
+        const finalGeneratedPrompt = getUpdatedPrompt();
         const cleanedPrompt = cleanPromptForDeployment(finalGeneratedPrompt);
 
         const missing = [];
@@ -311,25 +278,36 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
     const SummarySection = ({ step, icon, color, label, children }: { step: number; icon: string; color: string; label: string; children: React.ReactNode }) => {
         const isExpanded = expandedStep === step;
         return (
-            <div style={{ background: 'white', border: '1px solid #edf2f7', borderRadius: '14px', marginBottom: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-                <div onClick={() => toggleStep(step)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', cursor: 'pointer', background: isExpanded ? '#f8fafc' : 'white', transition: 'background 0.2s' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <i className={`bi ${icon}`} style={{ color, fontSize: '16px' }}></i>
+            <div className="bg-white border border-[#e2e8f0] rounded-2xl mb-4 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all">
+                <div 
+                    onClick={() => toggleStep(step)} 
+                    className={`flex items-center justify-between px-6 py-5 cursor-pointer transition-colors ${isExpanded ? 'bg-[#f8fafc]' : 'bg-white hover:bg-[#f8fafc]'}`}
+                >
+                    <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center`} style={{ backgroundColor: `${color}15`, color: color }}>
+                            <i className={`bi ${icon}`} style={{ fontSize: '18px' }}></i>
                         </div>
                         <div>
-                            <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>{label}</div>
-                            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Paso {step}</div>
+                            <div className="text-[15px] font-bold text-[#1e293b]">{label}</div>
+                            <div className="text-[12px] text-[#94a3b8] font-semibold">Paso {step}</div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); setStep(step); }} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', color: '#64748b', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <i className="bi bi-pencil" style={{ fontSize: '11px' }}></i> Ir al paso
+                    <div className="flex items-center gap-5">
+                        <button 
+                            type="button" 
+                            onClick={(e) => { e.stopPropagation(); setStep(step); }} 
+                            className="bg-white border border-[#e2e8f0] rounded-lg px-4 py-1.5 text-[12px] font-bold text-[#64748b] hover:bg-[#f8fafc] transition-all flex items-center gap-2 shadow-sm"
+                        >
+                            <i className="bi bi-pencil text-[11px]"></i> Ir al paso
                         </button>
-                        <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'}`} style={{ color: '#94a3b8', fontSize: '14px' }}></i>
+                        <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} text-[#94a3b8] text-[14px]`}></i>
                     </div>
                 </div>
-                {isExpanded && <div style={{ padding: '20px', borderTop: '1px solid #edf2f7', background: 'white' }}>{children}</div>}
+                {isExpanded && (
+                    <div className="px-6 py-8 border-t border-[#f1f5f9] bg-white">
+                        {children}
+                    </div>
+                )}
             </div>
         );
     };
@@ -337,13 +315,18 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
     if (showSuccess) {
         return (
             <div className="content-area">
-                <div className="form-card" style={{ textAlign: 'center', padding: '60px 40px' }}>
-                    <div style={{ width: '80px', height: '80px', background: '#f0fdf4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                        <i className="bi bi-check-circle-fill" style={{ fontSize: '48px', color: '#10b981' }} />
+                <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-12 text-center">
+                    <div className="w-20 h-20 bg-[#f0fdf4] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#dcfce7]">
+                        <i className="bi bi-check-circle-fill text-[#10b981] text-[40px]" />
                     </div>
-                    <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#1a2428', marginBottom: '12px' }}>¡Agente IA {editingAgentId ? 'actualizado' : 'creado'} con éxito!</h2>
-                    <p style={{ fontSize: '14px', color: '#6c757d', marginBottom: '28px' }}>Tu agente <strong>{wizardData.agentName}</strong> {editingAgentId ? 'se ha guardado correctamente' : 'está configurado y listo para usar'}.</p>
-                    <button style={{ ...S.btnCreateAgent, padding: '14px 32px', fontSize: '15px', margin: '0 auto', borderRadius: '12px' }} onClick={() => window.location.href = '/dashboard/agents'}>
+                    <h2 className="text-[24px] font-bold text-[#1e293b] mb-3">¡Agente IA {editingAgentId ? 'actualizado' : 'creado'} con éxito!</h2>
+                    <p className="text-[15px] text-[#64748b] mb-10 max-w-[400px] mx-auto leading-relaxed">
+                        Tu agente <strong>{wizardData.agentName}</strong> {editingAgentId ? 'se ha guardado correctamente' : 'está configurado y listo para empezar a trabajar'}.
+                    </p>
+                    <button 
+                        className="bg-[#267ab0] text-white font-bold py-4 px-10 rounded-xl hover:bg-[#1e618b] transition-all shadow-md flex items-center gap-3 mx-auto text-[16px]"
+                        onClick={() => window.location.href = '/dashboard/agents'}
+                    >
                         <i className="bi bi-grid-fill" /> Ir al Dashboard
                     </button>
                 </div>
@@ -353,109 +336,182 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
 
     if (!mounted) return (
         <div className="content-area">
-            <div className="form-card" style={{ textAlign: 'center', padding: '100px 40px' }}>
-                <div role="status" style={{ border: '4px solid #f3f3f3', borderTop: '4px solid #267ab0', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
-                <p style={{ color: '#6c757d', fontSize: '16px' }}>Cargando resumen...</p>
-                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-24 text-center">
+                <div className="w-10 h-10 border-4 border-[#f3f3f3] border-t-[#267ab0] rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-[#64748b] font-medium">Cargando resumen...</p>
             </div>
         </div>
     );
 
     return (
         <div className="content-area">
-            <div className="form-card">
-                <WizardStepHeader title="Resumen y confirmación" subtitle="Revisa toda la configuración de tu agente. Puedes editar cualquier campo directamente o volver al paso correspondiente." />
+            <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
+                <WizardStepHeader 
+                    title="Resumen y confirmación" 
+                    subtitle="Revisa toda la configuración de tu agente. Puedes editar cualquier campo directamente o volver al paso correspondiente." 
+                />
 
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <i className="bi bi-check-lg" style={{ fontSize: '18px', color: 'white' }} />
+                <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-5 mb-8 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[#10b981] flex items-center justify-center flex-shrink-0 border border-[#bbf7d0] shadow-sm">
+                        <i className="bi bi-check-lg text-white text-[18px]" />
                     </div>
                     <div>
-                        <div style={{ fontWeight: 700, fontSize: '15px', color: '#166534' }}>Configuración completada</div>
-                        <div style={{ fontSize: '13px', color: '#16a34a', marginTop: '2px' }}>Todos los pasos están listos. Revisa y edita lo que necesites antes de crear el agente.</div>
+                        <div className="font-bold text-[15px] text-[#166534]">Configuración completada</div>
+                        <div className="text-[13px] text-[#16a34a] mt-0.5">Todos los pasos están listos. Revisa y edita lo que necesites antes de crear el agente.</div>
                     </div>
                 </div>
 
                 {showError && (
-                    <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                        <span style={{ fontSize: '14px', color: '#ef4444', fontWeight: 500 }}><i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '8px' }} />{errorMessage}</span>
-                        <button onClick={() => setShowError(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#ef4444', lineHeight: 1 }}>×</button>
+                    <div className="bg-[#fff1f2] border border-[#fecdd3] rounded-xl p-4 mb-8 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 text-[#e11d48] font-medium text-[14px]">
+                            <i className="bi bi-exclamation-triangle-fill" />
+                            <span>{errorMessage}</span>
+                        </div>
+                        <button onClick={() => setShowError(false)} className="text-[#e11d48] hover:bg-[#ffe4e6] w-8 h-8 rounded-lg flex items-center justify-center transition-all">
+                            <i className="bi bi-x-lg text-[14px]"></i>
+                        </button>
                     </div>
                 )}
 
-                <SummarySection step={1} icon="bi-info-circle" color="#267ab0" label="Información básica">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#64748b', marginBottom: '6px' }}>Nombre</label>
-                            <input readOnly type="text" className="form-control" value={wizardData.agentName || '—'} style={{ background: '#f8fafc', color: '#1e293b', fontWeight: 600 }} />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#64748b', marginBottom: '6px' }}>Empresa</label>
-                            <input readOnly type="text" className="form-control" value={wizardData.companyName || '—'} style={{ background: '#f8fafc', color: '#1e293b', fontWeight: 600 }} />
-                        </div>
-                    </div>
-                </SummarySection>
-
-                <SummarySection step={2} icon="bi-cpu" color="#8b5cf6" label="Modelo de IA y comportamiento">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#64748b', marginBottom: '8px' }}>Modelo IA</label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f8fafc', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                                <i className="bi bi-cpu" style={{ color: '#8b5cf6' }}></i>
-                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{wizardData.model || '—'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </SummarySection>
-
-                <SummarySection step={3} icon="bi-mic" color="#10b981" label="Voz seleccionada">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', borderRadius: '16px', padding: '16px 20px', border: '1px solid #e2e8f0' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#267ab0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '18px' }}>{(wizardData.voiceName || 'V').charAt(0)}</div>
-                        <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{wizardData.voiceName || 'Selecciona una voz'}</div></div>
-                    </div>
-                </SummarySection>
-
-                <SummarySection step={5} icon="bi-tools" color="#f43f5e" label="Herramientas activas">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {[
-                            { icon: 'bi-funnel-fill', color: '#267ab0', name: 'Cualificación de lead', active: true },
-                            { icon: 'bi-telephone-forward', color: '#8b5cf6', name: 'Transferencia', active: wizardData.enableTransfer },
-                        ].map(tool => (
-                            <div key={tool.name} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${tool.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <i className={`bi ${tool.icon}`} style={{ color: tool.color }}></i>
+                <div className="space-y-4">
+                    <SummarySection step={1} icon="bi-info-circle" color="#267ab0" label="Información básica">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Nombre</label>
+                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 text-[15px] font-bold text-[#1e293b]">
+                                    {wizardData.agentName || '—'}
                                 </div>
-                                <div style={{ flex: 1, fontSize: '14px', fontWeight: 700 }}>{tool.name}</div>
-                                <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 12px', borderRadius: '20px', background: tool.active ? '#f0fdf4' : '#f1f5f9', color: tool.active ? '#166534' : '#64748b' }}>{tool.active ? 'Activo' : 'Desactivado'}</span>
                             </div>
-                        ))}
-                    </div>
-                </SummarySection>
+                            <div>
+                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Empresa</label>
+                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 text-[15px] font-bold text-[#1e293b]">
+                                    {wizardData.companyName || '—'}
+                                </div>
+                            </div>
+                        </div>
+                    </SummarySection>
 
-                <div style={{ marginTop: '32px', marginBottom: '24px' }}>
-                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="bi bi-book" style={{ color: '#267ab0' }}></i> Base de conocimiento</h3>
-                    <div style={{ background: 'white', border: '1.5px dashed #e2e8f0', borderRadius: '16px', padding: '40px', textAlign: 'center' }}>
-                        <input type="file" id="kb-upload-summary" style={{ display: 'none' }} multiple accept=".md,.txt,.pdf,.docx" onChange={handleFileUpload} />
-                        <label htmlFor="kb-upload-summary" style={{ cursor: 'pointer' }}>
-                            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#eff6fb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}><i className="bi bi-cloud-arrow-up" style={{ fontSize: '24px', color: '#267ab0' }}></i></div>
-                            <div style={{ fontSize: '15px', fontWeight: 700 }}>{isUploading ? 'Subiendo...' : 'Subir documentos'}</div>
+                    <SummarySection step={2} icon="bi-cpu" color="#8b5cf6" label="Modelo de IA y comportamiento">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Modelo IA</label>
+                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 flex items-center gap-3">
+                                    <i className="bi bi-cpu text-[#8b5cf6]"></i>
+                                    <span className="text-[15px] font-bold text-[#1e293b]">{wizardData.model || '—'}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Temperatura</label>
+                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 text-[15px] font-bold text-[#1e293b]">
+                                    {wizardData.temperature || '0'}
+                                </div>
+                            </div>
+                        </div>
+                    </SummarySection>
+
+                    <SummarySection step={3} icon="bi-mic" color="#10b981" label="Voz seleccionada">
+                        <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-6 flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-full bg-[#267ab0] flex items-center justify-center text-white font-extrabold text-[20px] shadow-sm">
+                                {(wizardData.voiceName || 'V').charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-[17px] font-bold text-[#1e293b]">{wizardData.voiceName || 'Selecciona una voz'}</div>
+                                <div className="text-[13px] text-[#64748b] mt-0.5">{wizardData.voiceProvider === 'eleven_labs' ? 'Eleven Labs' : 'Voz de sistema'} — Velocidad: {wizardData.voiceSpeed}x</div>
+                            </div>
+                        </div>
+                    </SummarySection>
+
+                    <SummarySection step={5} icon="bi-tools" color="#f43f5e" label="Herramientas activas">
+                        <div className="space-y-3">
+                            {[
+                                { icon: 'bi-funnel-fill', color: '#267ab0', name: 'Cualificación de lead', active: wizardData.leadQuestions.length > 0 },
+                                { icon: 'bi-telephone-forward', color: '#8b5cf6', name: 'Transferencia', active: wizardData.enableTransfer },
+                                { icon: 'bi-calendar-event', color: '#f59e0b', name: 'Agenda (Cal.com)', active: wizardData.enableCalBooking },
+                            ].map(tool => (
+                                <div key={tool.name} className="flex items-center gap-4 p-4 bg-[#f8fafc] rounded-xl border border-[#e2e8f0]">
+                                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${tool.color}15`, color: tool.color }}>
+                                        <i className={`bi ${tool.icon}`} style={{ fontSize: '18px' }}></i>
+                                    </div>
+                                    <div className="flex-1 text-[14px] font-bold text-[#1e293b]">{tool.name}</div>
+                                    <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full border shadow-sm ${tool.active ? 'bg-[#f0fdf4] border-[#dcfce7] text-[#166534]' : 'bg-[#f1f5f9] border-[#e2e8f0] text-[#64748b]'}`}>
+                                        {tool.active ? 'Activo' : 'Desactivado'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </SummarySection>
+                </div>
+
+                <div className="mt-12 mb-8">
+                    <h3 className="text-[16px] font-bold text-[#1e293b] mb-4 flex items-center gap-2">
+                        <i className="bi bi-book text-[#267ab0] text-[18px]"></i> Base de conocimiento
+                    </h3>
+                    
+                    <div className="bg-white border-2 border-dashed border-[#e2e8f0] rounded-2xl p-10 text-center hover:border-[#267ab0] hover:bg-[#f8fafc] transition-all group">
+                        <input 
+                            type="file" 
+                            id="kb-upload-summary" 
+                            className="hidden" 
+                            multiple 
+                            accept=".md,.txt,.pdf,.docx" 
+                            onChange={handleFileUpload} 
+                        />
+                        <label htmlFor="kb-upload-summary" className="cursor-pointer block">
+                            <div className="w-16 h-16 rounded-full bg-[#f1f5f9] flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eff6ff] transition-all">
+                                <i className="bi bi-cloud-arrow-up text-[28px] text-[#94a3b8] group-hover:text-[#267ab0] transition-all"></i>
+                            </div>
+                            <div className="text-[16px] font-bold text-[#1e293b] mb-1">{isUploading ? 'Subiendo archivos...' : 'Subir documentos'}</div>
+                            <p className="text-[13px] text-[#64748b]">Añade archivos para que tu agente tenga más información.</p>
                         </label>
+
+                        {wizardData.kbFiles.length > 0 && (
+                            <div className="mt-8 grid grid-cols-2 gap-3 text-left">
+                                {wizardData.kbFiles.map((f, i) => (
+                                    <div key={i} className="flex items-center justify-between bg-white border border-[#e2e8f0] rounded-xl px-4 py-3 shadow-sm">
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <i className="bi bi-file-earmark-text text-[#267ab0] flex-shrink-0"></i>
+                                            <span className="text-[13px] font-medium text-[#1e293b] truncate">{f.name}</span>
+                                        </div>
+                                        <button onClick={() => removeFile(i)} className="text-[#94a3b8] hover:text-[#ef4444] p-1">
+                                            <i className="bi bi-x-lg text-[14px]"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <div style={{ marginTop: '40px' }}>
-                    <button onClick={handleCreateAgent} disabled={isCreating} style={{ width: '100%', padding: '16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}>
-                        {isCreating ? 'Procesando...' : (editingAgentId ? 'Guardar Cambios' : 'Crear agente IA')}
+                <div className="mt-10">
+                    <button 
+                        onClick={handleCreateAgent} 
+                        disabled={isCreating} 
+                        className="w-full bg-[#00a884] text-white py-4 px-8 rounded-xl font-bold text-[17px] hover:bg-[#008f70] transition-all shadow-[0_4px_14px_rgba(0,168,132,0.3)] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {isCreating ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                Procesando...
+                            </>
+                        ) : (
+                            <>
+                                <i className="bi bi-check2-circle text-[20px]"></i>
+                                {editingAgentId ? 'Guardar cambios del agente' : 'Crear agente IA'}
+                            </>
+                        )}
                     </button>
                 </div>
 
-                <div style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid #edf2f7' }}>
-                    <button onClick={prevStep} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 24px', fontSize: '14px', fontWeight: 600, color: '#64748b', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <div className="mt-8 pt-6 border-t border-[#f1f5f9]">
+                    <button 
+                        onClick={prevStep} 
+                        className="bg-white border border-[#e2e8f0] rounded-xl px-6 py-2.5 text-[14px] font-bold text-[#64748b] hover:bg-[#f8fafc] transition-all flex items-center gap-2 shadow-sm"
+                    >
                         <i className="bi bi-arrow-left"></i> Anterior
                     </button>
                 </div>
             </div>
-            <div style={{ height: '40px' }}></div>
+            <div className="h-10"></div>
         </div>
     );
 };
