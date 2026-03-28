@@ -32,39 +32,25 @@ export const Sidebar: React.FC = () => {
             zIndex: 10
         }}>
             {/* Header */}
-            <div style={{ padding: '32px 32px 24px' }}>
-                <Link href="/dashboard/agents" style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '12px', 
-                    textDecoration: 'none',
-                    color: '#64748b',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    marginBottom: '20px',
-                    transition: 'all 0.2s'
-                }}>
-                    <i className="bi bi-arrow-left" style={{ fontSize: '18px' }}></i>
-                    <span style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>Crear agente IA</span>
-                </Link>
-                <Link href="/dashboard/agents" style={{ 
-                    fontSize: '14px', 
-                    color: '#94a3b8', 
-                    textDecoration: 'none', 
-                    fontWeight: 500,
-                    display: 'block',
-                    marginLeft: '30px'
-                }}>
-                    Volver al dashboard
-                </Link>
+            <div style={{ padding: '40px 32px 32px' }}>
+                <div style={{ marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fábrica de Agentes</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                    <Link href="/dashboard/agents" style={{ color: '#1e293b', textDecoration: 'none' }}>
+                        <i className="bi bi-arrow-left" style={{ fontSize: '20px' }}></i>
+                    </Link>
+                    <span style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>Configuración de Agente</span>
+                </div>
             </div>
 
             {/* Steps Container */}
-            <div style={{ padding: '20px 0', flex: 1, overflowY: 'auto' }}>
+            <div style={{ padding: '0', flex: 1, overflowY: 'auto' }}>
                 <div style={{ position: 'relative' }}>
                     {stepsMeta.map((step) => {
                         const isActive = currentStep === step.id;
                         const isCompleted = currentStep > step.id;
+                        const isPending = currentStep < step.id;
                         
                         return (
                             <div 
@@ -80,37 +66,34 @@ export const Sidebar: React.FC = () => {
                                     cursor: isCompleted ? 'pointer' : 'default',
                                     transition: 'all 0.2s',
                                     background: isActive ? '#f0f7ff' : 'transparent',
-                                    borderLeft: isActive ? '4px solid #267ab0' : '4px solid transparent',
-                                    marginLeft: isActive ? '0' : '0',
+                                    borderRight: isActive ? '4px solid #267ab0' : 'none',
                                 }}
                             >
                                 {/* Circle Indicator */}
                                 <div style={{ 
-                                    width: '32px', 
-                                    height: '32px', 
+                                    width: '24px', 
+                                    height: '24px', 
                                     borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '14px',
-                                    fontWeight: 700,
                                     transition: 'all 0.3s',
-                                    background: isActive ? '#267ab0' : (isCompleted ? '#10b981' : '#f1f5f9'),
-                                    color: isActive || isCompleted ? 'white' : '#94a3b8',
-                                    border: 'none',
+                                    background: isActive ? '#267ab0' : (isCompleted ? '#10b981' : 'transparent'),
+                                    border: isPending ? '2px solid #e2e8f0' : (isActive || isCompleted ? 'none' : 'none'),
+                                    boxShadow: isActive ? '0 0 0 4px rgba(38, 122, 176, 0.15)' : 'none'
                                 }}>
                                     {isCompleted ? (
-                                        <i className="bi bi-check-lg" style={{ fontSize: '16px' }}></i>
-                                    ) : (
-                                        step.id
-                                    )}
+                                        <i className="bi bi-check-lg" style={{ fontSize: '14px', color: 'white', fontWeight: 900 }}></i>
+                                    ) : isActive ? (
+                                        <div style={{ width: '6px', height: '6px', background: 'white', borderRadius: '50%' }}></div>
+                                    ) : null}
                                 </div>
-
+                                
                                 {/* Text Info */}
                                 <div style={{ 
                                     fontSize: '15px', 
-                                    fontWeight: isActive ? 700 : 600, 
-                                    color: isActive ? '#267ab0' : (isCompleted ? '#10b981' : '#94a3b8'),
+                                    fontWeight: isActive ? 700 : 500, 
+                                    color: isActive ? '#267ab0' : (isCompleted ? '#475569' : '#94a3b8'),
                                     transition: 'all 0.2s'
                                 }}>
                                     {step.name}
@@ -124,8 +107,8 @@ export const Sidebar: React.FC = () => {
             {/* Footer / Progress Bar */}
             <div style={{ padding: '24px 32px', borderTop: '1px solid #f1f5f9' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Progreso</span>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#267ab0' }}>{progressPercent}%</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Progreso</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#267ab0' }}>{progressPercent}%</span>
                 </div>
                 <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
                     <div style={{ 

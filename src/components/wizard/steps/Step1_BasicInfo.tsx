@@ -14,8 +14,8 @@ export const Step1_BasicInfo: React.FC = () => {
     };
 
     return (
-        <div className="content-area">
-            <div className="form-card">
+        <div className="content-area w-full max-w-[1100px] ml-0">
+            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
                 <form onSubmit={handleNext}>
                     {/* SECCIÓN: INFORMACIÓN BÁSICA DEL AGENTE */}
                     <div style={{ marginBottom: '40px' }}>

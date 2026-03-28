@@ -28,8 +28,8 @@ export const Step2_LLM: React.FC = () => {
     };
 
     return (
-        <div className="content-area">
-            <div className="form-card">
+        <div className="content-area w-full max-w-[1100px] ml-0">
+            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
                 <WizardStepHeader
                     title="Cerebro del agente"
                     subtitle="Selecciona el modelo de IA y define la personalidad de tu agente."

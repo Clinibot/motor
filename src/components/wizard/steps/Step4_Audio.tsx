@@ -11,8 +11,8 @@ export const Step4_Audio: React.FC = () => {
     } = useWizardStore();
 
     return (
-        <div className="content-area">
-            <div className="form-card">
+        <div className="content-area w-full max-w-[1100px] ml-0">
+            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
                 <WizardStepHeader
                     title="Audio y procesamiento"
                     subtitle="Configura la calidad del audio, cancelación de ruido y transcripción del agente."

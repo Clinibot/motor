@@ -322,8 +322,8 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
 
     if (showSuccess) {
         return (
-            <div className="content-area">
-                <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-12 text-center">
+            <div className="content-area w-full max-w-[1100px] ml-0">
+                <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-12 text-center">
                     <div className="w-20 h-20 bg-[#f0fdf4] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#dcfce7]">
                         <i className="bi bi-check-circle-fill text-[#10b981] text-[40px]" />
                     </div>
@@ -343,8 +343,8 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
     }
 
     if (!mounted) return (
-        <div className="content-area">
-            <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-24 text-center">
+        <div className="content-area w-full max-w-[1100px] ml-0">
+            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-24 text-center">
                 <div className="w-10 h-10 border-4 border-[#f3f3f3] border-t-[#267ab0] rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="text-[#64748b] font-medium">Cargando resumen...</p>
             </div>
@@ -352,8 +352,8 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
     );
 
     return (
-        <div className="content-area">
-            <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
+        <div className="content-area w-full max-w-[1100px] ml-0">
+            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
                 <WizardStepHeader 
                     title="Resumen y confirmación" 
                     subtitle="Revisa toda la configuración de tu agente. Puedes editar cualquier campo directamente o volver al paso correspondiente." 

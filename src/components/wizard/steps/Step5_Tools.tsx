@@ -121,8 +121,8 @@ export const Step5_Tools: React.FC = () => {
     };
 
     return (
-        <div className="content-area">
-            <div className="form-card max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
+        <div className="content-area w-full max-w-[1100px] ml-0">
+            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
                 <WizardStepHeader
                     title="Herramientas del agente"
                     subtitle="Activa las acciones que tu agente puede realizar durante las llamadas."
@@ -239,6 +239,7 @@ export const Step5_Tools: React.FC = () => {
                                                                 <option value="end_call">Terminar la llamada</option>
                                                                 <option value="booking">Agendar cita</option>
                                                                 <option value="continue">Continuar sin cualificar</option>
+                                                                <option value="transfer">Transferir llamada</option>
                                                             </select>
                                                             <i className="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none"></i>
                                                         </div>
@@ -507,21 +508,21 @@ export const Step5_Tools: React.FC = () => {
                             
                             <div className="grid grid-cols-2 gap-4">
                                 {[
-                                    { name: 'Texto', desc: 'Información textual.', ej: 'Ej: Resumen, puntos de acción', icon: 'bi-fonts', typeVal: 'string' },
-                                    { name: 'Selector', desc: 'Lista fija de opciones.', ej: 'Ej: Tipo de incidencia, estado', icon: 'bi-list-columns-reverse', typeVal: 'enum' },
-                                    { name: 'Booleano', desc: 'Sí o No.', ej: 'Ej: ¿Es primera llamada?', icon: 'bi-check2-circle', typeVal: 'boolean' },
-                                    { name: 'Número', desc: 'Valor numérico.', ej: 'Ej: Puntuación, importe', icon: 'bi-hash', typeVal: 'number' },
+                                    { name: 'Texto', desc: 'Información textual.', ej: 'Ej: Resumen, puntos de acción', icon: 'bi-fonts', typeVal: 'string', color: '#3b82f6' },
+                                    { name: 'Selector', desc: 'Lista fija de opciones.', ej: 'Ej: Tipo de incidencia, estado', icon: 'bi-list-columns-reverse', typeVal: 'enum', color: '#8b5cf6' },
+                                    { name: 'Booleano', desc: 'Sí o No.', ej: 'Ej: ¿Es primera llamada?', icon: 'bi-check2-circle', typeVal: 'boolean', color: '#10b981' },
+                                    { name: 'Número', desc: 'Valor numérico.', ej: 'Ej: Puntuación, importe', icon: 'bi-hash', typeVal: 'number', color: '#f59e0b' },
                                 ].map((t, i) => (
                                     <div key={i} 
                                          onClick={() => addVariable(t.typeVal)}
-                                         className="border border-[#f1f5f9] bg-[#f8fafc] hover:bg-white hover:border-[#cbd5e1] hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all rounded-2xl p-5 flex gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-white border border-[#f1f5f9] flex items-center justify-center text-[#267ab0] flex-shrink-0">
-                                            <i className={`bi ${t.icon}`} style={{ fontSize: '18px' }}></i>
+                                         className="border border-[#f1f5f9] bg-white hover:border-[#267ab0]/30 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all rounded-2xl p-6 flex gap-4 group">
+                                        <div className="w-12 h-12 rounded-xl bg-[#f8fafc] flex items-center justify-center text-[#64748b] group-hover:text-[#267ab0] group-hover:bg-[#f0f7ff] transition-all flex-shrink-0">
+                                            <i className={`bi ${t.icon}`} style={{ fontSize: '22px' }}></i>
                                         </div>
                                         <div>
-                                            <div className="text-[15px] font-bold text-[#1e293b]">{t.name}</div>
-                                            <div className="text-[13px] text-[#64748b] mt-1">{t.desc}</div>
-                                            <div className="text-[12px] text-[#94a3b8] italic mt-1">{t.ej}</div>
+                                            <div className="text-[15px] font-bold text-[#1e293b] group-hover:text-[#267ab0] transition-colors">{t.name}</div>
+                                            <div className="text-[13px] text-[#64748b] mt-1 leading-relaxed">{t.desc}</div>
+                                            <div className="text-[12px] text-[#94a3b8] italic mt-1.5">{t.ej}</div>
                                         </div>
                                     </div>
                                 ))}

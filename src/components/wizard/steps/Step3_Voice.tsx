@@ -302,8 +302,8 @@ export const Step3_Voice: React.FC = () => {
     };
 
     return (
-        <div className="content-area">
-            <div className="form-card">
+        <div className="content-area w-full max-w-[1100px] ml-0">
+            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
                 <WizardStepHeader
                     title="Voz del agente"
                     subtitle="Elige la voz que usará tu agente. Haz clic en Preview para escuchar la muestra."
