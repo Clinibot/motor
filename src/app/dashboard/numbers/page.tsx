@@ -34,9 +34,6 @@ export default function NumbersPage() {
     const [numbers, setNumbers] = useState<PhoneNumber[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [showHelpModal, setShowHelpModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
@@ -160,41 +157,6 @@ export default function NumbersPage() {
 
 
 
-    const handleAssignAgent = async (numberId: string, phone: string, retellAgentId: string) => {
-        setIsUpdatingId(numberId);
-        try {
-            const agentIdToAssign = retellAgentId === 'none' ? null : retellAgentId;
-
-            const response = await fetch('/api/retell/phone-number/assign', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    number_id: numberId,
-                    phone_number: phone,
-                    agent_id: agentIdToAssign,
-                    workspace_id: user?.workspace_id
-                })
-            });
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Error al asignar agente");
-
-            const newList = numbers.map(n => n.id === numberId ? { ...n, agent_id: agentIdToAssign } : n);
-            setNumbers(newList);
-            setNotification({
-                message: "Agente asignado correctamente. Ya puedes llamarle directamente desde este número de teléfono.",
-                type: 'success'
-            });
-        } catch (error: unknown) {
-            console.error("Error updating agent assignment:", error);
-            setNotification({
-                message: `Error: ${(error as Error).message || "No se pudo actualizar la asignación."}`,
-                type: 'error'
-            });
-        } finally {
-            setIsUpdatingId(null);
-        }
-    };
 
     const handleDeleteNumber = async (id: string, phone: string) => {
         if (!window.confirm(`¿Estás seguro de que deseas eliminar el número ${phone}? Esta acción es irreversible.`)) return;
