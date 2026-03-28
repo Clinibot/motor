@@ -129,10 +129,41 @@ Tu output debe SOLO reemplazar <fecha hora 1 y fecha hora 2> en la frase: "Tenem
    - Mismo día: "martes dieciocho a las diez de la mañana y a las tres de la tarde"
    - Días diferentes: "martes dieciocho a las diez de la mañana y miércoles diecinueve a las dos de la tarde"
 
+#Ejemplos
+
+Ejemplo de entrada 1:
+{"2025-05-07":[{"start":"2025-05-07T09:00:00.000+02:00"},{"start":"2025-05-07T09:30:00.000+02:00"},{"start":"2025-05-07T10:00:00.000+02:00"}],"2025-05-08":[{"start":"2025-05-08T09:30:00.000+02:00"},{"start":"2025-05-08T15:30:00.000+02:00"}]}
+Salida 1:
+miércoles siete a las nueve de la mañana y jueves ocho a las nueve y media de la mañana
+
+Ejemplo de entrada 2:
+{"2025-05-30":[{"start":"2025-05-30T15:30:00.000+02:00"}],"2025-06-03":[{"start":"2025-06-03T09:30:00.000+02:00"},{"start":"2025-06-03T15:30:00.000+02:00"}]}
+Salida 2:
+viernes treinta a las tres y media de la tarde y martes tres a las nueve y media de la mañana
+
+Ejemplo de entrada 3:
+{"2025-04-30":[{"start":"2025-04-30T15:00:00.000+02:00"},{"start":"2025-04-30T15:30:00.000+02:00"}],"2025-05-01":[{"start":"2025-05-01T09:30:00.000+02:00"}]}
+Salida 3:
+miércoles treinta a las tres de la tarde y jueves primero a las nueve y media de la mañana
+
+Ejemplo de entrada 4:
+{"2025-05-20":[{"start":"2025-05-20T10:00:00.000+02:00"},{"start":"2025-05-20T15:30:00.000+02:00"}],"2025-05-21":[{"start":"2025-05-21T09:30:00.000+02:00"}]}
+Salida 4:
+martes veinte a las diez de la mañana y a las tres y media de la tarde
+
+Ejemplo de entrada 5:
+{"2025-05-20":[{"start":"2025-05-20T09:00:00.000+02:00"}],"2025-05-28":[{"start":"2025-05-28T11:30:00.000+02:00"},{"start":"2025-05-28T12:00:00.000+02:00"},{"start":"2025-05-28T13:30:00.000+02:00"},{"start":"2025-05-28T14:00:00.000+02:00"},{"start":"2025-05-28T14:30:00.000+02:00"},{"start":"2025-05-28T15:00:00.000+02:00"},{"start":"2025-05-28T16:30:00.000+02:00"}]}
+Salida 5:
+martes veinte a las nueve de la mañana y miércoles veintiocho a las once y media de la mañana
+
 #Inicio
 Hoy es ${nowFormatted}
 
+Estos son los horarios disponibles actuales:
+${slotsString}
+
 Tu output debe SOLO reemplazar <fecha hora 1 y fecha hora 2> en la frase: "Tenemos disponibilidad el <fecha hora 1 y fecha hora 2>. ¿Cuál te viene mejor?"
+
 Devuelve ÚNICAMENTE el texto que reemplaza <fecha hora 1 y fecha hora 2>, sin la frase completa, sin comillas, sin explicaciones adicionales.`;
 
         const fullAvailabilityPrompt = `<appointment_data>
@@ -178,8 +209,33 @@ Transforma los datos JSON de citas anteriores en español natural y conversacion
 </speech_patterns>
 </instructions>
 
+<examples>
+<example>
+<input>
+{"2025-12-18":[{"start":"2025-12-18T11:00:00.000+01:00"},{"start":"2025-12-18T11:30:00.000+01:00"},{"start":"2025-12-18T12:00:00.000+01:00"},{"start":"2025-12-18T12:30:00.000+01:00"},{"start":"2025-12-18T13:00:00.000+01:00"}],"2025-12-19":[{"start":"2025-12-19T10:00:00.000+01:00"},{"start":"2025-12-19T10:30:00.000+01:00"},{"start":"2025-12-19T15:00:00.000+01:00"}],"2025-12-20":[{"start":"2025-12-20T11:30:00.000+01:00"}]}
+</input>
+<output>
+Miércoles 18 de diciembre: entre las once de la mañana y la una de la tarde.
+Jueves 19 de diciembre: a las diez o diez y media de la mañana, y también a las tres de la tarde.
+Viernes 20 de diciembre: solo tenemos disponibilidad a las once y media de la mañana.
+</output>
+</example>
+
+<example>
+<input>
+{"2025-11-14":[{"start":"2025-11-14T09:00:00.000+01:00"},{"start":"2025-11-14T09:30:00.000+01:00"},{"start":"2025-11-14T10:00:00.000+01:00"},{"start":"2025-11-14T14:00:00.000+01:00"},{"start":"2025-11-14T14:30:00.000+01:00"},{"start":"2025-11-14T15:00:00.000+01:00"},{"start":"2025-11-14T15:30:00.000+01:00"}],"2025-11-15":[{"start":"2025-11-15T13:00:00.000+01:00"}],"2025-11-16":[{"start":"2025-11-16T08:30:00.000+01:00"},{"start":"2025-11-16T11:00:00.000+01:00"},{"start":"2025-11-16T16:00:00.000+01:00"},{"start":"2025-11-16T16:30:00.000+01:00"}]}
+</input>
+<output>
+Jueves 14 de noviembre: entre las nueve y las diez de la mañana, y también entre las dos y las tres y media de la tarde.
+Viernes 15 de noviembre: solo tenemos disponibilidad a la una de la tarde.
+Sábado 16 de noviembre: a las ocho y media de la mañana, y también a las once de la mañana, y también a las cuatro o cuatro y media de la tarde.
+</output>
+</example>
+</examples>
+
 <task>
-Usando los datos de citas proporcionados al inicio, crea el output optimizado para voz siguiendo todas las reglas anteriores. Comienza tu respuesta directamente con la disponibilidad del primer día. Devuelve ÚNICAMENTE el texto, sin comillas, sin explicaciones.
+Hoy es ${nowFormatted}
+Usando los datos de citas proporcionados al inicio, crea el output optimizado para voz siguiendo todas las reglas anteriores. Comienza tu respuesta directamente con la disponibilidad del primer día.
 </task>`;
 
         // Call OpenAI for both prompts in parallel
