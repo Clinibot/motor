@@ -11,6 +11,12 @@ interface AvailableAgent {
     retell_agent_id: string | null;
 }
 
+interface LeadQuestion {
+    question: string;
+    key: string;
+    failAction?: 'end_call' | 'transfer';
+}
+
 // Toggle switch component
 const ToggleSwitch: React.FC<{ checked: boolean; onChange: (v: boolean) => void; id: string }> = ({ checked, onChange, id }) => (
     <label htmlFor={id} className="relative inline-block w-11 h-6 cursor-pointer flex-shrink-0">
@@ -23,56 +29,13 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (v: boolean) => void;
 
 export const Step5_Tools: React.FC = () => {
     const {
-        enableCalBooking, calUrl, calApiKey, calEventId, calSearchDays,
+        enableCalBooking, calApiKey, calEventId,
         enableTransfer, transferDestinations,
-        extractionVariables, leadQuestions, enableAnalysis,
+        extractionVariables, leadQuestions,
         updateField, prevStep, nextStep, editingAgentId, agentName
     } = useWizardStore();
 
-    const [availableAgents, setAvailableAgents] = useState<AvailableAgent[]>([]);
-    const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
-
-    useEffect(() => {
-        const fetchAgents = async () => {
-            setIsLoadingAgents(true);
-            try {
-                const supabase = createClient();
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) return;
-
-                const { data: profile } = await supabase
-                    .from('users')
-                    .select('workspace_id')
-                    .eq('id', session.user.id)
-                    .single();
-
-                if (profile?.workspace_id) {
-                    const { data: agentList } = await supabase
-                        .from('agents')
-                        .select('id, name, retell_agent_id')
-                        .eq('workspace_id', profile.workspace_id)
-                        .not('retell_agent_id', 'is', null)
-                        .order('name', { ascending: true });
-
-                    const filteredList = (agentList || []).filter(a => {
-                        const isSelfById = editingAgentId ? a.id === editingAgentId : false;
-                        const isSelfByName = a.name.toLowerCase() === agentName.toLowerCase();
-                        return !isSelfById && !isSelfByName;
-                    });
-                    setAvailableAgents(filteredList);
-                }
-            } catch (error) {
-                console.error("Error fetching agents for transfer:", error);
-            } finally {
-                setIsLoadingAgents(false);
-            }
-        };
-
-        if (enableTransfer) {
-            fetchAgents();
-        }
-    }, [enableTransfer, editingAgentId, agentName]);
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
@@ -132,7 +95,7 @@ export const Step5_Tools: React.FC = () => {
 
     const addLeadQuestion = () => {
         if (leadQuestions.length >= 3) return;
-        updateField('leadQuestions', [...leadQuestions, { question: '', key: '', failAction: 'end_call' } as any]);
+        updateField('leadQuestions', [...leadQuestions, { question: '', key: '', failAction: 'end_call' }]);
     };
 
     return (
@@ -181,7 +144,7 @@ export const Step5_Tools: React.FC = () => {
                                     {leadQuestions.length} / 3 preguntas
                                 </div>
 
-                                {leadQuestions.map((q: any, idx) => (
+                                {leadQuestions.map((q: LeadQuestion, idx: number) => (
                                     <div key={idx} className="bg-white border border-[#e2e8f0] rounded-xl p-5 mb-4 shadow-sm relative group">
                                         <div className="flex justify-between items-center mb-4">
                                             <span className="px-3 py-1 bg-[#f0f9ff] text-[#0284c7] text-[12px] font-bold rounded-full border border-[#bae6fd]">
@@ -210,7 +173,7 @@ export const Step5_Tools: React.FC = () => {
                                                     placeholder="Ej: ¿Tienen un presupuesto mensual definido para este servicio?"
                                                     value={q.question}
                                                     onChange={e => {
-                                                        const updated = [...leadQuestions] as any[];
+                                                        const updated = [...leadQuestions];
                                                         updated[idx].question = e.target.value;
                                                         updateField('leadQuestions', updated);
                                                     }}
@@ -229,7 +192,7 @@ export const Step5_Tools: React.FC = () => {
                                                         placeholder="Ej: Menciona cualquier cifra o rango concreto"
                                                         value={q.key}
                                                         onChange={e => {
-                                                            const updated = [...leadQuestions] as any[];
+                                                            const updated = [...leadQuestions];
                                                             if (!updated[idx]) return;
                                                             updated[idx].key = e.target.value;
                                                             updateField('leadQuestions', updated);
@@ -243,13 +206,13 @@ export const Step5_Tools: React.FC = () => {
                                                     </label>
                                                     <select
                                                         className="w-full border border-[#e2e8f0] rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#267ab0] bg-white appearance-none"
-                                                        value={q.failAction || 'end_call'}
-                                                        onChange={e => {
-                                                            const updated = [...leadQuestions] as any[];
-                                                            if (!updated[idx]) return;
-                                                            updated[idx].failAction = e.target.value;
-                                                            updateField('leadQuestions', updated);
-                                                        }}
+                                                    value={q.failAction || 'end_call'}
+                                                    onChange={e => {
+                                                        const updated = [...leadQuestions];
+                                                        if (!updated[idx]) return;
+                                                        updated[idx].failAction = e.target.value as 'end_call' | 'transfer';
+                                                        updateField('leadQuestions', updated);
+                                                    }}
                                                         style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' fill=\'currentColor\' class=\'bi bi-chevron-down\' viewBox=\'0 0 16 16\'%3E%3Cpath fill-rule=\'evenodd\' d=\'M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                                                     >
                                                         <option value="end_call">Terminar llamada amablemente</option>

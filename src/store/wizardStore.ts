@@ -114,7 +114,7 @@ export interface WizardState {
     // Step 8: Extraction & Webhooks
     useTemplate: boolean;
     extractionVariables: ExtractionVariable[];
-    leadQuestions: { question: string; key: string }[];
+    leadQuestions: { question: string; key: string; failAction?: 'end_call' | 'transfer' }[];
     enableAnalysis: boolean;
     analysisModel: string;
     webhookUrl: string;

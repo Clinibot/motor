@@ -438,8 +438,6 @@ export default function HelpPage() {
                         40% { transform: translateY(-5px) }
                     }
                 ` }} />
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
                 <header className="sticky top-0 z-50 bg-white border-b border-[#e5e7eb] px-8 flex items-center justify-between h-14">
                     <h1 className="text-lg font-bold tracking-tight">Ayuda y soporte</h1>
