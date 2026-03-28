@@ -13,7 +13,6 @@ interface AvailableAgent {
 
 export const Step5_Tools: React.FC = () => {
     const {
-        agentType,
         enableCalBooking, calUrl, calApiKey, calEventId, calSearchDays,
         enableTransfer, transferDestinations,
         extractionVariables, agentName,
@@ -109,38 +108,6 @@ export const Step5_Tools: React.FC = () => {
                 />
 
                 <form onSubmit={handleNext}>
-                    {/* TIPO DE AGENTE (MIGRADO DE STEP 1) */}
-                    <div className="step-section">
-                        <h3 className="section-title-icon">
-                            <i className="bi bi-robot" style={{ color: '#267ab0' }}></i>
-                            Tipo de agente
-                        </h3>
-                        <p className="section-description">
-                            ¿Para qué vas a utilizar este agente principalmente?
-                        </p>
-                        
-                        <div className="radio-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
-                            <label className={`radio-card-option ${agentType === 'outbound' ? 'active' : ''}`}>
-                                <input type="radio" name="agentType" value="outbound" checked={agentType === 'outbound'} onChange={() => updateField('agentType', 'outbound')} />
-                                <span className="icon"><i className="bi bi-telephone-outbound"></i></span>
-                                <span className="title">Llamadas Salientes</span>
-                            </label>
-
-                            <label className={`radio-card-option ${agentType === 'inbound' ? 'active' : ''}`}>
-                                <input type="radio" name="agentType" value="inbound" checked={agentType === 'inbound'} onChange={() => updateField('agentType', 'inbound')} />
-                                <span className="icon"><i className="bi bi-telephone-inbound"></i></span>
-                                <span className="title">Llamadas Entrantes</span>
-                            </label>
-
-                            <label className={`radio-card-option ${agentType === 'web' ? 'active' : ''}`}>
-                                <input type="radio" name="agentType" value="web" checked={agentType === 'web'} onChange={() => updateField('agentType', 'web')} />
-                                <span className="icon"><i className="bi bi-globe"></i></span>
-                                <span className="title">Widget Web</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="section-divider"></div>
 
                     {/* 1. DATA EXTRACTION (CUALIFICACIÓN DE LEAD) */}
                     <div id="extraction-section" className="tool-card" style={{ background: '#f8fafc', border: '1px solid var(--gris-borde)', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
