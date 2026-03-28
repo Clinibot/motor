@@ -112,14 +112,17 @@ export default function PlatformManagement() {
         }
     }, [activeTab]);
 
-    const handleCreateWorkspace = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setIsCreating(true);
 
         try {
-            const res = await fetch('/api/admin/workspaces', {
-                method: 'POST',
+            const method = editingId ? 'PATCH' : 'POST';
+            const url = editingId ? `/api/admin/workspaces?id=${editingId}` : '/api/admin/workspaces';
+            
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, retell_api_key: retellApiKey })
             });
@@ -128,15 +131,30 @@ export default function PlatformManagement() {
             if (data.success) {
                 setName('');
                 setRetellApiKey('');
+                setEditingId(null);
                 fetchWorkspaces();
             } else {
-                setError(data.error || "Error al crear workspace");
+                setError(data.error || `Error al ${editingId ? 'actualizar' : 'crear'} workspace`);
             }
         } catch {
             setError("Error de conexión al servidor.");
         } finally {
             setIsCreating(false);
         }
+    };
+
+    const startEditing = (ws: Workspace) => {
+        setEditingId(ws.id);
+        setName(ws.name);
+        setRetellApiKey(ws.retell_api_key || '');
+        const form = document.getElementById('create-form');
+        form?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const cancelEditing = () => {
+        setEditingId(null);
+        setName('');
+        setRetellApiKey('');
     };
 
     const handleDeleteWorkspace = async (id: string, name: string) => {
@@ -290,15 +308,13 @@ export default function PlatformManagement() {
                                                     <td><span className="status-badge active">Activo</span></td>
                                                     <td>
                                                         <div style={{display:'flex', gap: '8px'}}>
-                                                            <button className="action-btn" onClick={() => setEditingId(ws.id)}><Edit2 size={14} /></button>
-                                                            <button className="action-btn" style={{color: '#ef4444'}} onClick={() => handleDeleteWorkspace(ws.id, ws.name)}><Trash2 size={14} /></button>
+                                                            <button className="action-btn" title="Editar" onClick={() => startEditing(ws)}><Edit2 size={14} /></button>
+                                                            <button className="action-btn" title="Eliminar" style={{color: '#ef4444'}} onClick={() => handleDeleteWorkspace(ws.id, ws.name)}><Trash2 size={14} /></button>
                                                         </div>
                                                     </td>
                                                 </tr>
                                             ))}
                                         </tbody>
-                                        {/* Reference editingId for linting if needed, but we used it in the UI logic or just remove if truly unused */}
-                                        <span style={{display:'none'}}>{editingId}</span>
                                     </table>
                                 </div>
                             </div>
@@ -306,11 +322,18 @@ export default function PlatformManagement() {
                             <div className="glass-card" id="create-form">
                                 <div className="card-header" style={{border: 'none'}}>
                                     <h2 className="card-title" style={{display:'flex', alignItems:'center', gap: '8px'}}>
-                                        <Plus size={18} style={{color: '#2563eb'}} />
-                                        Crear nuevo workspace
+                                        {editingId ? <Edit2 size={18} style={{color: '#2563eb'}} /> : <Plus size={18} style={{color: '#2563eb'}} />}
+                                        {editingId ? 'Editar workspace' : 'Crear nuevo workspace'}
                                     </h2>
+                                    {editingId && (
+                                        <button className="btn-secondary" onClick={cancelEditing} style={{
+                                            background: '#f1f5f9', color: '#475569', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
+                                        }}>
+                                            Cancelar edición
+                                        </button>
+                                    )}
                                 </div>
-                                <form onSubmit={handleCreateWorkspace}>
+                                <form onSubmit={handleSubmit}>
                                     <div className="form-grid">
                                         <div className="form-group">
                                             <label>Nombre <span className="required">*</span></label>
@@ -324,21 +347,21 @@ export default function PlatformManagement() {
                                             />
                                         </div>
                                         <div className="form-group">
-                                            <label>Retell API Key <span className="required">*</span></label>
+                                            <label>Retell API Key {editingId ? '(Dejar vacío para mantener actual)' : <span className="required">*</span>}</label>
                                             <input 
                                                 type="password" 
                                                 className="form-input" 
-                                                placeholder="key_..." 
-                                                required
+                                                placeholder={editingId ? "********" : "key_..."}
+                                                required={!editingId}
                                                 value={retellApiKey}
                                                 onChange={(e) => setRetellApiKey(e.target.value)}
                                             />
                                         </div>
                                     </div>
-                                    <div style={{padding: '0 24px 24px 24px'}}>
+                                    <div style={{padding: '0 24px 24px 24px', display: 'flex', gap: '12px'}}>
                                         <button className="btn-primary" type="submit" disabled={isCreating}>
-                                            {isCreating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                                            Crear workspace
+                                            {isCreating ? <Loader2 size={16} className="animate-spin" /> : (editingId ? <Edit2 size={16} /> : <Plus size={16} />)}
+                                            {editingId ? 'Actualizar workspace' : 'Crear workspace'}
                                         </button>
                                     </div>
                                 </form>

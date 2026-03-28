@@ -11,6 +11,31 @@ interface AvailableAgent {
     retell_agent_id: string | null;
 }
 
+// Toggle switch component
+const ToggleSwitch: React.FC<{ checked: boolean; onChange: (v: boolean) => void; id: string }> = ({ checked, onChange, id }) => (
+    <label htmlFor={id} style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px', cursor: 'pointer', flexShrink: 0 }}>
+        <input type="checkbox" id={id} checked={checked} onChange={e => onChange(e.target.checked)} style={{ opacity: 0, width: 0, height: 0 }} />
+        <span style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: checked ? '#267ab0' : '#cbd5e1',
+            borderRadius: '24px',
+            transition: 'background-color 0.2s'
+        }}>
+            <span style={{
+                position: 'absolute',
+                content: '',
+                height: '18px', width: '18px',
+                left: checked ? 'calc(100% - 21px)' : '3px',
+                bottom: '3px',
+                backgroundColor: 'white',
+                borderRadius: '50%',
+                transition: 'left 0.2s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }} />
+        </span>
+    </label>
+);
+
 export const Step5_Tools: React.FC = () => {
     const {
         enableCalBooking, calUrl, calApiKey, calEventId, calSearchDays,
@@ -19,20 +44,11 @@ export const Step5_Tools: React.FC = () => {
         updateField, prevStep, nextStep, editingAgentId
     } = useWizardStore();
 
+    // Lead qualification (custom questions) - stored separately from extractionVariables
+    const [leadQuestions, setLeadQuestions] = useState<{ question: string; key: string }[]>([]);
     const [availableAgents, setAvailableAgents] = useState<AvailableAgent[]>([]);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
-
-    useEffect(() => {
-        if (window.location.hash === '#extraction') {
-            setTimeout(() => {
-                const element = document.getElementById('extraction-section');
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 500);
-        }
-    }, []);
 
     useEffect(() => {
         const fetchAgents = async () => {
@@ -56,7 +72,6 @@ export const Step5_Tools: React.FC = () => {
                         .not('retell_agent_id', 'is', null)
                         .order('name', { ascending: true });
 
-                    // Filtrar el agente actual si estamos editando para evitar transferencias a sí mismo
                     const filteredList = (agentList || []).filter(a => {
                         const isSelfById = editingAgentId ? a.id === editingAgentId : false;
                         const isSelfByName = a.name.toLowerCase() === agentName.toLowerCase();
@@ -104,7 +119,6 @@ export const Step5_Tools: React.FC = () => {
             }
         }
 
-        // Variable extraction validation
         extractionVariables.forEach((v, idx) => {
             if (!v.name.trim()) newErrors[`extraction_${idx}_name`] = 'El nombre de la variable es obligatorio.';
             if (!v.description.trim()) newErrors[`extraction_${idx}_desc`] = 'La descripción es obligatoria.';
@@ -119,12 +133,6 @@ export const Step5_Tools: React.FC = () => {
         if (validate()) {
             nextStep();
         } else {
-            // Scroll to the first error
-            const firstErrorKey = Object.keys(errors)[0];
-            if (firstErrorKey) {
-                console.warn("Validation failed in Step 5:", errors);
-            }
-            // Simple alert for immediate feedback
             alert("Por favor, corrige los errores en la configuración antes de continuar.");
         }
     };
@@ -143,239 +151,225 @@ export const Step5_Tools: React.FC = () => {
         updateField('extractionVariables', [...extractionVariables, { name: '', type: 'string', description: '', required: true }]);
     };
 
+    const addLeadQuestion = () => {
+        setLeadQuestions(prev => [...prev, { question: '', key: '' }]);
+    };
+
+    const sectionStyle = {
+        background: 'white',
+        border: '1px solid #edf2f7',
+        borderRadius: '16px',
+        padding: '24px',
+        marginBottom: '20px'
+    };
+
+    const sectionHeaderStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '0'
+    };
+
     return (
         <div className="content-area">
             <div className="form-card">
                 <WizardStepHeader
-                    title="Herramientas y funciones"
-                    subtitle="Activa integraciones especiales y capas de análisis para potenciar a tu agente."
-                    tooltipContent={
-                        <>
-                            <strong>Capacidades especiales.</strong> Las herramientas permiten al agente interactuar con sistemas externos como calendarios o transferencias de llamadas.
-                        </>
-                    }
+                    title="Herramientas del agente"
+                    subtitle="Activa las funciones que necesite tu agente para realizar su tarea."
                 />
 
                 <form onSubmit={handleNext}>
 
-                    {/* 1. DATA EXTRACTION (CUALIFICACIÓN DE LEAD) */}
-                    <div id="extraction-section" className="tool-card" style={{ background: '#f8fafc', border: '1px solid var(--gris-borde)', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                            <div style={{ flex: 1 }}>
-                                <label style={{ fontWeight: 700, fontSize: '16px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <i className="bi bi-funnel-fill" style={{ color: 'var(--color-primario)' }}></i> Cualificación de lead (Extracción de datos)
-                                </label>
-                                <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Define qué información específica debe extraer el agente de cada conversación.</p>
+                    {/* ═══ 1. CUALIFICACIÓN DE LEAD ═══ */}
+                    <div style={sectionStyle}>
+                        <div style={sectionHeaderStyle}>
+                            <div>
+                                <div style={{ fontWeight: 700, fontSize: '16px', color: '#1a2428', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <i className="bi bi-funnel-fill" style={{ color: '#267ab0' }}></i>
+                                    Cualificar leads antes de actuar
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                    Define qué preguntas hace el agente para cualificar al contacto antes de actuar
+                                </div>
                             </div>
                         </div>
 
-                        <div style={{ background: 'white', padding: '24px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            {extractionVariables.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #cbd5e1', borderRadius: '8px', background: '#f8fafc', marginBottom: '16px' }}>
-                                    <i className="bi bi-plus-circle" style={{ fontSize: '24px', color: '#94a3b8', display: 'block', marginBottom: '8px' }}></i>
-                                    <span style={{ fontSize: '13px', color: '#64748b' }}>No hay variables definidas. Añade una para empezar a cualificar.</span>
-                                </div>
-                            ) : (
-                                extractionVariables.map((variable, idx) => (
-                                    <div key={idx} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '12px', position: 'relative' }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                                            <div className="form-group mb-0">
-                                                <label className="form-label small">Nombre de la variable</label>
-                                                <input
-                                                    type="text"
-                                                    className={`form-control ${errors[`extraction_${idx}_name`] ? 'is-invalid' : ''}`}
-                                                    placeholder="Ej: Presupuesto"
-                                                    value={variable.name}
-                                                    onChange={(e) => {
-                                                        const newVars = [...extractionVariables];
-                                                        newVars[idx].name = e.target.value;
-                                                        updateField('extractionVariables', newVars);
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="form-group mb-0">
-                                                <label className="form-label small">Tipo de dato</label>
-                                                <select
-                                                    className="form-control"
-                                                    value={variable.type}
-                                                    onChange={(e) => {
-                                                        const newVars = [...extractionVariables];
-                                                        newVars[idx].type = e.target.value;
-                                                        updateField('extractionVariables', newVars);
-                                                    }}
-                                                >
-                                                    <option value="string">Texto</option>
-                                                    <option value="number">Número</option>
-                                                    <option value="boolean">Verdadero/Falso (Sí/No)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="form-group mb-0">
-                                            <label className="form-label small">Descripción de qué extraer</label>
-                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <input
-                                                        type="text"
-                                                        className={`form-control ${errors[`extraction_${idx}_desc`] ? 'is-invalid' : ''}`}
-                                                        placeholder="Ej: Cuánto planea invertir el cliente en el servicio..."
-                                                        value={variable.description}
-                                                        onChange={(e) => {
-                                                            const newVars = [...extractionVariables];
-                                                            newVars[idx].description = e.target.value;
-                                                            updateField('extractionVariables', newVars);
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', alignSelf: 'center', gap: '8px', padding: '0 8px' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`req-${idx}`}
-                                                        checked={variable.required}
-                                                        onChange={(e) => {
-                                                            const newVars = [...extractionVariables];
-                                                            newVars[idx].required = e.target.checked;
-                                                            updateField('extractionVariables', newVars);
-                                                        }}
-                                                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                                                    />
-                                                    <label htmlFor={`req-${idx}`} className="small mb-0" style={{ cursor: 'pointer', color: '#64748b' }}>Requerido</label>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-outline-danger"
-                                                    style={{ border: 'none', background: 'transparent' }}
-                                                    onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}
-                                                >
-                                                    <i className="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        {(errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]) && (
-                                            <div className="text-danger small mt-2">
-                                                <i className="bi bi-exclamation-circle"></i> {errors[`extraction_${idx}_name`] || errors[`extraction_${idx}_desc`]}
-                                            </div>
-                                        )}
+                        <div style={{ marginTop: '20px' }}>
+                            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '20px' }}>
+                                <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', marginTop: '2px' }}></i>
+                                <span style={{ fontSize: '13px', color: '#92400e', lineHeight: '1.6' }}>
+                                    <strong>Preguntas de cualificación:</strong> El agente preguntará esta información para cualificar al lead. Si la respuesta no es satisfactoria, finalizará la llamada.
+                                </span>
+                            </div>
+
+                            {leadQuestions.length > 0 && leadQuestions.map((q, idx) => (
+                                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', marginBottom: '12px', alignItems: 'end' }}>
+                                    <div>
+                                        <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pregunta</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Ej: ¿Cuál es su presupuesto?"
+                                            value={q.question}
+                                            onChange={e => {
+                                                const updated = [...leadQuestions];
+                                                updated[idx].question = e.target.value;
+                                                setLeadQuestions(updated);
+                                            }}
+                                            style={{ borderRadius: '10px', padding: '10px 14px' }}
+                                        />
                                     </div>
-                                ))
-                            )}
-                            <button type="button" className="btn btn-sm btn-outline-primary" onClick={addVariable}>
-                                <i className="bi bi-plus-lg"></i> Añadir campo de cualificación
+                                    <div>
+                                        <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Variable (clave)</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Ej: presupuesto"
+                                            value={q.key}
+                                            onChange={e => {
+                                                const updated = [...leadQuestions];
+                                                updated[idx].key = e.target.value;
+                                                setLeadQuestions(updated);
+                                            }}
+                                            style={{ borderRadius: '10px', padding: '10px 14px' }}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLeadQuestions(prev => prev.filter((_, i) => i !== idx))}
+                                        style={{ border: 'none', background: 'transparent', color: '#ef4444', padding: '10px', cursor: 'pointer' }}
+                                    >
+                                        <i className="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            ))}
+
+                            <button
+                                type="button"
+                                onClick={addLeadQuestion}
+                                style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '10px', padding: '10px 20px', fontSize: '14px', fontWeight: 600, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <i className="bi bi-plus-lg"></i> Añadir pregunta
                             </button>
                         </div>
                     </div>
 
-                    {/* 2. TRANSFER CALL */}
-
-                    {/* TRANSFER CALL */}
-                    <div className="tool-card" style={{ background: enableTransfer ? '#f0f9ff' : 'var(--gris-claro)', border: `1px solid ${enableTransfer ? 'var(--primario)' : 'var(--gris-borde)'}`, borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: enableTransfer ? '20px' : '0' }}>
-                            <input
-                                type="checkbox"
-                                id="enableTransfer"
-                                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-                                checked={enableTransfer}
-                                onChange={(e) => updateField('enableTransfer', e.target.checked)}
-                            />
-                            <div style={{ flex: 1 }}>
-                                <label htmlFor="enableTransfer" style={{ fontWeight: 700, fontSize: '16px', cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    Transferir llamada
-                                </label>
-                                <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Transfiere la llamada a un número específico o persona determinada</p>
+                    {/* ═══ 2. TRANSFERENCIA DE LLAMADA ═══ */}
+                    <div style={{
+                        ...sectionStyle,
+                        borderColor: enableTransfer ? '#bfdbfe' : '#edf2f7',
+                        background: enableTransfer ? '#f0f7ff' : 'white'
+                    }}>
+                        <div style={sectionHeaderStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                    width: '40px', height: '40px', borderRadius: '12px',
+                                    background: enableTransfer ? '#267ab0' : '#f1f5f9',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: enableTransfer ? 'white' : '#64748b', fontSize: '18px'
+                                }}>
+                                    <i className="bi bi-telephone-forward"></i>
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1a2428' }}>Transferir llamada</div>
+                                    <div style={{ fontSize: '13px', color: '#64748b' }}>Transfiere la llamada a un número específico o persona determinada</div>
+                                </div>
                             </div>
+                            <ToggleSwitch checked={enableTransfer} onChange={(v) => updateField('enableTransfer', v)} id="enableTransfer" />
                         </div>
 
                         {enableTransfer && (
-                            <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                            <div style={{ marginTop: '24px' }}>
+                                <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '4px', marginBottom: '16px' }}>
+                                    <div style={{ fontSize: '13px', color: '#64748b', padding: '12px 12px 2px' }}>¿Cuándo debe transferir el agente?</div>
+                                    <textarea
+                                        className="form-control"
+                                        rows={2}
+                                        placeholder="Ej: Si el cliente ya es paciente o tiene una cita previa, transfiere al equipo de clínica."
+                                        style={{ border: 'none', background: 'transparent', resize: 'none', padding: '8px 12px', fontSize: '14px' }}
+                                    ></textarea>
+                                </div>
+
+                                <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: 600 }}>Destinos de transferencia</div>
+
                                 {transferDestinations.map((dest, idx) => (
-                                    <div key={idx} style={{
-                                        background: '#f8fafc',
-                                        padding: '20px',
-                                        borderRadius: '12px',
-                                        border: `1px solid ${errors[`transfer_${idx}_name`] || errors[`transfer_${idx}_number`] || errors[`transfer_${idx}_agent`] ? '#ef4444' : '#e2e8f0'}`,
-                                        marginBottom: '16px',
-                                        position: 'relative'
-                                    }}>
+                                    <div key={idx} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '12px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                            <h5 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: 0 }}>Destino #{idx + 1}</h5>
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm text-danger"
-                                                style={{ padding: 0 }}
-                                                onClick={() => updateField('transferDestinations', transferDestinations.filter((_, i) => i !== idx))}
-                                            >
+                                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#1a2428' }}>Destino #{idx + 1}</span>
+                                            <button type="button" onClick={() => updateField('transferDestinations', transferDestinations.filter((_, i) => i !== idx))} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}>
                                                 <i className="bi bi-trash"></i>
                                             </button>
                                         </div>
-
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                                            <div className="form-group mb-0">
-                                                <label className="form-label small">Nombre del contacto</label>
+                                            <div>
+                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nombre del contacto <span style={{ color: '#ef4444' }}>*</span></label>
                                                 <input
                                                     type="text"
                                                     className={`form-control ${errors[`transfer_${idx}_name`] ? 'is-invalid' : ''}`}
                                                     placeholder="Ej: Sonia / Soporte"
                                                     value={dest.name}
-                                                    onChange={(e) => {
-                                                        const newDests = [...transferDestinations];
-                                                        newDests[idx].name = e.target.value;
-                                                        updateField('transferDestinations', newDests);
+                                                    onChange={e => {
+                                                        const d = [...transferDestinations];
+                                                        d[idx].name = e.target.value;
+                                                        updateField('transferDestinations', d);
                                                     }}
+                                                    style={{ borderRadius: '10px' }}
                                                 />
-                                                {errors[`transfer_${idx}_name`] && <div className="text-danger small mt-1">{errors[`transfer_${idx}_name`]}</div>}
                                             </div>
-                                            <div className="form-group mb-0">
-                                                <label className="form-label small">Instrucción para el agente (Cuándo transferir)</label>
+                                            <div>
+                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Instrucción para el agente</label>
                                                 <input
                                                     type="text"
                                                     className="form-control"
                                                     placeholder="Ej: Si el cliente pide hablar con administración"
                                                     value={dest.description}
-                                                    onChange={(e) => {
-                                                        const newDests = [...transferDestinations];
-                                                        newDests[idx].description = e.target.value;
-                                                        updateField('transferDestinations', newDests);
+                                                    onChange={e => {
+                                                        const d = [...transferDestinations];
+                                                        d[idx].description = e.target.value;
+                                                        updateField('transferDestinations', d);
                                                     }}
+                                                    style={{ borderRadius: '10px' }}
                                                 />
                                             </div>
                                         </div>
-
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '16px', alignItems: 'end' }}>
-                                            <div className="form-group mb-0">
-                                                <label className="form-label small">Tipo de destino</label>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                            <div>
+                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Tipo de destino</label>
                                                 <select
-                                                    className="form-control"
+                                                    className="form-select"
                                                     value={dest.destination_type || 'number'}
-                                                    onChange={(e) => {
-                                                        const newDests = [...transferDestinations];
+                                                    onChange={e => {
+                                                        const d = [...transferDestinations];
                                                         const type = e.target.value as 'number' | 'agent';
-                                                        newDests[idx].destination_type = type;
-                                                        if (type === 'number') newDests[idx].agentId = '';
-                                                        else newDests[idx].number = '';
-                                                        updateField('transferDestinations', newDests);
+                                                        d[idx].destination_type = type;
+                                                        if (type === 'number') d[idx].agentId = '';
+                                                        else d[idx].number = '';
+                                                        updateField('transferDestinations', d);
                                                     }}
+                                                    style={{ borderRadius: '10px' }}
                                                 >
                                                     <option value="number">Humano (Número)</option>
                                                     <option value="agent">Otro Agente (Retell)</option>
                                                 </select>
                                             </div>
-                                            <div className="form-group mb-0">
-                                                <label className="form-label small">{dest.destination_type === 'agent' ? "Seleccionar Agente de Retell" : "Número de teléfono"}</label>
+                                            <div>
+                                                <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                                                    {dest.destination_type === 'agent' ? 'Seleccionar agente' : 'Número de teléfono'} <span style={{ color: '#ef4444' }}>*</span>
+                                                </label>
                                                 {dest.destination_type === 'agent' ? (
                                                     <select
-                                                        className={`form-control ${errors[`transfer_${idx}_agent`] ? 'is-invalid' : ''}`}
-                                                        style={{ border: errors[`transfer_${idx}_agent`] ? '1px solid #ef4444' : '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
+                                                        className={`form-select ${errors[`transfer_${idx}_agent`] ? 'is-invalid' : ''}`}
                                                         value={dest.agentId || ''}
-                                                        onChange={(e) => {
-                                                            const newDests = [...transferDestinations];
-                                                            newDests[idx].agentId = e.target.value;
-                                                            updateField('transferDestinations', newDests);
+                                                        onChange={e => {
+                                                            const d = [...transferDestinations];
+                                                            d[idx].agentId = e.target.value;
+                                                            updateField('transferDestinations', d);
                                                         }}
+                                                        style={{ borderRadius: '10px' }}
                                                     >
                                                         <option value="">Selecciona un agente...</option>
                                                         {availableAgents.map(a => (
-                                                            <option key={a.id} value={a.retell_agent_id!}>
-                                                                {a.name}
-                                                            </option>
+                                                            <option key={a.id} value={a.retell_agent_id!}>{a.name}</option>
                                                         ))}
                                                         {availableAgents.length === 0 && !isLoadingAgents && (
                                                             <option disabled>No tienes más agentes</option>
@@ -385,111 +379,249 @@ export const Step5_Tools: React.FC = () => {
                                                     <input
                                                         type="text"
                                                         className={`form-control ${errors[`transfer_${idx}_number`] ? 'is-invalid' : ''}`}
-                                                        style={{ border: errors[`transfer_${idx}_number`] ? '1px solid #ef4444' : '1px solid var(--primario)', boxShadow: '0 0 0 1px var(--primario-claro)' }}
                                                         placeholder="+34..."
                                                         value={dest.number}
-                                                        onChange={(e) => {
-                                                            const newDests = [...transferDestinations];
-                                                            newDests[idx].number = e.target.value;
-                                                            updateField('transferDestinations', newDests);
+                                                        onChange={e => {
+                                                            const d = [...transferDestinations];
+                                                            d[idx].number = e.target.value;
+                                                            updateField('transferDestinations', d);
                                                         }}
+                                                        style={{ borderRadius: '10px' }}
                                                     />
                                                 )}
-                                                {errors[`transfer_${idx}_agent`] && <div className="text-danger small mt-1">{errors[`transfer_${idx}_agent`]}</div>}
-                                                {errors[`transfer_${idx}_number`] && <div className="text-danger small mt-1">{errors[`transfer_${idx}_number`]}</div>}
                                             </div>
                                         </div>
                                     </div>
                                 ))}
-                                <button type="button" className="btn btn-sm btn-outline-primary" onClick={addTransfer}>
-                                    <i className="bi bi-plus"></i> Añadir destino
+
+                                <button
+                                    type="button"
+                                    onClick={addTransfer}
+                                    style={{ border: '1px dashed #bfdbfe', background: '#f0f7ff', borderRadius: '10px', padding: '10px 20px', fontSize: '14px', fontWeight: 600, color: '#267ab0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                >
+                                    <i className="bi bi-plus-lg"></i> Añadir destino
                                 </button>
                                 {errors.transfer && <div className="text-danger small mt-2">{errors.transfer}</div>}
                             </div>
                         )}
                     </div>
 
-                    {/* 3. CAL.COM BOOKING */}
-                    <div className="tool-card" style={{ background: enableCalBooking ? '#f0f9ff' : 'var(--gris-claro)', border: `1px solid ${enableCalBooking ? 'var(--primario)' : 'var(--gris-borde)'}`, borderRadius: '12px', padding: '24px', marginBottom: '32px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: enableCalBooking ? '20px' : '0' }}>
-                            <input
-                                type="checkbox"
-                                id="enableCalBooking"
-                                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-                                checked={enableCalBooking}
-                                onChange={(e) => updateField('enableCalBooking', e.target.checked)}
-                            />
-                            <div style={{ flex: 1 }}>
-                                <label htmlFor="enableCalBooking" style={{ fontWeight: 700, fontSize: '16px', cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <i className="bi bi-calendar-event" style={{ color: enableCalBooking ? 'var(--color-primario)' : 'inherit' }}></i> Reservar cita en el calendario (Cal.com)
-                                </label>
-                                <p style={{ fontSize: '13px', color: 'var(--gris-texto)', margin: 0 }}>Integración nativa con Cal.com para agendar citas automáticamente</p>
+                    {/* ═══ 3. CAL.COM BOOKING ═══ */}
+                    <div style={{
+                        ...sectionStyle,
+                        borderColor: enableCalBooking ? '#bfdbfe' : '#edf2f7',
+                        background: enableCalBooking ? '#f0f7ff' : 'white'
+                    }}>
+                        <div style={sectionHeaderStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                    width: '40px', height: '40px', borderRadius: '12px',
+                                    background: enableCalBooking ? '#267ab0' : '#f1f5f9',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: enableCalBooking ? 'white' : '#64748b', fontSize: '18px'
+                                }}>
+                                    <i className="bi bi-calendar-event"></i>
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1a2428' }}>Reservar cita en el calendario (Cal.com)</div>
+                                    <div style={{ fontSize: '13px', color: '#64748b' }}>Integra tu calendario con Cal.com para agendar citas automáticamente</div>
+                                </div>
                             </div>
+                            <ToggleSwitch checked={enableCalBooking} onChange={(v) => updateField('enableCalBooking', v)} id="enableCalBooking" />
                         </div>
 
                         {enableCalBooking && (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-                                <div className="form-group mb-0">
-                                    <label className="form-label">Cal.com API Key</label>
-                                    <input
-                                        type="password"
-                                        className={`form-control ${errors.calApiKey ? 'is-invalid' : ''}`}
-                                        value={calApiKey}
-                                        onChange={(e) => updateField('calApiKey', e.target.value)}
-                                        placeholder="cal_live_..."
-                                    />
-                                    {errors.calApiKey && <div className="invalid-feedback">{errors.calApiKey}</div>}
+                            <div style={{ marginTop: '24px', background: 'white', borderRadius: '12px', border: '1px solid #dbeafe', padding: '20px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                    <div>
+                                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Cal.com API Key <span style={{ color: '#ef4444' }}>*</span></label>
+                                        <input
+                                            type="password"
+                                            className={`form-control ${errors.calApiKey ? 'is-invalid' : ''}`}
+                                            value={calApiKey}
+                                            onChange={e => updateField('calApiKey', e.target.value)}
+                                            placeholder="cal_live_..."
+                                            style={{ borderRadius: '10px' }}
+                                        />
+                                        {errors.calApiKey && <div className="invalid-feedback">{errors.calApiKey}</div>}
+                                    </div>
+                                    <div>
+                                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Event Type ID <span style={{ color: '#ef4444' }}>*</span></label>
+                                        <input
+                                            type="text"
+                                            className={`form-control ${errors.calEventId ? 'is-invalid' : ''}`}
+                                            value={calEventId}
+                                            onChange={e => updateField('calEventId', e.target.value)}
+                                            placeholder="123456"
+                                            style={{ borderRadius: '10px' }}
+                                        />
+                                        {errors.calEventId && <div className="invalid-feedback">{errors.calEventId}</div>}
+                                    </div>
                                 </div>
-                                <div className="form-group mb-0">
-                                    <label className="form-label">Event Type ID</label>
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.calEventId ? 'is-invalid' : ''}`}
-                                        value={calEventId}
-                                        onChange={(e) => updateField('calEventId', e.target.value)}
-                                        placeholder="123456"
-                                    />
-                                    {errors.calEventId && <div className="invalid-feedback">{errors.calEventId}</div>}
+                                <div style={{ marginBottom: '16px' }}>
+                                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Zona horaria</label>
+                                    <select className="form-select" style={{ borderRadius: '10px' }}>
+                                        <option>Selecciona una zona horaria</option>
+                                        <option value="Europe/Madrid">Europe/Madrid (UTC+1/+2)</option>
+                                        <option value="America/New_York">America/New_York</option>
+                                        <option value="America/Mexico_City">America/Mexico_City</option>
+                                    </select>
                                 </div>
-                                <div className="form-group mb-0" style={{ gridColumn: '1 / -1' }}>
-                                    <label className="form-label">Cal.com Link (opcional)</label>
-                                    <input
-                                        type="url"
-                                        className="form-control"
-                                        value={calUrl}
-                                        onChange={(e) => updateField('calUrl', e.target.value)}
-                                        placeholder="https://cal.com/usuario/evento"
-                                    />
+                                <div style={{ marginBottom: '16px' }}>
+                                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Cal Link (preview)</label>
+                                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#64748b', fontFamily: 'monospace' }}>
+                                        {calUrl || 'https://cal.com/usuario/event'}
+                                    </div>
                                 </div>
-                                <div className="form-group mb-0" style={{ gridColumn: '1 / -1' }}>
-                                    <label className="form-label">Días a consultar disponibilidad</label>
+                                <div>
+                                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Días a consultar para disponibilidad</label>
                                     <input
                                         type="number"
                                         min="1"
                                         max="60"
                                         className="form-control"
                                         value={calSearchDays}
-                                        onChange={(e) => updateField('calSearchDays', parseInt(e.target.value) || 6)}
+                                        onChange={e => updateField('calSearchDays', parseInt(e.target.value) || 6)}
+                                        style={{ borderRadius: '10px', maxWidth: '120px' }}
                                     />
-                                    <small className="text-muted d-block mt-1">Cuántos días a futuro buscará el agente para ofrecer citas.</small>
+                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Cuántos días a futuro buscará el agente para ofrecer citas.</div>
                                 </div>
-                                <div style={{ gridColumn: '1 / -1', background: '#fffbeb', border: '1px solid #fde68a', padding: '12px', borderRadius: '8px', color: '#92400e', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                                    <i className="bi bi-exclamation-triangle-fill" style={{ marginTop: '2px' }}></i>
+
+                                <div style={{ marginTop: '16px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                                    <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', marginTop: '2px' }}></i>
                                     <div>
-                                        <strong>Aviso importante:</strong> Para que el agente pueda buscar y ofrecer disponibilidad de horarios, debes asignarle un número de teléfono (ya que funciona vía Webhook en llamadas entrantes). Si no le asignas un número, el agente solo podrá agendar o cancelar citas solicitadas directamente por el usuario.
+                                        <strong style={{ fontSize: '13px', color: '#92400e' }}>Aviso importante — necesita número de teléfono:</strong>
+                                        <div style={{ fontSize: '12px', color: '#92400e', marginTop: '4px', lineHeight: '1.6' }}>
+                                            Para que el agente pueda buscar y ofrecer disponibilidad de horarios, debes asignarle un número de teléfono (ya que funciona vía Webhook en llamadas entrantes).
+                                        </div>
+                                        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
+                                                <input type="radio" name="calMode" defaultChecked style={{ marginTop: '3px' }} />
+                                                <div>
+                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2428' }}>Consultar disponibilidad</div>
+                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>El agente busca en el calendario y ofrece los horarios disponibles. <span style={{ background: '#fde68a', padding: '1px 6px', borderRadius: '4px', fontSize: '11px' }}>Requiere número</span></div>
+                                                </div>
+                                            </label>
+                                            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
+                                                <input type="radio" name="calMode" style={{ marginTop: '3px' }} />
+                                                <div>
+                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2428' }}>Agendar solo</div>
+                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>El usuario dice la fecha y el agente la agenda. No consulta disponibilidad.</div>
+                                                </div>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         )}
                     </div>
 
+                    {/* ═══ 4. DATOS A RECOGER AL FINALIZAR LA LLAMADA ═══ */}
+                    <div style={{ ...sectionStyle, borderColor: '#e2e8f0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                            <i className="bi bi-clipboard-data" style={{ color: '#267ab0', fontSize: '18px' }}></i>
+                            <div style={{ fontWeight: 700, fontSize: '16px', color: '#1a2428' }}>Datos a recoger al finalizar la llamada</div>
+                        </div>
 
-                    <div className="wizard-actions">
-                        <button type="button" className="btn btn-secondary" onClick={prevStep}>
-                            <i className="bi bi-arrow-left"></i> Atrás
+                        <div style={{ background: '#f0f7ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px', fontSize: '13px', color: '#1e40af', lineHeight: '1.6' }}>
+                            Al finalizar la llamada, el sistema de IA extraerá automáticamente la información de la transcripción y la guardará en los datos del contacto. Puedes añadir campos personalizados, o editarlos en <strong>Ajustes de workspace → Extracción de datos de llamada</strong>.
+                        </div>
+
+                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#475569', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Análisis de la llamada
+                        </div>
+
+                        {/* Fixed extraction fields */}
+                        {[
+                            { label: 'Resumen de la llamada', desc: 'Resumen breve de lo que se habló durante la llamada', key: 'summary', type: 'Texto' },
+                            { label: 'Nivel de interés', desc: 'Evalúa el nivel de interés del cliente (1-5). Considera factores como el tono, claridad de necesidades y disposición.', key: 'interest_level', type: 'Número' },
+                            { label: 'Sentimiento del cliente', desc: 'Analiza el sentimiento general del cliente durante la llamada', key: 'sentiment', type: 'Texto' },
+                        ].map(field => (
+                            <div key={field.key} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'start', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <div>
+                                    <div style={{ fontWeight: 600, fontSize: '14px', color: '#1a2428' }}>{field.label}</div>
+                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{field.desc}</div>
+                                </div>
+                                <div style={{ background: '#f1f5f9', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>{field.type}</div>
+                            </div>
+                        ))}
+
+                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#475569', marginBottom: '12px', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Añadir variables
+                        </div>
+
+                        {/* Dynamic extraction variables */}
+                        {extractionVariables.length > 0 ? (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                                {extractionVariables.map((variable, idx) => (
+                                    <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Texto</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Nombre de la variable"
+                                                value={variable.name}
+                                                onChange={e => {
+                                                    const v = [...extractionVariables];
+                                                    v[idx].name = e.target.value;
+                                                    updateField('extractionVariables', v);
+                                                }}
+                                                style={{ borderRadius: '10px' }}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Valor esperado</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Descripción"
+                                                value={variable.description}
+                                                onChange={e => {
+                                                    const v = [...extractionVariables];
+                                                    v[idx].description = e.target.value;
+                                                    updateField('extractionVariables', v);
+                                                }}
+                                                style={{ borderRadius: '10px' }}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}
+                                            style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', padding: '0 4px', marginTop: '22px' }}
+                                        >
+                                            <i className="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null}
+
+                        <button
+                            type="button"
+                            onClick={addVariable}
+                            style={{ border: '1px dashed #cbd5e1', background: '#f8fafc', borderRadius: '10px', padding: '10px 20px', fontSize: '14px', fontWeight: 600, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            <i className="bi bi-plus-lg"></i> Añadir variable
                         </button>
-                        <button type="submit" className="btn btn-primary">
-                            Siguiente paso <i className="bi bi-arrow-right"></i>
+                    </div>
+
+                    {/* ACCIONES */}
+                    <div className="wizard-actions pt-4" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #edf2f7' }}>
+                        <button
+                            type="button"
+                            className="btn"
+                            onClick={prevStep}
+                            style={{ border: '1px solid #e2e8f0', padding: '10px 24px', borderRadius: '8px', background: '#fff', color: '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            <i className="bi bi-arrow-left"></i> Anterior
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn"
+                            style={{ background: '#267ab0', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            Siguiente <i className="bi bi-arrow-right"></i>
                         </button>
                     </div>
                 </form>

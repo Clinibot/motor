@@ -18,127 +18,75 @@ export const Step1_BasicInfo: React.FC = () => {
             <div className="form-card">
                 <form onSubmit={handleNext}>
                     {/* SECCIÓN: INFORMACIÓN BÁSICA DEL AGENTE */}
-                    <div style={{ marginBottom: '48px' }}>
+                    <div style={{ marginBottom: '40px' }}>
                         <WizardStepHeader
                             title="Información básica del agente"
-                            subtitle="Empecemos con los datos fundamentales. Esta información personaliza todo el comportamiento de tu agente."
-                            tooltipContent={
-                                <>
-                                    <strong>Configuración inicial.</strong> Estos datos son la base sobre la que se construye la identidad de tu agente.
-                                </>
-                            }
-                            showArrows={true}
+                            subtitle="Dinos cómo se llamará tu agente y a qué empresa representa."
                         />
 
-                        <div className="row">
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '8px', fontSize: '14px' }}>
-                                        ¿Cómo se llamará tu agente?
-                                        <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
-                                        <div className="custom-tooltip">
-                                            <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                            <div className="tooltip-content shadow">
-                                                <strong>Nombre del agente</strong><br />
-                                                Este será el nombre con el que tu agente se presentará en todas las llamadas.
-                                                <br /><br />
-                                                <strong>Ejemplo:</strong> &quot;Hola, soy Sofia de Netelip&quot;
-                                                <br /><br />
-                                                <strong>Tips:</strong><br />
-                                                • Nombres cortos (2-3 sílabas)<br />
-                                                • Fáciles de pronunciar<br />
-                                                • Evita nombres técnicos
-                                            </div>
-                                        </div>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Ej: Sofia, Carlos, Laura..."
-                                        value={agentName}
-                                        onChange={(e) => updateField('agentName', e.target.value)}
-                                        required
-                                        style={{ border: '1px solid var(--gris-borde)', borderRadius: '8px', padding: '11px 14px', fontSize: '14px', fontWeight: 500 }}
-                                    />
-                                    <div style={{ color: 'var(--gris-texto)', fontSize: '13px', marginTop: '6px' }}>
-                                        <i className="bi bi-lightbulb me-1"></i>
-                                        Este nombre aparecerá en todas las interacciones con clientes
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '8px', fontSize: '14px' }}>
-                                        Nombre de tu empresa
-                                        <div className="custom-tooltip">
-                                            <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                            <div className="tooltip-content shadow">
-                                                <strong>Nombre de la empresa</strong><br />
-                                                El agente usará este nombre para presentar tu empresa.
-                                                <br /><br />
-                                                <strong>Ejemplo:</strong> &quot;Hola, soy Sofia de Netelip&quot;
-                                                <br /><br />
-                                                Si lo dejas vacío, el agente no mencionará el nombre de la empresa.
-                                            </div>
-                                        </div>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Ej: netelip, Garabato, UX-AI."
-                                        value={companyName}
-                                        onChange={(e) => updateField('companyName', e.target.value)}
-                                        style={{ border: '1px solid var(--gris-borde)', borderRadius: '8px', padding: '11px 14px', fontSize: '14px', fontWeight: 500 }}
-                                    />
-                                    <div style={{ color: 'var(--gris-texto)', fontSize: '13px', marginTop: '6px' }}>
-                                        <i className="bi bi-building me-1"></i>
-                                        Se usará en las interacciones con el cliente en el prompt
-                                    </div>
-                                </div>
+                        <div className="form-group" style={{ marginBottom: '24px' }}>
+                            <label className="form-label" style={{ fontWeight: 700, color: '#1e293b', marginBottom: '8px', fontSize: '14px', display: 'block' }}>
+                                Nombre del agente <span style={{ color: '#ef4444' }}>*</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Mi agente"
+                                value={agentName}
+                                onChange={(e) => updateField('agentName', e.target.value)}
+                                required
+                                style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 16px', fontSize: '14px', fontWeight: 500, width: '100%' }}
+                            />
+                            <div style={{ color: '#64748b', fontSize: '13px', marginTop: '8px' }}>
+                                Este nombre se usará en la interfaz y en los informes.
                             </div>
                         </div>
-                    </div>
 
-                    <div style={{ margin: '32px 0 48px 0' }}>
+                        <div className="form-group" style={{ marginBottom: '24px' }}>
+                            <label className="form-label" style={{ fontWeight: 700, color: '#1e293b', marginBottom: '8px', fontSize: '14px', display: 'block' }}>
+                                Nombre de la empresa <span style={{ color: '#ef4444' }}>*</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="netelip"
+                                value={companyName}
+                                onChange={(e) => updateField('companyName', e.target.value)}
+                                required
+                                style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 16px', fontSize: '14px', fontWeight: 500, width: '100%' }}
+                            />
+                            <div style={{ color: '#64748b', fontSize: '13px', marginTop: '8px' }}>
+                                El agente lo usará para identificarse en las llamadas.
+                            </div>
+                        </div>
+
                         <div className="form-group">
-                            <label className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '8px', fontSize: '14px' }}>
-                                Descripción corta de la empresa
-                                <div className="custom-tooltip">
-                                    <i className="bi bi-question-circle-fill tooltip-icon"></i>
-                                    <div className="tooltip-content shadow">
-                                        <strong>Descripción de la empresa</strong><br />
-                                        Un resumen claro y directo de a qué se dedica tu empresa y qué servicios u opciones ofrece. Esto ayuda al agente a entender el contexto general. No incluyas información demasiado técnica o extensa aquí. 
-                                        <br /><br />
-                                        <strong>Ejemplo:</strong> &quot;Somos una clínica dental especializada en implantes y ortodoncia invisible. Ofrecemos primeras visitas gratuitas.&quot;
-                                    </div>
-                                </div>
+                            <label className="form-label" style={{ fontWeight: 700, color: '#1e293b', marginBottom: '8px', fontSize: '14px', display: 'block' }}>
+                                Descripción breve de la empresa
                             </label>
                             <textarea
                                 className="form-control"
-                                placeholder="Ej: Somos una clínica dental especializada en implantes y ortodoncia invisible. Ofrecemos primeras visitas gratuitas."
+                                placeholder="Empresa de telecomunicaciones especializada en centralitas virtuales y soluciones de voz para empresas."
                                 value={companyDescription}
                                 onChange={(e) => updateField('companyDescription', e.target.value)}
                                 rows={3}
-                                style={{ border: '1px solid var(--gris-borde)', borderRadius: '8px', padding: '11px 14px', fontSize: '14px', resize: 'vertical' }}
+                                style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 16px', fontSize: '14px', resize: 'vertical', width: '100%' }}
                             />
-                            <div style={{ color: 'var(--gris-texto)', fontSize: '13px', marginTop: '6px' }}>
-                                <i className="bi bi-card-text me-1"></i>
-                                Ayudará al agente a entender el contexto general de tu negocio.
+                            <div style={{ color: '#64748b', fontSize: '13px', marginTop: '8px' }}>
+                                1–2 frases. El agente la usará para contextualizar la empresa en conversaciones.
                             </div>
                         </div>
                     </div>
 
-                    <div className="wizard-actions">
-                        <button type="button" className="btn btn-secondary" onClick={() => window.location.href = '/dashboard'}>
-                            <i className="bi bi-arrow-left"></i> Cancelar
-                        </button>
-                        <button type="submit" className="btn btn-primary" disabled={!agentName.trim()}>
-                            Siguiente paso <i className="bi bi-arrow-right"></i>
+                    <div className="wizard-actions" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button type="submit" className="btn btn-primary" disabled={!agentName.trim()} style={{
+                            background: '#2e86c1', border: 'none', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px'
+                        }}>
+                            Siguiente <i className="bi bi-arrow-right"></i>
                         </button>
                     </div>
-                </form >
-            </div >
-
-        </div >
+                </form>
+            </div>
+        </div>
     );
 };

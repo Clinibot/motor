@@ -101,16 +101,25 @@ export async function DELETE(req: Request) {
 export async function PATCH(req: Request) {
     try {
         const supabaseAdmin = getSupabaseAdmin();
+        const { searchParams } = new URL(req.url);
+        const queryId = searchParams.get('id');
+        
         const body = await req.json();
-        const { id, name } = body;
+        const { id: bodyId, name, retell_api_key } = body;
+        
+        const id = queryId || bodyId;
 
-        if (!id || !name) {
-            return NextResponse.json({ success: false, error: "ID and Name are required" }, { status: 400 });
+        if (!id) {
+            return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
         }
+
+        const updates: any = {};
+        if (name) updates.name = name;
+        if (retell_api_key) updates.retell_api_key = retell_api_key;
 
         const { error } = await supabaseAdmin
             .from('workspaces')
-            .update({ name })
+            .update(updates)
             .eq('id', id);
 
         if (error) throw error;

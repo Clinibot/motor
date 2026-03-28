@@ -14,46 +14,28 @@ interface Voice {
     gender: 'male' | 'female';
     accent: string;
     preview_audio_url?: string;
-    raw_language?: string;
-    raw_accent?: string;
 }
 
-// VOICES_DATA ya no se usa de forma estática, se cargan de la API
-// Lista de IDs de voces seleccionadas para mostrar una lista "Premium" curada
-const CURATED_VOICE_IDS = [
-    '11labs-Adrian',
-    '11labs-Paloma',
-    '11labs-Alvaro',
-    'cartesia-Elena',
-    'cartesia-Manuel',
-    'cartesia-Isabel',
-    'cartesia-Teresa',
-    'cartesia-Dario',
-    'cartesia-Ines',
-    'openai-Shimmer',
-    'openai-Fable',
-    'openai-Nova',
-    'openai-Alloy',
-    'retell-Rosa',
-    'retell-Alberto',
-    'retell-Sergio',
-    '11labs-George',
-    '11labs-Alice',
-    '11labs-Bill',
-    '11labs-Lily',
-    'cartesia-Marie',
-    'cartesia-Jean',
+// Curated voices list requested by user
+const CURATED_VOICES_CONFIG = [
+    { voice_id: 'cartesia-Isabel', voice_name: 'Isabel', provider: 'cartesia', gender: 'female' as const, language: 'es' },
+    { voice_id: '11068', voice_name: 'Cristina', provider: 'retell', gender: 'female' as const, language: 'es' },
+    { voice_id: '11844', voice_name: 'Mari Carme', provider: 'retell', gender: 'female' as const, language: 'es' },
+    { voice_id: '12051', voice_name: 'Cimo', provider: 'retell', gender: 'female' as const, language: 'es' },
+    { voice_id: '12051-en', voice_id_real: '12051', voice_name: 'Cimo (English)', provider: 'retell', gender: 'female' as const, language: 'en' },
+    { voice_id: 'cartesia-Manuel', voice_name: 'Manuel', provider: 'cartesia', gender: 'male' as const, language: 'es' },
+    { voice_id: '11375', voice_name: 'Santiago', provider: 'retell', gender: 'male' as const, language: 'es' },
+    { voice_id: '11753', voice_name: 'Adrian', provider: 'retell', gender: 'male' as const, language: 'es' },
 ];
 
-const DEFAULT_VOICES: Voice[] = [
-    { voice_id: '11labs-Adrian', voice_name: 'Adrián', provider: 'elevenlabs', language: 'es', gender: 'male', accent: 'spain', preview_audio_url: 'https://storage.googleapis.com/retell-api/11labs-Adrian.mp3' },
-    { voice_id: 'openai-Fable', voice_name: 'Cimo', provider: 'openai', language: 'es', gender: 'male', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Fable.mp3' },
-    { voice_id: 'openai-Shimmer', voice_name: 'Serena', provider: 'openai', language: 'es', gender: 'female', accent: 'latam', preview_audio_url: 'https://storage.googleapis.com/retell-api/openai-Shimmer.mp3' },
-    { voice_id: 'cartesia-Elena', voice_name: 'Elena', provider: 'cartesia', language: 'es', gender: 'female', accent: 'spain' },
-    { voice_id: '11labs-George', voice_name: 'George', provider: 'elevenlabs', language: 'en', gender: 'male', accent: 'usa', preview_audio_url: 'https://storage.googleapis.com/retell-api/11labs-George.mp3' },
-    { voice_id: '11labs-Alice', voice_name: 'Alice', provider: 'elevenlabs', language: 'en', gender: 'female', accent: 'usa', preview_audio_url: 'https://storage.googleapis.com/retell-api/11labs-Alice.mp3' },
-    { voice_id: 'cartesia-Ines', voice_name: 'Ines', provider: 'cartesia', language: 'fr', gender: 'female', accent: 'france' },
-];
+const DEFAULT_VOICES: Voice[] = CURATED_VOICES_CONFIG.map(v => ({
+    voice_id: v.voice_id_real || v.voice_id,
+    voice_name: v.voice_name,
+    provider: v.provider,
+    language: v.language,
+    gender: v.gender,
+    accent: v.language === 'es' ? 'spain' : 'usa',
+}));
 
 export const Step3_Voice: React.FC = () => {
     const { voiceId, updateField, prevStep, nextStep } = useWizardStore();
@@ -62,19 +44,12 @@ export const Step3_Voice: React.FC = () => {
     const [isLoadingVoices, setIsLoadingVoices] = useState(true);
     const [isProcessingCustom, setIsProcessingCustom] = useState(false);
     const [showCustomModal, setShowCustomModal] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
-    // const [customTab, setCustomTab] = useState<'clone'>('clone');
-    // const [customTab, setCustomTab] = useState<'import' | 'clone'>('import');
-    const [activeProvider, setActiveProvider] = useState('elevenlabs');
+    const [activeGender, setActiveGender] = useState('all'); // 'all', 'male', 'female'
 
     // Form states
     const [customName, setCustomName] = useState('');
-    // const [importVoiceId, setImportVoiceId] = useState('');
-    // const [publicUserId, setPublicUserId] = useState('');
     const [cloneFiles, setCloneFiles] = useState<FileList | null>(null);
-
     const [filterLang, setFilterLang] = useState('es');
-    const [filterGender, setFilterGender] = useState('');
     const [legalConfirmed, setLegalConfirmed] = useState(false);
     const [playingId, setPlayingId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -85,152 +60,14 @@ export const Step3_Voice: React.FC = () => {
         try {
             const response = await fetch('/api/retell/voices');
             const data = await response.json();
-            if (data?.success && data?.voices && data?.voices.length > 0) {
-                // Normalizar datos de Retell
-                const normalized = data.voices.map((v: Voice) => {
-                    const voiceName = (v.voice_name || '').toLowerCase();
-                    const voiceLangAttr = (v.language || '').toLowerCase();
-                    const voiceAccentAttr = (v.accent || '').toLowerCase();
-                    const id = (v.voice_id || '').toLowerCase();
-
-                    // 1. Normalizar lenguaje
-                    let lang = voiceLangAttr;
-                    
-                    // Si es una voz clonada, asumimos español por defecto si no viene definido
-                    if (id.startsWith('custom_voice_')) {
-                        lang = 'es';
-                    } else if (lang.startsWith('es') ||
-                        lang.includes('spanish') ||
-                        lang.includes('espanol') ||
-                        lang.includes('español') ||
-                        voiceName.includes('spanish') ||
-                        voiceName.includes('español') ||
-                        voiceAccentAttr.includes('spanish') ||
-                        voiceAccentAttr.includes('spain') ||
-                        voiceAccentAttr.includes('españa')) {
-                        lang = 'es';
-                    } else if (lang.startsWith('en') || lang.includes('english')) {
-                        lang = 'en';
-                    } else if (lang.startsWith('pt') || lang.includes('portuguese') || lang.includes('brazil')) {
-                        lang = 'pt';
-                    } else if (lang.startsWith('fr') || lang.includes('french')) {
-                        lang = 'fr';
-                    } else {
-                        lang = 'en';
-                    }
-
-                    // Detección flexible de acento (Prioridad España)
-                    let accent = voiceAccentAttr;
-                    const isSpainSignal =
-                        accent.includes('spain') ||
-                        accent.includes('españa') ||
-                        accent.includes('castilian') ||
-                        accent.includes('castellano') ||
-                        accent.includes('castellana') ||
-                        accent.includes('es-es') ||
-                        accent === 'spanish' ||
-                        accent === 'español' ||
-                        voiceLangAttr.includes('spain') ||
-                        voiceLangAttr.includes('es-es') ||
-                        voiceLangAttr.endsWith('-es') ||
-                        voiceName.includes('español (españa)') ||
-                        voiceName.includes('española') ||
-                        voiceName.includes('madrid') ||
-                        // Nombres comunes de voces de España
-                        ['elena', 'manuel', 'isabel', 'teresa', 'dario', 'ines', 'pau', 'alvaro', 'paloma', 'sergio', 'blanca', 'adrian', 'adrián', 'sol', 'mateo', 'jose', 'josé', 'maria', 'maría', 'antoni', 'antonio', 'lola', 'carmen', 'javier', 'elvira'].some(n => voiceName.includes(n));
-
-                    if (isSpainSignal && lang === 'es') {
-                        accent = 'spain';
-                    } else if (accent.includes('latam') ||
-                        accent.includes('mexico') ||
-                        accent.includes('colombia') ||
-                        accent.includes('latino') ||
-                        accent.includes('mexican') ||
-                        accent.includes('argentina') ||
-                        accent.includes('chile') ||
-                        accent.includes('peru') ||
-                        accent.includes('venezuela') ||
-                        accent.includes('dominican') ||
-                        accent.includes('puerto rico') ||
-                        voiceName.includes('latam') ||
-                        voiceName.includes('mexic') ||
-                        voiceLangAttr.includes('mx') ||
-                        voiceLangAttr.includes('co') ||
-                        voiceLangAttr.includes('ar')) {
-                        accent = 'latam';
-                    } else if (accent.includes('usa') || accent.includes('american') || accent.includes('eeuu') || accent.includes('us-') || voiceName.includes('american')) {
-                        accent = 'usa';
-                    } else if (accent.includes('uk') || accent.includes('british') || accent.includes('británico') || accent.includes('london') || voiceName.includes('british')) {
-                        accent = 'uk';
-                    }
-
-                    // Normalizar proveedor de forma agresiva
-                    let provider = (v.provider || '').toLowerCase();
-                    
-                    // PRIORIDAD ABSOLUTA: Si el ID empieza por custom_voice_, es una voz clonada (Clonadas)
-                    if (id.startsWith('custom_voice_')) {
-                        provider = 'cloned';
-                    } 
-                    // Si el ID incluye retell o el proveedor es platform, pero NO es un clon del usuario, es voz de la plataforma
-                    else if (id.includes('retell') || provider === 'platform') {
-                        provider = 'platform';
-                    }
-                    else if (id.includes('11labs') || id.includes('elevenlabs') || provider.includes('eleven') || provider.includes('11')) {
-                        provider = 'elevenlabs';
-                    }
-                    else if (id.includes('openai') || provider.includes('openai')) {
-                        provider = 'openai';
-                    }
-                    else if (id.includes('cartesia') || provider.includes('cartesia')) {
-                        provider = 'cartesia';
-                    }
-                    else if (id.includes('minimax') || provider.includes('minimax')) {
-                        provider = 'minimax';
-                    }
-                    else if (id.includes('fish') || provider.includes('fish')) {
-                        provider = 'fish_audio';
-                    }
-                    else {
-                        provider = 'elevenlabs';
-                    }
-
-                    if (provider === 'openai') {
-                        lang = 'es'; // OpenAI voices are excellently multilingual
-                        // Override gender for specific OpenAI voices if needed by user perception
-                        if (id.includes('fable')) {
-                            // Cimo is technically male but often used for both, 
-                            // we'll keep it as male but ensure it's in Spanish.
-                            // If user specifically asked for it in female, we can consider it.
-                        }
-                    }
-                    return {
-                        ...v,
-                        language: lang,
-                        accent: accent || (provider === 'openai' ? 'latam' : ''),
-                        provider: provider,
-                        raw_language: v.language,
-                        raw_accent: v.accent
-                    };
-                });
-                
-                // 3. Deduplicar por voice_id (por si vienen repetidas de la API)
-                const uniqueNormalized = Array.from(new Map(normalized.map((v: Voice) => [v.voice_id, v])).values()) as Voice[];
-                
-                // 4. Filtrar voces indeseadas (como las de Victor que aparecen repetidas o no deseadas)
-                const finalVoices = uniqueNormalized.filter((v: Voice) => 
-                    !v.voice_name.toLowerCase().includes('victor')
-                );
-
-                console.log("Voces normalizadas y deduplicadas:", finalVoices.length);
-                setVoices(finalVoices);
-                
-                // Debug log para voces en español sin acento reconocido
-                const unknownAccent = normalized.filter((v: Voice) => v.language === 'es' && v.accent !== 'spain' && v.accent !== 'latam');
-                if (unknownAccent.length > 0) {
-                    console.log("Voces en español con acento no reconocido:", unknownAccent.map((v: Voice) => `${v.voice_name} (Accento raw: ${v.raw_accent}, ID: ${v.voice_id})`));
-                }
+            if (data?.success && data?.voices) {
+                // We keep all voices from API but will filter them in useMemo
+                const apiVoices = data.voices.map((v: any) => ({
+                    ...v,
+                    provider: v.voice_id.startsWith('custom_voice_') ? 'cloned' : (v.provider || 'retell')
+                }));
+                setVoices(apiVoices);
             } else {
-                console.warn("API returned empty voices or failed, using fallback data");
                 setVoices(DEFAULT_VOICES);
             }
         } catch (error) {
@@ -243,45 +80,29 @@ export const Step3_Voice: React.FC = () => {
 
     const handleVoiceDelete = async (e: React.MouseEvent, voice: Voice) => {
         e.stopPropagation();
-        
-        if (!confirm(`¿Estás seguro de que quieres eliminar la voz "${voice.voice_name}"? Esta acción no se puede deshacer.`)) {
-            return;
-        }
+        if (!confirm(`¿Estás seguro de que quieres eliminar la voz "${voice.voice_name}"?`)) return;
 
         setDeletingId(voice.voice_id);
         try {
             const result = await deleteVoiceAction(voice.voice_id);
             if (result.success) {
-                toast.success('Voz eliminada correctamente');
-                // Actualizar la lista localmente para un feedback instantáneo
+                toast.success('Voz eliminada');
                 setVoices(prev => prev.filter(v => v.voice_id !== voice.voice_id));
-                // Si la voz eliminada era la seleccionada, deseleccionarla
-                if (voiceId === voice.voice_id) {
-                    updateField('voiceId', '');
-                    updateField('voiceName', '');
-                }
+                if (voiceId === voice.voice_id) updateField('voiceId', '');
             } else {
-                toast.error(result.error || 'Error al eliminar la voz');
+                toast.error(result.error || 'Error');
             }
         } catch (error) {
-            console.error('Error delete:', error);
-            toast.error('Error inesperado al eliminar');
+            toast.error('Error inesperado');
         } finally {
             setDeletingId(null);
         }
     };
 
-    // Cargar voces desde la API
     React.useEffect(() => {
         fetchVoices();
     }, []);
 
-    // Reset expansion when filters change
-    React.useEffect(() => {
-        setIsExpanded(false);
-    }, [activeProvider, filterLang, filterGender]);
-
-    // Limpieza de audio al desmontar
     React.useEffect(() => {
         return () => {
             if (audioRef.current) {
@@ -292,168 +113,79 @@ export const Step3_Voice: React.FC = () => {
     }, []);
 
     const filteredVoices = useMemo(() => {
-        let list = voices;
+        let allVoices = voices;
+        if (allVoices.length === 0 && !isLoadingVoices) allVoices = DEFAULT_VOICES;
 
-        // Si no se han cargado voces aún, usar DEFAULT_VOICES
-        if (list.length === 0 && !isLoadingVoices) list = DEFAULT_VOICES;
+        let results: Voice[] = [];
 
-        // 2. Aplicar filtros de UI
-        const filtered = list.filter(v => {
-            const matchesProvider = v.provider === activeProvider;
-
-            const matchesLang = !filterLang || v.language === filterLang;
-            const matchesGender = !filterGender || v.gender === filterGender;
-            return matchesProvider && matchesLang && matchesGender;
+        // Add curated voices
+        CURATED_VOICES_CONFIG.forEach(config => {
+            const actualId = config.voice_id_real || config.voice_id;
+            const apiVoice = allVoices.find(v => v.voice_id === actualId);
+            
+            if (apiVoice) {
+                results.push({
+                    ...apiVoice,
+                    voice_id: config.voice_id, // Key for selection
+                    voice_name: config.voice_name,
+                    gender: config.gender,
+                    language: config.language,
+                });
+            } else {
+                results.push({
+                    voice_id: config.voice_id,
+                    voice_name: config.voice_name,
+                    provider: config.provider,
+                    gender: config.gender,
+                    language: config.language,
+                    accent: config.language === 'es' ? 'spain' : 'usa',
+                    preview_audio_url: config.language === 'en' ? 'https://storage.googleapis.com/retell-api/openai-Fable.mp3' : undefined
+                });
+            }
         });
 
-        // 3. Ordenación : España > Latam > Resto
-        return [...filtered].sort((a, b) => {
-            // Prioridad absoluta para voces clonadas por el usuario
-            if (a.provider === 'cloned' && b.provider !== 'cloned') return -1;
-            if (a.provider !== 'cloned' && b.provider === 'cloned') return 1;
+        // Add cloned voices
+        const clonedVoices = allVoices.filter(v => v.provider === 'cloned');
+        results = [...results, ...clonedVoices];
 
-            // Prioridad para España
-            if (a.accent === 'spain' && b.accent !== 'spain') return -1;
-            if (a.accent !== 'spain' && b.accent === 'spain') return 1;
-
-            // Prioridad para Español en general
-            if (a.language === 'es' && b.language !== 'es') return -1;
-            if (a.language !== 'es' && b.language === 'es') return 1;
-
-            return 0;
+        return results.filter(v => {
+            const matchesGender = activeGender === 'all' || v.gender === activeGender;
+            const matchesLang = filterLang === 'all' || v.language === filterLang;
+            return matchesGender && matchesLang;
         });
-    }, [voices, activeProvider, filterLang, filterGender, isLoadingVoices]);
+    }, [voices, activeGender, filterLang, isLoadingVoices]);
 
     const handleCustomVoiceSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsProcessingCustom(true);
-
         try {
-
-            /* 
-            // CÓDIGO COMENTADO - IMPORTACIÓN ELEVENLABS
-            if (customTab === 'import') {
-                const trimmedName = customName.trim();
-                const trimmedVoiceId = importVoiceId.trim();
-                const trimmedUserId = publicUserId.trim();
-
-                if (!trimmedName || !trimmedVoiceId) {
-                    alert("Por favor, rellena los campos obligatorios.");
-                    setIsProcessingCustom(false);
-                    return;
-                }
-
-                res = await fetch('/api/retell/voices/import', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        voice_name: trimmedName,
-                        provider_voice_id: trimmedVoiceId,
-                        public_user_id: trimmedUserId || undefined
-                    })
-                });
-            } else { ... }
-            */
-
             const trimmedName = customName.trim();
-            if (!trimmedName) {
-                alert("Por favor, introduce un nombre para la voz.");
-                setIsProcessingCustom(false);
-                return;
-            }
+            if (!trimmedName || !cloneFiles) return;
 
             const formData = new FormData();
             formData.append('voice_name', trimmedName);
-            if (cloneFiles) {
-                let totalSize = 0;
-                for (let i = 0; i < cloneFiles.length; i++) {
-                    totalSize += cloneFiles[i].size;
-                }
-                // Margen de seguridad para el límite del servidor
-                if (totalSize > 20 * 1024 * 1024) {
-                    alert("El tamaño total de los archivos de audio es demasiado grande (máximo 20MB combinado). Por favor, intenta subir archivos más pequeños.");
-                    setIsProcessingCustom(false);
-                    return;
-                }
-
-                for (let i = 0; i < cloneFiles.length; i++) {
-                    formData.append('files', cloneFiles[i]);
-                }
+            for (let i = 0; i < cloneFiles.length; i++) {
+                formData.append('files', cloneFiles[i]);
             }
             
-            console.log("--- CLONE_VOICE_VER_2024_03_16_1915 ---");
-            console.log("Iniciando clonación mediante API Route...");
-            const res = await fetch('/api/retell/voices/clone', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!res.ok) {
-                if (res.status === 413) {
-                    alert("Error 413: El archivo de audio es demasiado grande para el servidor. Por favor, intenta subir un archivo más pequeño (menos de 4.5 MB si estás en Vercel) o comprimido.");
-                } else if (res.status === 504) {
-                    alert("Error 504 (Tiempo excedido): La clonación está tardando demasiado para los límites de Vercel (10 segundos). \n\nSugerencia: Intenta subir un archivo de audio más corto (ej: 5-10 segundos) o un solo archivo en lugar de varios para que el proceso termine más rápido.");
-                } else if (res.status === 500) {
-                    try {
-                        const errorData = await res.json();
-                        alert(`Error Servidor (500): ${errorData.error || "Error interno"}`);
-                        console.error("Detalles del servidor:", errorData);
-                    } catch {
-                        const text = await res.text();
-                        alert("Error 500: El servidor falló con una respuesta no válida.");
-                        console.error("HTML de error del servidor:", text);
-                    }
-                } else {
-                    const text = await res.text();
-                    alert(`Error ${res.status}: El servidor respondió con un error al procesar el audio.`);
-                    console.error("Respuesta de error completa:", text);
-                }
-                setIsProcessingCustom(false);
-                return;
-            }
+            const res = await fetch('/api/retell/voices/clone', { method: 'POST', body: formData });
+            if (!res.ok) throw new Error("Error en la clonación");
 
             const data = await res.json();
-
-            if (data && data.success) {
-                alert("Voz clonada con éxito");
+            if (data?.success) {
+                toast.success("Voz clonada con éxito");
                 setShowCustomModal(false);
                 setCustomName('');
                 setCloneFiles(null);
-                setLegalConfirmed(false);
-                setActiveProvider('cloned'); // Volver a recomendadas donde saldrá primera
                 fetchVoices();
             } else {
-                alert("Error: " + (data?.error || "Ocurrió un problema al clonar la voz."));
+                toast.error(data?.error || "Error al clonar");
             }
-        } catch (error: unknown) {
-            const err = error as Error;
-            console.error("Error crítico en handleCustomVoiceSubmit:", err);
-            
-            if (err.name === 'SyntaxError') {
-                alert("Error: El servidor devolvió una respuesta inesperada. Esto suele ocurrir cuando el archivo es demasiado grande.");
-            } else {
-                alert("Error al procesar la voz: " + (err.message || "Error desconocido"));
-            }
+        } catch (error) {
+            toast.error("Error al procesar la voz");
         } finally {
             setIsProcessingCustom(false);
         }
-    };
-
-    const handleNext = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!voiceId) return;
-        nextStep();
-    };
-
-    const getLanguageName = (lang: string) => {
-        const names: Record<string, string> = { es: 'Español', en: 'English', pt: 'Português', fr: 'Français' };
-        return names[lang] || lang;
-    };
-
-
-    const getAccentName = (accent: string) => {
-        const names: Record<string, string> = { spain: 'España', latam: 'Latam', usa: 'USA', uk: 'UK', brazil: 'Brasil', france: 'Francia' };
-        return names[accent] || accent;
     };
 
     const togglePlay = (v: Voice) => {
@@ -462,103 +194,55 @@ export const Step3_Voice: React.FC = () => {
             setPlayingId(null);
             return;
         }
+        if (audioRef.current) audioRef.current.pause();
 
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
-
-        const previewUrl = v.preview_audio_url;
+        const previewUrl = v.preview_audio_url || (v.voice_id.includes('12051') ? 'https://storage.googleapis.com/retell-api/openai-Fable.mp3' : undefined);
         if (!previewUrl) {
-            alert("Esta voz no tiene previsualización de audio disponible.");
+            toast.error("Sin audio disponible");
             return;
         }
 
         const newAudio = new Audio(previewUrl);
-
         newAudio.onplay = () => setPlayingId(v.voice_id);
         newAudio.onended = () => setPlayingId(null);
-        newAudio.onpause = () => setPlayingId(null);
-        newAudio.onerror = (e) => {
-            console.error("Error playing audio preview:", e);
-            setPlayingId(null);
-        };
-
+        newAudio.onerror = () => setPlayingId(null);
         audioRef.current = newAudio;
-        newAudio.play().catch(err => {
-            console.error("Audio playback error:", err);
-            setPlayingId(null);
-        });
+        newAudio.play().catch(() => setPlayingId(null));
     };
 
     return (
         <div className="content-area">
             <div className="form-card">
                 <WizardStepHeader
-                    title="Selección de voz del agente"
-                    subtitle="Elige la voz que mejor represente la personalidad de tu agente."
-                    tooltipContent={
-                        <>
-                            <strong>La voz es la cara audible de tu marca.</strong> Elige entre diferentes proveedores para encontrar el tono, acento y género que mejor encaje.
-                        </>
-                    }
+                    title="Voz del agente"
+                    subtitle="Selecciona la voz que mejor represente a tu agente."
                 />
 
-                <div className="alert-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <i className="bi bi-lightbulb-fill"></i>
-                        <div>
-                            <strong>Tip:</strong> Escucha varias voces antes de decidir. La voz transmite la personalidad de tu marca.
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn"
-                        style={{ 
-                            padding: '6px 14px', 
-                            fontSize: '13px', 
-                            background: 'transparent',
-                            border: '1px solid #cbd5e1',
-                            color: '#475569',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }}
-                        onClick={() => setShowCustomModal(true)}
-                    >
-                        <i className="bi bi-mic" style={{ fontSize: '14px' }}></i> Clona tu voz
-                    </button>
-                </div>
-
-                <form onSubmit={handleNext}>
-                    {/* PESTAÑAS DE PROVEEDORES */}
-                    <div className="provider-tabs" style={{
+                <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
+                    <div className="gender-tabs" style={{
                         display: 'flex',
                         gap: '24px',
                         borderBottom: '1px solid #edf2f7',
-                        marginBottom: '24px',
+                        marginBottom: '32px',
                         paddingBottom: '2px'
                     }}>
                         {[
-                            { id: 'cartesia', name: 'Cartesia', icon: 'bi-gem' },
-                            { id: 'elevenlabs', name: 'ElevenLabs', icon: 'bi-music-note-beamed' },
-                            { id: 'openai', name: 'OpenAI', icon: 'bi-lightning-charge-fill' },
-                            { id: 'cloned', name: 'Clonadas', icon: 'bi-mic-fill' }
-                        ].map(p => (
+                            { id: 'all', name: 'Todos', icon: 'bi-people' },
+                            { id: 'female', name: 'Femenino', icon: 'bi-gender-female' },
+                            { id: 'male', name: 'Masculino', icon: 'bi-gender-male' }
+                        ].map(g => (
                             <button
-                                key={p.id}
+                                key={g.id}
                                 type="button"
-                                onClick={() => setActiveProvider(p.id)}
+                                onClick={() => setActiveGender(g.id)}
                                 style={{
                                     padding: '12px 4px',
-                                    fontSize: '14px',
+                                    fontSize: '15px',
                                     fontWeight: 600,
-                                    color: activeProvider === p.id ? 'var(--color-primario)' : '#718096',
-                                    borderBottom: `2px solid ${activeProvider === p.id ? 'var(--color-primario)' : 'transparent'}`,
+                                    color: activeGender === g.id ? '#267ab0' : '#718096',
+                                    borderBottom: `3px solid ${activeGender === g.id ? '#267ab0' : 'transparent'}`,
                                     background: 'none',
-                                    borderTop: 'none',
-                                    borderLeft: 'none',
-                                    borderRight: 'none',
+                                    border: 'none',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -566,391 +250,131 @@ export const Step3_Voice: React.FC = () => {
                                     transition: 'all 0.2s'
                                 }}
                             >
-                                <i className={`bi ${p.icon}`}></i>
-                                {p.name}
+                                <i className={`bi ${g.icon}`}></i>
+                                {g.name}
                             </button>
                         ))}
-                    </div>
 
-                    {/* FILTROS */}
-                    <div className="filters-row" style={{
-                        background: '#f8fafc',
-                        padding: '20px',
-                        borderRadius: '12px',
-                        marginBottom: '24px',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        gap: '16px'
-                    }}>
-                        <div>
-                            <label className="form-label" style={{ fontSize: '13px', fontWeight: 600 }}>Idioma</label>
-                            <select className="form-control" value={filterLang} onChange={(e) => setFilterLang(e.target.value)}>
-                                <option value="">Todos</option>
+                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                            <select 
+                                className="form-select" 
+                                value={filterLang} 
+                                onChange={(e) => setFilterLang(e.target.value)}
+                                style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#475569', background: 'transparent' }}
+                            >
                                 <option value="es">Español</option>
                                 <option value="en">Inglés</option>
-                                <option value="fr">Francés</option>
-                                <option value="pt">Portugués</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="form-label" style={{ fontSize: '13px', fontWeight: 600 }}>Género</label>
-                            <select className="form-control" value={filterGender} onChange={(e) => setFilterGender(e.target.value)}>
-                                <option value="">Todos</option>
-                                <option value="female">Femenino</option>
-                                <option value="male">Masculino</option>
+                                <option value="all">Idiomas</option>
                             </select>
                         </div>
                     </div>
 
-                    {/* GALERÍA DE VOCES */}
                     {isLoadingVoices ? (
                         <div style={{ textAlign: 'center', padding: '60px' }}>
-                            <div style={{ marginBottom: '16px' }}>Cargando voces de alta calidad...</div>
                             <div className="spinner-border text-primary" role="status"></div>
                         </div>
                     ) : (
-                        <>
-                            <div className="voices-grid" style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                                gap: '20px'
-                            }}>
-                                {(isExpanded ? filteredVoices : filteredVoices.slice(0, 12)).map((v: Voice) => (
-                                    <div
-                                        key={`${v.voice_id}-${v.language}-${v.voice_name}`}
-                                        className={`voice-card ${voiceId === v.voice_id ? 'selected' : ''}`}
-                                        style={{
-                                            border: voiceId === v.voice_id ? '2px solid var(--color-primario)' : '1px solid #edf2f7',
-                                            borderRadius: '16px',
-                                            padding: '24px',
-                                            textAlign: 'center',
-                                            cursor: 'pointer',
-                                            background: voiceId === v.voice_id ? '#f0f7ff' : '#fff',
-                                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                            position: 'relative'
-                                        }}
-                                        onClick={() => {
-                                            updateField('voiceId', v.voice_id);
-                                            updateField('voiceName', v.voice_name);
-                                            updateField('voiceProvider', v.provider);
-                                            updateField('voiceDescription', v.accent || 'Voz de alta calidad');
-                                        }}
-                                    >
-                                        <div className="voice-avatar" style={{
-                                            width: '64px',
-                                            height: '64px',
-                                            borderRadius: '50%',
-                                            background: '#f1f5f9',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '32px',
-                                            margin: '0 auto 16px',
-                                            position: 'relative'
-                                        }}>
-                                            {v.gender === 'female' ? '👩' : '👨'}
-                                            
-                                            {v.provider === 'cloned' && (
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => handleVoiceDelete(e, v)}
-                                                    disabled={deletingId === v.voice_id}
-                                                    style={{
-                                                        position: 'absolute',
-                                                        top: '-8px',
-                                                        right: '-8px',
-                                                        width: '28px',
-                                                        height: '28px',
-                                                        borderRadius: '50%',
-                                                        background: '#fee2e2',
-                                                        color: '#dc2626',
-                                                        border: '2px solid white',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        cursor: 'pointer',
-                                                        zIndex: 10,
-                                                        transition: 'transform 0.2s',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                    }}
-                                                    title="Eliminar voz"
-                                                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                                                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                                >
-                                                    {deletingId === v.voice_id ? (
-                                                        <span className="spinner-border spinner-border-sm" style={{ width: '12px', height: '12px' }}></span>
-                                                    ) : (
-                                                        <i className="bi bi-trash-fill" style={{ fontSize: '12px' }}></i>
-                                                    )}
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="voice-name" style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                            {v.voice_name}
-                                            {CURATED_VOICE_IDS.includes(v.voice_id) && (
-                                                <i className="bi bi-patch-check-fill" style={{ color: '#0ea5e9', fontSize: '14px' }} title="Voz Premium Verificada"></i>
-                                            )}
-                                        </div>
-                                        <div className="voice-desc" style={{ fontSize: '11px', color: '#64748b', marginBottom: '16px', minHeight: '32px', textTransform: 'capitalize', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                            <span>Voz {v.gender === 'female' ? 'femenina' : 'masculina'}</span>
-                                            <span style={{ fontWeight: 600, color: v.accent === 'spain' ? '#059669' : '#64748b' }}>
-                                                {v.accent ? getAccentName(v.accent) : 'Profesional'}
-                                            </span>
-                                        </div>
-
-                                        <div className="voice-tags" style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '20px' }}>
-                                            <span style={{
-                                                background: '#f1f5f9',
-                                                padding: '2px 8px',
-                                                borderRadius: '6px',
-                                                fontSize: '11px',
-                                                fontWeight: 600,
-                                                color: '#475569'
-                                            }}>{getLanguageName(v.language)}</span>
-                                            <span style={{
-                                                background: v.provider === 'elevenlabs' ? '#f0f9ff' : v.provider === 'cartesia' ? '#f5f3ff' : '#f8fafc',
-                                                color: v.provider === 'elevenlabs' ? '#0369a1' : v.provider === 'cartesia' ? '#7c3aed' : '#64748b',
-                                                padding: '2px 8px',
-                                                borderRadius: '6px',
-                                                fontSize: '11px',
-                                                fontWeight: 700,
-                                                textTransform: 'uppercase'
-                                            }}>{v.provider === 'elevenlabs' ? 'Ultra HD' : v.provider === 'cartesia' ? 'Sonic' : 'Pro'}</span>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            className="btn-play"
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px',
-                                                borderRadius: '10px',
-                                                border: '1px solid #e2e8f0',
-                                                background: playingId === v.voice_id ? '#3182ce' : 'white',
-                                                color: playingId === v.voice_id ? 'white' : '#1a202c',
-                                                fontSize: '13px',
-                                                fontWeight: 700,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '8px',
-                                                transition: 'all 0.2s ease',
-                                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                                            }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                togglePlay(v);
-                                            }}
-                                        >
-                                            {playingId === v.voice_id ? (
-                                                <><i className="bi bi-pause-fill" style={{ fontSize: '16px' }}></i> Pausar</>
-                                            ) : (
-                                                <><i className="bi bi-play-fill" style={{ fontSize: '16px' }}></i> Escuchar</>
-                                            )}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {filteredVoices.length > 12 && (
-                                <div style={{ textAlign: 'center', marginTop: '32px' }}>
-                                    <button
-                                        type="button"
-                                        className="btn btn-outline-primary"
-                                        style={{
-                                            padding: '10px 32px',
-                                            borderRadius: '30px',
-                                            fontWeight: 600,
-                                            fontSize: '14px',
-                                            borderWidth: '2px',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onClick={() => setIsExpanded(!isExpanded)}
-                                    >
-                                        {isExpanded ? (
-                                            <><i className="bi bi-chevron-up"></i> Mostrar menos voces</>
-                                        ) : (
-                                            <><i className="bi bi-chevron-down"></i> Ver más voces ({filteredVoices.length - 12} adicionales)</>
+                        <div className="voices-grid" style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                            gap: '20px'
+                        }}>
+                            {filteredVoices.map((v: Voice) => (
+                                <div
+                                    key={v.voice_id}
+                                    className={`voice-card ${voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id) ? 'selected' : ''}`}
+                                    style={{
+                                        border: voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id) ? '2px solid #267ab0' : '1px solid #edf2f7',
+                                        borderRadius: '16px',
+                                        padding: '24px',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                        background: voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id) ? '#f0f7ff' : '#fff',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center'
+                                    }}
+                                    onClick={() => {
+                                        const finalId = v.voice_id.includes('12051') ? '12051' : v.voice_id;
+                                        updateField('voiceId', finalId);
+                                        updateField('voiceName', v.voice_name);
+                                        updateField('voiceProvider', v.provider);
+                                    }}
+                                >
+                                    <div className="voice-avatar" style={{
+                                        width: '60px',
+                                        height: '60px',
+                                        borderRadius: '50%',
+                                        background: '#f1f5f9',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '30px',
+                                        marginBottom: '16px',
+                                        position: 'relative'
+                                    }}>
+                                        {v.gender === 'female' ? '👱‍♀️' : '👨'}
+                                        {v.provider === 'cloned' && (
+                                            <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#ea580c', color: 'white', fontSize: '9px', padding: '2px 5px', borderRadius: '10px', fontWeight: 700 }}>CLON</div>
                                         )}
-                                    </button>
-                                </div>
-                            )}
-
-                            {filteredVoices.length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
-                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>No se encontraron voces</h3>
-                                    <p style={{ fontSize: '14px' }}>Prueba a cambiar el idioma o acento en los filtros superiores.</p>
+                                    </div>
+                                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1a2428', marginBottom: '12px' }}>{v.voice_name}</div>
                                     <button
                                         type="button"
-                                        className="btn btn-link"
-                                        style={{ marginTop: '16px', color: 'var(--color-primario)' }}
-                                        onClick={() => {
-                                            setFilterLang('');
-                                            setFilterGender('');
-                                        }}
+                                        onClick={(e) => { e.stopPropagation(); togglePlay(v); }}
+                                        style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '1px solid #e5e7eb', background: playingId === v.voice_id ? '#267ab0' : '#fff', color: playingId === v.voice_id ? '#fff' : '#1a2428', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                                     >
-                                        Limpiar todos los filtros
+                                        <i className={`bi ${playingId === v.voice_id ? 'bi-pause-fill' : 'bi-play-fill'}`}></i>
+                                        {playingId === v.voice_id ? 'Pausar' : 'Escuchar'}
                                     </button>
                                 </div>
-                            )}
-                        </>
+                            ))}
+
+                            <div
+                                className="voice-card clone-card"
+                                style={{ border: '2px dashed #cbd5e1', borderRadius: '16px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '180px' }}
+                                onClick={() => setShowCustomModal(true)}
+                            >
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#64748b', marginBottom: '12px' }}>
+                                    <i className="bi bi-plus-lg"></i>
+                                </div>
+                                <div style={{ fontWeight: 700, fontSize: '14px', color: '#475569' }}>Clona tu voz</div>
+                            </div>
+                        </div>
                     )}
 
-
-
-                    {/* CONFIGURACIÓN ADICIONAL HIDDEN EN V2 FOR SIMPLICITY */}
-
-                    <div className="wizard-actions">
-                        <button type="button" className="btn btn-secondary" onClick={prevStep}>
-                            <i className="bi bi-arrow-left"></i> Anterior
-                        </button>
-                        <button type="submit" className="btn btn-primary" disabled={!voiceId}>
-                            Siguiente paso <i className="bi bi-arrow-right"></i>
-                        </button>
+                    <div className="wizard-actions mt-5 pt-4" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <button type="button" className="btn" onClick={prevStep} style={{ border: '1px solid #e5e7eb', padding: '10px 24px', borderRadius: '8px', background: '#fff', color: '#64748b', fontWeight: 600 }}> Anterior </button>
+                        <button type="submit" className="btn" disabled={!voiceId} style={{ background: voiceId ? '#267ab0' : '#e2e8f0', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600 }}> Siguiente </button>
                     </div>
                 </form>
             </div>
 
-            {/* MODAL PARA VOZ PERSONALIZADA */}
             {showCustomModal && (
-                <div className="modal-overlay" style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.6)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 3000,
-                    backdropFilter: 'blur(4px)'
-                }}>
-                    <div className="modal-content" style={{
-                        background: 'white',
-                        width: '100%',
-                        maxWidth: '500px',
-                        borderRadius: '16px',
-                        padding: '32px',
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0 }}>Clona tu propia voz</h2>
-                            <button type="button" onClick={() => setShowCustomModal(false)} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--gris-texto)' }}>&times;</button>
+                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, backdropFilter: 'blur(4px)' }}>
+                    <div className="modal-content" style={{ background: 'white', width: '100%', maxWidth: '450px', borderRadius: '16px', padding: '32px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+                            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Clona tu propia voz</h2>
+                            <button onClick={() => setShowCustomModal(false)} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
                         </div>
-
-                        <div style={{ 
-                            background: '#fffbeb', 
-                            border: '1px solid #fde68a', 
-                            borderRadius: '12px', 
-                            padding: '16px', 
-                            marginBottom: '24px',
-                            display: 'flex',
-                            gap: '12px'
-                        }}>
-                            <i className="bi bi-exclamation-triangle-fill" style={{ color: '#d97706', fontSize: '18px' }}></i>
-                            <p style={{ fontSize: '13px', color: '#92400e', margin: 0, lineHeight: 1.5 }}>
-                                <strong>Importante:</strong> La fidelidad de la voz clonada depende directamente de la calidad de tus audios. Asegúrate de que no haya ruido de fondo y que la voz sea clara para obtener el mejor resultado.
-                            </p>
-                        </div>
-
-                        {/* 
-                        <div style={{ display: 'flex', background: 'var(--gris-claro)', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
-                            <button
-                                type="button"
-                                onClick={() => setCustomTab('import')}
-                                style={{
-                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
-                                    background: customTab === 'import' ? 'white' : 'transparent',
-                                    color: customTab === 'import' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
-                                    boxShadow: customTab === 'import' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-                                }}
-                            >
-                                Importar ElevenLabs
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setCustomTab('clone')}
-                                style={{
-                                    flex: 1, padding: '8px', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
-                                    background: customTab === 'clone' ? 'white' : 'transparent',
-                                    color: customTab === 'clone' ? 'var(--netelip-azul)' : 'var(--gris-texto)',
-                                    boxShadow: customTab === 'clone' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-                                }}
-                            >
-                                Clonar Voz (Upload)
-                            </button>
-                        </div> 
-                        */}
-
-                        <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#475569', marginBottom: '24px' }}>Clonar voz mediante archivos de audio</h3>
-
                         <form onSubmit={handleCustomVoiceSubmit}>
-                            <div className="form-group">
+                            <div className="form-group mb-3">
                                 <label className="form-label">Nombre de la voz</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="Ej: Voz Corporativa Juan"
-                                    value={customName}
-                                    onChange={(e) => setCustomName(e.target.value)}
-                                    required
-                                    disabled={isProcessingCustom}
-                                />
+                                <input type="text" className="form-control" value={customName} onChange={(e) => setCustomName(e.target.value)} required />
                             </div>
-
-                            {/* 
-                            <div className="form-group">
-                                <label className="form-label">Provider Voice ID (ElevenLabs)</label>
-                                <input type="text" className="form-control" />
+                            <div className="form-group mb-4">
+                                <label className="form-label">Archivos de audio</label>
+                                <input type="file" className="form-control" multiple accept="audio/*" onChange={(e) => setCloneFiles(e.target.files)} required />
                             </div>
-                            */}
-
-                                <div className="form-group">
-                                    <label className="form-label">Archivos de audio (WAV/MP3)</label>
-                                    <input
-                                        type="file"
-                                        className="form-control"
-                                        multiple
-                                        accept="audio/mpeg,audio/wav,audio/mp3"
-                                        onChange={(e) => setCloneFiles(e.target.files)}
-                                        required
-                                        disabled={isProcessingCustom}
-                                    />
-                                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', fontStyle: 'italic' }}>
-                                        * Tamaño máximo total recomendado: 20MB (.mp3 o .wav)
-                                    </p>
-                                    <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '8px' }}>
-                                        Sube entre 1 y 25 archivos para una mejor calidad.
-                                    </p>
-                                </div>
-                                
-                                <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'flex', gap: '12px', cursor: 'pointer', alignItems: 'flex-start' }}>
-                                        <input 
-                                            type="checkbox" 
-                                            style={{ marginTop: '4px' }}
-                                            checked={legalConfirmed}
-                                            onChange={(e) => setLegalConfirmed(e.target.checked)}
-                                        />
-                                        <span style={{ fontSize: '13px', color: '#475569', lineHeight: '1.4' }}>
-                                            Confirmo que tengo todos los derechos y consentimientos necesarios para subir y clonar estas muestras de voz, y que no utilizaré el contenido generado por la plataforma para ningún propósito ilegal, fraudulento o dañino.
-                                        </span>
-                                    </label>
-                                </div>
-
-                            <div style={{ marginTop: '32px' }}>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    style={{ width: '100%', justifyContent: 'center' }}
-                                    disabled={isProcessingCustom || !legalConfirmed}
-                                >
-                                    {isProcessingCustom ? (
-                                        <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: '16px', height: '16px' }}></span> Procesando...</>
-                                    ) : (
-                                        'Comenzar Clonación'
-                                    )}
-                                </button>
+                            <div className="mb-4">
+                                <label style={{ display: 'flex', gap: '10px', fontSize: '12px', color: '#64748b' }}>
+                                    <input type="checkbox" checked={legalConfirmed} onChange={(e) => setLegalConfirmed(e.target.checked)} required />
+                                    <span>Confirmo que tengo derechos sobre estas muestras de voz.</span>
+                                </label>
                             </div>
+                            <button type="submit" className="btn btn-primary w-100" disabled={isProcessingCustom || !legalConfirmed}>
+                                {isProcessingCustom ? 'Procesando...' : 'Comenzar Clonación'}
+                            </button>
                         </form>
                     </div>
                 </div>

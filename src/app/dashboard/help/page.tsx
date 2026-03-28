@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import DashboardSidebar from "@/components/DashboardSidebar";
 
-const helpArticles: any = {
+interface HelpArticle { cat: string; title: string; updated: string; body: string; }
+const helpArticles: Record<string, HelpArticle> = {
     'crear-agente': {
         cat: 'Primeros pasos', title: 'Crear tu primer agente', updated: '18 mar 2026', body: `<p>Crear tu primer agente en la Fábrica de Agentes IA es un proceso guiado en 6 pasos. El asistente de configuración te irá pidiendo la información necesaria para que tu agente esté listo en minutos.</p><h2>Antes de empezar</h2><p>Asegúrate de tener a mano:</p><ul><li>El nombre que quieres darle a tu agente</li><li>El nombre de tu empresa</li><li>Una descripción breve de para qué lo vas a usar</li></ul><h2>Pasos para crear el agente</h2><ol class="step-list" ><li>Desde el dashboard, haz clic en <strong>+ Crear nuevo agente</strong>.</li><li>Rellena la información básica: nombre del agente y empresa.</li><li>Selecciona el modelo de IA y configura el comportamiento.</li><li>Elige la voz.</li><li>Configura el audio y las herramientas.</li><li>Revisa el resumen, sube documentos y haz clic en <strong>Crear agente</strong>.</li></ol><div class="help-callout" ><span>ℹ</span><span>Una vez creado, tu agente estará listo para recibir llamadas si tienes un número asignado.</span></div>`
     },
@@ -60,7 +61,7 @@ const helpArticles: any = {
     },
 };
 
-const botMap: any = {
+const botMap: Record<string, { t: string; a: string | null }> = {
     'primer agente': { t: 'Para crear tu primer agente, haz clic en <strong>+ Crear nuevo agente</strong> desde el dashboard. Son 6 pasos guiados.', a: 'crear-agente' },
     'crear': { t: 'Haz clic en <strong>+ Crear nuevo agente</strong> en el dashboard. Son 6 pasos y puedes guardarlo en cualquier momento.', a: 'crear-agente' },
     'número': { t: 'Desde <strong>Mis números</strong> en el menú lateral puedes asignar y gestionar los números de teléfono.', a: 'asignar-numero' },
@@ -93,7 +94,7 @@ export default function HelpPage() {
                 drop.style.display = 'none';
                 return;
             }
-            const res = Object.entries(helpArticles).filter(([id, a]: any) => 
+            const res = Object.entries(helpArticles).filter(([, a]) => 
                 a.title.toLowerCase().includes(q.toLowerCase()) || 
                 a.cat.toLowerCase().includes(q.toLowerCase())
             ).slice(0, 6);
@@ -103,7 +104,7 @@ export default function HelpPage() {
                 return;
             }
 
-            drop.innerHTML = res.map(([id, a]: any) => `
+            drop.innerHTML = res.map(([id, a]) => `
                 <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--gris-borde);display:flex;align-items:center;gap:10px;" onmouseover="this.style.background='var(--gris-bg)'" onmouseout="this.style.background='white'" onclick="showArticle('${id}')" >
                     <span style="font-size:10px;font-weight:700;text-transform:uppercase;background:var(--azul-light);color:var(--azul);padding:2px 7px;border-radius:4px;white-space:nowrap;" >${a.cat}</span>
                     <span style="font-size:13px;" >${a.title}</span>
@@ -193,7 +194,7 @@ export default function HelpPage() {
             if (t) t.remove();
         };
 
-        (window as any).getBotResponse = function (text: string) {
+        (window as any).getBotResponse = function (text: string): { t: string; a: string | null } {
             const l = text.toLowerCase();
             for (const [k, v] of Object.entries(botMap)) {
                 if (l.includes(k)) return v;
@@ -245,11 +246,11 @@ export default function HelpPage() {
                 { cat: 'Analítica', arts: ['dashboard-metricas', 'tasa-exito', 'sentimiento', 'alertas-cliente'] },
             ];
 
-            el.innerHTML = secs.map(sec => sec.arts.map(id => {
-                const a = helpArticles[id];
+            el.innerHTML = secs.map(sec => sec.arts.map(artId => {
+                const a = helpArticles[artId];
                 if (!a) return '';
                 return `
-                    <div style="padding:12px 20px;border-bottom:1px solid var(--gris-borde);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onmouseover="this.style.background='var(--gris-bg)'" onmouseout="this.style.background='white'" onclick="showArticle('${id}')" >
+                    <div style="padding:12px 20px;border-bottom:1px solid var(--gris-borde);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onmouseover="this.style.background='var(--gris-bg)'" onmouseout="this.style.background='white'" onclick="showArticle('${artId}')" >
                         <div>
                             <div style="font-size:13px;font-weight:600;">${a.title}</div>
                             <div style="font-size:11px;color:var(--gris-texto);">${sec.cat}</div>
