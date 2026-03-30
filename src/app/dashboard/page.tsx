@@ -207,10 +207,29 @@ export default function DashboardPage() {
             const c = new Chart(sentimentChartRef.current, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Positivo', 'Neutral', 'Negativo'],
-                    datasets: [{ data: [sentCounts.positive, sentCounts.neutral, sentCounts.negative], backgroundColor: ['#22c55e', '#9ca3af', '#f97316'], borderWidth: 0 }],
+                    labels: ['Positivo', 'Neutro', 'Negativo'],
+                    datasets: [{ 
+                        data: [sentCounts.positive, sentCounts.neutral, sentCounts.negative], 
+                        backgroundColor: ['#22c55e', '#ecf0f1', '#f97316'], 
+                        borderWidth: 0 
+                    }],
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }, cutout: '65%' },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            position: 'right', 
+                            labels: { 
+                                boxWidth: 12,
+                                padding: 20, 
+                                font: { size: 12, weight: '500' },
+                                color: '#64748b'
+                            } 
+                        } 
+                    }, 
+                    cutout: '70%' 
+                },
             });
             chartsInstances.current.push(c);
         }
@@ -222,9 +241,29 @@ export default function DashboardPage() {
                 type: 'bar',
                 data: {
                     labels: reasons.labels,
-                    datasets: [{ data: reasons.data, backgroundColor: '#267ab0', borderRadius: 4 }],
+                    datasets: [{ 
+                        data: reasons.data, 
+                        backgroundColor: '#5faad9', 
+                        borderRadius: 6,
+                        barThickness: 32
+                    }],
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 11 }, color: '#94a3b8' }
+                        }, 
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f1f5f9' },
+                            ticks: { stepSize: 1, font: { size: 11 }, color: '#94a3b8' } 
+                        } 
+                    } 
+                },
             });
             chartsInstances.current.push(c);
         }
@@ -236,9 +275,28 @@ export default function DashboardPage() {
                 type: 'doughnut',
                 data: {
                     labels: byAgent.labels,
-                    datasets: [{ data: byAgent.data, backgroundColor: ['#267ab0', '#22c55e', '#9333ea', '#f97316', '#ef4444'], borderWidth: 0 }],
+                    datasets: [{ 
+                        data: byAgent.data, 
+                        backgroundColor: ['#267ab0', '#22c55e', '#9333ea', '#f97316', '#ef4444'], 
+                        borderWidth: 0 
+                    }],
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }, cutout: '65%' },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            position: 'right', 
+                            labels: { 
+                                boxWidth: 12,
+                                padding: 20, 
+                                font: { size: 12, weight: '500' },
+                                color: '#64748b'
+                            } 
+                        } 
+                    }, 
+                    cutout: '70%' 
+                },
             });
             chartsInstances.current.push(c);
         }
@@ -477,27 +535,42 @@ export default function DashboardPage() {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-                                <div className="card-premium">
-                                    <div className="card-header">
-                                        <h3 className="card-title">
-                                            <i className="bi bi-graph-up icon-blue" style={{ background: 'transparent', padding: 0 }}></i>
-                                            Volumen de llamadas
-                                        </h3>
+                            {/* Row 2: Charts (Time, Sentiment) */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                                <div className="card-premium" style={{ height: '340px' }}>
+                                    <div className="card-header" style={{ marginBottom: '12px' }}>
+                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Llamadas en el tiempo</h3>
                                     </div>
-                                    <div style={{ height: '300px', position: 'relative', marginTop: '12px' }}>
+                                    <div style={{ height: '220px', position: 'relative' }}>
                                         <canvas ref={callsChartRef} />
                                     </div>
                                 </div>
-                                <div className="card-premium">
-                                    <div className="card-header">
-                                        <h3 className="card-title">
-                                            <i className="bi bi-emoji-smile icon-green" style={{ background: 'transparent', padding: 0 }}></i>
-                                            Análisis de sentimiento
-                                        </h3>
+                                <div className="card-premium" style={{ height: '340px' }}>
+                                    <div className="card-header" style={{ marginBottom: '12px' }}>
+                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Sentimiento de usuarios</h3>
                                     </div>
-                                    <div style={{ height: '300px', position: 'relative', marginTop: '12px' }}>
+                                    <div style={{ height: '220px', position: 'relative' }}>
                                         <canvas ref={sentimentChartRef} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 3: Charts (Disconnection, By Agent) */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                                <div className="card-premium" style={{ height: '340px' }}>
+                                    <div className="card-header" style={{ marginBottom: '12px' }}>
+                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Motivos de desconexión</h3>
+                                    </div>
+                                    <div style={{ height: '220px', position: 'relative' }}>
+                                        <canvas ref={disconnectChartRef} />
+                                    </div>
+                                </div>
+                                <div className="card-premium" style={{ height: '340px' }}>
+                                    <div className="card-header" style={{ marginBottom: '12px' }}>
+                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Llamadas por agente</h3>
+                                    </div>
+                                    <div style={{ height: '220px', position: 'relative' }}>
+                                        <canvas ref={agentsChartRef} />
                                     </div>
                                 </div>
                             </div>
