@@ -193,11 +193,12 @@ export default function AgentsPage() {
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
-            'transferencia': 'Transferencia',
-            'agendamiento': 'Agendamiento',
-            'cualificacion': 'Cualificación'
+            'transferencia': 'Transferencia de llamadas',
+            'agendamiento': 'Reserva de citas',
+            'cualificacion': 'Cualificación y atención',
+            'soporte': 'Soporte técnico'
         };
-        return types[type] || type || 'Desconocido';
+        return types[type] || type || 'Asistente Virtual';
     };
 
     return (
@@ -217,20 +218,14 @@ export default function AgentsPage() {
                     dropdownRef={dropdownRef}
                 />
 
-                <div className="dashboard-content">
-                    <div className="content-header">
-                        <div>
-                            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>
-                                Gestión de Agentes
-                            </h2>
-                            <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
-                                Crea, configura y prueba tus agentes conversacionales.
-                            </p>
-                        </div>
-                        <button onClick={handleCreateAgent} className="btn-premium">
-                            <i className="bi bi-plus-lg"></i>
-                            Crear nuevo agente
-                        </button>
+                <div className="dashboard-content" style={{ padding: '32px' }}>
+                    <div style={{ marginBottom: '32px' }}>
+                        <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 8px 0' }}>
+                            Mis agentes IA
+                        </h2>
+                        <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
+                            Gestiona y optimiza el rendimiento de tus agentes virtuales.
+                        </p>
                     </div>
 
                     {deleteError && (
@@ -264,80 +259,78 @@ export default function AgentsPage() {
                             </button>
                         </div>
                     ) : (
-                        <div className="agents-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
-                            {agents.map(agent => {
-                                const _mdl = agent.configuration?.model || 'gpt-4.1';
-                                const _voice = agent.configuration?.voiceId || '11labs-Adrian';
-                                
+                        <div className="agents-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+                            {agents.map((agent, idx) => {
+                                const colors = ['#eff6ff', '#fff7ed', '#f5f3ff', '#f0fdf4'];
+                                const textColors = ['#1d4ed8', '#c2410c', '#6d28d9', '#15803d'];
+                                const initial = (agent.name || 'A').charAt(0).toUpperCase();
+                                const colorIndex = idx % colors.length;
+
                                 return (
-                                    <div key={agent.id} className="card-premium" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px' }}>
-                                        <div className="flex-between" style={{ marginBottom: '20px', alignItems: 'flex-start' }}>
-                                            <div className="flex-center gap-16">
-                                                <div style={{ 
-                                                    width: '52px', height: '52px', borderRadius: '14px', 
-                                                    background: agent.type === 'transferencia' ? '#fff7ed' : '#f0f9ff',
-                                                    color: agent.type === 'transferencia' ? '#f97316' : 'var(--azul)',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px'
-                                                }}>
-                                                    <i className={`bi bi-${agent.type === 'transferencia' ? 'telephone-outbound' : 'chat-dots'}`}></i>
-                                                </div>
-                                                <div>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>{agent.name}</h3>
-                                                    <div style={{ fontSize: '13px', color: 'var(--slate-500)', fontWeight: 500 }}>
-                                                        {getAgentTypeName(agent.type)}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span style={{ 
-                                                padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, 
-                                                background: agent.status === 'active' ? '#ecfdf5' : '#f1f5f9',
-                                                color: agent.status === 'active' ? '#10b981' : '#64748b',
-                                                textTransform: 'uppercase'
+                                    <div key={agent.id} className="card-premium" style={{ display: 'flex', flexDirection: 'column', padding: '24px', borderRadius: '16px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                                            <div style={{ 
+                                                width: '56px', height: '56px', borderRadius: '14px', 
+                                                background: colors[colorIndex],
+                                                color: textColors[colorIndex],
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                                fontSize: '22px', fontWeight: 800,
+                                                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.03)'
                                             }}>
-                                                {agent.status === 'active' ? 'En línea' : agent.status}
-                                            </span>
-                                        </div>
-
-                                        <div style={{ background: 'var(--slate-50)', borderRadius: '12px', padding: '16px', margin: '0 0 24px 0', flex: 1 }}>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                                <div>
-                                                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>MODELO</div>
-                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--slate-700)' }}>{_mdl}</div>
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>VOZ</div>
-                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--slate-700)' }}>{_voice.split('-').pop()}</div>
-                                                </div>
+                                                {initial}
                                             </div>
-                                            <div style={{ marginTop: '12px', borderTop: '1px solid var(--slate-100)', paddingTop: '12px', fontSize: '12px', color: 'var(--slate-400)' }}>
-                                                <i className="bi bi-calendar3" style={{ marginRight: '6px' }}></i>
-                                                Creado el <span suppressHydrationWarning>{new Date(agent.created_at).toLocaleDateString('es-ES')}</span>
+                                            <div style={{ flex: 1 }}>
+                                                <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 2px 0' }}>{agent.name}</h3>
+                                                <div style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 500 }}>
+                                                    {getAgentTypeName(agent.type)}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex-center gap-12">
-                                            <Link href={`/wizard?editId=${agent.id}`} className="btn-premium" style={{ flex: 1, padding: '10px', fontSize: '13px', background: 'white', color: 'var(--slate-700)', border: '1px solid var(--slate-200)', boxShadow: 'none' }}>
-                                                <i className="bi bi-pencil-square"></i>
-                                                Editar
-                                            </Link>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', flex: 1 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontSize: '13px', color: 'var(--slate-500)' }}>Estado:</span>
+                                                <span style={{ 
+                                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                                    padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 800, 
+                                                    background: '#ecfdf5', color: '#10b981', textTransform: 'uppercase'
+                                                }}>
+                                                    <i className="bi bi-check-lg" style={{ fontSize: '12px' }}></i>
+                                                    Activo
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--slate-50)', paddingTop: '12px' }}>
+                                                <span style={{ fontSize: '13px', color: 'var(--slate-500)' }}>Creación:</span>
+                                                <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--slate-900)' }} suppressHydrationWarning>
+                                                    {new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <button 
                                                 className="btn-premium" 
                                                 onClick={() => setTestAgent(agent)}
-                                                style={{ flex: 1, padding: '10px', fontSize: '13px' }}
+                                                style={{ flex: 1.2, height: '42px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                                             >
-                                                <i className="bi bi-play-fill"></i>
+                                                <i className="bi bi-headset" style={{ fontSize: '16px' }}></i>
                                                 Probar
                                             </button>
+                                            <Link href={`/wizard?editId=${agent.id}`} style={{ flex: 1, height: '42px', fontSize: '13px', background: 'white', color: 'var(--slate-600)', border: '1px solid var(--slate-200)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', fontWeight: 600 }}>
+                                                <i className="bi bi-pencil" style={{ fontSize: '14px' }}></i>
+                                                Editar
+                                            </Link>
                                             <button
-                                                className="btn-premium"
                                                 onClick={() => handleDelete(agent.id, agent.name)}
                                                 disabled={isDeletingId === agent.id}
-                                                style={{ padding: '10px', fontSize: '13px', background: 'white', color: '#ef4444', border: '1px solid #fee2e2', boxShadow: 'none' }}
+                                                style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'white', color: '#ef4444', border: '1px solid #fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                onMouseOver={(e) => e.currentTarget.style.background = '#fef2f2'}
+                                                onMouseOut={(e) => e.currentTarget.style.background = 'white'}
                                             >
                                                 {isDeletingId === agent.id ? (
                                                     <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: '#ef4444', margin: 0 }} />
                                                 ) : (
-                                                    <i className="bi bi-trash3"></i>
+                                                    <i className="bi bi-trash" style={{ fontSize: '18px' }}></i>
                                                 )}
                                             </button>
                                         </div>
