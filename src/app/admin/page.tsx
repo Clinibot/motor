@@ -255,8 +255,8 @@ export default function PlatformManagement() {
                                                     </td>
                                                     <td style={{ textAlign: 'right' }}>
                                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                            <button className="btn-s" title="Editar" onClick={() => startEditing(ws)} style={{ width: '40px', height: '40px', padding: 0 }}><i className="bi bi-pencil"></i></button>
-                                                            <button className="btn-s" title="Eliminar" onClick={() => handleDeleteWorkspace(ws.id, ws.name)} style={{ width: '40px', height: '40px', padding: 0, color: 'var(--error)' }}><i className="bi bi-trash"></i></button>
+                                                            <button className="btn-s" title="Editar" onClick={() => startEditing(ws)} style={{ padding: '5px 8px' }}><i className="bi bi-pencil" style={{ fontSize: '12px' }}></i></button>
+                                                            <button className="btn-s" title="Eliminar" onClick={() => handleDeleteWorkspace(ws.id, ws.name)} style={{ padding: '5px 8px', color: 'var(--error)', borderColor: '#fecaca' }}><i className="bi bi-trash" style={{ fontSize: '12px' }}></i></button>
                                                         </div>
                                                     </td>
                                                 </tr>
