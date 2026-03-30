@@ -29,36 +29,40 @@ export const WizardStepHeader: React.FC<WizardStepHeaderProps> = ({
     const isPrevDisabled = currentStep === 1;
 
     return (
-        <div style={{ marginBottom: '32px' }}>
+        <div style={{ marginBottom: '40px' }}>
             <div className="flex-between" style={{ alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                        <h1 className="form-title" style={{ margin: 0, fontSize: '24px' }}>
-                            {title}
-                        </h1>
+                    <h1 className="form-title" style={{ margin: '0 0 12px 0', fontSize: '28px', fontWeight: 800, color: 'var(--slate-900)', letterSpacing: '-0.5px' }}>
+                        {title}
                         {tooltipContent && (
-                            <span className="custom-tooltip">
-                                <i className={`bi ${tooltipIcon}`} style={{ color: 'var(--azul)', cursor: 'help' }}></i>
+                            <span className="custom-tooltip" style={{ marginLeft: '12px', verticalAlign: 'middle' }}>
+                                <i className={`bi ${tooltipIcon}`} style={{ color: 'var(--azul)', cursor: 'help', fontSize: '18px' }}></i>
                                 <span className="tooltip-content">
                                     {tooltipContent}
                                 </span>
                             </span>
                         )}
-                    </div>
-                    <p className="lbl" style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>
+                    </h1>
+                    <p style={{ margin: 0, fontSize: '15px', color: 'var(--slate-500)', lineHeight: 1.6 }}>
                         {subtitle}
                     </p>
                 </div>
 
                 {showArrows && (
-                    <div className="flex-center gap-8" style={{ marginLeft: '16px' }}>
+                    <div className="flex-center gap-8" style={{ marginLeft: '16px', paddingTop: '8px' }}>
                         <button
                             type="button"
                             onClick={prevStep}
                             disabled={isPrevDisabled}
-                            className="btn-s mini"
+                            className="btn-p"
                             title="Anterior"
-                            style={{ padding: '8px 12px', minWidth: '40px' }}
+                            style={{ 
+                                padding: '10px 14px', 
+                                background: isPrevDisabled ? 'var(--slate-50)' : 'white',
+                                border: '1px solid var(--slate-100)',
+                                color: isPrevDisabled ? 'var(--slate-300)' : 'var(--slate-600)',
+                                borderRadius: '10px'
+                            }}
                         >
                             <i className="bi bi-chevron-left"></i>
                         </button>
@@ -66,17 +70,16 @@ export const WizardStepHeader: React.FC<WizardStepHeaderProps> = ({
                             type="button"
                             onClick={nextStep}
                             disabled={isNextDisabled()}
-                            className="btn-p mini"
+                            className="btn-p"
                             title="Siguiente"
-                            style={{ padding: '8px 12px', minWidth: '40px' }}
+                            style={{ padding: '10px 16px', borderRadius: '10px' }}
                         >
+                            <span style={{ marginRight: '8px', fontSize: '14px' }}>Siguiente</span>
                             <i className="bi bi-chevron-right"></i>
                         </button>
                     </div>
                 )}
             </div>
-            
-            <div style={{ height: '1px', background: 'var(--gris-borde)', marginTop: '24px' }}></div>
         </div>
     );
 };

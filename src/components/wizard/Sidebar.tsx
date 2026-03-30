@@ -20,86 +20,70 @@ export const Sidebar: React.FC = () => {
     const progressPercent = Math.round(((currentStep - 1) / (stepsMeta.length - 1)) * 100);
 
     return (
-        <aside className="sidebar">
-            <div className="sidebar-header" style={{ paddingBottom: '24px' }}>
-                <Link href="/dashboard/agents" className="flex items-center gap-2 mb-6 text-slate-400 hover:text-azul transition-colors text-[12px] font-bold no-underline uppercase tracking-wider">
-                    <i className="bi bi-arrow-left"></i>
-                    Volver a mis agentes
+        <aside className="wizard-sidebar-v2" style={{ background: '#fff', borderRight: '1px solid var(--slate-100)', width: '320px', display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative', zIndex: 100 }}>
+            <div style={{ padding: '32px 24px', marginBottom: '8px' }}>
+                <Link href="/dashboard/agents" className="flex items-center gap-2 mb-6 text-slate-400 hover:text-azul transition-all text-[13px] font-bold no-underline group">
+                    <i className="bi bi-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                    Volver al panel
                 </Link>
-                
-                <div className="sidebar-logo">
-                    <div className="logo-box">
-                        F<span>A</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <div className="logo-title">Configuración</div>
-                        <div className="logo-subtitle">Asistente IA</div>
-                    </div>
+                <div style={{ background: 'var(--azul-light)', display: 'inline-flex', padding: '6px 12px', borderRadius: '8px', color: 'var(--azul)', fontSize: '10px', fontWeight: 800, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Asistente Inteligente
                 </div>
+                <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--slate-900)', margin: 0, letterSpacing: '-0.02em', lineHeight: '1.1' }}>
+                    {useWizardStore.getState().editingAgentId ? 'Configurar Agente' : 'Nuevo Agente IA'}
+                </h2>
             </div>
 
-            <div className="sidebar-nav" style={{ padding: '0 16px' }}>
-                <div className="nav-label" style={{ marginBottom: '16px' }}>Pasos de configuración</div>
+            <nav style={{ flex: 1, padding: '0 8px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '16px 20px 8px 20px' }}>
+                    Pasos de configuración
+                </div>
                 {stepsMeta.map((step) => {
                     const isActive = currentStep === step.id;
                     const isCompleted = currentStep > step.id;
-                    const isPending = currentStep < step.id;
                     
                     return (
                         <div 
                             key={step.id} 
-                            onClick={() => isCompleted && setStep(step.id)}
-                            className={`nav-item ${isActive ? 'active' : ''}`}
+                            onClick={() => (isCompleted || isActive) && setStep(step.id)}
+                            className={`nav-item-v2 ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
                             style={{ 
-                                cursor: isCompleted ? 'pointer' : 'default',
-                                opacity: isPending ? 0.5 : 1,
-                                padding: '12px 16px',
-                                marginBottom: '4px'
+                                padding: '14px 20px',
+                                margin: '2px 12px',
+                                borderRadius: '14px',
+                                opacity: isCompleted || isActive ? 1 : 0.6
                             }}
                         >
-                            <div className="flex items-center gap-4 w-full">
-                                <div style={{ 
-                                    width: '28px', 
-                                    height: '28px', 
-                                    borderRadius: '8px',
-                                    background: isCompleted ? 'var(--exito)' : (isActive ? 'var(--azul)' : 'var(--slate-100)'),
-                                    color: (isCompleted || isActive) ? 'white' : 'var(--slate-400)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '12px',
-                                    fontWeight: 800,
-                                    boxShadow: isActive ? '0 4px 12px rgba(37, 99, 235, 0.2)' : 'none'
-                                }}>
-                                    {isCompleted ? <i className="bi bi-check-lg" /> : step.id}
-                                </div>
-                                
-                                <div style={{ 
-                                    fontSize: '13px', 
-                                    fontWeight: isActive ? 700 : 500,
-                                    color: isActive ? 'var(--azul)' : (isPending ? 'var(--slate-400)' : 'var(--slate-700)')
-                                }}>
-                                    {step.name}
-                                </div>
+                            <div className="step-number-v2" style={{
+                                width: '28px',
+                                height: '28px',
+                                fontSize: '12px',
+                                flexShrink: 0
+                            }}>
+                                {isCompleted ? <i className="bi bi-check-lg" style={{ fontSize: '16px' }} /> : step.id}
                             </div>
+                            <span style={{ fontSize: '14px', letterSpacing: '-0.01em' }}>{step.name}</span>
                         </div>
                     );
                 })}
-            </div>
+            </nav>
 
-            <div className="sidebar-footer" style={{ padding: '24px' }}>
+            <div style={{ padding: '24px', background: '#f8fafc', borderTop: '1px solid var(--slate-100)' }}>
                 <div className="flex justify-between items-center mb-3">
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '1px' }}>PROGRESO</span>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--azul)' }}>{progressPercent}%</span>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tu progreso</span>
+                    <span style={{ fontSize: '13px', fontWeight: 900, color: 'var(--azul)' }}>{progressPercent}%</span>
                 </div>
-                <div style={{ width: '100%', height: '6px', background: 'var(--slate-100)', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ width: '100%', height: '6px', background: 'var(--slate-200)', borderRadius: '10px', overflow: 'hidden' }}>
                     <div style={{ 
                         width: `${progressPercent}%`, 
                         height: '100%', 
-                        background: 'var(--azul)',
+                        background: 'linear-gradient(90deg, var(--azul), #6366f1)',
                         borderRadius: '10px',
                         transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
                     }}></div>
+                </div>
+                <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--slate-400)', fontWeight: 500, fontStyle: 'italic', textAlign: 'center' }}>
+                    {progressPercent === 100 ? '¡Listo para activar!' : 'Casi a la mitad...'}
                 </div>
             </div>
         </aside>

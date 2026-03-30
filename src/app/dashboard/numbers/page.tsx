@@ -262,10 +262,13 @@ export default function NumbersPage() {
                 />
 
                 <div className="dashboard-content">
-                    <div className="numbers-banner">
-                        <p>Conecta tu número de netelip a la IA y luego asígnaselo a tu agente.</p>
-                        <button onClick={() => setShowAddModal(true)} className="btn-p">
-                            <i className="bi bi-plus-lg"></i>
+                    <div className="numbers-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid var(--slate-100)', borderRadius: '24px', padding: '24px 32px', marginBottom: '32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                        <div>
+                            <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-900)', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>Conexión SIP Trunking</h2>
+                            <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0, fontWeight: 500 }}>Conecta tu infraestructura de netelip para habilitar transferencias inteligentes.</p>
+                        </div>
+                        <button onClick={() => setShowAddModal(true)} className="btn-p" style={{ height: '48px', padding: '0 24px', borderRadius: '14px', fontWeight: 800 }}>
+                            <i className="bi bi-plus-lg" style={{ marginRight: '10px' }}></i>
                             <span>Añadir número</span>
                         </button>
                     </div>

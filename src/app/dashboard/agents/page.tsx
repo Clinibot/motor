@@ -219,16 +219,8 @@ export default function AgentsPage() {
                 />
 
                 <div className="dashboard-content">
-                    <div className="page-header" style={{ marginBottom: '24px' }}>
-                        <div className="page-title-group">
-                            {/* Title is already in Topbar */}
-                        </div>
-                        <button onClick={handleCreateAgent} className="btn-p">
-                            <i className="bi bi-plus-lg"></i>
-                            <span>Nuevo Agente</span>
-                        </button>
-                    </div>
-
+                    {/* The title and "Nuevo Agente" button are now integrated into DashboardTopbar for a cleaner v2 layout */}
+                    
                     {deleteError && (
                         <div style={{
                             background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '16px',
@@ -268,55 +260,60 @@ export default function AgentsPage() {
                                 const colorIndex = idx % colors.length;
 
                                 return (
-                                    <div key={agent.id} className="agent-card-v2">
-                                        <div className="ac-header">
+                                    <div key={agent.id} className="agent-card-v2" style={{ padding: '24px', borderRadius: '24px', background: 'white', border: '1px solid var(--slate-100)', transition: 'all 0.3s', boxShadow: '0 4px 10px rgba(0,0,0,0.02)' }}>
+                                        <div className="ac-header" style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
                                             <div className="ac-avatar" style={{ 
+                                                width: '52px', height: '52px', borderRadius: '16px',
                                                 background: colors[colorIndex],
-                                                color: textColors[colorIndex]
+                                                color: textColors[colorIndex],
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: '22px', fontWeight: 900
                                             }}>
                                                 {initial}
                                             </div>
-                                            <div className="ac-name-group">
-                                                <h3 className="ac-name">{agent.name}</h3>
-                                                <p className="ac-role">{getAgentTypeName(agent.type)}</p>
+                                            <div className="ac-name-group" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                                <h3 className="ac-name" style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: 'var(--slate-900)', letterSpacing: '-0.02em' }}>{agent.name}</h3>
+                                                <p className="ac-role" style={{ margin: '2px 0 0 0', fontSize: '13px', fontWeight: 600, color: 'var(--slate-400)' }}>{getAgentTypeName(agent.type)}</p>
                                             </div>
                                         </div>
 
-                                        <div className="ac-stats-compact">
-                                            <div className="ac-stat-row">
-                                                <span className="ac-stat-label">Estado:</span>
-                                                <span className="badge-pill active">
-                                                    <span className="dot" style={{ background: 'var(--exito)' }}></span>
-                                                    Activo
-                                                </span>
+                                        <div className="ac-stats-compact" style={{ padding: '16px', background: 'var(--slate-50)', borderRadius: '16px', marginBottom: '24px' }}>
+                                            <div className="ac-stat-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                <span className="ac-stat-label" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase' }}>Estado</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                                                    <span style={{ width: '6px', height: '6px', background: '#22c55e', borderRadius: '50%' }}></span>
+                                                    ACTIVO
+                                                </div>
                                             </div>
-                                            <div className="ac-stat-row">
-                                                <span className="ac-stat-label">Creación:</span>
-                                                <span className="ac-stat-value" suppressHydrationWarning>
-                                                    {new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                                            <div className="ac-stat-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span className="ac-stat-label" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase' }}>Creado el</span>
+                                                <span className="ac-stat-value" style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-600)' }} suppressHydrationWarning>
+                                                    {new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div className="ac-actions-v2">
+                                        <div className="ac-actions-v2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px' }}>
                                             <button 
-                                                className="ac-btn-test" 
+                                                className="btn-s" 
                                                 onClick={() => setTestAgent(agent)}
+                                                style={{ height: '42px', borderRadius: '12px', padding: 0 }}
                                             >
-                                                <i className="bi bi-headphones"></i>
+                                                <i className="bi bi-headphones" style={{ marginRight: '8px' }}></i>
                                                 <span>Probar</span>
                                             </button>
-                                            <Link href={`/wizard?editId=${agent.id}`} className="ac-btn-edit" style={{ textDecoration: 'none' }}>
-                                                <i className="bi bi-pencil-square"></i>
+                                            <Link href={`/wizard?editId=${agent.id}`} className="btn-s" style={{ textDecoration: 'none', height: '42px', borderRadius: '12px', padding: 0, justifyContent: 'center' }}>
+                                                <i className="bi bi-pencil-square" style={{ marginRight: '8px' }}></i>
                                                 <span>Editar</span>
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(agent.id, agent.name)}
                                                 disabled={isDeletingId === agent.id}
-                                                className="ac-btn-delete"
+                                                className="btn-s"
+                                                style={{ width: '42px', height: '42px', padding: 0, justifyContent: 'center', color: '#ef4444' }}
                                             >
                                                 {isDeletingId === agent.id ? (
-                                                    <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: 'var(--error)', margin: 0 }} />
+                                                    <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: '#ef4444', margin: 0 }} />
                                                 ) : (
                                                     <i className="bi bi-trash3"></i>
                                                 )}
