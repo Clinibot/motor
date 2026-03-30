@@ -2,8 +2,42 @@
 
 import React, { useState, useMemo } from 'react';
 import { useWizardStore, CURATED_VOICES_V2, Voice } from '../../../store/wizardStore';
-import { WizardStepHeader } from '../WizardStepHeader';
 import { toast } from 'react-hot-toast';
+
+const LANG_LABELS: Record<string, { label: string; flag: React.ReactNode }> = {
+    es: {
+        label: 'ESPAÑOL',
+        flag: (
+            <svg width="20" height="14" viewBox="0 0 20 14" style={{ borderRadius: '2px', flexShrink: 0 }}>
+                <rect width="20" height="14" fill="#AA151B"/>
+                <rect y="3.5" width="20" height="7" fill="#F1BF00"/>
+            </svg>
+        ),
+    },
+    en: {
+        label: 'INGLÉS',
+        flag: (
+            <svg width="20" height="14" viewBox="0 0 20 14" style={{ borderRadius: '2px', flexShrink: 0 }}>
+                <rect width="20" height="14" fill="#012169"/>
+                <path d="M0,0 L20,14 M20,0 L0,14" stroke="white" strokeWidth="3"/>
+                <path d="M0,0 L20,14 M20,0 L0,14" stroke="#C8102E" strokeWidth="2"/>
+                <path d="M10,0 V14 M0,7 H20" stroke="white" strokeWidth="4"/>
+                <path d="M10,0 V14 M0,7 H20" stroke="#C8102E" strokeWidth="2.5"/>
+            </svg>
+        ),
+    },
+    ca: {
+        label: 'CATALÁN',
+        flag: (
+            <svg width="20" height="14" viewBox="0 0 20 14" style={{ borderRadius: '2px', flexShrink: 0 }}>
+                <rect width="20" height="14" fill="#FCDD09"/>
+                <rect y="2" width="20" height="2" fill="#DA121A"/>
+                <rect y="6" width="20" height="2" fill="#DA121A"/>
+                <rect y="10" width="20" height="2" fill="#DA121A"/>
+            </svg>
+        ),
+    },
+};
 
 export const Step3_Voice: React.FC = () => {
     const { voiceId, updateField, prevStep, nextStep } = useWizardStore();
@@ -11,17 +45,8 @@ export const Step3_Voice: React.FC = () => {
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-    const languages = [
-        { id: 'es', label: 'ESPAÑOL', icon: '🇪🇸' },
-        { id: 'en', label: 'INGLÉS', icon: '🇬🇧' },
-        { id: 'ca', label: 'CATALÁN', icon: '🇪🇸' }
-    ];
-
     const filteredVoices = useMemo(() => {
-        return CURATED_VOICES_V2.filter(v => {
-            if (activeGender === 'all') return true;
-            return v.gender === activeGender;
-        });
+        return CURATED_VOICES_V2.filter(v => activeGender === 'all' || v.gender === activeGender);
     }, [activeGender]);
 
     const togglePlay = (v: Voice) => {
@@ -31,269 +56,158 @@ export const Step3_Voice: React.FC = () => {
             return;
         }
         if (audioRef.current) audioRef.current.pause();
-
-        if (!v.preview_audio_url) {
-            toast.error("Audio no disponible");
-            return;
-        }
+        if (!v.preview_audio_url) { toast.error('Audio no disponible'); return; }
 
         const newAudio = new Audio(v.preview_audio_url);
         newAudio.onplay = () => setPlayingId(v.voice_id);
         newAudio.onended = () => setPlayingId(null);
         newAudio.onerror = () => setPlayingId(null);
         audioRef.current = newAudio;
-        newAudio.play().catch(() => {
-            toast.error("Error al reproducir audio");
-            setPlayingId(null);
-        });
+        newAudio.play().catch(() => { toast.error('Error al reproducir audio'); setPlayingId(null); });
     };
 
-    const VoiceCard = ({ v }: { v: Voice }) => {
-        const isSelected = voiceId === v.voice_id;
-        const isComingSoon = v.isComingSoon;
-
-        return (
-            <div
-                onClick={() => {
-                    if (isComingSoon) return;
-                    updateField('voiceId', v.voice_id);
-                    updateField('voiceName', v.voice_name);
-                    updateField('voiceProvider', v.provider);
-                }}
-                style={{ 
-                    background: 'white',
-                    border: isSelected ? '2px solid var(--azul)' : (isComingSoon ? '1px dashed var(--slate-300)' : '1px solid var(--slate-100)'),
-                    borderRadius: '20px',
-                    padding: '24px',
-                    cursor: isComingSoon ? 'default' : 'pointer',
-                    transition: 'all 0.2s ease',
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    boxShadow: isSelected ? '0 10px 25px -5px rgba(37, 99, 235, 0.1)' : '0 2px 4px rgba(0,0,0,0.02)',
-                }}
-            >
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div style={{ 
-                        width: '56px', 
-                        height: '56px', 
-                        borderRadius: '50%', 
-                        background: '#f0f7ff', 
-                        color: 'var(--azul)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '20px',
-                        fontWeight: 800,
-                        flexShrink: 0,
-                        filter: isComingSoon ? 'grayscale(1)' : 'none',
-                        opacity: isComingSoon ? 0.5 : 1
-                    }}>
-                        {isComingSoon ? <i className="bi bi-mic" style={{ fontSize: '20px', color: 'var(--slate-400)' }}></i> : v.voice_name.charAt(0)}
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 800, fontSize: '18px', color: 'var(--slate-900)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-                            {v.voice_name}
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                            <span style={{ 
-                                fontSize: '10px', 
-                                fontWeight: 800, 
-                                color: 'var(--slate-500)', 
-                                background: 'var(--slate-100)',
-                                padding: '4px 10px',
-                                borderRadius: '100px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.02em'
-                            }}>
-                                {v.language === 'es' ? 'Español' : (v.language === 'en' ? 'Inglés' : (v.language === 'ca' ? 'Catalán' : v.language))}
-                            </span>
-                            <span style={{ 
-                                fontSize: '10px', 
-                                fontWeight: 800, 
-                                color: 'var(--slate-500)', 
-                                background: 'var(--slate-100)',
-                                padding: '4px 10px',
-                                borderRadius: '100px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.02em'
-                            }}>
-                                {v.gender === 'male' ? 'Masculino' : 'Femenino'}
-                            </span>
-                            {isComingSoon && (
-                                <span style={{ 
-                                    fontSize: '10px', 
-                                    fontWeight: 800, 
-                                    color: '#b45309', 
-                                    background: '#fffbeb',
-                                    padding: '4px 10px',
-                                    borderRadius: '100px',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.02em'
-                                }}>
-                                    Próximamente
-                                </span>
-                            )}
-                            {(v.provider === 'premium' && !isComingSoon) && (
-                                <span style={{ 
-                                    fontSize: '10px', 
-                                    fontWeight: 800, 
-                                    color: 'var(--azul)', 
-                                    background: 'var(--azul-light)',
-                                    padding: '4px 10px',
-                                    borderRadius: '100px',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.02em'
-                                }}>
-                                    HD Premium
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {!isComingSoon && (
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); togglePlay(v); }}
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--slate-600)',
-                            fontSize: '14px',
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            cursor: 'pointer',
-                            padding: '0',
-                            marginTop: 'auto',
-                            width: 'fit-content'
-                        }}
-                    >
-                        <i className={`bi ${playingId === v.voice_id ? 'bi-pause-circle' : 'bi-play-circle'}`} style={{ fontSize: '20px' }}></i>
-                        Preview
-                    </button>
-                )}
-
-                {isSelected && (
-                    <div style={{ 
-                        position: 'absolute', 
-                        top: '12px', 
-                        right: '12px',
-                        width: '24px',
-                        height: '24px',
-                        background: 'var(--azul)',
-                        borderRadius: '50%',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '12px',
-                        boxShadow: '0 4px 10px rgba(37, 99, 235, 0.3)'
-                    }}>
-                        <i className="bi bi-check-lg"></i>
-                    </div>
-                )}
-            </div>
-        );
+    const selectVoice = (v: Voice) => {
+        if (v.isComingSoon) return;
+        updateField('voiceId', v.voice_id);
+        updateField('voiceName', v.voice_name);
+        updateField('voiceProvider', v.provider);
     };
+
+    const languages = ['es', 'en', 'ca'];
 
     return (
-        <div className="content-area" style={{ padding: '60px' }}>
-            <WizardStepHeader
-                title="Voz del agente"
-                subtitle="Elige la voz que usará tu agente. Haz clic en Preview para escuchar la muestra."
-                showArrows={false}
-            />
+        <div className="form-card">
+            <div className="form-title">Voz del agente</div>
+            <div className="form-sub">Elige la voz que usará tu agente. Haz clic en Preview para escuchar la muestra.</div>
 
-            <div style={{ maxWidth: '1100px', marginTop: '40px' }}>
-                
+            <div className="ci" style={{ marginBottom: '20px' }}>
+                <i className="bi bi-info-circle-fill" style={{ flexShrink: 0, marginTop: '1px' }}></i>
+                <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                    Cada voz está optimizada para su idioma. Las voces de <strong>Cartesia</strong> y <strong>ElevenLabs</strong> son las más naturales en español. Las voces marcadas como <em>Próximamente</em> estarán disponibles en futuras versiones.
+                </div>
+            </div>
 
+            {/* Gender filter */}
+            <div className="fg">
+                <label className="lbl">Filtrar por género</label>
+                <div className="pill-row" style={{ marginBottom: '24px' }}>
+                    {[{ id: 'all', label: 'Todos' }, { id: 'male', label: 'Masculino ♂' }, { id: 'female', label: 'Femenino ♀' }].map(btn => (
+                        <button
+                            key={btn.id} type="button"
+                            className={`pill${activeGender === btn.id ? ' on' : ''}`}
+                            onClick={() => setActiveGender(btn.id)}
+                        >
+                            {btn.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-                {/* FILTERS */}
-                <div style={{ marginBottom: '40px' }}>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '16px' }}>
-                        Filtrar por género
-                    </label>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        {[
-                            { id: 'all', label: 'Todos' },
-                            { id: 'male', label: 'Masculino ♂' },
-                            { id: 'female', label: 'Femenino ♀' }
-                        ].map(btn => (
-                            <button
-                                key={btn.id}
-                                type="button"
-                                onClick={() => setActiveGender(btn.id)}
-                                style={{
-                                    padding: '10px 24px',
-                                    borderRadius: '12px',
-                                    fontSize: '14px',
-                                    fontWeight: 700,
-                                    border: '1px solid ' + (activeGender === btn.id ? 'var(--azul)' : 'var(--slate-200)'),
-                                    background: activeGender === btn.id ? 'var(--azul)' : 'white',
-                                    color: activeGender === btn.id ? 'white' : 'var(--slate-600)',
-                                    transition: 'all 0.2s ease',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
+            {/* Voice groups by language */}
+            {languages.map(langId => {
+                const meta = LANG_LABELS[langId];
+                const voices = filteredVoices.filter(v => v.language === langId);
+                if (voices.length === 0) return null;
+
+                return (
+                    <div key={langId} style={{ marginBottom: '24px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '.6px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {meta.flag} {meta.label}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '8px' }}>
+                            {voices.map(v => {
+                                const isSelected = voiceId === v.voice_id;
+                                const isComingSoon = v.isComingSoon;
+                                const providerColor: Record<string, { bg: string; color: string; border: string }> = {
+                                    cartesia: { bg: 'var(--azul-light)', color: 'var(--azul)', border: '#bee3f8' },
+                                    elevenlabs: { bg: '#f0fdf4', color: '#166534', border: '#bbf7d0' },
+                                    openai: { bg: '#fffbeb', color: '#92400e', border: '#fde68a' },
+                                };
+                                const pc = providerColor[v.provider?.toLowerCase() ?? ''] ?? providerColor.openai;
+                                const providerLabel = v.provider ? v.provider.charAt(0).toUpperCase() + v.provider.slice(1) : '';
+
+                                return (
+                                    <div
+                                        key={v.voice_id}
+                                        className={`vcard-v${isSelected ? ' on' : ''}`}
+                                        style={isComingSoon ? { borderStyle: 'dashed' } : {}}
+                                        onClick={() => selectVoice(v)}
+                                    >
+                                        <div className="vrow">
+                                            <div style={{
+                                                width: '52px', height: '52px', minWidth: '52px',
+                                                borderRadius: '50%',
+                                                background: isComingSoon ? 'var(--gris-bg)' : 'var(--azul-light)',
+                                                color: isComingSoon ? '#9ca3af' : 'var(--azul)',
+                                                fontSize: isComingSoon ? undefined : '18px',
+                                                fontWeight: 800,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                flexShrink: 0,
+                                            }}>
+                                                {isComingSoon
+                                                    ? <i className="bi bi-mic" style={{ fontSize: '20px' }}></i>
+                                                    : v.voice_name.charAt(0)}
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <div className="vname" style={{ fontSize: '15px' }}>{v.voice_name}</div>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '5px' }}>
+                                                    <span style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 500 }}>
+                                                        {v.language === 'es' ? 'Español' : v.language === 'en' ? 'Inglés' : 'Catalán/Multilingüe'}
+                                                    </span>
+                                                    <span style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 500 }}>
+                                                        {v.gender === 'male' ? 'Masculino' : 'Femenino'}
+                                                    </span>
+                                                    {isComingSoon ? (
+                                                        <span style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 700, color: '#92400e' }}>Próximamente</span>
+                                                    ) : (
+                                                        <span style={{ background: pc.bg, border: `1px solid ${pc.border}`, borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 500, color: pc.color }}>{providerLabel}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {!isComingSoon && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); togglePlay(v); }}
+                                                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: 'var(--gris-texto)', fontSize: '13px', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+                                            >
+                                                <i className={`bi ${playingId === v.voice_id ? 'bi-pause-circle' : 'bi-play-circle'}`} style={{ fontSize: '16px' }}></i>
+                                                Preview
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+
+            <hr className="divider" />
+
+            {/* Clone voice banner */}
+            <div style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <i className="bi bi-mic" style={{ fontSize: '18px', color: 'var(--gris-texto)' }}></i>
+                    <div>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--oscuro)' }}>
+                            Clonar tu voz <span style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', marginLeft: '6px' }}>Premium</span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '2px' }}>Crea un agente con tu propia voz o la de alguien de tu equipo.</div>
                     </div>
                 </div>
+                <button type="button" className="btn-s" style={{ whiteSpace: 'nowrap' }}>
+                    + Clonar voz
+                </button>
+            </div>
 
-                {/* VOICE GROUPS */}
-                {languages.map(lang => {
-                    const voicesInLang = filteredVoices.filter(v => v.language === lang.id);
-                    if (voicesInLang.length === 0) return null;
-
-                    return (
-                        <div key={lang.id} style={{ marginBottom: '48px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-                                <span style={{ fontSize: '20px' }}>{lang.icon}</span>
-                                <h3 style={{ fontSize: '13px', fontWeight: 900, color: 'var(--slate-500)', letterSpacing: '0.05em', margin: 0 }}>
-                                    {lang.label}
-                                </h3>
-                            </div>
-                            <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(2, 1fr)', 
-                                gap: '24px'
-                            }}>
-                                {voicesInLang.map(v => (
-                                    <VoiceCard key={v.voice_id} v={v} />
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
-
-
-
-                {/* NAVIGATION */}
-                <div className="flex-between" style={{ borderTop: '1px solid var(--slate-100)', paddingTop: '48px', marginTop: '60px' }}>
-                    <button 
-                        type="button" 
-                        className="btn-s" 
-                        onClick={prevStep}
-                        style={{ height: '56px', padding: '0 36px', borderRadius: '18px', fontWeight: 700 }}
-                    >
-                        Anterior
-                    </button>
-                    <button 
-                        type="button" 
-                        className="btn-p" 
-                        onClick={nextStep}
-                        disabled={!voiceId}
-                        style={{ height: '56px', padding: '0 44px', borderRadius: '18px', fontWeight: 900, boxShadow: '0 15px 30px -10px rgba(37, 99, 235, 0.4)' }}
-                    >
-                        Siguiente
-                        <i className="bi bi-arrow-right" style={{ marginLeft: '12px' }}></i>
-                    </button>
-                </div>
+            <div className="wiz-footer">
+                <button type="button" className="btn-s" onClick={prevStep}>
+                    <i className="bi bi-arrow-left"></i> Anterior
+                </button>
+                <button type="button" className="btn-p" onClick={nextStep} disabled={!voiceId}>
+                    Siguiente <i className="bi bi-arrow-right"></i>
+                </button>
             </div>
         </div>
     );

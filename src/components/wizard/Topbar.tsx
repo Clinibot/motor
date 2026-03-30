@@ -4,19 +4,21 @@ import React from 'react';
 
 export const Topbar: React.FC = () => {
     return (
-        <header className="topbar" style={{ background: 'white', borderBottom: '1px solid var(--slate-100)', height: '64px' }}>
-            <div></div> {/* Empty for alignment */}
-            
-            <div className="topbar-actions">
-                <div className="btn-pill" style={{ background: 'var(--slate-50)', border: '1px solid var(--slate-100)' }}>
-                    <span style={{ color: 'var(--slate-500)', fontWeight: 500, fontSize: '12px' }}>Balance:</span>
-                    <span style={{ color: 'var(--azul)', fontWeight: 800, fontSize: '13px' }}>€0.00</span>
-                </div>
-
-                <div className="user-avatar" style={{ background: 'var(--slate-100)', color: 'var(--slate-500)' }}>
-                   <i className="bi bi-person"></i>
-                </div>
+        <header style={{
+            position: 'sticky', top: 0, zIndex: 50,
+            background: 'white',
+            borderBottom: '1px solid var(--gris-borde)',
+            padding: '0 32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: '56px',
+            flexShrink: 0,
+        }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--oscuro)', letterSpacing: '-0.3px' }}>
+                Crear agente IA
             </div>
+            <div></div>
         </header>
     );
 };

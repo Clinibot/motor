@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
-import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step4_Audio: React.FC = () => {
     const {
@@ -10,224 +9,98 @@ export const Step4_Audio: React.FC = () => {
         updateField, nextStep, prevStep
     } = useWizardStore();
 
+    const volumePct = Math.round(volume * 100);
+    const ambientPct = Math.round(ambientSoundVolume * 200); // 0–0.5 mapped to 0–100
+
     return (
-        <div className="content-area" style={{ padding: '60px' }}>
-            <WizardStepHeader
-                title="Audio y procesamiento"
-                subtitle="Configura la calidad del audio y el entorno sonoro de tu agente."
-                showArrows={false}
-            />
+        <div className="form-card">
+            <div className="form-title">Audio y procesamiento</div>
+            <div className="form-sub">Configura la calidad del audio, cancelación de ruido y transcripción del agente.</div>
 
-            <div style={{ maxWidth: '1000px', marginTop: '40px' }}>
-                
-                <div style={{ 
-                    background: '#eff6ff', 
-                    borderLeft: '4px solid var(--azul)', 
-                    borderRadius: '12px', 
-                    padding: '20px 24px', 
-                    display: 'flex', 
-                    gap: '16px', 
-                    alignItems: 'center',
-                    marginBottom: '40px',
-                    boxShadow: '0 4px 15px rgba(37, 99, 235, 0.05)'
-                }}>
-                    <i className="bi bi-info-circle-fill" style={{ color: 'var(--azul)', fontSize: '24px' }}></i>
-                    <p style={{ margin: 0, color: '#1e40af', fontSize: '15px', fontWeight: 600, lineHeight: '1.5' }}>
-                        <strong>Recomendación:</strong> Un volumen bajo (5-10%) para el sonido ambiente ayuda a que el agente suene más natural sin interferir con la voz.
-                    </p>
-                </div>
-
-                <div className="card-premium" style={{ padding: '40px', marginBottom: '40px' }}>
-                    <div style={{ display: 'grid', gap: '48px' }}>
-                        
-                        {/* VOLUMEN DEL AGENTE */}
-                        <div style={{ maxWidth: '600px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <label className="lbl" style={{ margin: 0, fontWeight: 800, color: 'var(--slate-700)', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    Volumen de voz del agente
-                                </label>
-                                <div style={{ 
-                                    background: 'var(--azul)', 
-                                    color: 'white', 
-                                    padding: '6px 14px', 
-                                    borderRadius: '30px', 
-                                    fontSize: '13px', 
-                                    fontWeight: 900,
-                                    boxShadow: '0 4px 10px rgba(37, 99, 235, 0.2)'
-                                }}>
-                                    {(volume * 100).toFixed(0)}%
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                <i className="bi bi-mic-fill" style={{ color: 'var(--slate-300)', fontSize: '20px' }}></i>
-                                <div style={{ flex: 1, position: 'relative', height: '8px', background: 'var(--slate-100)', borderRadius: '10px' }}>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="1"
-                                        step="0.01"
-                                        value={volume}
-                                        onChange={(e) => updateField('volume', parseFloat(e.target.value))}
-                                        className="premium-range"
-                                        style={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            height: '100%',
-                                            background: `linear-gradient(to right, var(--azul) 0%, var(--azul) ${volume * 100}%, transparent ${volume * 100}%, transparent 100%)`,
-                                            borderRadius: '10px',
-                                            cursor: 'pointer'
-                                        }}
-                                    />
-                                </div>
-                                <i className="bi bi-volume-up-fill" style={{ color: 'var(--azul)', fontSize: '20px' }}></i>
-                            </div>
-                        </div>
-
-                        <div style={{ height: '1px', background: 'var(--slate-50)' }}></div>
-
-                        {/* SONIDO AMBIENTE */}
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-                                <div>
-                                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--slate-900)' }}>Efectos de Entorno</h3>
-                                    <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: 'var(--slate-500)', fontWeight: 500 }}>Añade una capa de realismo a la interacción.</p>
-                                </div>
-                                <label className="premium-toggle">
-                                    <input
-                                        type="checkbox"
-                                        checked={enableAmbientSound}
-                                        onChange={(e) => updateField('enableAmbientSound', e.target.checked)}
-                                    />
-                                    <span className="premium-toggle-slider"></span>
-                                </label>
-                            </div>
-
-                            {enableAmbientSound && (
-                                <div style={{ 
-                                    display: 'grid', 
-                                    gridTemplateColumns: '1fr 1fr', 
-                                    gap: '32px',
-                                    animation: 'slideDown 0.3s ease-out'
-                                }}>
-                                    <div>
-                                        <label className="lbl" style={{ marginBottom: '12px', display: 'block', fontWeight: 800, fontSize: '13px', color: 'var(--slate-500)', textTransform: 'uppercase' }}>
-                                            Tipo de ambiente
-                                        </label>
-                                        <select
-                                            className="inp"
-                                            value={ambientSound}
-                                            onChange={(e) => updateField('ambientSound', e.target.value)}
-                                            style={{ 
-                                                padding: '16px 20px', 
-                                                borderRadius: '16px', 
-                                                border: '1px solid var(--slate-100)',
-                                                fontWeight: 600,
-                                                fontSize: '15px'
-                                            }}
-                                        >
-                                            <option value="none">Sin sonido ambiente</option>
-                                            <option value="call-center">🎧 Call Center (Recomendado)</option>
-                                            <option value="coffee-shop">☕ Cafetería</option>
-                                            <option value="convention-hall">🏢 Oficina / Pasillo de convenciones</option>
-                                            <option value="summer-outdoor">🌲 Exterior suave</option>
-                                            <option value="static-noise">📻 Ruido blanco ligero</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                            <label className="lbl" style={{ margin: 0, fontWeight: 800, fontSize: '13px', color: 'var(--slate-500)', textTransform: 'uppercase' }}>
-                                                Volumen ambiente
-                                            </label>
-                                            <span style={{ 
-                                                background: 'var(--slate-100)', 
-                                                color: 'var(--slate-900)', 
-                                                padding: '4px 10px', 
-                                                borderRadius: '20px', 
-                                                fontSize: '12px', 
-                                                fontWeight: 900 
-                                            }}>
-                                                {(ambientSoundVolume * 100).toFixed(0)}%
-                                            </span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="0.5"
-                                            step="0.01"
-                                            value={ambientSoundVolume}
-                                            onChange={(e) => updateField('ambientSoundVolume', parseFloat(e.target.value))}
-                                            className="premium-range"
-                                            style={{
-                                                background: `linear-gradient(to right, var(--azul) 0%, var(--azul) ${ambientSoundVolume * 100 * 2}%, var(--slate-100) ${ambientSoundVolume * 100 * 2}%, var(--slate-100) 100%)`,
-                                                width: '100%'
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex-between" style={{ borderTop: '1px solid var(--slate-100)', paddingTop: '40px' }}>
-                    <button 
-                        type="button" 
-                        className="btn-s" 
-                        onClick={prevStep}
-                        style={{ height: '56px', padding: '0 36px', borderRadius: '18px', fontWeight: 700 }}
-                    >
-                        Anterior
-                    </button>
-                    <button 
-                        type="button" 
-                        className="btn-p" 
-                        onClick={nextStep}
-                        style={{ 
-                            height: '56px', 
-                            padding: '0 44px', 
-                            borderRadius: '18px', 
-                            fontWeight: 900, 
-                            boxShadow: '0 15px 30px -10px rgba(37, 99, 235, 0.4)' 
-                        }}
-                    >
-                        Siguiente
-                        <i className="bi bi-arrow-right" style={{ marginLeft: '12px' }}></i>
-                    </button>
+            <div className="ci" style={{ marginBottom: '20px' }}>
+                <i className="bi bi-info-circle-fill" style={{ flexShrink: 0, marginTop: '1px' }}></i>
+                <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                    Estos ajustes afectan a cómo suena tu agente durante las llamadas. Los valores por defecto funcionan bien para la mayoría de casos — solo modifícalos si tienes necesidades específicas.
                 </div>
             </div>
 
-            <style jsx>{`
-                @keyframes slideDown {
-                    from { opacity: 0; transform: translateY(-10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .premium-range {
-                    -webkit-appearance: none;
-                    width: 100%;
-                    height: 8px;
-                    border-radius: 10px;
-                    outline: none;
-                }
-                .premium-range::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    appearance: none;
-                    width: 24px;
-                    height: 24px;
-                    border-radius: 50%;
-                    background: white;
-                    border: 2px solid var(--azul);
-                    cursor: pointer;
-                    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
-                    transition: all 0.2s;
-                }
-                .premium-range::-webkit-slider-thumb:hover {
-                    transform: scale(1.1);
-                    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
-                }
-            `}</style>
+            <div className="form-section-title"><i className="bi bi-volume-up"></i> Volumen y sonido ambiente</div>
+
+            {/* Volumen del agente */}
+            <div className="fg">
+                <label className="lbl">Volumen del agente</label>
+                <div className="slider-row">
+                    <input
+                        type="range" min="0" max="1" step="0.01"
+                        value={volume}
+                        onChange={(e) => updateField('volume', parseFloat(e.target.value))}
+                        style={{ flex: 1, accentColor: 'var(--azul)', cursor: 'pointer', height: '6px' }}
+                    />
+                    <span className="slider-badge">{volumePct}%</span>
+                </div>
+                <div className="hint">Ajusta la intensidad de la voz del agente durante las llamadas.</div>
+            </div>
+
+            {/* Sonido ambiente toggle */}
+            <div className="fg" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                <input
+                    type="checkbox" id="chkAmbiente"
+                    checked={enableAmbientSound}
+                    onChange={(e) => updateField('enableAmbientSound', e.target.checked)}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--azul)', flexShrink: 0 }}
+                />
+                <label htmlFor="chkAmbiente" style={{ fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
+                    Habilitar sonido ambiente (Ruido de fondo)
+                </label>
+            </div>
+            <div className="hint" style={{ marginLeft: '26px', marginTop: '4px' }}>
+                <i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>
+                Añade un sonido de fondo sutil para que la llamada suene más natural y humana. Por ejemplo, ruido de oficina o cafetería.
+            </div>
+
+            {enableAmbientSound && (
+                <div style={{ marginTop: '20px' }}>
+                    <div className="fg">
+                        <label className="lbl" htmlFor="inp-tipo-ambiente">Tipo de ambiente</label>
+                        <select
+                            className="inp sel" id="inp-tipo-ambiente"
+                            value={ambientSound}
+                            onChange={(e) => updateField('ambientSound', e.target.value)}
+                        >
+                            <option value="none">Ninguno</option>
+                            <option value="coffee-shop">Cafetería (Platos, ambiente)</option>
+                            <option value="convention-hall">Centro de convenciones (Murmullos altos)</option>
+                            <option value="summer-outdoor">Exterior de verano (Naturaleza, insectos)</option>
+                            <option value="call-center">Call Center (Voces de fondo, teclados)</option>
+                            <option value="static-noise">Ruido estático (TV antigua, interferencia)</option>
+                        </select>
+                        <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>El tipo de ambiente más popular es &quot;Call Center&quot; — simula un entorno de oficina profesional.</div>
+                    </div>
+
+                    <div className="fg">
+                        <label className="lbl">Volumen ambiente</label>
+                        <div className="slider-row">
+                            <input
+                                type="range" min="0" max="0.5" step="0.01"
+                                value={ambientSoundVolume}
+                                onChange={(e) => updateField('ambientSoundVolume', parseFloat(e.target.value))}
+                                style={{ flex: 1, accentColor: 'var(--azul)', cursor: 'pointer', height: '6px' }}
+                            />
+                            <span className="slider-badge">{ambientPct}%</span>
+                        </div>
+                        <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Recomendamos entre 10% y 30%. Un volumen demasiado alto puede dificultar la comprensión de la voz del agente.</div>
+                    </div>
+                </div>
+            )}
+
+            <div className="wiz-footer">
+                <button type="button" className="btn-s" onClick={prevStep}>
+                    <i className="bi bi-arrow-left"></i> Anterior
+                </button>
+                <button type="button" className="btn-p" onClick={nextStep}>
+                    Siguiente <i className="bi bi-arrow-right"></i>
+                </button>
+            </div>
         </div>
     );
 };

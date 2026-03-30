@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
-import { WizardStepHeader } from '../WizardStepHeader';
 import { createClient } from '../../../lib/supabase/client';
 import Link from 'next/link';
 
@@ -63,14 +62,9 @@ const groupBusinessHours = (hours: { day: string; open: string; close: string; c
         const daysJoined = formattedDays.length === 1
             ? formattedDays[0]
             : formattedDays.slice(0, -1).join(', ') + ' y ' + formattedDays[formattedDays.length - 1];
-
         return `${daysJoined} de ${formatTimeToSpanishWords(g.open)} a ${formatTimeToSpanishWords(g.close)}.`;
     }).join(' ');
 };
-
-
-
-
 
 const cleanPromptForDeployment = (prompt: string) => {
     if (!prompt) return '';
@@ -82,12 +76,16 @@ const cleanPromptForDeployment = (prompt: string) => {
 
 export const Step6_Summary: React.FC = () => {
     const wizardData = useWizardStore();
-    const { 
-        agentName, companyName, companyDescription, 
-        model, voiceId, voiceName, 
-        kbFiles, enableTransfer, transferDestinations,
-        enableCalBooking, calApiKey, enableCalCancellation, 
+    const {
+        agentName, companyName, companyDescription,
+        model, voiceId, voiceName, voiceProvider,
+        kbFiles, kbUsageInstructions,
+        enableTransfer, transferDestinations,
+        enableCalBooking, calApiKey, enableCalCancellation,
         businessHours, personality, tone, customNotes,
+        whoFirst, beginMessage,
+        volume, enableAmbientSound, ambientSound,
+        leadQuestions,
         setStep, prevStep, updateField, editingAgentId
     } = wizardData;
 
@@ -96,8 +94,17 @@ export const Step6_Summary: React.FC = () => {
 
     const [isCreating, setIsCreating] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-    const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [showError, setShowError] = useState(false);
+
+    const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+        info: false, llm: false, voz: false, audio: false, tools: false,
+        kbRulesExamples: false, notesExamples: false,
+    });
+
+    const toggleSection = (key: string) => {
+        setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+    };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -146,7 +153,6 @@ export const Step6_Summary: React.FC = () => {
             }
         }
         updateField('kbFiles', newFiles);
-
     };
 
     const removeFile = (id: string) => {
@@ -161,7 +167,7 @@ export const Step6_Summary: React.FC = () => {
         const personalityStr = personality.length > 0
             ? `Tu personalidad es: ${personality.join(', ')}.`
             : 'Tienes una personalidad profesional, empática y atenta.';
-        
+
         const toolsContentArr: string[] = [];
         if (enableCalBooking && calApiKey) {
             let calInstructions = `## Gestión de Agenda y Citas\nTienes acceso a la disponibilidad de la agenda de ${company} para agendar citas directamente.`;
@@ -229,287 +235,487 @@ ${customNotes ? `# Notas Adicionales\n${customNotes}\n` : ''}
 
     if (isSuccess) {
         return (
-            <div className="content-area flex-center" style={{ padding: '80px', textAlign: 'center', justifyContent: 'center' }}>
-                <div className="card-premium animate-in zoom-in-95 duration-500" style={{ maxWidth: '600px', padding: '60px', borderRadius: '40px' }}>
-                    <div style={{ 
-                        width: '100px', height: '100px', borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)', 
-                        color: 'white', fontSize: '48px', margin: '0 auto 32px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 20px 40px -10px rgba(16, 185, 129, 0.4)'
-                    }}>
-                        <i className="bi bi-check-lg"></i>
-                    </div>
-                    <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--slate-900)', marginBottom: '16px', letterSpacing: '-0.03em' }}>
-                        ¡Agente IA Listo!
-                    </h1>
-                    <p style={{ color: 'var(--slate-500)', fontSize: '17px', lineHeight: '1.6', marginBottom: '40px' }}>
-                        Tu asistente <strong>{agentName}</strong> ha sido configurado con éxito y ya puede empezar a recibir llamadas.
-                    </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                        <Link href="/dashboard/agents" className="btn-s" style={{ padding: '16px', borderRadius: '18px', fontWeight: 800, justifyContent: 'center' }}>
-                            Ver mis agentes
-                        </Link>
-                        <button onClick={() => window.location.href = '/dashboard/agents'} className="btn-p" style={{ padding: '16px', borderRadius: '18px', fontWeight: 800, justifyContent: 'center' }}>
-                            Panel de control
-                        </button>
-                    </div>
+            <div className="form-card" style={{ textAlign: 'center', padding: '60px 40px' }}>
+                <div style={{
+                    width: '64px', height: '64px', borderRadius: '50%',
+                    background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 20px'
+                }}>
+                    <i className="bi bi-check-lg" style={{ fontSize: '32px', color: '#16a34a' }}></i>
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>¡Agente creado con éxito!</div>
+                <div style={{ fontSize: '14px', color: 'var(--gris-texto)', marginBottom: '24px', lineHeight: '1.6' }}>
+                    Tu agente <strong>{agentName}</strong> está listo para recibir llamadas. Asígnale un número de teléfono para empezar.
+                </div>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                    <Link href="/dashboard/agents" className="btn-s">
+                        <i className="bi bi-robot"></i> Ir a Mis agentes
+                    </Link>
+                    <Link href="/dashboard" className="btn-p">
+                        <i className="bi bi-house-door"></i> Ir al Dashboard
+                    </Link>
                 </div>
             </div>
         );
     }
 
+    const volPct = Math.round(volume * 100);
+    const enableLeadQualification = leadQuestions.length > 0;
+
     return (
-        <div className="content-area" style={{ padding: '60px' }}>
-            <WizardStepHeader
-                title="Resumen y Activación"
-                subtitle="Revisa tu configuración técnica y activa el agente."
-                showArrows={false}
-            />
+        <div className="form-card">
+            <div className="form-title">Resumen y confirmación</div>
+            <div className="form-sub">Revisa toda la configuración de tu agente. Puedes editar cualquier campo directamente o volver al paso correspondiente.</div>
 
-            <div style={{ maxWidth: '1100px', marginTop: '40px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '40px', alignItems: 'start' }}>
-                    
-                    {/* LEFT COLUMN: SUMMARY DETAILS */}
-                    <div style={{ display: 'grid', gap: '24px' }}>
-                        
-                        {/* STEP 1 SUMMARY */}
-                        <div className="card-premium" style={{ padding: '32px' }}>
-                            <div className="flex-between" style={{ marginBottom: '24px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--azul-light)', color: 'var(--azul)', fontSize: '20px' }}>
-                                        <i className="bi bi-person-circle"></i>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Identidad del Agente</h3>
-                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 1</span>
-                                    </div>
-                                </div>
-                                <button onClick={() => setStep(1)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px', border: '1.5px solid var(--slate-100)' }}>Editar</button>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                <div style={{ background: 'var(--slate-50)', padding: '20px', borderRadius: '16px' }}>
-                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Nombre Agent</span>
-                                    <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>{agentName}</span>
-                                </div>
-                                <div style={{ background: 'var(--slate-50)', padding: '20px', borderRadius: '16px' }}>
-                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Empresa</span>
-                                    <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>{companyName}</span>
-                                </div>
-                            </div>
-                            {companyDescription && (
-                                <div style={{ background: 'var(--slate-50)', padding: '20px', borderRadius: '16px', marginTop: '20px' }}>
-                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '8px', display: 'block', letterSpacing: '0.05em' }}>Descripción de Negocio</span>
-                                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--slate-600)', lineHeight: '1.6' }}>{companyDescription}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* STEP 2 SUMMARY: BRAIN */}
-                        <div className="card-premium" style={{ padding: '32px' }}>
-                            <div className="flex-between" style={{ marginBottom: '24px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#f0fdf4', color: '#16a34a', fontSize: '20px' }}>
-                                        <i className="bi bi-cpu"></i>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Modelo e Inteligencia</h3>
-                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 2</span>
-                                    </div>
-                                </div>
-                                <button onClick={() => setStep(2)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Editar</button>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                <div style={{ background: 'var(--slate-900)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>{model.toUpperCase()}</div>
-                                <div style={{ background: 'var(--slate-50)', color: 'var(--slate-600)', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>Tono {tone}</div>
-                                {personality.map(p => (
-                                    <div key={p} style={{ background: 'var(--azul-light)', color: 'var(--azul)', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>{p}</div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* STEP 3 & 4 SUMMARY: VOICE & AUDIO */}
-                        <div className="card-premium" style={{ padding: '32px' }}>
-                            <div className="flex-between" style={{ marginBottom: '24px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fdf2f8', color: '#db2777', fontSize: '20px' }}>
-                                        <i className="bi bi-mic-fill"></i>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Voz y Procesamiento</h3>
-                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 3 Y 4</span>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button onClick={() => setStep(3)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Voz</button>
-                                    <button onClick={() => setStep(4)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Audio</button>
-                                </div>
-                            </div>
-                            <div style={{ background: 'var(--slate-50)', padding: '24px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                <div className="flex-center" style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--azul)', color: 'white', fontSize: '24px', fontWeight: 900 }}>
-                                    {voiceName?.charAt(0)}
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-900)', letterSpacing: '-0.02em' }}>{voiceName}</div>
-                                    <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--azul)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--azul-light)', padding: '4px 10px', borderRadius: '100px', width: 'fit-content', marginTop: '4px' }}>Calidad HD Premium</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* STEP 5 SUMMARY: TOOLS */}
-                        <div className="card-premium" style={{ padding: '32px' }}>
-                            <div className="flex-between" style={{ marginBottom: '24px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fff7ed', color: '#ea580c', fontSize: '20px' }}>
-                                        <i className="bi bi-gear-fill"></i>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Automatizaciones</h3>
-                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 5</span>
-                                    </div>
-                                </div>
-                                <button onClick={() => setStep(5)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Editar</button>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-                                <div style={{ border: '1px solid var(--slate-100)', padding: '16px', borderRadius: '16px', opacity: enableCalBooking ? 1 : 0.4 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                                        <i className="bi bi-calendar-check" style={{ color: 'var(--azul)' }}></i>
-                                        <span style={{ fontWeight: 800, fontSize: '13px' }}>Agenda Citas</span>
-                                    </div>
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: enableCalBooking ? '#166534' : 'var(--slate-400)' }}>{enableCalBooking ? 'ACTIVADO' : 'DESACTIVADO'}</span>
-                                </div>
-                                <div style={{ border: '1px solid var(--slate-100)', padding: '16px', borderRadius: '16px', opacity: enableTransfer ? 1 : 0.4 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                                        <i className="bi bi-telephone-forward" style={{ color: '#ea580c' }}></i>
-                                        <span style={{ fontWeight: 800, fontSize: '13px' }}>Transferencia</span>
-                                    </div>
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: enableTransfer ? '#166534' : 'var(--slate-400)' }}>{enableTransfer ? 'ACTIVADO' : 'DESACTIVADO'}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {/* RIGHT COLUMN: KNOWLEDGE BASE & DEPLOY */}
-                    <div style={{ display: 'grid', gap: '24px', position: 'sticky', top: '40px' }}>
-                        
-                        {/* KNOWLEDGE BASE CARD */}
-                        <div className="card-premium" style={{ padding: '32px' }}>
-                            <h4 style={{ margin: '0 0 20px 0', fontSize: '15px', fontWeight: 800, color: 'var(--slate-900)' }}>Conocimiento Pro</h4>
-                            <div 
-                                onClick={() => fileInputRef.current?.click()}
-                                style={{ 
-                                    border: '2px dashed var(--slate-200)', borderRadius: '20px', padding: '32px 20px', textAlign: 'center', cursor: 'pointer',
-                                    background: '#f8fafc', transition: 'all 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--azul)'}
-                                onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--slate-200)'}
-                            >
-                                <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} multiple />
-                                <i className="bi bi-cloud-arrow-up-fill" style={{ fontSize: '32px', color: 'var(--azul)', marginBottom: '12px', display: 'block' }}></i>
-                                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--slate-700)', display: 'block' }}>Subir Documentos</span>
-                                <span style={{ fontSize: '11px', color: 'var(--slate-400)', marginTop: '4px', display: 'block' }}>PDF, TXT para el cerebro IA</span>
-                            </div>
-
-                            {kbFiles.length > 0 && (
-                                <div style={{ marginTop: '24px', display: 'grid', gap: '10px' }}>
-                                    {kbFiles.map(f => (
-                                        <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', background: 'white', borderRadius: '16px', border: '1px solid var(--slate-100)', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
-                                            <div className="flex-center" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--azul-light)', color: 'var(--azul)' }}>
-                                                <i className="bi bi-file-earmark-text-fill"></i>
-                                            </div>
-                                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--slate-700)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
-                                            <button onClick={() => removeFile(f.id)} style={{ border: 'none', background: 'none', color: '#ef4444', opacity: 0.5, cursor: 'pointer' }}>
-                                                <i className="bi bi-trash3"></i>
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* FINAL ACTIVATION CARD */}
-                        <div className="card-premium" style={{ 
-                            padding: '32px', background: 'var(--slate-900)', color: 'white', 
-                            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.4)',
-                            border: '1px solid rgba(255,255,255,0.1)'
-                        }}>
-                            <h4 style={{ margin: '0 0 24px 0', fontSize: '11px', fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Presupuesto Estimado</h4>
-                            
-                            <div style={{ display: 'grid', gap: '16px' }}>
-                                <div className="flex-between">
-                                    <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Tasa Mensual</span>
-                                    <span style={{ fontWeight: 800 }}>€0.00</span>
-                                </div>
-                                <div className="flex-between">
-                                    <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Coste/Minuto</span>
-                                    <span style={{ fontWeight: 800 }}>€0.12</span>
-                                </div>
-                                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '8px 0' }}></div>
-                                <div className="flex-between">
-                                    <span style={{ fontSize: '15px', fontWeight: 800 }}>Inversión Inicial</span>
-                                    <span style={{ fontSize: '24px', fontWeight: 900, color: '#4ade80' }}>GRATIS</span>
-                                </div>
-                            </div>
-
-                            <button 
-                                onClick={handleCreateAgent}
-                                disabled={isCreating}
-                                className="btn-p"
-                                style={{ 
-                                    width: '100%', marginTop: '32px', height: '64px', borderRadius: '20px', 
-                                    background: 'var(--azul)', color: 'white', fontWeight: 900, fontSize: '16px',
-                                    boxShadow: '0 15px 30px -5px rgba(37, 99, 235, 0.4)',
-                                    justifyContent: 'center', transition: 'all 0.3s'
-                                }}
-                            >
-                                {isCreating ? 'SINCRONIZANDO...' : (editingAgentId ? 'GUARDAR AGENTE' : 'ACTIVAR AGENTE')}
-                                {!isCreating && <i className="bi bi-lightning-charge-fill" style={{ marginLeft: '12px' }}></i>}
-                            </button>
-                            
-                            <p style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '20px', margin: '20px 0 0 0', fontWeight: 600 }}>
-                                Al activar, aceptas los términos de servicio de la Fábrica de Agentes IA.
-                            </p>
-                        </div>
-
-                    </div>
-                </div>
-
-                {/* BOTTOM MODIFIER */}
-                <div style={{ marginTop: '40px', borderTop: '1px solid var(--slate-100)', paddingTop: '40px' }}>
-                    <button onClick={prevStep} className="btn-s" style={{ height: '56px', padding: '0 32px', borderRadius: '18px', fontWeight: 800 }}>
-                        <i className="bi bi-arrow-left" style={{ marginRight: '12px' }}></i>
-                        Regresar a Herramientas
-                    </button>
+            {/* Banner de configuración completada */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 'var(--r-lg)', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
+                <i className="bi bi-check-circle-fill" style={{ fontSize: '26px', color: 'var(--exito)', flexShrink: 0 }}></i>
+                <div>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#166534' }}>Configuración completada</div>
+                    <div style={{ fontSize: '13px', color: '#4ade80', marginTop: '2px' }}>Todos los pasos están listos. Revisa y edita lo que necesites antes de crear el agente.</div>
                 </div>
             </div>
 
-            {/* ERROR TOAST */}
+            {/* ═══ SECCIÓN 1: INFO BÁSICA ═══ */}
+            <div style={{ border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', marginBottom: '16px', overflow: 'hidden' }}>
+                <div
+                    style={{ padding: '16px 20px', background: 'var(--gris-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: openSections.info ? '1px solid var(--gris-borde)' : 'none', cursor: 'pointer' }}
+                    onClick={() => toggleSection('info')}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'var(--azul-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <i className="bi bi-person-badge" style={{ color: 'var(--azul)', fontSize: '14px' }}></i>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '14px', fontWeight: 700 }}>Información básica</div>
+                            <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Paso 1</div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button className="btn-s" onClick={(e) => { e.stopPropagation(); setStep(1); }} style={{ fontSize: '11px', padding: '5px 12px' }}>
+                            <i className="bi bi-pencil" style={{ fontSize: '11px' }}></i> Ir al paso
+                        </button>
+                        <i className="bi bi-chevron-down" style={{ color: 'var(--gris-texto)', fontSize: '14px', transition: 'transform .2s', transform: openSections.info ? 'rotate(180deg)' : 'none' }}></i>
+                    </div>
+                </div>
+                {openSections.info && (
+                    <div style={{ padding: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Nombre del agente</label>
+                                <input className="inp" value={agentName} onChange={e => updateField('agentName', e.target.value)} placeholder="Ej: Elio, Laura, Marco..." />
+                            </div>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Nombre de la empresa</label>
+                                <input className="inp" value={companyName} onChange={e => updateField('companyName', e.target.value)} placeholder="Ej: netelip, Mi Empresa S.L." />
+                            </div>
+                        </div>
+                        <div className="fg" style={{ marginTop: '14px', marginBottom: 0 }}>
+                            <label className="lbl">Descripción de la empresa</label>
+                            <textarea className="inp" rows={2} style={{ resize: 'vertical' }} value={companyDescription} onChange={e => updateField('companyDescription', e.target.value)} placeholder="Ej: Empresa de telecomunicaciones especializada en centralitas virtuales..." />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ═══ SECCIÓN 2: CEREBRO (LLM) ═══ */}
+            <div style={{ border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', marginBottom: '16px', overflow: 'hidden' }}>
+                <div
+                    style={{ padding: '16px 20px', background: 'var(--gris-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: openSections.llm ? '1px solid var(--gris-borde)' : 'none', cursor: 'pointer' }}
+                    onClick={() => toggleSection('llm')}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <i className="bi bi-cpu" style={{ color: '#7c3aed', fontSize: '14px' }}></i>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '14px', fontWeight: 700 }}>Modelo de IA y comportamiento</div>
+                            <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Paso 2</div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button className="btn-s" onClick={(e) => { e.stopPropagation(); setStep(2); }} style={{ fontSize: '11px', padding: '5px 12px' }}>
+                            <i className="bi bi-pencil" style={{ fontSize: '11px' }}></i> Ir al paso
+                        </button>
+                        <i className="bi bi-chevron-down" style={{ color: 'var(--gris-texto)', fontSize: '14px', transition: 'transform .2s', transform: openSections.llm ? 'rotate(180deg)' : 'none' }}></i>
+                    </div>
+                </div>
+                {openSections.llm && (
+                    <div style={{ padding: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Modelo IA</label>
+                                <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <i className="bi bi-stars" style={{ color: 'var(--azul)' }}></i>
+                                    {model === 'gemini-3.1-flash' ? 'Gemini 3.0 Flash' : 'GPT-4.1'}
+                                    {model === 'gemini-3.1-flash' && <span style={{ fontSize: '10px', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', marginLeft: 'auto' }}>Recomendado</span>}
+                                </div>
+                            </div>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Quién habla primero</label>
+                                <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600 }}>
+                                    {whoFirst === 'agent' ? 'El agente habla primero' : 'El usuario habla primero'}
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Personalidad</label>
+                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                    {personality.length > 0
+                                        ? personality.map(p => <span key={p} className="pill on" style={{ cursor: 'default' }}>{p}</span>)
+                                        : <span style={{ fontSize: '13px', color: 'var(--gris-texto)' }}>Sin definir</span>
+                                    }
+                                </div>
+                            </div>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Tono</label>
+                                <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600 }}>
+                                    {tone || 'Sin definir'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="fg" style={{ marginBottom: 0 }}>
+                            <label className="lbl">Mensaje de inicio</label>
+                            <textarea className="inp" rows={3} style={{ resize: 'vertical', fontSize: '12px' }} value={beginMessage} onChange={e => updateField('beginMessage', e.target.value)} placeholder="Ej: Hola, soy [nombre], tu asistente de voz con IA de [empresa]..." />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ═══ SECCIÓN 3: VOZ ═══ */}
+            <div style={{ border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', marginBottom: '16px', overflow: 'hidden' }}>
+                <div
+                    style={{ padding: '16px 20px', background: 'var(--gris-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: openSections.voz ? '1px solid var(--gris-borde)' : 'none', cursor: 'pointer' }}
+                    onClick={() => toggleSection('voz')}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <i className="bi bi-mic" style={{ color: '#d97706', fontSize: '14px' }}></i>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '14px', fontWeight: 700 }}>Voz seleccionada</div>
+                            <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Paso 3</div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button className="btn-s" onClick={(e) => { e.stopPropagation(); setStep(3); }} style={{ fontSize: '11px', padding: '5px 12px' }}>
+                            <i className="bi bi-pencil" style={{ fontSize: '11px' }}></i> Ir al paso
+                        </button>
+                        <i className="bi bi-chevron-down" style={{ color: 'var(--gris-texto)', fontSize: '14px', transition: 'transform .2s', transform: openSections.voz ? 'rotate(180deg)' : 'none' }}></i>
+                    </div>
+                </div>
+                {openSections.voz && (
+                    <div style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '18px', fontWeight: 700, flexShrink: 0 }}>
+                                {voiceName?.charAt(0) || '?'}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '15px', fontWeight: 700 }}>{voiceName || 'Sin seleccionar'}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '2px' }}>
+                                    {voiceProvider ? `${voiceProvider.charAt(0).toUpperCase() + voiceProvider.slice(1)} · ` : ''}Español
+                                </div>
+                            </div>
+                            {!voiceId && (
+                                <button className="btn-s" onClick={() => setStep(3)} style={{ fontSize: '12px' }}>Seleccionar voz</button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ═══ SECCIÓN 4: AUDIO ═══ */}
+            <div style={{ border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', marginBottom: '16px', overflow: 'hidden' }}>
+                <div
+                    style={{ padding: '16px 20px', background: 'var(--gris-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: openSections.audio ? '1px solid var(--gris-borde)' : 'none', cursor: 'pointer' }}
+                    onClick={() => toggleSection('audio')}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#fce7f3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <i className="bi bi-volume-up" style={{ color: '#db2777', fontSize: '14px' }}></i>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '14px', fontWeight: 700 }}>Configuración de audio</div>
+                            <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Paso 4</div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button className="btn-s" onClick={(e) => { e.stopPropagation(); setStep(4); }} style={{ fontSize: '11px', padding: '5px 12px' }}>
+                            <i className="bi bi-pencil" style={{ fontSize: '11px' }}></i> Ir al paso
+                        </button>
+                        <i className="bi bi-chevron-down" style={{ color: 'var(--gris-texto)', fontSize: '14px', transition: 'transform .2s', transform: openSections.audio ? 'rotate(180deg)' : 'none' }}></i>
+                    </div>
+                </div>
+                {openSections.audio && (
+                    <div style={{ padding: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Volumen del agente</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ flex: 1, height: '6px', background: 'var(--gris-borde)', borderRadius: '3px' }}>
+                                        <div style={{ height: '100%', width: `${volPct}%`, background: 'var(--azul)', borderRadius: '3px' }}></div>
+                                    </div>
+                                    <span style={{ background: 'var(--azul)', color: 'white', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: 'var(--r-sm)' }}>{volPct}%</span>
+                                </div>
+                            </div>
+                            <div className="fg" style={{ marginBottom: 0 }}>
+                                <label className="lbl">Sonido ambiente</label>
+                                <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <i className="bi bi-soundwave" style={{ color: 'var(--gris-texto)' }}></i>
+                                    {enableAmbientSound ? (ambientSound || 'Activado') : 'Ninguno'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ═══ SECCIÓN 5: HERRAMIENTAS ═══ */}
+            <div style={{ border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', marginBottom: '16px', overflow: 'hidden' }}>
+                <div
+                    style={{ padding: '16px 20px', background: 'var(--gris-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: openSections.tools ? '1px solid var(--gris-borde)' : 'none', cursor: 'pointer' }}
+                    onClick={() => toggleSection('tools')}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <i className="bi bi-tools" style={{ color: '#2563eb', fontSize: '14px' }}></i>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '14px', fontWeight: 700 }}>Herramientas activas</div>
+                            <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Paso 5</div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button className="btn-s" onClick={(e) => { e.stopPropagation(); setStep(5); }} style={{ fontSize: '11px', padding: '5px 12px' }}>
+                            <i className="bi bi-pencil" style={{ fontSize: '11px' }}></i> Ir al paso
+                        </button>
+                        <i className="bi bi-chevron-down" style={{ color: 'var(--gris-texto)', fontSize: '14px', transition: 'transform .2s', transform: openSections.tools ? 'rotate(180deg)' : 'none' }}></i>
+                    </div>
+                </div>
+                {openSections.tools && (
+                    <div style={{ padding: '20px' }}>
+                        {/* Cualificación */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', marginBottom: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: enableLeadQualification ? 'var(--azul)' : 'var(--gris-borde)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <i className="bi bi-person-check" style={{ color: enableLeadQualification ? 'white' : 'var(--gris-texto)', fontSize: '14px' }}></i>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600 }}>Cualificación de lead</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--gris-texto)' }}>{enableLeadQualification ? `${leadQuestions.length} pregunta${leadQuestions.length !== 1 ? 's' : ''} configurada${leadQuestions.length !== 1 ? 's' : ''}` : 'No configurada'}</div>
+                                </div>
+                            </div>
+                            <span style={{ background: enableLeadQualification ? '#dcfce7' : 'var(--gris-bg)', color: enableLeadQualification ? '#166534' : 'var(--gris-texto)', fontSize: '11px', fontWeight: 700, padding: '4px 12px', borderRadius: '12px', border: enableLeadQualification ? 'none' : '1px solid var(--gris-borde)' }}>
+                                {enableLeadQualification ? 'Activa' : 'Desactivada'}
+                            </span>
+                        </div>
+                        {/* Transferencia */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', marginBottom: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: enableTransfer ? 'var(--azul)' : 'var(--gris-borde)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <i className="bi bi-telephone-forward" style={{ color: enableTransfer ? 'white' : 'var(--gris-texto)', fontSize: '14px' }}></i>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600 }}>Transferencia de llamadas</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--gris-texto)' }}>{enableTransfer && transferDestinations.length > 0 ? transferDestinations.map(d => d.name).join(', ') : 'No configurada'}</div>
+                                </div>
+                            </div>
+                            <span style={{ background: enableTransfer ? '#dcfce7' : 'var(--gris-bg)', color: enableTransfer ? '#166534' : 'var(--gris-texto)', fontSize: '11px', fontWeight: 700, padding: '4px 12px', borderRadius: '12px', border: enableTransfer ? 'none' : '1px solid var(--gris-borde)' }}>
+                                {enableTransfer ? 'Activa' : 'Desactivada'}
+                            </span>
+                        </div>
+                        {/* Cal.com */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: enableCalBooking ? 'var(--purpura)' : 'var(--gris-borde)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <i className="bi bi-calendar-check" style={{ color: enableCalBooking ? 'white' : 'var(--gris-texto)', fontSize: '14px' }}></i>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600 }}>Reservar cita (Cal.com)</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--gris-texto)' }}>{enableCalBooking ? 'Configurada' : 'No configurada'}</div>
+                                </div>
+                            </div>
+                            <span style={{ background: enableCalBooking ? '#dcfce7' : 'var(--gris-bg)', color: enableCalBooking ? '#166534' : 'var(--gris-texto)', fontSize: '11px', fontWeight: 700, padding: '4px 12px', borderRadius: '12px', border: enableCalBooking ? 'none' : '1px solid var(--gris-borde)' }}>
+                                {enableCalBooking ? 'Activa' : 'Desactivada'}
+                            </span>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <hr className="divider" />
+
+            {/* ═══ BASE DE CONOCIMIENTO ═══ */}
+            <div className="form-section-title"><i className="bi bi-journal-text"></i> Base de conocimiento</div>
+            <p style={{ fontSize: '13px', color: 'var(--gris-texto)', marginBottom: '14px' }}>Sube documentos con información sobre tu empresa. El agente los usará para responder preguntas con mayor precisión.</p>
+
+            <input type="file" ref={fileInputRef} id="kbFileInput" multiple accept=".pdf,.txt,.md" style={{ display: 'none' }} onChange={handleFileUpload} />
+            <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--azul)'; e.currentTarget.style.background = 'var(--azul-light)'; }}
+                onDragLeave={(e) => { e.currentTarget.style.borderColor = 'var(--gris-borde)'; e.currentTarget.style.background = 'transparent'; }}
+                onDrop={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--gris-borde)'; e.currentTarget.style.background = 'transparent'; uploadMultipleFiles(Array.from(e.dataTransfer.files)); }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--azul)'; e.currentTarget.style.background = 'var(--azul-light)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--gris-borde)'; e.currentTarget.style.background = 'transparent'; }}
+                style={{ border: '2px dashed var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '32px', textAlign: 'center', color: 'var(--gris-texto)', cursor: 'pointer', transition: 'all .15s' }}
+            >
+                <i className="bi bi-cloud-upload" style={{ fontSize: '32px', display: 'block', marginBottom: '10px', color: 'var(--azul)', opacity: .6 }}></i>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--oscuro)' }}>Arrastra archivos aquí o haz clic para subir</div>
+                <div style={{ fontSize: '12px', marginTop: '6px' }}>PDF, TXT, MD · Máx. 25 MB por archivo</div>
+            </div>
+
+            {kbFiles.length > 0 && (
+                <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {kbFiles.map(f => (
+                        <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)' }}>
+                            <i className="bi bi-file-earmark-text" style={{ color: 'var(--azul)', fontSize: '16px', flexShrink: 0 }}></i>
+                            <span style={{ fontSize: '13px', fontWeight: 500, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
+                            <button onClick={() => removeFile(f.id)} style={{ border: 'none', background: 'none', color: 'var(--error)', cursor: 'pointer', fontSize: '14px', padding: '2px 4px' }}>
+                                <i className="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <div className="ci" style={{ marginTop: '12px', marginBottom: 0 }}>
+                <i className="bi bi-info-circle-fill" style={{ flexShrink: 0, marginTop: '1px' }}></i>
+                <div>Puedes subir FAQs, manuales de producto, catálogos de precios o cualquier documento que ayude al agente a responder con precisión. <strong>Este paso es opcional</strong> — puedes añadir o actualizar documentos más adelante desde el panel de edición del agente.</div>
+            </div>
+
+            {/* Acordeón mejores prácticas */}
+            <details style={{ marginTop: '14px', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '14px', padding: '14px 20px', background: 'var(--gris-bg)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '8px', userSelect: 'none' }}>
+                    <i className="bi bi-lightbulb" style={{ color: '#d97706' }}></i> Mejores prácticas para preparar tus documentos
+                    <i className="bi bi-chevron-right" style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--gris-texto)' }}></i>
+                </summary>
+                <div style={{ padding: '16px 20px' }}>
+                    {[
+                        { title: 'Formato recomendado', body: 'Utiliza archivos .md (Markdown) en lugar de .txt siempre que sea posible. El Markdown bien estructurado se divide en fragmentos con mayor precisión y el agente recupera la información de forma más fiable.' },
+                        { title: 'Estructura del documento', body: 'Usa títulos claros y descriptivos con encabezados ## para cada sección. Mantén cada sección concisa. Escribe párrafos cortos y utiliza listas para separar conceptos.' },
+                        { title: 'Agrupa la información relacionada', body: 'Mantén la información que va junta dentro de la misma sección del documento. Esto permite que el agente recupere fragmentos coherentes y relevantes durante la conversación.' },
+                        { title: 'Sé específico, evita la ambigüedad', body: 'Incluye nombres completos, fechas, unidades, precios y datos concretos. Evita pronombres ambiguos como "esto" o "aquello".' },
+                    ].map(item => (
+                        <div key={item.title} style={{ marginBottom: '16px' }}>
+                            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--oscuro)', marginBottom: '4px' }}>{item.title}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--gris-texto)', lineHeight: '1.6' }}>{item.body}</div>
+                        </div>
+                    ))}
+                </div>
+            </details>
+
+            <hr className="divider" />
+
+            {/* ═══ REGLAS PARA LA BASE DE CONOCIMIENTO ═══ */}
+            <div className="fg">
+                <label className="lbl">
+                    <i className="bi bi-shield-check" style={{ marginRight: '4px', color: '#7c3aed' }}></i>
+                    Reglas para la base de conocimiento <span style={{ fontWeight: 400, color: 'var(--gris-texto)' }}>(opcional)</span>
+                </label>
+                <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '10px', lineHeight: '1.6' }}>Define cómo debe comportarse el agente cuando consulta los documentos que has subido.</p>
+                <textarea
+                    className="inp" rows={3} style={{ resize: 'vertical' }}
+                    value={kbUsageInstructions}
+                    onChange={e => updateField('kbUsageInstructions', e.target.value)}
+                    placeholder='Ej: "Si te preguntan por precios, consulta siempre la base de conocimiento. Cita los precios exactos sin redondear."'
+                />
+                <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Estas instrucciones le dicen al agente cómo buscar y usar la información de los documentos.</div>
+            </div>
+
+            <details style={{ marginTop: '10px', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '13px', padding: '12px 20px', background: 'var(--gris-bg)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '8px', userSelect: 'none' }}>
+                    <i className="bi bi-clipboard-check" style={{ color: '#7c3aed' }}></i> Ver ejemplos de reglas
+                    <i className="bi bi-chevron-right" style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--gris-texto)' }}></i>
+                </summary>
+                <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {[
+                        'Si te preguntan por precios, consulta siempre la base de conocimiento. Cita los precios exactos tal como aparecen en los documentos, sin redondear ni aproximar.',
+                        'Si la pregunta del cliente no tiene respuesta en la base de conocimiento, dilo con transparencia. No inventes información.',
+                        'Cuando respondas usando información de la base de conocimiento, hazlo de forma natural y conversacional. No menciones que estás consultando documentos.',
+                    ].map((ex, i) => (
+                        <div key={i} style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '10px 14px', fontSize: '12px', fontFamily: "'Courier New', monospace", lineHeight: '1.5', color: '#374151' }}>{ex}</div>
+                    ))}
+                </div>
+            </details>
+
+            <hr className="divider" />
+
+            {/* ═══ NOTAS ADICIONALES AL PROMPT ═══ */}
+            <div className="fg">
+                <label className="lbl">
+                    <i className="bi bi-pencil-square" style={{ marginRight: '4px', color: 'var(--azul)' }}></i>
+                    Notas adicionales al prompt <span style={{ fontWeight: 400, color: 'var(--gris-texto)' }}>(opcional)</span>
+                </label>
+                <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '10px', lineHeight: '1.6' }}>Instrucciones generales que se añaden al final del prompt del agente: horarios, políticas, normas internas, etc.</p>
+                <textarea
+                    className="inp" rows={3} style={{ resize: 'vertical' }}
+                    value={customNotes}
+                    onChange={e => updateField('customNotes', e.target.value)}
+                    placeholder='Ej: "Los horarios de atención son de lunes a viernes de 9:00 a 18:00h. Fuera de horario, ofrece agendar una cita."'
+                />
+                <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Estas notas personalizan el comportamiento general del agente, no dependen de los documentos subidos.</div>
+            </div>
+
+            <details style={{ marginTop: '10px', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '13px', padding: '12px 20px', background: 'var(--gris-bg)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '8px', userSelect: 'none' }}>
+                    <i className="bi bi-clipboard-check" style={{ color: 'var(--azul)' }}></i> Ver ejemplos de notas
+                    <i className="bi bi-chevron-right" style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--gris-texto)' }}></i>
+                </summary>
+                <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {[
+                        'Los horarios de atención son de lunes a viernes de 9:00 a 18:00, hora de Madrid. Si alguien llama fuera de horario, infórmale y ofrece agendar una cita para el siguiente día laborable.',
+                        'Si el cliente pregunta por un servicio que no ofrecemos, no improvises. Ofrece transferir la llamada a un asesor comercial.',
+                        'Al finalizar cada llamada, confirma siempre el nombre y el teléfono de contacto del cliente antes de despedirte.',
+                    ].map((ex, i) => (
+                        <div key={i} style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '10px 14px', fontSize: '12px', fontFamily: "'Courier New', monospace", lineHeight: '1.5', color: '#374151' }}>{ex}</div>
+                    ))}
+                </div>
+            </details>
+
+            <hr className="divider" />
+
+            {/* ═══ BOTÓN CREAR AGENTE ═══ */}
+            <div style={{ marginTop: '28px', paddingTop: '24px', borderTop: '2px solid var(--gris-borde)' }}>
+                <button
+                    className="btn-p"
+                    onClick={handleCreateAgent}
+                    disabled={isCreating}
+                    style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '16px', background: 'var(--exito)', fontWeight: 700, borderRadius: 'var(--r-lg)', transition: 'all .3s' }}
+                >
+                    <i className="bi bi-rocket-takeoff-fill"></i>
+                    {isCreating ? ' Creando agente...' : (editingAgentId ? ' Guardar cambios' : ' Crear agente IA')}
+                </button>
+                <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '12px', color: 'var(--gris-texto)' }}>
+                    Podrás editar y probar el agente desde &quot;Mis agentes&quot; en cualquier momento.
+                </div>
+            </div>
+
+            {/* Footer de navegación */}
+            <div className="wiz-footer" style={{ marginTop: '24px' }}>
+                <button type="button" className="btn-s" onClick={prevStep}>
+                    <i className="bi bi-arrow-left"></i> Anterior
+                </button>
+                <div></div>
+            </div>
+
+            {/* Error toast */}
             {showError && (
-                <div style={{ 
-                    position: 'fixed', bottom: '40px', right: '40px', background: '#fff1f2', border: '1.5px solid #fecdd3', 
-                    padding: '20px 32px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(225, 29, 72, 0.25)', 
-                    display: 'flex', alignItems: 'center', gap: '20px', zIndex: 9999, animation: 'slideInRight 0.4s'
+                <div style={{
+                    position: 'fixed', bottom: '40px', right: '40px', background: '#fff1f2', border: '1.5px solid #fecdd3',
+                    padding: '16px 24px', borderRadius: 'var(--r-lg)', boxShadow: '0 10px 30px rgba(225,29,72,.2)',
+                    display: 'flex', alignItems: 'center', gap: '16px', zIndex: 9999
                 }}>
-                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#ef4444', color: 'white' }}>
-                        <i className="bi bi-exclamation-triangle-fill"></i>
-                    </div>
+                    <i className="bi bi-exclamation-triangle-fill" style={{ color: 'var(--error)', fontSize: '20px', flexShrink: 0 }}></i>
                     <div>
-                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#9f1239' }}>Error de Configuración</div>
-                        <div style={{ fontSize: '13px', color: '#e11d48', fontWeight: 600 }}>{errorMessage}</div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#9f1239' }}>Error de configuración</div>
+                        <div style={{ fontSize: '12px', color: '#e11d48' }}>{errorMessage}</div>
                     </div>
-                    <button onClick={() => setShowError(false)} style={{ background: 'none', border: 'none', color: '#e11d48', fontSize: '20px' }}>
+                    <button onClick={() => setShowError(false)} style={{ background: 'none', border: 'none', color: '#e11d48', fontSize: '18px', cursor: 'pointer', padding: '2px' }}>
                         <i className="bi bi-x-lg"></i>
                     </button>
                 </div>
             )}
-            
-            <style jsx>{`
-                @keyframes slideInRight {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `}</style>
         </div>
     );
 };

@@ -15,8 +15,6 @@ import { Step6_Summary } from '../../components/wizard/steps/Step6_Summary';
 
 function WizardContent() {
     const currentStep = useWizardStore((state) => state.currentStep);
-    const isSidebarOpen = useWizardStore((state) => state.isSidebarOpen);
-    const toggleSidebar = useWizardStore((state) => state.toggleSidebar);
     const setEditingAgent = useWizardStore((state) => state.setEditingAgent);
     const [mounted, setMounted] = useState(false);
     const searchParams = useSearchParams();
@@ -102,17 +100,12 @@ function WizardContent() {
     }
 
     return (
-        <div className="app-container">
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--gris-bg)' }}>
             <Sidebar />
 
-            <div
-                className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
-                onClick={toggleSidebar}
-            ></div>
-
-            <main className="main-view">
+            <main className="wiz-main">
                 <Topbar />
-                <div className="dashboard-content">
+                <div className="wiz-content">
                     {renderStep()}
                 </div>
             </main>
