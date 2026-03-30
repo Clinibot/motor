@@ -42,14 +42,22 @@ export default function DashboardTopbar({
         <header className="top-bar">
             <div className="t-left">
                 <h1 className="t-title">{title}</h1>
-                <div className="t-sep"></div>
-                <div className="t-breadcrumb">Bienvenido al Centro de Control de IA</div>
             </div>
             
             <div className="t-actions">
-                <div className="btn-pill" style={{ 
-                    padding: '8px 16px', background: 'var(--slate-50)', borderRadius: '10px', 
-                    display: 'flex', gap: '8px', fontSize: '13px', border: '1px solid var(--slate-100)'
+                <button 
+                    onClick={handleCreateAgent} 
+                    className="btn-p"
+                    style={{ height: '40px' }}
+                >
+                    <i className="bi bi-plus-lg"></i>
+                    <span>Crear nuevo agente</span>
+                </button>
+
+                <div style={{ 
+                    padding: '8px 14px', background: 'white', borderRadius: '10px', 
+                    display: 'flex', gap: '6px', fontSize: '13px', border: '1px solid var(--slate-100)',
+                    alignItems: 'center'
                 }}>
                     <span style={{ color: 'var(--slate-500)', fontWeight: 500 }}>Balance:</span>
                     <span style={{ color: 'var(--azul)', fontWeight: 700 }}>€{totalCost.toFixed(3)}</span>
@@ -74,15 +82,6 @@ export default function DashboardTopbar({
                         </div>
                     )}
                 </div>
-
-                <button 
-                    onClick={handleCreateAgent} 
-                    className="btn-p"
-                    style={{ height: '44px' }}
-                >
-                    <i className="bi bi-plus-lg"></i>
-                    <span>Añadir Agente</span>
-                </button>
 
                 <div style={{ position: 'relative' }} ref={dropdownRef}>
                     <button

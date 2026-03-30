@@ -44,7 +44,6 @@ export default function DashboardSidebar({ user }: SidebarProps) {
 
             <div className="sidebar-nav">
                 <div className="nav-group">
-                    <div className="nav-label">Menú Principal</div>
                     {mainNav.map((item) => (
                         <Link
                             key={item.href}
@@ -58,30 +57,19 @@ export default function DashboardSidebar({ user }: SidebarProps) {
                 </div>
 
                 {user?.role === 'superadmin' && (
-                    <>
-                        <div className="nav-group">
-                            <div className="nav-label">Equipo Netelip</div>
-                            {adminNav.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className={`nav-item ${pathname === item.href ? 'active' : ''}`}
-                                >
-                                    <i className={`bi ${item.icon}`}></i>
-                                    <span>{item.label}</span>
-                                </Link>
-                            ))}
-                        </div>
-
-                        <div className="nav-group" style={{ marginTop: '24px' }}>
-                            <div className="nav-label">Recursos Internos</div>
-                            <Link href="#" className="nav-item"><i className="bi bi-cpu"></i> <span>Implementación 2ª entrega</span></Link>
-                            <Link href="#" className="nav-item"><i className="bi bi-palette"></i> <span>Spec y patrones</span></Link>
-                            <Link href="#" className="nav-item"><i className="bi bi-journal-text"></i> <span>Protocolo de workspaces</span></Link>
-                            <Link href="#" className="nav-item"><i className="bi bi-file-earmark-code"></i> <span>Documentación técnica</span></Link>
-                            <Link href="#" className="nav-item"><i className="bi bi-headset"></i> <span>Soporte Retell AI</span></Link>
-                        </div>
-                    </>
+                    <div className="nav-group">
+                        <div className="nav-label">Equipo Netelip</div>
+                        {adminNav.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`nav-item ${pathname === item.href ? 'active' : ''}`}
+                            >
+                                <i className={`bi ${item.icon}`}></i>
+                                <span>{item.label}</span>
+                            </Link>
+                        ))}
+                    </div>
                 )}
             </div>
 

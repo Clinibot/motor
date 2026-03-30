@@ -237,12 +237,18 @@ export default function DashboardPage() {
         // ── 3. Disconnection reasons bar ──
         if (disconnectChartRef.current) {
             const reasons = getDisconnectionReasons(calls);
+            const total = reasons.data.reduce((a, b) => a + b, 0);
+            const percentages = reasons.data.map(v => total > 0 ? Math.round((v / total) * 100) : 0);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const DataLabels = (window as any).ChartDataLabels;
             const c = new Chart(disconnectChartRef.current, {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                plugins: DataLabels ? [DataLabels] : [],
                 type: 'bar',
                 data: {
                     labels: reasons.labels,
                     datasets: [{ 
-                        data: reasons.data, 
+                        data: percentages, 
                         backgroundColor: '#5faad9', 
                         borderRadius: 6,
                         barThickness: 32
@@ -251,16 +257,26 @@ export default function DashboardPage() {
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
+                    plugins: { 
+                        legend: { display: false },
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        datalabels: DataLabels ? {
+                            anchor: 'end' as const,
+                            align: 'end' as const,
+                            color: '#64748b',
+                            font: { size: 11, weight: 700 as const },
+                            formatter: (value: number) => value + '%',
+                        } : false,
+                    }, 
                     scales: { 
                         x: { 
                             grid: { display: false },
                             ticks: { font: { size: 11 }, color: '#94a3b8' }
                         }, 
                         y: { 
-                            beginAtZero: true, 
-                            grid: { color: '#f1f5f9' },
-                            ticks: { stepSize: 1, font: { size: 11 }, color: '#94a3b8' } 
+                            beginAtZero: true,
+                            max: 100,
+                            display: false,
                         } 
                     } 
                 },
@@ -419,6 +435,7 @@ export default function DashboardPage() {
     return (
         <div className="app-container">
             <Script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" onLoad={() => setChartJsReady(true)} />
+            <Script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" strategy="afterInteractive" />
             
             <DashboardSidebar user={user} />
 
@@ -439,14 +456,9 @@ export default function DashboardPage() {
 
                 <div className="dashboard-content">
                     <div className="content-header">
-                        <div>
-                            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>
-                                Vista general de rendimiento
-                            </h2>
-                            <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
-                                Monitorea las métricas clave de tus agentes en tiempo real.
-                            </p>
-                        </div>
+                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>
+                            Vista general
+                        </h2>
                         <div className="flex-center gap-12">
                             <select
                                 className="inp"
@@ -479,59 +491,47 @@ export default function DashboardPage() {
                         <>
                             <div className="stats-grid">
                                 <div className="stat-card">
-                                    <div className="stat-icon icon-blue">
-                                        <i className="bi bi-telephone"></i>
-                                    </div>
-                                    <div className="stat-info">
-                                        <div className="stat-label">Llamadas Totales</div>
-                                        <div className="stat-value">{totalCalls}</div>
-                                        <div className="stat-diff positive">
-                                            <i className="bi bi-arrow-up"></i>
-                                            <span>En el periodo</span>
+                                    <div className="stat-header">
+                                        <div className="stat-label">Total de llamadas</div>
+                                        <div className="stat-icon icon-blue">
+                                            <i className="bi bi-telephone"></i>
                                         </div>
                                     </div>
+                                    <div className="stat-value">{totalCalls}</div>
+                                    <div className="stat-comparison">vs. semana anterior</div>
                                 </div>
 
                                 <div className="stat-card">
-                                    <div className="stat-icon icon-green">
-                                        <i className="bi bi-check2-circle"></i>
-                                    </div>
-                                    <div className="stat-info">
-                                        <div className="stat-label">Tasa de Éxito</div>
-                                        <div className="stat-value">{successRate}</div>
-                                        <div className="stat-diff positive">
-                                            <i className="bi bi-shield-check"></i>
-                                            <span>Conversiones</span>
+                                    <div className="stat-header">
+                                        <div className="stat-label">Tasa de éxito</div>
+                                        <div className="stat-icon icon-green">
+                                            <i className="bi bi-check2-circle"></i>
                                         </div>
                                     </div>
+                                    <div className="stat-value green">{successRate}</div>
+                                    <div className="stat-comparison">vs. semana anterior</div>
                                 </div>
 
                                 <div className="stat-card">
-                                    <div className="stat-icon icon-purple">
-                                        <i className="bi bi-clock"></i>
-                                    </div>
-                                    <div className="stat-info">
-                                        <div className="stat-label">Duración Media</div>
-                                        <div className="stat-value">{avgDur}</div>
-                                        <div className="stat-diff">
-                                            <i className="bi bi-lightning-charge"></i>
-                                            <span>Por llamada</span>
+                                    <div className="stat-header">
+                                        <div className="stat-label">Duración promedio</div>
+                                        <div className="stat-icon icon-purple">
+                                            <i className="bi bi-clock"></i>
                                         </div>
                                     </div>
+                                    <div className="stat-value">{avgDur}</div>
+                                    <div className="stat-comparison">vs. semana anterior</div>
                                 </div>
 
                                 <div className="stat-card">
-                                    <div className="stat-icon icon-orange">
-                                        <i className="bi bi-currency-euro"></i>
-                                    </div>
-                                    <div className="stat-info">
-                                        <div className="stat-label">Gasto Total</div>
-                                        <div className="stat-value">€{totalCost.toFixed(3)}</div>
-                                        <div className="stat-diff">
-                                            <i className="bi bi-wallet2"></i>
-                                            <span>Coste estimado</span>
+                                    <div className="stat-header">
+                                        <div className="stat-label">Coste total</div>
+                                        <div className="stat-icon icon-orange">
+                                            <i className="bi bi-currency-euro"></i>
                                         </div>
                                     </div>
+                                    <div className="stat-value">€{totalCost.toFixed(3)}</div>
+                                    <div className="stat-comparison">vs. semana anterior</div>
                                 </div>
                             </div>
 
@@ -780,11 +780,11 @@ export default function DashboardPage() {
 
 // ---- Formatting helpers ----
 function formatDuration(ms: number | null): string {
-    if (!ms) return '0s';
+    if (!ms) return '0:00';
     const s = Math.floor(ms / 1000);
     const m = Math.floor(s / 60);
     const rs = s % 60;
-    return m > 0 ? `${m}m ${rs}s` : `${rs}s`;
+    return `${m}:${rs.toString().padStart(2, '0')}`;
 }
 
 function getChartDataTimeline(calls: Call[] /*, filter: string, customRange: { start: string; end: string } */) {
