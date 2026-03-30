@@ -1,0 +1,39 @@
+
+> fabrica_agentes@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.15
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at new ei (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/chunks/5891.js:6:28061)
+    at 9071 (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/send-daily/route.js:1:3280)
+    at t (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/webpack-runtime.js:1:128)
+    at 62741 (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/send-daily/route.js:1:549)
+    at t (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/webpack-runtime.js:1:128)
+    at t (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/send-daily/route.js:161:76)
+    at /Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/send-daily/route.js:161:114
+    at t.X (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/webpack-runtime.js:1:1206)
+    at /Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/send-daily/route.js:161:89
+    at Object.<anonymous> (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/send-daily/route.js:161:142)
+Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at new ei (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/chunks/5891.js:6:28061)
+    at 9071 (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/check-thresholds/route.js:135:1131)
+    at t (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/webpack-runtime.js:1:128)
+    at 89520 (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/check-thresholds/route.js:1:549)
+    at t (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/webpack-runtime.js:1:128)
+    at t (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/check-thresholds/route.js:295:76)
+    at /Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/check-thresholds/route.js:295:114
+    at t.X (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/webpack-runtime.js:1:1206)
+    at /Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/check-thresholds/route.js:295:89
+    at Object.<anonymous> (/Users/soniaortiz/Downloads/aaaaa0basura/proyectos/.next/server/app/api/alerts/check-thresholds/route.js:295:142)
+
+> Build error occurred
+Error: Failed to collect page data for /api/alerts/send-daily
+    at /Users/soniaortiz/Downloads/aaaaa0basura/proyectos/node_modules/next/dist/build/utils.js:1268:15
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  type: 'Error'
+}

@@ -327,7 +327,7 @@ export default function AgentsPage() {
 
             {/* Test Modal Overlay */}
             {testAgent && (
-                <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { if (callStatus === 'inactive') setTestAgent(null) }}>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { if (callStatus === 'inactive') setTestAgent(null) }}>
                     <div className="card-premium" style={{ width: '100%', maxWidth: '520px', padding: 0, overflow: 'hidden', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
                         <div style={{ padding: '32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
