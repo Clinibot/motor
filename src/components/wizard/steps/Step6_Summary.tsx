@@ -217,7 +217,7 @@ ${customNotes ? `# Notas Adicionales\n${customNotes}\n` : ''}
             const data = await response.json();
             if (!response.ok || !data.success) throw new Error(data.error || 'Error del servidor');
             setIsSuccess(true);
-        } catch (e: any) {
+        } catch (e: unknown) {
             setErrorMessage(e instanceof Error ? e.message : 'Error técnico durante la activación');
             setShowError(true);
         } finally {
