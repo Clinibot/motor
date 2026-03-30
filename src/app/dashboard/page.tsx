@@ -576,34 +576,31 @@ export default function DashboardPage() {
                             </div>
 
                             <div className="card-premium">
-                                <div className="flex-between" style={{ marginBottom: '24px' }}>
-                                    <h3 className="card-title">
-                                        <i className="bi bi-list-stars icon-purple" style={{ background: 'transparent', padding: 0 }}></i>
-                                        Historial de llamadas recientes
-                                    </h3>
-                                    <button className="btn-premium" onClick={handleExportCSV} style={{ padding: '8px 16px', fontSize: '13px' }}>
-                                        <i className="bi bi-download"></i>
-                                        Exportar CSV
+                                <div className="flex-between" style={{ marginBottom: '24px', alignItems: 'center' }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--slate-800)', margin: 0 }}>Llamadas recientes</h3>
+                                    <button className="btn-s" onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '13px', background: 'var(--slate-50)', border: '1px solid var(--slate-200)', color: 'var(--slate-600)' }}>
+                                        <i className="bi bi-download" style={{ fontSize: '14px' }}></i>
+                                        Exportar
                                     </button>
                                 </div>
 
                                 <div className="flex-center gap-12" style={{ marginBottom: '24px' }}>
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <i className="bi bi-search" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)' }}></i>
+                                        <i className="bi bi-search" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)', fontSize: '14px' }}></i>
                                         <input
                                             type="text"
                                             className="inp"
-                                            placeholder="Buscar por número o nombre de cliente..."
+                                            placeholder="Buscar por número o nombre..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            style={{ paddingLeft: '42px' }}
+                                            style={{ paddingLeft: '42px', height: '42px', fontSize: '14px', background: 'var(--slate-50)', border: '1px solid var(--slate-100)' }}
                                         />
                                     </div>
                                     <select
                                         className="inp"
                                         value={agentFilter}
                                         onChange={(e) => setAgentFilter(e.target.value)}
-                                        style={{ width: '240px' }}
+                                        style={{ width: '200px', height: '42px', fontSize: '14px', background: 'var(--slate-50)', border: '1px solid var(--slate-100)' }}
                                     >
                                         <option value="all">Todos los agentes</option>
                                         {agents.map(ag => (
@@ -625,13 +622,14 @@ export default function DashboardPage() {
                                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
                                                 <tr style={{ background: 'var(--slate-50)', borderBottom: '1px solid var(--slate-100)' }}>
-                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>FECHA</th>
-                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>CLIENTE</th>
-                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>AGENTE</th>
-                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>DURACIÓN</th>
-                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>SENTIMIENTO</th>
-                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>ESTADO</th>
-                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'center', fontWeight: 600 }}>ACCIONES</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>FECHA Y HORA</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>USUARIO</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AGENTE</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>DURACIÓN</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>SENTIMIENTO</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ESTADO</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>COSTE</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ACCIONES</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -653,17 +651,28 @@ export default function DashboardPage() {
                                                                 onMouseOver={(e) => !isExpanded && (e.currentTarget.style.background = '#fcfdfe')}
                                                                 onMouseOut={(e) => !isExpanded && (e.currentTarget.style.background = 'transparent')}
                                                             >
-                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-600)' }} suppressHydrationWarning>
-                                                                    {new Date(call.created_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-600)', fontWeight: 500 }} suppressHydrationWarning>
+                                                                    {(() => {
+                                                                        const d = new Date(call.created_at);
+                                                                        return `${d.getDate()}/${d.getMonth() + 1}, ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+                                                                    })()}
                                                                 </td>
                                                                 <td style={{ padding: '16px 24px' }}>
-                                                                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--slate-900)' }}>{call.customer_number || 'Web Call'}</div>
-                                                                    <div style={{ fontSize: '12px', color: 'var(--slate-500)' }}>{call.customer_name || 'Anónimo'}</div>
+                                                                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--slate-900)', marginBottom: '2px' }}>{call.customer_number || '+34 000 000 000'}</div>
+                                                                    <div style={{ fontSize: '10px', color: 'var(--slate-400)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                        <i className="bi bi-telephone-fill" style={{ fontSize: '9px' }}></i>
+                                                                        TELÉFONO
+                                                                    </div>
                                                                 </td>
-                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-700)', fontWeight: 500 }}>
-                                                                    {getAgentName(call.retell_agent_id)}
+                                                                <td style={{ padding: '16px 24px' }}>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--azul)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>
+                                                                            {getAgentName(call.retell_agent_id).charAt(0).toUpperCase()}
+                                                                        </div>
+                                                                        <span style={{ fontSize: '13px', color: 'var(--slate-700)', fontWeight: 600 }}>{getAgentName(call.retell_agent_id)}</span>
+                                                                    </div>
                                                                 </td>
-                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-600)' }}>{formatDuration(call.duration_ms)}</td>
+                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-600)', fontWeight: 500 }}>{formatDuration(call.duration_ms)}</td>
                                                                 <td style={{ padding: '16px 24px' }}>
                                                                     <span style={{ 
                                                                         padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
@@ -673,75 +682,77 @@ export default function DashboardPage() {
                                                                     </span>
                                                                 </td>
                                                                 <td style={{ padding: '16px 24px' }}>
-                                                                    <span style={{ 
-                                                                        padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
-                                                                        background: successful ? '#ecfdf5' : '#fef2f2',
-                                                                        color: successful ? '#10b981' : '#ef4444'
-                                                                    }}>
-                                                                        {successful ? 'Éxito' : 'Fallo'}
-                                                                    </span>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: successful ? '#10b981' : '#ef4444' }}>
+                                                                        {successful && <i className="bi bi-check-lg" style={{ fontSize: '14px' }}></i>}
+                                                                        {successful ? 'Exitosa' : 'Fallida'}
+                                                                    </div>
+                                                                </td>
+                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-800)', fontWeight: 700 }}>
+                                                                    €{Number(call.call_cost || 0).toFixed(3)}
                                                                 </td>
                                                                 <td style={{ padding: '16px 24px', textAlign: 'center' }}>
-                                                                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: isExpanded ? 'var(--azul)' : 'var(--slate-100)', color: isExpanded ? '#fff' : 'var(--slate-500)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-                                                                        <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'}`}></i>
+                                                                    <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: isExpanded ? 'var(--azul)' : 'var(--slate-50)', color: isExpanded ? 'white' : 'var(--slate-300)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                                                                        <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'}`} style={{ fontSize: '12px' }}></i>
                                                                     </div>
                                                                 </td>
                                                             </tr>
                                                             {isExpanded && (
                                                                 <tr>
-                                                                    <td colSpan={7} style={{ background: '#fafbfc', padding: '32px 48px', borderBottom: '1px solid var(--slate-100)' }}>
-                                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+                                                                    <td colSpan={8} style={{ background: '#fcfdfe', padding: '32px 48px', borderBottom: '1px solid var(--slate-100)' }}>
+                                                                        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '48px' }}>
                                                                             <div>
-                                                                                <div className="card-title" style={{ marginBottom: '16px', fontSize: '14px' }}>
-                                                                                    <i className="bi bi-mic icon-blue" style={{ background: 'transparent', padding: 0 }}></i>
-                                                                                    Transcripción y Grabación
-                                                                                </div>
+                                                                                <h4 style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '20px' }}>GRABACIÓN Y TRANSCRIPCIÓN</h4>
                                                                                 {call.recording_url && (
-                                                                                    <audio controls src={call.recording_url} style={{ width: '100%', height: '40px', marginBottom: '20px' }} />
+                                                                                    <div style={{ marginBottom: '24px', background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid var(--slate-100)' }}>
+                                                                                        <audio controls src={call.recording_url} style={{ width: '100%', height: '36px' }} />
+                                                                                    </div>
                                                                                 )}
-                                                                                <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid var(--slate-100)', fontSize: '13px', lineHeight: '1.6', color: 'var(--slate-700)', maxHeight: '300px', overflowY: 'auto' }}>
-                                                                                    {call.transcript || 'No hay transcripción disponible para esta llamada.'}
+                                                                                <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid var(--slate-100)', fontSize: '14px', lineHeight: '1.7', color: 'var(--slate-700)', maxHeight: '400px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                                                                                    {call.transcript ? (
+                                                                                        call.transcript.split('\n').map((line, i) => {
+                                                                                            const isAgent = line.toLowerCase().includes('agent:') || line.toLowerCase().includes('elio:');
+                                                                                            const isUser = line.toLowerCase().includes('user:') || line.toLowerCase().includes('customer:');
+                                                                                            if (isAgent || isUser) {
+                                                                                                const [role, ...text] = line.split(':');
+                                                                                                return (
+                                                                                                    <div key={i} style={{ marginBottom: '12px' }}>
+                                                                                                        <strong style={{ color: 'var(--slate-900)' }}>{role}:</strong> {text.join(':')}
+                                                                                                    </div>
+                                                                                                );
+                                                                                            }
+                                                                                            return <div key={i} style={{ marginBottom: '8px' }}>{line}</div>;
+                                                                                        })
+                                                                                    ) : (
+                                                                                        <span style={{ color: 'var(--slate-400)', fontStyle: 'italic' }}>No hay transcripción disponible para esta llamada.</span>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                             <div>
-                                                                                <div className="card-title" style={{ marginBottom: '16px', fontSize: '14px' }}>
-                                                                                    <i className="bi bi-chat-left-text icon-green" style={{ background: 'transparent', padding: 0 }}></i>
-                                                                                    Resumen de la Inteligencia Artificial
-                                                                                </div>
-                                                                                <div style={{ padding: '20px', fontSize: '13px', lineHeight: '1.6', background: 'white', borderLeft: '4px solid var(--azul)', borderRadius: '8px', color: 'var(--slate-800)', marginBottom: '24px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                                                                                    {call.call_analysis?.call_summary || 'Resumen no disponible.'}
-                                                                                </div>
-                                                                                
-                                                                                <div className="card-title" style={{ marginBottom: '16px', fontSize: '14px' }}>
-                                                                                    <i className="bi bi-database-check icon-purple" style={{ background: 'transparent', padding: 0 }}></i>
-                                                                                    Datos Extraídos
-                                                                                </div>
-                                                                                {(() => {
-                                                                                    const customVars = (call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data || {}) as Record<string, unknown>;
-                                                                                    if (Object.keys(customVars).length > 0) {
+                                                                                <h4 style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '20px' }}>DATOS EXTRAÍDOS</h4>
+                                                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                                                                    {(() => {
+                                                                                        const customVars = (call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data || {}) as Record<string, unknown>;
+                                                                                        if (Object.keys(customVars).length > 0) {
+                                                                                            return Object.entries(customVars).map(([key, value]) => (
+                                                                                                <div key={key} style={{ background: 'var(--azul-light)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(38,122,176,0.1)' }}>
+                                                                                                    <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--azul)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>{key}</div>
+                                                                                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-900)' }}>{String(value)}</div>
+                                                                                                </div>
+                                                                                            ));
+                                                                                        }
                                                                                         return (
-                                                                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
-                                                                                                {Object.entries(customVars).map(([key, value]) => (
-                                                                                                    <div key={key} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--slate-100)' }}>
-                                                                                                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>{key}</div>
-                                                                                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--slate-900)' }}>{String(value)}</div>
-                                                                                                    </div>
-                                                                                                ))}
+                                                                                            <div style={{ gridColumn: 'span 2', fontSize: '13px', color: 'var(--slate-400)', fontStyle: 'italic', padding: '24px', background: 'var(--slate-50)', borderRadius: '12px', textAlign: 'center', border: '1px dashed var(--slate-200)' }}>
+                                                                                                No se han detectado datos específicos.
                                                                                             </div>
                                                                                         );
-                                                                                    }
-                                                                                    return (
-                                                                                        <div style={{ fontSize: '13px', color: 'var(--slate-500)', fontStyle: 'italic', padding: '12px', background: 'var(--slate-50)', borderRadius: '8px', border: '1px dashed var(--slate-200)' }}>
-                                                                                            No se han detectado datos específicos para extraer en esta conversación.
-                                                                                        </div>
-                                                                                    );
-                                                                                })()}
-                                                                                
+                                                                                    })()}
+                                                                                </div>
+
                                                                                 {internalAgentId && (
-                                                                                    <div style={{ marginTop: '24px', textAlign: 'right' }}>
-                                                                                        <Link href={`/wizard?editId=${internalAgentId}&step=8#extraction`} className="nav-item" style={{ display: 'inline-flex', width: 'auto', padding: '4px 12px', border: 'none', background: 'transparent' }}>
-                                                                                            <i className="bi bi-gear" style={{ fontSize: '14px' }}></i>
-                                                                                            <span style={{ fontSize: '12px' }}>Configurar extracción de datos</span>
+                                                                                    <div style={{ marginTop: '32px' }}>
+                                                                                        <Link href={`/wizard?editId=${internalAgentId}&step=8#extraction`} style={{ fontSize: '12px', color: 'var(--azul)', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                            <i className="bi bi-gear-fill"></i>
+                                                                                            Configurar extracción de datos
                                                                                         </Link>
                                                                                     </div>
                                                                                 )}
