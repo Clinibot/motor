@@ -198,6 +198,38 @@ export default function NumbersPage() {
         }
     };
 
+    const handleAgentChange = async (numberId: string, phoneNumber: string, agentId: string) => {
+        try {
+            const response = await fetch('/api/retell/phone-number/assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    number_id: numberId,
+                    phone_number: phoneNumber,
+                    agent_id: agentId,
+                    workspace_id: user?.workspace_id
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Error al asignar el agente");
+            }
+
+            setNumbers(prev => prev.map(n => n.id === numberId ? { ...n, agent_id: agentId === 'none' ? null : agentId } : n));
+            setNotification({
+                message: "Agente asignado correctamente.",
+                type: 'success'
+            });
+        } catch (error: unknown) {
+            console.error("Error assigning agent:", error);
+            setNotification({
+                message: `Error: ${(error as Error).message || "No se pudo asignar el agente."}`,
+                type: 'error'
+            });
+        }
+    };
+
     return (
         <div className="app-container">
             {notification && (
@@ -218,7 +250,7 @@ export default function NumbersPage() {
 
             <div className="main-view">
                 <DashboardTopbar 
-                    title="Números y Conexiones"
+                    title="Mis números"
                     user={user}
                     isAlertPanelOpen={false}
                     setIsAlertPanelOpen={() => {}}
@@ -230,18 +262,11 @@ export default function NumbersPage() {
                 />
 
                 <div className="dashboard-content">
-                    <div className="content-header">
-                        <div>
-                            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>
-                                Gestión de Números SIP
-                            </h2>
-                            <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
-                                Conecta tus números de teléfono de Netelip para transferencias y llamadas directas.
-                            </p>
-                        </div>
-                        <button onClick={() => setShowAddModal(true)} className="btn-premium">
+                    <div className="numbers-banner">
+                        <p>Conecta tu número de netelip a la IA y luego asígnaselo a tu agente.</p>
+                        <button onClick={() => setShowAddModal(true)} className="btn-p">
                             <i className="bi bi-plus-lg"></i>
-                            Añadir número SIP
+                            <span>Añadir número</span>
                         </button>
                     </div>
 
@@ -268,63 +293,53 @@ export default function NumbersPage() {
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
                                         <tr style={{ borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)' }}>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase' }}>Estado</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase' }}>Número</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase' }}>Etiqueta</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase' }}>Agente Asignado</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase' }}>Acciones</th>
+                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Número de Teléfono</th>
+                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado</th>
+                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agente IA Asignado</th>
+                                            <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {numbers.map(num => (
                                             <tr key={num.id} style={{ borderBottom: '1px solid var(--slate-50)' }} className="table-row-hover">
                                                 <td style={{ padding: '20px 24px' }}>
-                                                    <div className="flex-center gap-8" style={{ color: '#10b981', fontWeight: 700, fontSize: '12px' }}>
-                                                        <div style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '50%' }}></div>
-                                                        CONECTADO
-                                                    </div>
+                                                    <span className="number-title-v2">{num.phone_number_pretty || num.phone_number}</span>
+                                                    <span className="number-subtitle-v2">{num.nickname || num.phone_number}</span>
                                                 </td>
                                                 <td style={{ padding: '20px 24px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--slate-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--slate-400)' }}>
-                                                            <i className="bi bi-telephone-fill"></i>
-                                                        </div>
-                                                        <span style={{ fontWeight: 700, color: 'var(--slate-900)' }}>{num.phone_number_pretty || num.phone_number}</span>
-                                                    </div>
+                                                    <span className="badge-pill active">
+                                                        <span className="dot" style={{ background: 'var(--exito)' }}></span>
+                                                        Conectado
+                                                    </span>
                                                 </td>
                                                 <td style={{ padding: '20px 24px' }}>
-                                                    <span style={{ color: 'var(--slate-500)', fontSize: '13px' }}>{num.nickname || '-'}</span>
-                                                </td>
-                                                <td style={{ padding: '20px 24px' }}>
-                                                    {num.agent_id ? (
-                                                        <div style={{ 
-                                                            display: 'inline-flex', alignItems: 'center', gap: '8px', 
-                                                            padding: '6px 12px', background: '#f0f9ff', color: 'var(--azul)', 
-                                                            borderRadius: '8px', fontSize: '13px', fontWeight: 600, border: '1px solid #e0f2fe'
-                                                        }}>
-                                                            <i className="bi bi-robot"></i>
-                                                            {agents.find(a => a.id === num.agent_id)?.name || 'Cargando...'}
-                                                        </div>
-                                                    ) : (
-                                                        <span style={{ color: 'var(--slate-400)', fontSize: '13px' }}>Sin asignar</span>
-                                                    )}
+                                                    <select 
+                                                        className="agent-select-v2"
+                                                        value={num.agent_id || 'none'}
+                                                        onChange={(e) => handleAgentChange(num.id, num.phone_number, e.target.value)}
+                                                    >
+                                                        <option value="none">Sin asignar</option>
+                                                        {agents.map(agent => (
+                                                            <option key={agent.id} value={agent.id}>{agent.name}</option>
+                                                        ))}
+                                                    </select>
                                                 </td>
                                                 <td style={{ padding: '20px 24px', textAlign: 'right' }}>
                                                     <div className="flex-center gap-8" style={{ justifyContent: 'flex-end' }}>
                                                         <button 
-                                                            className="btn-premium" 
-                                                            style={{ padding: '8px', background: 'white', color: 'var(--slate-400)', border: '1px solid var(--slate-100)', boxShadow: 'none' }}
+                                                            className="btn-s" 
+                                                            style={{ padding: '8px', width: '36px', height: '36px', justifyContent: 'center' }}
                                                             title="Configuración"
                                                         >
-                                                            <i className="bi bi-gear-fill"></i>
+                                                            <i className="bi bi-pencil-square" style={{ fontSize: '16px' }}></i>
                                                         </button>
                                                         <button 
-                                                            className="btn-premium" 
-                                                            style={{ padding: '8px', background: 'white', color: '#ef4444', border: '1px solid #fee2e2', boxShadow: 'none' }}
+                                                            className="btn-s" 
+                                                            style={{ padding: '8px', width: '36px', height: '36px', justifyContent: 'center', color: 'var(--error)', borderColor: '#fee2e2' }}
                                                             onClick={() => handleDeleteNumber(num.id, num.phone_number)}
                                                             title="Eliminar"
                                                         >
-                                                            <i className="bi bi-trash3-fill"></i>
+                                                            <i className="bi bi-trash3" style={{ fontSize: '16px' }}></i>
                                                         </button>
                                                     </div>
                                                 </td>

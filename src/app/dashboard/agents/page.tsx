@@ -219,9 +219,9 @@ export default function AgentsPage() {
                 />
 
                 <div className="dashboard-content">
-                    <div className="page-header">
+                    <div className="page-header" style={{ marginBottom: '24px' }}>
                         <div className="page-title-group">
-                            <h2>Mis agentes IA</h2>
+                            {/* Title is already in Topbar */}
                         </div>
                         <button onClick={handleCreateAgent} className="btn-p">
                             <i className="bi bi-plus-lg"></i>
