@@ -6,16 +6,9 @@ import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step1_BasicInfo: React.FC = () => {
     const { agentName, companyName, companyDescription, updateField, nextStep } = useWizardStore();
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
-        const newErrors: Record<string, string> = {};
-        if (!agentName) newErrors.agentName = 'El nombre del agente es obligatorio';
-        if (!companyName) newErrors.companyName = 'El nombre de la empresa es obligatorio';
-        
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length === 0) {
+        if (Object.keys({}).length === 0) {
             nextStep();
         }
     };

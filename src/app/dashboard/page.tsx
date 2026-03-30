@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
 import { useWizardStore } from '../../store/wizardStore';
 import Script from 'next/script';
-import NotificationsPanel from '../../components/NotificationsPanel';
 import DashboardSidebar from '../../components/DashboardSidebar';
 import DashboardTopbar from '../../components/DashboardTopbar';
 import ViewSwitcher from '../../components/ViewSwitcher';
@@ -180,7 +179,7 @@ export default function DashboardPage() {
 
         // ── 1. Calls timeline (line) ──
         if (callsChartRef.current) {
-            const chartData = getChartDataTimeline(calls, timeFilter, customDateRange);
+            const chartData = getChartDataTimeline(calls);
             const c = new Chart(callsChartRef.current, {
                 type: 'line',
                 data: {
@@ -266,7 +265,6 @@ export default function DashboardPage() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'U';
 
     // ---- Filtered calls ----
     const filteredCalls = calls.filter(call => {
@@ -359,10 +357,6 @@ export default function DashboardPage() {
         return map[s?.toLowerCase() ?? ''] ?? 'Neutral';
     };
 
-    const sentimentClass = (s?: string) => {
-        const map: Record<string, string> = { positive: 'positive', neutral: 'neutral', negative: 'negative' };
-        return map[s?.toLowerCase() ?? ''] ?? 'neutral';
-    };
 
     return (
         <div className="app">
@@ -636,7 +630,7 @@ function formatDuration(ms: number | null): string {
     return m > 0 ? `${m}m ${rs}s` : `${rs}s`;
 }
 
-function getChartDataTimeline(calls: Call[], filter: string, customRange: { start: string; end: string }) {
+function getChartDataTimeline(calls: Call[] /*, filter: string, customRange: { start: string; end: string } */) {
     const labels: string[] = [];
     const data: number[] = [];
     const groups: Record<string, number> = {};

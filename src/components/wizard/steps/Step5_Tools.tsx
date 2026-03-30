@@ -30,7 +30,6 @@ export const Step5_Tools: React.FC = () => {
     } = useWizardStore();
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showCalGuide, setShowCalGuide] = useState(false);
 
     // Auto-add phone variable if Cal.com is enabled
@@ -654,7 +653,7 @@ export const Step5_Tools: React.FC = () => {
                             <div className="bg-[#eff6ff] border border-[#dbeafe] rounded-2xl p-5 flex gap-4 items-start">
                                 <i className="bi bi-lightning-charge-fill text-[var(--azul)] text-[18px]"></i>
                                 <p className="text-[13px] text-[#1e40af] leading-relaxed m-0">
-                                    Una vez configurado, el agente podrá responder a preguntas como "¿Tienes hueco mañana por la tarde?" y proceder a la reserva automáticamente.
+                                    Una vez configurado, el agente podrá responder a preguntas como &quot;¿Tienes hueco mañana por la tarde?&quot; y proceder a la reserva automáticamente.
                                 </p>
                             </div>
                         </div>
