@@ -232,17 +232,17 @@ export default function NumbersPage() {
 
     return (
         <div className="app">
+            {/* Toast notification */}
             {notification && (
-                <div className={`notification-toast ${notification.type}`} style={{
+                <div style={{
                     position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-                    zIndex: 2000, padding: '16px 24px', borderRadius: '12px', color: 'white',
-                    background: notification.type === 'success' ? '#10b981' : '#ef4444',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 600
+                    zIndex: 2000, padding: '14px 24px', borderRadius: '10px', color: 'white',
+                    background: notification.type === 'success' ? 'var(--exito)' : 'var(--error)',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 600, fontSize: '13px',
+                    display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
-                    <div className="flex-center gap-8">
-                        <i className={`bi bi-${notification.type === 'success' ? 'check-circle' : 'exclamation-circle'}`}></i>
-                        {notification.message}
-                    </div>
+                    <i className={`bi bi-${notification.type === 'success' ? 'check-circle' : 'exclamation-circle'}`}></i>
+                    {notification.message}
                 </div>
             )}
 
@@ -262,247 +262,169 @@ export default function NumbersPage() {
                 />
 
                 <div className="content">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '24px 32px', marginBottom: '28px' }}>
-                        <div>
-                            <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-900)', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>Conexión SIP Trunking</h2>
-                            <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0, fontWeight: 500 }}>Conecta tu infraestructura de netelip para habilitar transferencias inteligentes.</p>
+                    {/* Main table card */}
+                    <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
+                        {/* Card header */}
+                        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gris-borde)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                            <span style={{ fontSize: '13px', color: 'var(--gris-texto)' }}>Conecta tu número de netelip a la IA y luego asígnaselo a tu agente</span>
+                            <button className="btn-p" onClick={() => setShowAddModal(true)} style={{ whiteSpace: 'nowrap', gap: '6px', fontSize: '13px', padding: '8px 16px' }}>
+                                <i className="bi bi-plus-lg"></i> Añadir número
+                            </button>
                         </div>
-                        <button onClick={() => setShowAddModal(true)} className="btn-p" style={{ height: '48px', padding: '0 24px', borderRadius: '14px', fontWeight: 800 }}>
-                            <i className="bi bi-plus-lg" style={{ marginRight: '10px' }}></i>
-                            <span>Añadir número</span>
-                        </button>
-                    </div>
 
-                    <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
+                        {/* Table */}
                         {isLoading ? (
-                            <div style={{ padding: '80px', textAlign: 'center' }}>
-                                <div className="spinner" style={{ border: '3px solid var(--slate-100)', borderTop: '3px solid var(--azul)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
-                                <p style={{ color: 'var(--slate-500)', fontWeight: 500 }}>Cargando números...</p>
+                            <div style={{ padding: '60px', textAlign: 'center' }}>
+                                <div style={{ border: '3px solid var(--gris-borde)', borderTop: '3px solid var(--azul)', borderRadius: '50%', width: '36px', height: '36px', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }}></div>
+                                <p style={{ color: 'var(--gris-texto)', fontSize: '13px' }}>Cargando números...</p>
                             </div>
                         ) : numbers.length === 0 ? (
-                            <div style={{ padding: '80px 40px', textAlign: 'center' }}>
-                                <div style={{ width: '64px', height: '64px', background: 'var(--slate-50)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: 'var(--slate-300)', fontSize: '32px' }}>
-                                    <i className="bi bi-telephone" />
-                                </div>
-                                <h3 style={{ fontSize: '19px', fontWeight: 700, color: 'var(--slate-900)', marginBottom: '8px' }}>No hay números configurados</h3>
-                                <p style={{ fontSize: '14px', color: 'var(--slate-500)', maxWidth: '400px', margin: '0 auto 32px' }}>Añade tu primer número SIP de Netelip para que tus agentes puedan realizar transferencias.</p>
-                                <button className="btn-premium" onClick={() => setShowAddModal(true)} style={{ margin: '0 auto' }}>
-                                    <i className="bi bi-plus-lg"></i>
-                                    Configurar primer número
+                            <div style={{ padding: '60px 40px', textAlign: 'center' }}>
+                                <i className="bi bi-telephone" style={{ fontSize: '32px', color: 'var(--gris-borde)', display: 'block', marginBottom: '16px' }}></i>
+                                <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: '6px' }}>No hay números configurados</div>
+                                <p style={{ fontSize: '13px', color: 'var(--gris-texto)', maxWidth: '360px', margin: '0 auto 24px' }}>Añade tu primer número SIP de netelip para que tus agentes puedan realizar transferencias.</p>
+                                <button className="btn-p" onClick={() => setShowAddModal(true)}>
+                                    <i className="bi bi-plus-lg"></i> Añadir número
                                 </button>
                             </div>
                         ) : (
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                        <tr style={{ borderBottom: '1px solid var(--gris-borde)', background: 'var(--gris-bg)' }}>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Número de Teléfono</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agente IA Asignado</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones</th>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                <thead>
+                                    <tr style={{ background: 'var(--gris-bg)' }}>
+                                        <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--gris-texto)' }}>Número de teléfono</th>
+                                        <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--gris-texto)' }}>Estado</th>
+                                        <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--gris-texto)' }}>Agente IA asignado</th>
+                                        <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--gris-texto)' }}>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {numbers.map(num => (
+                                        <tr key={num.id} style={{ borderTop: '1px solid var(--gris-borde)' }}>
+                                            <td style={{ padding: '12px 16px' }}>
+                                                <div style={{ fontWeight: 600 }}>{num.phone_number_pretty || num.phone_number}</div>
+                                                <div style={{ fontSize: '11px', color: 'var(--gris-texto)' }}>{num.nickname || num.phone_number}</div>
+                                            </td>
+                                            <td style={{ padding: '12px 16px' }}>
+                                                <span style={{ background: '#dcfce7', color: '#16a34a', padding: '4px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 700 }}>✓ Conectado</span>
+                                            </td>
+                                            <td style={{ padding: '12px 16px' }}>
+                                                <select
+                                                    className="inp sel"
+                                                    style={{ width: '220px', fontSize: '13px', padding: '7px 36px 7px 12px' }}
+                                                    value={num.agent_id || 'none'}
+                                                    onChange={(e) => handleAgentChange(num.id, num.phone_number, e.target.value)}
+                                                >
+                                                    <option value="none">Sin agente (Desactivado)</option>
+                                                    {agents.map(agent => (
+                                                        <option key={agent.id} value={agent.id}>{agent.name}</option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td style={{ padding: '12px 16px', display: 'flex', gap: '6px' }}>
+                                                <button className="btn-s" onClick={() => setShowAddModal(true)} style={{ padding: '6px 10px' }} title="Editar número">
+                                                    <i className="bi bi-pencil"></i>
+                                                </button>
+                                                <button className="btn-s" style={{ color: 'var(--error)', borderColor: '#fecaca', padding: '6px 10px' }} onClick={() => handleDeleteNumber(num.id, num.phone_number)} title="Eliminar número">
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {numbers.map(num => (
-                                            <tr key={num.id} style={{ borderBottom: '1px solid var(--slate-50)' }} className="table-row-hover">
-                                                <td style={{ padding: '20px 24px' }}>
-                                                    <span className="number-title-v2">{num.phone_number_pretty || num.phone_number}</span>
-                                                    <span className="number-subtitle-v2">{num.nickname || num.phone_number}</span>
-                                                </td>
-                                                <td style={{ padding: '20px 24px' }}>
-                                                    <span className="badge-pill active">
-                                                        <span className="dot" style={{ background: 'var(--exito)' }}></span>
-                                                        Conectado
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: '20px 24px' }}>
-                                                    <select 
-                                                        className="agent-select-v2"
-                                                        value={num.agent_id || 'none'}
-                                                        onChange={(e) => handleAgentChange(num.id, num.phone_number, e.target.value)}
-                                                    >
-                                                        <option value="none">Sin asignar</option>
-                                                        {agents.map(agent => (
-                                                            <option key={agent.id} value={agent.id}>{agent.name}</option>
-                                                        ))}
-                                                    </select>
-                                                </td>
-                                                <td style={{ padding: '20px 24px', textAlign: 'right' }}>
-                                                    <div className="flex-center gap-8" style={{ justifyContent: 'flex-end' }}>
-                                                        <button 
-                                                            className="btn-s" 
-                                                            style={{ padding: '8px', width: '36px', height: '36px', justifyContent: 'center' }}
-                                                            title="Configuración"
-                                                        >
-                                                            <i className="bi bi-pencil-square" style={{ fontSize: '16px' }}></i>
-                                                        </button>
-                                                        <button 
-                                                            className="btn-s" 
-                                                            style={{ padding: '8px', width: '36px', height: '36px', justifyContent: 'center', color: 'var(--error)', borderColor: '#fee2e2' }}
-                                                            onClick={() => handleDeleteNumber(num.id, num.phone_number)}
-                                                            title="Eliminar"
-                                                        >
-                                                            <i className="bi bi-trash3" style={{ fontSize: '16px' }}></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    ))}
+                                </tbody>
+                            </table>
                         )}
                     </div>
                 </div>
             </main>
 
-            {/* Modal Añadir Número - SIP TRUNKING */}
-            {showAddModal && (
-                <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', zIndex: 1000 }} onClick={() => setShowAddModal(false)}>
-                    <div className="card-premium" style={{ width: '100%', maxWidth: '540px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>Conectar número SIP</h3>
-                                <p style={{ fontSize: '13px', color: 'var(--slate-500)', margin: '4px 0 0 0' }}>Conexión directa con Netelip</p>
-                            </div>
-                            <button onClick={() => setShowAddModal(false)} style={{ background: 'var(--slate-200)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--slate-600)' }}>
-                                <i className="bi bi-x-lg"></i>
-                            </button>
-                        </div>
+            {/* MODAL GUÍA NETELIP */}
+            {showHelpModal && (
+                <div className="modal-overlay" style={{ background: 'rgba(0,0,0,.45)', zIndex: 700 }} onClick={() => setShowHelpModal(false)}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '32px', width: '520px', maxWidth: '90vw', position: 'relative', maxHeight: '88vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setShowHelpModal(false)} style={{ position: 'absolute', top: '16px', right: '20px', border: 'none', background: 'none', fontSize: '22px', color: 'var(--gris-texto)', cursor: 'pointer' }}>×</button>
+                        <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '24px' }}>Guía de Configuración netelip</h2>
 
-                        <div style={{ padding: '32px', maxHeight: '75vh', overflowY: 'auto' }}>
-                            <button
-                                onClick={() => setShowHelpModal(true)}
-                                style={{ 
-                                    width: '100%', padding: '14px', borderRadius: '12px', background: 'var(--azul)', color: 'white',
-                                    border: 'none', fontWeight: 700, fontSize: '13px', marginBottom: '24px', cursor: 'pointer',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(38,122,176,0.3)'
-                                }}
-                            >
-                                <i className="bi bi-book"></i>
-                                Guía de Configuración de Netelip
-                            </button>
-
-                            <div style={{ display: 'grid', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '6px', textTransform: 'uppercase' }}>Número de Teléfono (E.164)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="+34912345678"
-                                        value={newNumber.phone}
-                                        onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })}
-                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--slate-200)', fontSize: '14px', outline: 'none' }}
-                                    />
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '20px' }}>
+                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--azul)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, flexShrink: 0 }}>1</div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>Llamadas Salientes (en este panel)</div>
+                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', marginBottom: '12px' }}>Introduce estos datos en el formulario anterior:</div>
+                                <div style={{ background: 'var(--gris-bg)', borderRadius: 'var(--r-md)', padding: '14px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ color: 'var(--gris-texto)' }}>Termination URI</span><code style={{ background: 'white', border: '1px solid var(--gris-borde)', padding: '3px 10px', borderRadius: '6px', fontSize: '12px' }}>retellai.netelip.com</code></div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ color: 'var(--gris-texto)' }}>SIP Username</span><code style={{ background: 'white', border: '1px solid var(--gris-borde)', padding: '3px 10px', borderRadius: '6px', fontSize: '12px' }}>Tu número de netelip</code></div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ color: 'var(--gris-texto)' }}>Outbound Transport</span><code style={{ background: 'white', border: '1px solid var(--gris-borde)', padding: '3px 10px', borderRadius: '6px', fontSize: '12px' }}>UDP</code></div>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '6px', textTransform: 'uppercase' }}>URI de Terminación</label>
-                                    <input
-                                        type="text"
-                                        placeholder="retellai.netelip.com"
-                                        value={newNumber.termination_uri}
-                                        onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })}
-                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--slate-200)', fontSize: '14px', outline: 'none' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '6px', textTransform: 'uppercase' }}>Usuario SIP</label>
-                                        <input
-                                            type="text"
-                                            value={newNumber.username}
-                                            onChange={e => setNewNumber({ ...newNumber, username: e.target.value })}
-                                            style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--slate-200)', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '6px', textTransform: 'uppercase' }}>Contraseña</label>
-                                        <input
-                                            type="password"
-                                            value={newNumber.password}
-                                            onChange={e => setNewNumber({ ...newNumber, password: e.target.value })}
-                                            style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--slate-200)', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '6px', textTransform: 'uppercase' }}>Etiqueta (Opcional)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ej: Número de Ventas"
-                                        value={newNumber.nickname}
-                                        onChange={e => setNewNumber({ ...newNumber, nickname: e.target.value })}
-                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--slate-200)', fontSize: '14px', outline: 'none' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '6px', textTransform: 'uppercase' }}>Protocolo de Transporte</label>
-                                    <select
-                                        value={newNumber.transport}
-                                        onChange={e => setNewNumber({ ...newNumber, transport: e.target.value })}
-                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--slate-200)', fontSize: '14px', background: 'white', outline: 'none' }}
-                                    >
-                                        <option value="udp">UDP (Recomendado)</option>
-                                        <option value="tcp">TCP</option>
-                                        <option value="tls">TLS (Seguro)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
-                                <button
-                                    onClick={() => setShowAddModal(false)}
-                                    style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'var(--slate-100)', color: 'var(--slate-600)', border: 'none', fontWeight: 700, cursor: 'pointer' }}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleAddNumber}
-                                    disabled={isSaving}
-                                    style={{ flex: 2, padding: '14px', borderRadius: '12px', background: 'var(--azul)', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer' }}
-                                >
-                                    {isSaving ? 'Guardando...' : 'Conectar Número'}
-                                </button>
                             </div>
                         </div>
+
+                        <hr className="divider" />
+
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '20px' }}>
+                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--azul)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, flexShrink: 0 }}>2</div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>Llamadas Entrantes (en Panel netelip)</div>
+                                <div style={{ fontSize: '13px', color: 'var(--gris-texto)', marginBottom: '12px' }}>Accede a tu panel de netelip y configura el desvío SIP del número:</div>
+                                <div style={{ background: 'var(--gris-bg)', borderRadius: 'var(--r-md)', padding: '14px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ color: 'var(--gris-texto)' }}>Servidor SIP</span><code style={{ background: 'white', border: '1px solid var(--gris-borde)', padding: '3px 10px', borderRadius: '6px', fontSize: '11px' }}>5t4n6j0wnrl.sip.livekit.cloud</code></div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ color: 'var(--gris-texto)' }}>Añadir &quot;+&quot; al número E.164</span><span style={{ fontWeight: 700, color: 'var(--exito)' }}>Activar</span></div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ color: 'var(--gris-texto)' }}>Habilitar desvío</span><span style={{ fontWeight: 700, color: 'var(--exito)' }}>Activar</span></div>
+                                </div>
+                                <div style={{ background: '#eff6fb', border: '1px solid #bee3f8', borderRadius: 'var(--r-md)', padding: '12px 14px', marginTop: '12px', fontSize: '12px', color: '#1e4d7a', lineHeight: 1.6 }}>
+                                    <strong>Nota:</strong> Tu usuario y contraseña SIP los encontrarás en <strong style={{ color: 'var(--azul)' }}>Línea SIP — Configurador de dispositivos</strong> dentro de tu panel de netelip.
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onClick={() => setShowHelpModal(false)} className="btn-p" style={{ width: '100%', justifyContent: 'center', padding: '13px', fontSize: '14px' }}>Entendido</button>
                     </div>
                 </div>
             )}
 
-            {/* Modal de Ayuda */}
-            {showHelpModal && (
-                <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)', zIndex: 1100 }} onClick={() => setShowHelpModal(false)}>
-                    <div className="card-premium" style={{ width: '100%', maxWidth: '500px', padding: '32px' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-                            <div style={{ width: '60px', height: '60px', background: '#f0f9ff', color: 'var(--azul)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', margin: '0 auto 16px' }}>
-                                <i className="bi bi-info-circle-fill"></i>
+            {/* MODAL FORMULARIO SIP */}
+            {showAddModal && (
+                <div className="modal-overlay" style={{ background: 'rgba(0,0,0,.45)', zIndex: 600 }} onClick={() => setShowAddModal(false)}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '32px', width: '560px', maxWidth: '92vw', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setShowAddModal(false)} style={{ position: 'absolute', top: '16px', right: '20px', border: 'none', background: 'none', fontSize: '22px', color: 'var(--gris-texto)', cursor: 'pointer', lineHeight: 1 }}>×</button>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>Conectar número vía SIP trunking</h3>
+                        <a href="#" onClick={(e) => { e.preventDefault(); setShowAddModal(false); setShowHelpModal(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--azul)', fontWeight: 600, textDecoration: 'none', marginBottom: '22px' }}>
+                            <i className="bi bi-exclamation-triangle" style={{ color: '#d97706' }}></i> Ver manual de configuración de netelip
+                        </a>
+
+                        <div className="fg">
+                            <label className="lbl">Número de Teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
+                            <input className="inp" placeholder="Introduce el número de teléfono (E.164)" value={newNumber.phone} onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })} />
+                        </div>
+                        <div className="fg">
+                            <label className="lbl">URI de Terminación <span style={{ color: 'var(--error)' }}>*</span></label>
+                            <input className="inp" placeholder="Introduce la URI de terminación (NO la URI del servidor SIP de Retell)" value={newNumber.termination_uri} onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })} />
+                        </div>
+                        <div className="fg">
+                            <label className="lbl">Nombre de Usuario del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>
+                            <input className="inp" placeholder="netelip@centrodemando.es" value={newNumber.username} onChange={e => setNewNumber({ ...newNumber, username: e.target.value })} />
+                        </div>
+                        <div className="fg">
+                            <label className="lbl">Contraseña del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>
+                            <input className="inp" type="password" placeholder="••••••••••••" value={newNumber.password} onChange={e => setNewNumber({ ...newNumber, password: e.target.value })} />
+                        </div>
+                        <div className="fg">
+                            <label className="lbl">Apodo / Etiqueta <span style={{ color: 'var(--gris-texto)', fontWeight: 400, fontSize: '12px' }}>(Opcional)</span></label>
+                            <input className="inp" placeholder="Introduce un apodo para este número" value={newNumber.nickname} onChange={e => setNewNumber({ ...newNumber, nickname: e.target.value })} />
+                        </div>
+                        <div className="fg">
+                            <label className="lbl">Transporte de salida</label>
+                            <div style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600 }}>UDP</span>
+                                <span style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Recomendado por netelip</span>
                             </div>
-                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>Guía de Configuración</h3>
+                            <div className="hint">El protocolo UDP es el estándar recomendado para la telefonía SIP con netelip.</div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div style={{ background: 'var(--slate-50)', padding: '16px', borderRadius: '16px', border: '1px solid var(--slate-100)' }}>
-                                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '10px' }}>PASO 1: EN ESTE PANEL</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <div className="flex-between"><span style={{ fontSize: '13px', color: 'var(--slate-600)' }}>Termination URI:</span> <code style={{ fontSize: '13px', fontWeight: 700 }}>retellai.netelip.com</code></div>
-                                    <div className="flex-between"><span style={{ fontSize: '13px', color: 'var(--slate-600)' }}>Transporte:</span> <code style={{ fontSize: '13px', fontWeight: 700 }}>UDP</code></div>
-                                </div>
-                            </div>
-
-                            <div style={{ background: 'var(--slate-50)', padding: '16px', borderRadius: '16px', border: '1px solid var(--slate-100)' }}>
-                                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '10px' }}>PASO 2: PANEL NETELIP</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <div className="flex-between"><span style={{ fontSize: '13px', color: 'var(--slate-600)' }}>Servidor SIP:</span> <code style={{ fontSize: '12px', fontWeight: 700 }}>...sip.livekit.cloud</code></div>
-                                    <div className="flex-between"><span style={{ fontSize: '13px', color: 'var(--slate-600)' }}>E.164 (+):</span> <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>ACTIVADO</span></div>
-                                </div>
-                            </div>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                            <button className="btn-s" onClick={() => setShowAddModal(false)} style={{ flex: 1, justifyContent: 'center' }}>Cancelar</button>
+                            <button className="btn-p" onClick={handleAddNumber} disabled={isSaving} style={{ flex: 2, justifyContent: 'center' }}>
+                                {isSaving ? 'Guardando...' : 'Guardar'}
+                            </button>
                         </div>
-
-                        <button
-                            onClick={() => setShowHelpModal(false)}
-                            style={{ width: '100%', marginTop: '32px', padding: '14px', borderRadius: '12px', background: 'var(--azul)', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer' }}
-                        >
-                            Lo tengo
-                        </button>
                     </div>
                 </div>
             )}
