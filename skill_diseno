@@ -1,0 +1,203 @@
+---
+name: fabrica-agentes-ui
+description: >
+  Sistema de diseño completo de "La Fábrica de Agentes IA" (panel.ia-al-telefono.com).
+  Usa esta skill SIEMPRE que Sonia pida crear, editar o revisar cualquier interfaz HTML/CSS/JS
+  relacionada con el panel de la Fábrica de Agentes, componentes UI para IA al Teléfono,
+  prototipos de pantallas para el SaaS de Telvia, o cualquier artifact visual que deba
+  seguir el design system de la Fábrica. También úsala cuando pida componentes concretos
+  como cards de agentes, formularios de configuración, tablas de admin, modales, topbar,
+  sidebar, badges o cualquier elemento del sistema. Si la petición implica HTML+CSS
+  relacionado con agentes de voz, panel de cliente o interfaz de la Fábrica: usa esta skill.
+---
+
+# La Fábrica de Agentes IA — Design System
+
+Manual de implementación técnica para producir interfaces coherentes con el sistema de diseño oficial.
+
+## 0. Antes de empezar
+
+Lee siempre `references/tokens.md` para tener todos los valores exactos de variables CSS, tipografía e iconos. Para patrones de componentes complejos (tablas admin, modales, cards de agente) lee `references/components.md`.
+
+---
+
+## 1. Reglas de oro (no negociables)
+
+```
+✓ SIEMPRE variables CSS de :root — nunca hex hardcodeado
+✓ Fuente: Inter (Google Fonts) pesos 400, 500, 600, 700, 800
+✓ Iconos: SOLO Bootstrap Icons 1.11.3 — <i class="bi bi-nombre"></i>
+✓ Bordes: 1px solid var(--gris-borde) — siempre
+✓ Focus inputs: border var(--azul) + box-shadow 0 0 0 3px rgba(38,122,176,.1)
+✓ Transiciones: all .15s hover / background .2s botones
+✗ NO Font Awesome, Material Icons ni ninguna otra lib de iconos
+✗ NO box-shadow salvo modales y dropdowns (diseño flat)
+✗ NO border-radius custom — solo --r-sm / --r-md / --r-lg
+✗ NO colores nuevos sin añadirlos primero a :root
+```
+
+---
+
+## 2. Setup base de cualquier archivo HTML
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+:root {
+  /* Colores principales */
+  --azul: #267ab0;
+  --azul-hover: #1e6291;
+  --azul-light: #eff6fb;
+  --oscuro: #1a2428;
+  --exito: #10b981;
+  --amarillo: #f59e0b;
+  --rojo: #ef4444;
+  --gris-bg: #f5f6f8;
+  /* Grises y neutros */
+  --gris-borde: #e5e7eb;
+  --gris-texto: #6c757d;
+  --blanco: #ffffff;
+  /* Border radius */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; line-height: 1.6; background: var(--gris-bg); color: var(--oscuro); }
+</style>
+```
+
+---
+
+## 3. Layout estructural
+
+La app usa un layout **sidebar fija + main con topbar sticky**:
+
+```
+.app (display:flex)
+├── .sidebar  — fixed left, width:260px, z-index:100, bg:white
+└── .main     — margin-left:260px
+    ├── .topbar   — sticky top, height:56px, z-index:50, padding:0 32px
+    ├── .content  — padding:32px, padding-bottom:76px (obligatorio para .vs)
+    └── .vs       — fixed bottom, z-index:200, bg:#1e2a30, left:260px
+```
+
+> `padding-bottom:76px` en `.content` es **obligatorio** — reserva espacio para el view switcher fijo.
+
+**CSS clave del layout:**
+```css
+.sidebar { position:fixed; top:0; left:0; width:260px; height:100vh; background:var(--blanco); border-right:1px solid var(--gris-borde); z-index:100; display:flex; flex-direction:column; overflow-y:auto; }
+.main { margin-left:260px; min-height:100vh; display:flex; flex-direction:column; }
+.topbar { position:sticky; top:0; height:56px; background:var(--blanco); border-bottom:1px solid var(--gris-borde); display:flex; align-items:center; justify-content:space-between; padding:0 32px; z-index:50; }
+.content { padding:32px; padding-bottom:76px; flex:1; }
+```
+
+---
+
+## 4. Botones
+
+```css
+/* Primario */
+.btn-p { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--azul); color:var(--blanco); border:none; border-radius:var(--r-md); font-size:13px; font-weight:600; cursor:pointer; transition:background .2s; }
+.btn-p:hover { background:var(--azul-hover); }
+
+/* Secundario */
+.btn-s { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--blanco); color:var(--gris-texto); border:1px solid var(--gris-borde); border-radius:var(--r-md); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+.btn-s:hover { color:var(--oscuro); border-color:#d1d5db; }
+
+/* Mini (tablas) */
+.btn-s.mini { padding:5px 8px; }
+```
+
+Iconos dentro de botones: siempre `font-size:14px; flex-shrink:0`.
+
+---
+
+## 5. Formularios
+
+```css
+.form-card { background:var(--blanco); border:1px solid var(--gris-borde); border-radius:var(--r-lg); padding:28px 32px; }
+.fg { margin-bottom:16px; }
+.lbl { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--oscuro); }
+.inp { width:100%; padding:10px 14px; border:1px solid var(--gris-borde); border-radius:var(--r-md); font-size:14px; font-family:inherit; outline:none; transition:all .15s; }
+.inp:focus { border-color:var(--azul); box-shadow:0 0 0 3px rgba(38,122,176,.1); }
+.hint { font-size:12px; color:var(--gris-texto); margin-top:4px; }
+/* Select nativo */
+.sel { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='%236c757d' d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+```
+
+---
+
+## 6. Badges y estados
+
+```css
+/* Uso: <span class="badge badge-ok">Activo</span> */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+.badge-ok   { background:#d1fae5; color:#065f46; }  /* verde */
+.badge-warn { background:#fef3c7; color:#92400e; }  /* amarillo */
+.badge-err  { background:#fee2e2; color:#991b1b; }  /* rojo */
+.badge-info { background:var(--azul-light); color:var(--azul); }  /* azul */
+.badge-gray { background:var(--gris-bg); color:var(--gris-texto); }
+```
+
+---
+
+## 7. Tipografía de referencia rápida
+
+| Uso | px | weight | clase |
+|---|---|---|---|
+| Título principal | 20 | 700 | `.form-title` |
+| Topbar título | 18 | 700 | `.topbar-title` |
+| Sección título | 14 | 700 | `.form-section-title` |
+| Label / botón | 13 | 600 | `.lbl`, `.btn-p` |
+| Cuerpo / nav | 13 | 500 | `.nav-btn` |
+| Hint / sub | 12 | 400 | `.hint`, `.form-sub` |
+| BADGE | 11 | 700 | uppercase, `.badge` |
+| LABEL NAV | 10 | 700 | uppercase, `.nav-label` |
+
+---
+
+## 8. Responsive (breakpoints)
+
+```css
+/* Tablet 768–1023px */
+@media (max-width:1023px) {
+  .sidebar { transform:translateX(-260px); }
+  .main { margin-left:0; }
+  .stats-row { grid-template-columns:repeat(2,1fr); }
+}
+/* Móvil <768px */
+@media (max-width:767px) {
+  .content { padding:16px; padding-bottom:76px; }
+  .form-card { padding:16px; }
+}
+```
+
+---
+
+## 9. Iconos más usados
+
+`bi-house-door` · `bi-robot` · `bi-telephone` · `bi-cpu` · `bi-mic` · `bi-sliders` · `bi-tools` · `bi-shield-lock` · `bi-bar-chart-line` · `bi-bell` · `bi-plus-lg` · `bi-pencil` · `bi-trash` · `bi-play-fill` · `bi-arrow-right` · `bi-check` · `bi-chat-dots` · `bi-send` · `bi-calendar-check`
+
+En headers: 18–22px. Dentro de botones e inputs: 14px + `flex-shrink:0`.
+
+---
+
+## 10. Flujo de trabajo al recibir una petición
+
+1. **Identifica el componente**: ¿es un layout completo, un componente aislado, o un artifact interactivo?
+2. **Lee las referencias**: para componentes complejos (tablas admin, modales, agent cards) consulta `references/components.md`
+3. **Usa el setup base** del apartado 2 si es un HTML standalone
+4. **Aplica las reglas de oro** del apartado 1 sin excepción
+5. **Verifica**: ¿hay algún color hex hardcodeado? ¿Algún icono de otra librería? ¿Falta padding-bottom:76px en .content?
+
+---
+
+## Referencias adicionales
+
+- `references/tokens.md` — Tabla completa de todos los tokens CSS con valores exactos
+- `references/components.md` — Patrones detallados: modales, tablas admin, ag-cards, voice-cards, stat-cards, toggles, radio cards, callouts

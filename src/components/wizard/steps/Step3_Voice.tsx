@@ -132,7 +132,6 @@ export const Step3_Voice: React.FC = () => {
         });
     }, [voices, activeGender, isLoadingVoices]);
 
-    // Grouping for languages
     const esVoices = filteredVoices.filter(v => v.language === 'es');
     const enVoices = filteredVoices.filter(v => v.language === 'en');
     const caVoices = filteredVoices.filter(v => v.language === 'ca');
@@ -196,45 +195,12 @@ export const Step3_Voice: React.FC = () => {
         newAudio.play().catch(() => setPlayingId(null));
     };
 
-    const renderProviderTag = (provider: string, isComingSoon?: boolean) => {
-        if (isComingSoon) {
-            return (
-                <span style={{ background: '#fef3c7', color: '#b45309', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
-                    Próximamente
-                </span>
-            );
-        }
-        const lower = provider.toLowerCase();
-        if (lower.includes('cartesia')) {
-            return <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Cartesia</span>;
-        } else if (lower.includes('elevenlabs')) {
-            return <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>ElevenLabs</span>;
-        } else if (lower.includes('openai')) {
-            return <span style={{ background: '#ffedd5', color: '#c2410c', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>OpenAI</span>;
-        } else if (lower.includes('cloned')) {
-            return <span style={{ background: '#fce7f3', color: '#be185d', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Clon</span>;
-        }
-        return null;
-    };
-
     const VoiceCard = ({ v }: { v: Voice }) => {
         const isSelected = voiceId === (v.voice_id.includes('12051') ? '12051' : v.voice_id);
         const disabled = v.isComingSoon;
 
         return (
             <div
-                className={`voice-card ${isSelected ? 'selected' : ''} ${disabled ? 'disabled-card' : ''}`}
-                style={{
-                    border: isSelected ? '2px solid #267ab0' : (disabled ? '1px dashed #cbd5e1' : '1px solid #e2e8f0'),
-                    borderRadius: '12px',
-                    padding: '16px',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    background: isSelected ? '#f0f7ff' : '#fff',
-                    opacity: disabled ? 0.7 : 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                }}
                 onClick={() => {
                     if (disabled) return;
                     const finalId = v.voice_id.includes('12051') ? '12051' : v.voice_id;
@@ -242,36 +208,48 @@ export const Step3_Voice: React.FC = () => {
                     updateField('voiceName', v.voice_name);
                     updateField('voiceProvider', v.provider);
                 }}
+                style={{
+                    border: isSelected ? '2px solid var(--azul)' : '1px solid var(--gris-borde)',
+                    borderRadius: 'var(--r-md)',
+                    padding: '16px',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    background: isSelected ? 'var(--azul-light)' : 'var(--blanco)',
+                    opacity: disabled ? 0.6 : 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    boxShadow: isSelected ? '0 4px 12px rgba(38, 122, 176, 0.1)' : 'none'
+                }}
             >
-                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <div className="voice-avatar" style={{
-                        width: '48px',
-                        height: '48px',
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div className="flex-center" style={{
+                        width: '44px',
+                        height: '44px',
                         borderRadius: '50%',
-                        background: disabled ? '#f8fafc' : '#f0f9ff',
-                        color: disabled ? '#94a3b8' : '#0ea5e9',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '20px',
+                        background: isSelected ? 'var(--azul)' : (disabled ? 'var(--gris-bg)' : 'var(--gris-bg)'),
+                        color: isSelected ? 'var(--blanco)' : (disabled ? 'var(--gris-texto)' : 'var(--azul)'),
+                        fontSize: '18px',
                         fontWeight: 700,
                         flexShrink: 0
                     }}>
-                        {disabled ? <i className="bi bi-mic"></i> : v.voice_name.charAt(0).toUpperCase()}
+                        {v.voice_name.charAt(0).toUpperCase()}
                     </div>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: '15px', color: disabled ? '#475569' : '#0f172a' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--oscuro)' }}>
                             {v.voice_name}
                         </div>
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                            <span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
-                                {v.accent === 'Americano' ? 'Americano' : (v.accent === 'Multilingüe' ? 'Multilingüe' : 'Español')}
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            <span style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--gris-texto)', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 600 }}>
+                                {v.accent === 'Americano' ? 'EN' : (v.accent === 'Multilingüe' ? 'MULTI' : 'ES')}
                             </span>
-                            <span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
-                                {v.gender === 'female' ? 'Femenino' : 'Masculino'}
-                            </span>
-                            {renderProviderTag(v.provider, v.isComingSoon)}
+                            {v.isComingSoon && (
+                                <span style={{ background: 'var(--error-light)', color: 'var(--error)', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 600 }}>
+                                    SOON
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -280,30 +258,35 @@ export const Step3_Voice: React.FC = () => {
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); togglePlay(v); }}
+                        className="flex-center"
                         style={{ 
                             border: 'none', 
-                            background: 'transparent', 
-                            color: playingId === v.voice_id ? '#267ab0' : '#64748b', 
-                            fontSize: '13px', 
-                            fontWeight: 600, 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                            background: 'rgba(0,0,0,0.03)', 
+                            color: playingId === v.voice_id ? 'var(--azul)' : 'var(--gris-texto)', 
+                            fontSize: '11px', 
+                            fontWeight: 700, 
                             gap: '6px',
-                            padding: 0,
-                            marginTop: '8px'
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            marginTop: '4px',
+                            width: 'fit-content'
                         }}
                     >
-                        <i className={`bi ${playingId === v.voice_id ? 'bi-pause-circle' : 'bi-play-circle'}`} style={{ fontSize: '16px' }}></i>
-                        Preview
+                        <i className={`bi ${playingId === v.voice_id ? 'bi-pause-fill' : 'bi-play-fill'}`} style={{ fontSize: '14px' }}></i>
+                        PREVIEW
                     </button>
+                )}
+                
+                {isSelected && (
+                    <i className="bi bi-check-circle-fill" style={{ color: 'var(--azul)', position: 'absolute', top: '8px', right: '8px', fontSize: '14px' }}></i>
                 )}
             </div>
         );
     };
 
     return (
-        <div className="content-area w-full max-w-[1100px] ml-0">
-            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
+        <div className="content-area">
+            <div className="form-card">
                 <WizardStepHeader
                     title="Voz del agente"
                     subtitle="Elige la voz que usará tu agente. Haz clic en Preview para escuchar la muestra."
@@ -311,9 +294,9 @@ export const Step3_Voice: React.FC = () => {
 
                 <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
                     
-                    <div style={{ marginBottom: '24px' }}>
-                        <label style={{ fontSize: '14px', fontWeight: 700, color: '#1a2428', marginBottom: '12px', display: 'block' }}>Filtrar por género</label>
-                        <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ marginBottom: '32px' }}>
+                        <label className="lbl" style={{ marginBottom: '12px' }}>Filtrar por género</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
                             {[
                                 { id: 'all', name: 'Todos' },
                                 { id: 'male', name: 'Masculino ♂️' },
@@ -323,17 +306,8 @@ export const Step3_Voice: React.FC = () => {
                                     key={g.id}
                                     type="button"
                                     onClick={() => setActiveGender(g.id)}
-                                    style={{
-                                        padding: '6px 16px',
-                                        fontSize: '13px',
-                                        fontWeight: 600,
-                                        borderRadius: '20px',
-                                        color: activeGender === g.id ? '#fff' : '#64748b',
-                                        border: `1px solid ${activeGender === g.id ? '#267ab0' : '#e2e8f0'}`,
-                                        background: activeGender === g.id ? '#267ab0' : '#fff',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
+                                    className={activeGender === g.id ? 'btn-p mini' : 'btn-s mini'}
+                                    style={{ borderRadius: '20px', padding: '8px 16px' }}
                                 >
                                     {g.name}
                                 </button>
@@ -342,96 +316,99 @@ export const Step3_Voice: React.FC = () => {
                     </div>
 
                     {isLoadingVoices ? (
-                        <div style={{ textAlign: 'center', padding: '60px' }}>
-                            <div className="spinner-border text-primary" role="status"></div>
+                        <div className="flex-center" style={{ padding: '60px' }}>
+                            <div className="spinner-border text-primary" style={{ borderRightColor: 'transparent' }} />
                         </div>
                     ) : (
-                        <div className="voices-sections" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
                             
-                            {/* ESPAÑOL SECTION */}
                             {esVoices.length > 0 && (
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                                        <span style={{ fontSize: '18px' }}>🇪🇸</span>
-                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>ESPAÑOL</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                                        <span style={{ fontSize: '20px' }}>🇪🇸</span>
+                                        <h3 className="lbl" style={{ margin: 0, fontSize: '13px', letterSpacing: '1px', opacity: 0.7 }}>ESPAÑOL</h3>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                                         {esVoices.map(v => <VoiceCard key={v.voice_id} v={v} />)}
                                     </div>
                                 </div>
                             )}
 
-                            {/* INGLÉS SECTION */}
                             {enVoices.length > 0 && (
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                                        <span style={{ fontSize: '18px' }}>🇬🇧</span>
-                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>INGLÉS</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                                        <span style={{ fontSize: '20px' }}>🇬🇧</span>
+                                        <h3 className="lbl" style={{ margin: 0, fontSize: '13px', letterSpacing: '1px', opacity: 0.7 }}>INGLÉS</h3>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                                         {enVoices.map(v => <VoiceCard key={v.voice_id} v={v} />)}
                                     </div>
                                 </div>
                             )}
 
-                            {/* CATALÁN SECTION */}
                             {caVoices.length > 0 && (
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                                        <svg width="20" height="15" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: '2px' }}>
-                                            <rect fill="#FFC400" width="900" height="600"/>
-                                            <rect fill="#DA121A" width="900" height="66.66" y="66.66"/>
-                                            <rect fill="#DA121A" width="900" height="66.66" y="200"/>
-                                            <rect fill="#DA121A" width="900" height="66.66" y="333.33"/>
-                                            <rect fill="#DA121A" width="900" height="66.66" y="466.66"/>
-                                        </svg>
-                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>CATALÁN</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                                        <i className="bi bi-flag" style={{ color: '#DA121A' }}></i>
+                                        <h3 className="lbl" style={{ margin: 0, fontSize: '13px', letterSpacing: '1px', opacity: 0.7 }}>CATALÁN</h3>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                                         {caVoices.map(v => <VoiceCard key={v.voice_id} v={v} />)}
                                     </div>
                                 </div>
                             )}
 
-                            {/* CLONED SECTION */}
                             {clonedGroup.length > 0 && (
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                                        <i className="bi bi-person-bounding-box" style={{ fontSize: '16px', color: '#8b5cf6' }}></i>
-                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#64748b', margin: 0, letterSpacing: '0.5px' }}>VOCES CLONADAS</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                                        <i className="bi bi-person-bounding-box" style={{ color: 'var(--azul)' }}></i>
+                                        <h3 className="lbl" style={{ margin: 0, fontSize: '13px', letterSpacing: '1px', opacity: 0.7 }}>VOCES CLONADAS</h3>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                                         {clonedGroup.map(v => <VoiceCard key={v.voice_id} v={v} />)}
                                     </div>
                                 </div>
                             )}
 
-                            {/* PREMUIM CLONE VOZ CARD AT THE BOTTOM */}
-                            <div style={{ marginTop: '24px' }}>
-                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                            <i className="bi bi-mic" style={{ color: '#267ab0', fontSize: '16px' }}></i>
-                                            <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>Clonar tu voz</span>
-                                            <span style={{ background: '#f3e8ff', color: '#7e22ce', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Premium</span>
-                                        </div>
-                                        <div style={{ fontSize: '13px', color: '#64748b' }}>
-                                            Crea un agente con tu propia voz o la de alguien de tu equipo.
-                                        </div>
+                            <div style={{ 
+                                background: 'var(--gris-bg)', 
+                                border: '1px dashed var(--gris-borde)', 
+                                borderRadius: 'var(--r-md)', 
+                                padding: '24px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'space-between',
+                                marginTop: '20px'
+                            }}>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                        <i className="bi bi-mic" style={{ color: 'var(--azul)' }}></i>
+                                        <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--oscuro)' }}>Clonar tu voz</span>
+                                        <span style={{ background: 'var(--azul)', color: 'var(--blanco)', padding: '1px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 800 }}>PREMIUM</span>
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setShowCustomModal(true)}
-                                        style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                                    >
-                                        <i className="bi bi-plus-lg"></i> Clonar voz
-                                    </button>
+                                    <div className="hint" style={{ fontSize: '13px', maxWidth: '400px' }}>
+                                        Crea un agente con tu propia voz o la de alguien de tu equipo para una experiencia única.
+                                    </div>
                                 </div>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowCustomModal(true)}
+                                    className="btn-s"
+                                    style={{ background: 'var(--blanco)' }}
+                                >
+                                    <i className="bi bi-plus-lg"></i> 
+                                    Clonar voz
+                                </button>
                             </div>
                             
-                            <div className="wizard-actions mt-2" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #edf2f7', paddingTop: '24px' }}>
-                                <button type="button" className="btn" onClick={prevStep} style={{ border: '1px solid #e5e7eb', padding: '10px 24px', borderRadius: '8px', background: '#fff', color: '#64748b', fontWeight: 600 }}> <i className="bi bi-arrow-left"></i> Anterior </button>
-                                <button type="submit" className="btn" disabled={!voiceId} style={{ background: voiceId ? '#267ab0' : '#e2e8f0', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600 }}> Siguiente <i className="bi bi-arrow-right"></i> </button>
+                            <div className="flex-between" style={{ borderTop: '1px solid var(--gris-borde)', paddingTop: '24px' }}>
+                                <button type="button" className="btn-s" onClick={prevStep}>
+                                    <i className="bi bi-arrow-left"></i> Anterior
+                                </button>
+                                <button type="submit" className="btn-p" disabled={!voiceId}>
+                                    Siguiente paso
+                                    <i className="bi bi-arrow-right"></i>
+                                </button>
                             </div>
                         </div>
                     )}
@@ -439,29 +416,45 @@ export const Step3_Voice: React.FC = () => {
             </div>
 
             {showCustomModal && (
-                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, backdropFilter: 'blur(4px)' }}>
-                    <div className="modal-content" style={{ background: 'white', width: '100%', maxWidth: '450px', borderRadius: '16px', padding: '32px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Clona tu propia voz</h2>
-                            <button onClick={() => setShowCustomModal(false)} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
-                        </div>
+                <div className="flex-center" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(8px)' }}>
+                    <div className="form-card" style={{ width: '100%', maxWidth: '450px', padding: '32px', position: 'relative' }}>
+                        <button 
+                            onClick={() => setShowCustomModal(false)} 
+                            style={{ position: 'absolute', top: '16px', right: '16px', border: 'none', background: 'none', fontSize: '24px', color: 'var(--gris-texto)', cursor: 'pointer' }}
+                        >
+                            &times;
+                        </button>
+                        
+                        <h2 className="form-title" style={{ fontSize: '20px', marginBottom: '24px' }}>Clona tu propia voz</h2>
+                        
                         <form onSubmit={handleCustomVoiceSubmit}>
-                            <div className="form-group mb-3">
-                                <label className="form-label">Nombre de la voz</label>
-                                <input type="text" className="form-control" value={customName} onChange={(e) => setCustomName(e.target.value)} required />
+                            <div style={{ marginBottom: '20px' }}>
+                                <label className="lbl">Nombre de la voz</label>
+                                <input type="text" className="inp" placeholder="Ej: Mi voz personalizada" value={customName} onChange={(e) => setCustomName(e.target.value)} required />
                             </div>
-                            <div className="form-group mb-4">
-                                <label className="form-label">Archivos de audio</label>
-                                <input type="file" className="form-control" multiple accept="audio/*" onChange={(e) => setCloneFiles(e.target.files)} required />
+                            
+                            <div style={{ marginBottom: '20px' }}>
+                                <label className="lbl">Archivos de audio</label>
+                                <input type="file" className="inp" multiple accept="audio/*" onChange={(e) => setCloneFiles(e.target.files)} required style={{ padding: '8px' }} />
+                                <div className="hint" style={{ marginTop: '4px' }}>Sube al menos 1 minuto de audio limpio.</div>
                             </div>
-                            <div className="mb-4">
-                                <label style={{ display: 'flex', gap: '10px', fontSize: '12px', color: '#64748b' }}>
-                                    <input type="checkbox" checked={legalConfirmed} onChange={(e) => setLegalConfirmed(e.target.checked)} required />
-                                    <span>Confirmo que tengo derechos sobre estas muestras de voz.</span>
+                            
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'flex', gap: '10px', cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={legalConfirmed} onChange={(e) => setLegalConfirmed(e.target.checked)} required style={{ width: '18px', height: '18px' }} />
+                                    <span style={{ fontSize: '12px', color: 'var(--gris-texto)', lineHeight: '1.4' }}>
+                                        Confirmo que tengo todos los derechos legales sobre estas muestras de voz para su uso en esta plataforma.
+                                    </span>
                                 </label>
                             </div>
-                            <button type="submit" className="btn btn-primary w-100" disabled={isProcessingCustom || !legalConfirmed}>
-                                {isProcessingCustom ? 'Procesando...' : 'Comenzar Clonación'}
+                            
+                            <button type="submit" className="btn-p w-full" disabled={isProcessingCustom || !legalConfirmed}>
+                                {isProcessingCustom ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm" style={{ marginRight: '8px' }}></span>
+                                        Procesando...
+                                    </>
+                                ) : 'Comenzar Clonación'}
                             </button>
                         </form>
                     </div>

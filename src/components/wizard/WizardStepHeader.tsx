@@ -22,86 +22,61 @@ export const WizardStepHeader: React.FC<WizardStepHeaderProps> = ({
 
     const isNextDisabled = () => {
         if (currentStep === 1) return !agentName.trim() || !agentType;
-        if (currentStep === 4) return !voiceId;
-        if (currentStep === 9) return true;
+        if (currentStep === 3) return !voiceId; // Corrigiendo paso de voz (era 4 en el original pero es 3 según stepsMeta)
         return false;
     };
 
     const isPrevDisabled = currentStep === 1;
 
     return (
-        <div style={{ marginBottom: '40px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ marginBottom: '32px' }}>
+            <div className="flex-between" style={{ alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
-                    <h1 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                        {title}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <h1 className="form-title" style={{ margin: 0, fontSize: '24px' }}>
+                            {title}
+                        </h1>
                         {tooltipContent && (
                             <span className="custom-tooltip">
-                                <i className={`bi ${tooltipIcon} tooltip-icon`}></i>
+                                <i className={`bi ${tooltipIcon}`} style={{ color: 'var(--azul)', cursor: 'help' }}></i>
                                 <span className="tooltip-content">
                                     {tooltipContent}
                                 </span>
                             </span>
                         )}
-                    </h1>
+                    </div>
+                    <p className="lbl" style={{ margin: 0, fontSize: '14px', fontWeight: 500 }}>
+                        {subtitle}
+                    </p>
                 </div>
 
                 {showArrows && (
-                    <div className="wizard-top-nav" style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
+                    <div className="flex-center gap-8" style={{ marginLeft: '16px' }}>
                         <button
                             type="button"
                             onClick={prevStep}
                             disabled={isPrevDisabled}
-                            className={`nav-arrow-btn ${isPrevDisabled ? 'disabled' : ''}`}
-                            title="Paso anterior"
-                            style={{
-                                background: 'none',
-                                border: '1px solid var(--gris-borde)',
-                                borderRadius: '8px',
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: isPrevDisabled ? 'not-allowed' : 'pointer',
-                                color: isPrevDisabled ? 'var(--gris-texto)' : 'var(--netelip-azul)',
-                                opacity: isPrevDisabled ? 0.4 : 1,
-                                transition: 'all 0.2s',
-                                padding: 0
-                            }}
+                            className="btn-s mini"
+                            title="Anterior"
+                            style={{ padding: '8px 12px', minWidth: '40px' }}
                         >
-                            <i className="bi bi-chevron-left" style={{ fontSize: '18px' }}></i>
+                            <i className="bi bi-chevron-left"></i>
                         </button>
                         <button
                             type="button"
                             onClick={nextStep}
                             disabled={isNextDisabled()}
-                            className={`nav-arrow-btn ${isNextDisabled() ? 'disabled' : ''}`}
-                            title="Siguiente paso"
-                            style={{
-                                background: 'none',
-                                border: '1px solid var(--gris-borde)',
-                                borderRadius: '8px',
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: isNextDisabled() ? 'not-allowed' : 'pointer',
-                                color: isNextDisabled() ? 'var(--gris-texto)' : 'var(--netelip-azul)',
-                                opacity: isNextDisabled() ? 0.4 : 1,
-                                transition: 'all 0.2s',
-                                padding: 0
-                            }}
+                            className="btn-p mini"
+                            title="Siguiente"
+                            style={{ padding: '8px 12px', minWidth: '40px' }}
                         >
-                            <i className="bi bi-chevron-right" style={{ fontSize: '18px' }}></i>
+                            <i className="bi bi-chevron-right"></i>
                         </button>
                     </div>
                 )}
             </div>
-            <p className="section-subtitle" style={{ marginTop: '8px', marginBottom: 0 }}>
-                {subtitle}
-            </p>
+            
+            <div style={{ height: '1px', background: 'var(--gris-borde)', marginTop: '24px' }}></div>
         </div>
     );
 };

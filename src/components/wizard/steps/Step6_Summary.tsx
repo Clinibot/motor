@@ -152,11 +152,11 @@ export const Step6_Summary: React.FC = () => {
                         type: data.type
                     });
                 } else {
-                    setErrorMessage('Error al subir archivo ' + f.name + ': ' + data.error);
+                    setErrorMessage(`Error al subir ${f.name}: ${data.error}`);
                     setShowError(true);
                 }
             } catch {
-                setErrorMessage('Error de conexión al subir archivo ' + f.name);
+                setErrorMessage(`Error de conexión al subir ${f.name}`);
                 setShowError(true);
             }
         }
@@ -170,10 +170,6 @@ export const Step6_Summary: React.FC = () => {
         updateField('kbFiles', newFiles);
     };
 
-    React.useEffect(() => {
-        // No-op for now as examples logic was removed
-    }, []);
-
     const editingAgentId = wizardData.editingAgentId;
 
     const getUpdatedPrompt = React.useCallback(() => {
@@ -183,7 +179,7 @@ export const Step6_Summary: React.FC = () => {
         const formattedHours = groupBusinessHours(wizardData.businessHours);
         const personalityStr = wizardData.personality.length > 0
             ? `Tu personalidad es: ${wizardData.personality.join(', ')}.`
-            : 'Tienes una personalidad profesional y atenta.';
+            : 'Tienes una personalidad profesional, empática y atenta.';
         const toneStr = `Tu tono de comunicación es ${wizardData.tone}.`;
         const langMap: Record<string, string> = {
             'es-ES': 'español de España', 'es-MX': 'español con acento mexicano',
@@ -198,7 +194,7 @@ export const Step6_Summary: React.FC = () => {
             let calInstructions = `## Gestión de Agenda y Citas\nTienes acceso a la disponibilidad de la agenda de ${company} para agendar citas directamente.`;
             
             if (wizardData.enableCalCancellation) {
-                calInstructions += `\n- **Cancelaciones y Reagendados**: Tienes permiso para cancelar citas existentes. Si un usuario desea cambiar o reagendar su cita, es obligatorio que primero canceles la cita actual usando la herramienta de cancelación y later agendes la nueva.`;
+                calInstructions += `\n- **Cancelaciones y Reagendados**: Tienes permiso para cancelar citas existentes. Si un usuario desea cambiar o reagendar su cita, es obligatorio que primero canceles la cita actual usando la herramienta de cancelación y luego agendes la nueva.`;
             } else {
                 calInstructions += `\n- **Cancelaciones**: No tienes permiso para cancelar citas. Si el usuario lo solicita, indícale que debe hacerlo manualmente.`;
             }
@@ -213,32 +209,30 @@ export const Step6_Summary: React.FC = () => {
         }
 
         const toolsSection = toolsContentArr.length > 0
-            ? `\n\n<!-- AUTO_TOOLS_START -->\n# Herramientas\n${toolsContentArr.join('\n\n')}\n<!-- AUTO_TOOLS_END -->\n`
+            ? `\n\n<!-- AUTO_TOOLS_START -->\n# Capabilidades y Herramientas\n${toolsContentArr.join('\n\n')}\n<!-- AUTO_TOOLS_END -->\n`
             : '';
 
         const kbSection = wizardData.kbFiles.length > 0
-            ? `\n\n<!-- AUTO_KB_START -->\n# Base de Conocimientos\nTienes acceso a una base de conocimientos de la empresa para responder preguntas específicas.\nBases de conocimiento disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retell_name || f.name}`).join('\n') + `\n<!-- AUTO_KB_END -->\n`
+            ? `\n\n<!-- AUTO_KB_START -->\n# Base de Conocimientos Corporativa\nTienes acceso a documentos internos para responder con precisión.\nRecursos disponibles:\n` + wizardData.kbFiles.map(f => `- ${f.retell_name || f.name}`).join('\n') + `\n<!-- AUTO_KB_END -->\n`
             : '';
 
-        const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de la Empresa\n${wizardData.companyDescription ? `- Actividad: ${wizardData.companyDescription}\n` : ''}- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono: ${formatPhoneForTTS(wizardData.companyPhone || '')}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '')}\n\n## Horario comercial\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
+        const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Ficha de Empresa\n${wizardData.companyDescription ? `- Actividad: ${wizardData.companyDescription}\n` : ''}- Dirección: ${wizardData.companyAddress || 'No especificada'}\n- Teléfono: ${formatPhoneForTTS(wizardData.companyPhone || '')}\n- Web: ${formatUrlForTTS(wizardData.companyWebsite || '')}\n\n## Horario de Atención\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
 
-        const finalPrompt = `
-# Rol y Objetivo
-Eres ${name} y tu objetivo es atender a los clientes de ${company}.
+        return `
+# Perfil y Misión
+Eres ${name}, representante inteligente de ${company}. Tu misión es proporcionar una experiencia excepcional al cliente.
 
-# Estilo de Comunicación
-- ${personalityStr}
-- ${toneStr}
-- Idioma: ${langStr}
-- Fecha: ${today}
+# Estilo y Configuración
+- Personalidad: ${personalityStr}
+- Tono: ${toneStr}
+- Idioma Operativo: ${langStr}
+- Fecha Actual: ${today}
 
 ${toolsSection}
 ${kbSection}
 ${companySection}
-${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.customNotes}\n<!-- AUTO_NOTES_END -->` : ''}
+${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Contexto Adicional\n${wizardData.customNotes}\n<!-- AUTO_NOTES_END -->` : ''}
 `.trim();
-
-        return finalPrompt;
     }, [
         wizardData.agentName, wizardData.companyName, wizardData.language,
         wizardData.businessHours, wizardData.personality, wizardData.tone, wizardData.customNotes,
@@ -257,7 +251,7 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
         if (!wizardData.voiceId) missing.push('Voz');
 
         if (missing.length > 0) {
-            setErrorMessage(`Faltan campos obligatorios: ${missing.join(', ')}`);
+            setErrorMessage(`Faltan campos críticos: ${missing.join(', ')}`);
             setShowError(true);
             return;
         }
@@ -270,10 +264,10 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
                 body: JSON.stringify({ ...wizardData, id: editingAgentId, prompt: cleanedPrompt }),
             });
             const data = await response.json();
-            if (!response.ok || !data.success) throw new Error(data.error || 'Error al comunicarse con el servidor');
+            if (!response.ok || !data.success) throw new Error(data.error || 'Error en la respuesta del servidor');
             setShowSuccess(true);
         } catch (e: unknown) {
-            setErrorMessage(e instanceof Error ? e.message : 'Error al crear el agente');
+            setErrorMessage(e instanceof Error ? e.message : 'Error inesperado al procesar el agente');
             setShowError(true);
         } finally {
             setIsCreating(false);
@@ -286,33 +280,33 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
     const SummarySection = ({ step, icon, color, label, children }: { step: number; icon: string; color: string; label: string; children: React.ReactNode }) => {
         const isExpanded = expandedStep === step;
         return (
-            <div className="bg-white border border-[#e2e8f0] rounded-2xl mb-4 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all">
+            <div className={`bg-white border transition-all duration-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md ${isExpanded ? 'border-[var(--azul)]/30' : 'border-[var(--gris-borde)]'}`}>
                 <div 
                     onClick={() => toggleStep(step)} 
-                    className={`flex items-center justify-between px-6 py-5 cursor-pointer transition-colors ${isExpanded ? 'bg-[#f8fafc]' : 'bg-white hover:bg-[#f8fafc]'}`}
+                    className={`flex items-center justify-between px-6 py-5 cursor-pointer transition-colors ${isExpanded ? 'bg-[var(--azul)]/5' : 'bg-white hover:bg-[#f8fafc]'}`}
                 >
                     <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center`} style={{ backgroundColor: `${color}15`, color: color }}>
-                            <i className={`bi ${icon}`} style={{ fontSize: '18px' }}></i>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15`, color: color }}>
+                            <i className={`bi ${icon} text-[18px]`}></i>
                         </div>
                         <div>
-                            <div className="text-[15px] font-bold text-[#1e293b]">{label}</div>
-                            <div className="text-[12px] text-[#94a3b8] font-semibold">Paso {step}</div>
+                            <div className="text-[15px] font-bold text-[var(--oscuro)]">{label}</div>
+                            <div className="text-[12px] text-[var(--gris-texto)] font-semibold uppercase tracking-wider">Paso {step}</div>
                         </div>
                     </div>
                     <div className="flex items-center gap-5">
                         <button 
                             type="button" 
                             onClick={(e) => { e.stopPropagation(); setStep(step); }} 
-                            className="bg-white border border-[#e2e8f0] rounded-lg px-4 py-1.5 text-[12px] font-bold text-[#64748b] hover:bg-[#f8fafc] transition-all flex items-center gap-2 shadow-sm"
+                            className="bg-white border border-[var(--gris-borde)] rounded-lg px-4 py-1.5 text-[12px] font-bold text-[var(--gris-texto)] hover:bg-[var(--azul)] hover:text-white hover:border-[var(--azul)] transition-all flex items-center gap-2 shadow-sm active:scale-95"
                         >
-                            <i className="bi bi-pencil text-[11px]"></i> Ir al paso
+                            <i className="bi bi-pencil text-[11px]"></i> Editar
                         </button>
-                        <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} text-[#94a3b8] text-[14px]`}></i>
+                        <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} text-[var(--gris-texto)] text-[14px]`}></i>
                     </div>
                 </div>
                 {isExpanded && (
-                    <div className="px-6 py-8 border-t border-[#f1f5f9] bg-white">
+                    <div className="px-6 py-8 border-t border-[var(--gris-borde)] bg-white animate-in slide-in-from-top-2 duration-300">
                         {children}
                     </div>
                 )}
@@ -322,20 +316,20 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
 
     if (showSuccess) {
         return (
-            <div className="content-area w-full max-w-[1100px] ml-0">
-                <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-12 text-center">
-                    <div className="w-20 h-20 bg-[#f0fdf4] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#dcfce7]">
-                        <i className="bi bi-check-circle-fill text-[#10b981] text-[40px]" />
+            <div className="max-w-2xl mx-auto py-12 px-4">
+                <div className="form-card text-center p-12">
+                    <div className="w-24 h-24 bg-[#f0fdf4] rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm border border-[#dcfce7] animate-bounce">
+                        <i className="bi bi-check-circle-fill text-[#10b981] text-[48px]" />
                     </div>
-                    <h2 className="text-[24px] font-bold text-[#1e293b] mb-3">¡Agente IA {editingAgentId ? 'actualizado' : 'creado'} con éxito!</h2>
-                    <p className="text-[15px] text-[#64748b] mb-10 max-w-[400px] mx-auto leading-relaxed">
-                        Tu agente <strong>{wizardData.agentName}</strong> {editingAgentId ? 'se ha guardado correctamente' : 'está configurado y listo para empezar a trabajar'}.
+                    <h2 className="text-[28px] font-bold text-[var(--oscuro)] mb-4">¡Agente IA listo!</h2>
+                    <p className="text-[16px] text-[var(--gris-texto)] mb-10 max-w-sm mx-auto leading-relaxed">
+                        Tu agente <strong>{wizardData.agentName}</strong> se ha guardado correctamente y ya puede empezar a trabajar.
                     </p>
                     <button 
-                        className="bg-[#267ab0] text-white font-bold py-4 px-10 rounded-xl hover:bg-[#1e618b] transition-all shadow-md flex items-center gap-3 mx-auto text-[16px]"
+                        className="btn-p w-full justify-center py-4 text-[16px] shadow-xl shadow-[var(--azul)]/20"
                         onClick={() => window.location.href = '/dashboard/agents'}
                     >
-                        <i className="bi bi-grid-fill" /> Ir al Dashboard
+                        <i className="bi bi-grid-fill" /> Ir al Panel de Agentes
                     </button>
                 </div>
             </div>
@@ -343,183 +337,227 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Notas\n${wizardData.c
     }
 
     if (!mounted) return (
-        <div className="content-area w-full max-w-[1100px] ml-0">
-            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-24 text-center">
-                <div className="w-10 h-10 border-4 border-[#f3f3f3] border-t-[#267ab0] rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-[#64748b] font-medium">Cargando resumen...</p>
+        <div className="content-area">
+            <div className="form-card py-24 text-center">
+                <div className="w-12 h-12 border-4 border-[var(--azul)]/20 border-t-[var(--azul)] rounded-full animate-spin mx-auto mb-6"></div>
+                <p className="text-[var(--gris-texto)] font-bold">Generando resumen final...</p>
             </div>
         </div>
     );
 
     return (
-        <div className="content-area w-full max-w-[1100px] ml-0">
-            <div className="form-card bg-white rounded-2xl shadow-sm border border-[#e2e8f0] p-8">
+        <div className="content-area">
+            <div className="form-card p-8">
                 <WizardStepHeader 
-                    title="Resumen y confirmación" 
-                    subtitle="Revisa toda la configuración de tu agente. Puedes editar cualquier campo directamente o volver al paso correspondiente." 
+                    title="Resumen Final" 
+                    subtitle="Confirma la identidad y comportamiento de tu nuevo agente antes de activarlo." 
                 />
 
-                <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-xl p-5 mb-8 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#10b981] flex items-center justify-center flex-shrink-0 border border-[#bbf7d0] shadow-sm">
-                        <i className="bi bi-check-lg text-white text-[18px]" />
+                <div className="bg-[#eff6ff] border border-[var(--azul)]/10 rounded-2xl p-5 mb-10 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--azul)] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[var(--azul)]/20">
+                        <i className="bi bi-shield-check text-white text-[18px]" />
                     </div>
                     <div>
-                        <div className="font-bold text-[15px] text-[#166534]">Configuración completada</div>
-                        <div className="text-[13px] text-[#16a34a] mt-0.5">Todos los pasos están listos. Revisa y edita lo que necesites antes de crear el agente.</div>
+                        <div className="font-bold text-[15px] text-[#1e40af]">Todo listo para el despliegue</div>
+                        <div className="text-[13px] text-[#2563eb] mt-0.5">Revisa las secciones desplegables. Hemos unificado tu configuración para maximizar el rendimiento del agente.</div>
                     </div>
                 </div>
 
                 {showError && (
-                    <div className="bg-[#fff1f2] border border-[#fecdd3] rounded-xl p-4 mb-8 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 text-[#e11d48] font-medium text-[14px]">
-                            <i className="bi bi-exclamation-triangle-fill" />
+                    <div className="bg-[#fff1f2] border border-[#fecdd3] rounded-2xl p-5 mb-10 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4">
+                        <div className="flex items-center gap-3 text-[#e11d48] font-bold text-[14px]">
+                            <i className="bi bi-exclamation-octagon-fill text-[20px]" />
                             <span>{errorMessage}</span>
                         </div>
-                        <button onClick={() => setShowError(false)} className="text-[#e11d48] hover:bg-[#ffe4e6] w-8 h-8 rounded-lg flex items-center justify-center transition-all">
-                            <i className="bi bi-x-lg text-[14px]"></i>
+                        <button onClick={() => setShowError(false)} className="w-9 h-9 rounded-xl flex items-center justify-center text-[#e11d48] hover:bg-[#ef4444]/10 transition-all">
+                            <i className="bi bi-x-lg"></i>
                         </button>
                     </div>
                 )}
 
-                <div className="space-y-4">
-                    <SummarySection step={1} icon="bi-info-circle" color="#267ab0" label="Información básica">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Nombre</label>
-                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 text-[15px] font-bold text-[#1e293b]">
+                <div className="space-y-6">
+                    <SummarySection step={1} icon="bi-person-badge" color="var(--azul)" label="Perfil de Identidad">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2">
+                                <label className="lbl">Nombre del Agente</label>
+                                <div className="bg-[#f8fafc] border border-[var(--gris-borde)] rounded-xl px-5 py-4 text-[15px] font-bold text-[var(--oscuro)] flex items-center gap-3">
+                                    <i className="bi bi-tag text-[var(--azul)]"></i>
                                     {wizardData.agentName || '—'}
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Empresa</label>
-                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 text-[15px] font-bold text-[#1e293b]">
+                            <div className="space-y-2">
+                                <label className="lbl">Empresa Representada</label>
+                                <div className="bg-[#f8fafc] border border-[var(--gris-borde)] rounded-xl px-5 py-4 text-[15px] font-bold text-[var(--oscuro)] flex items-center gap-3">
+                                    <i className="bi bi-building text-[var(--azul)]"></i>
                                     {wizardData.companyName || '—'}
                                 </div>
                             </div>
                         </div>
                     </SummarySection>
 
-                    <SummarySection step={2} icon="bi-cpu" color="#8b5cf6" label="Modelo de IA y comportamiento">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Modelo IA</label>
-                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 flex items-center gap-3">
+                    <SummarySection step={2} icon="bi-brain" color="#8b5cf6" label="Inteligencia y Personalidad">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <label className="lbl">Arquitectura LLM</label>
+                                <div className="bg-[#f8fafc] border border-[var(--gris-borde)] rounded-xl px-4 py-3.5 flex items-center gap-3">
                                     <i className="bi bi-cpu text-[#8b5cf6]"></i>
-                                    <span className="text-[15px] font-bold text-[#1e293b]">{wizardData.model || '—'}</span>
+                                    <span className="text-[14px] font-bold text-[var(--oscuro)]">{wizardData.model || '—'}</span>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider mb-2">Temperatura</label>
-                                <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-3.5 text-[15px] font-bold text-[#1e293b]">
-                                    {wizardData.temperature || '0'}
+                            <div className="space-y-2">
+                                <label className="lbl">Creatividad (Temp)</label>
+                                <div className="bg-[#f8fafc] border border-[var(--gris-borde)] rounded-xl px-4 py-3.5 text-[14px] font-bold text-[var(--oscuro)]">
+                                    {wizardData.temperature || '0.0'}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="lbl">Tono de Voz</label>
+                                <div className="bg-[#f8fafc] border border-[var(--gris-borde)] rounded-xl px-4 py-3.5 text-[14px] font-bold text-[var(--oscuro)] capitalize">
+                                    {wizardData.tone || 'Profesional'}
                                 </div>
                             </div>
                         </div>
+                        {wizardData.personality.length > 0 && (
+                            <div className="mt-8 pt-8 border-t border-[var(--gris-borde)]">
+                                <label className="lbl">Rasgos de Carácter</label>
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {wizardData.personality.map(p => (
+                                        <span key={p} className="bg-[#f3f0ff] text-[#6d28d9] px-4 py-2 rounded-xl text-[12px] font-bold border border-[#ddd6fe]">
+                                            {p}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </SummarySection>
 
-                    <SummarySection step={3} icon="bi-mic" color="#10b981" label="Voz seleccionada">
-                        <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-6 flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-full bg-[#267ab0] flex items-center justify-center text-white font-extrabold text-[20px] shadow-sm">
-                                {(wizardData.voiceName || 'V').charAt(0).toUpperCase()}
+                    <SummarySection step={3} icon="bi-waveform" color="#10b981" label="Voz y Lenguaje">
+                        <div className="flex items-center gap-6 p-6 bg-[#f0fdf4] border border-[#bbf7d0] rounded-[24px]">
+                            <div className="w-16 h-16 rounded-2xl bg-[var(--azul)] flex items-center justify-center text-white text-[24px] font-black shadow-xl shadow-[var(--azul)]/20 bounce-in">
+                                {(wizardData.voiceName || 'V').charAt(0)}
                             </div>
                             <div className="flex-1">
-                                <div className="text-[17px] font-bold text-[#1e293b]">{wizardData.voiceName || 'Selecciona una voz'}</div>
-                                <div className="text-[13px] text-[#64748b] mt-0.5">{wizardData.voiceProvider === 'eleven_labs' ? 'Eleven Labs' : 'Voz de sistema'} — Velocidad: {wizardData.voiceSpeed}x</div>
+                                <div className="text-[18px] font-bold text-[var(--oscuro)]">{wizardData.voiceName || 'Configurada'}</div>
+                                <div className="flex items-center gap-4 mt-2">
+                                    <div className="flex items-center gap-2 text-[13px] text-[#059669] font-medium bg-white px-3 py-1 rounded-full shadow-sm">
+                                        <i className="bi bi-translate"></i> {wizardData.language}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[13px] text-[#059669] font-medium bg-white px-3 py-1 rounded-full shadow-sm">
+                                        <i className="bi bi-speedometer2"></i> {wizardData.voiceSpeed}x velocidad
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="hidden md:block px-6 border-l border-[#bbf7d0]">
+                                <div className="text-[11px] font-bold text-[#059669] uppercase tracking-widest mb-1">Motor</div>
+                                <div className="text-[14px] font-bold text-[var(--oscuro)]">{wizardData.voiceProvider === 'eleven_labs' ? 'Eleven Labs' : 'Neural System'}</div>
                             </div>
                         </div>
                     </SummarySection>
 
-                    <SummarySection step={5} icon="bi-tools" color="#f43f5e" label="Herramientas activas">
-                        <div className="space-y-3">
+                    <SummarySection step={5} icon="bi-grid-1x2" color="#f43f5e" label="Integraciones y Webhooks">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {[
-                                { icon: 'bi-funnel-fill', color: '#267ab0', name: 'Cualificación de lead', active: wizardData.leadQuestions.length > 0 },
+                                { icon: 'bi-check2-square', color: 'var(--azul)', name: 'Cualificación', active: wizardData.leadQuestions.length > 0 },
                                 { icon: 'bi-telephone-forward', color: '#8b5cf6', name: 'Transferencia', active: wizardData.enableTransfer },
-                                { icon: 'bi-calendar-event', color: '#f59e0b', name: 'Agenda (Cal.com)', active: wizardData.enableCalBooking },
+                                { icon: 'bi-calendar2-check', color: '#f59e0b', name: 'Agenda Cal.com', active: wizardData.enableCalBooking },
                             ].map(tool => (
-                                <div key={tool.name} className="flex items-center gap-4 p-4 bg-[#f8fafc] rounded-xl border border-[#e2e8f0]">
-                                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${tool.color}15`, color: tool.color }}>
-                                        <i className={`bi ${tool.icon}`} style={{ fontSize: '18px' }}></i>
+                                <div key={tool.name} className={`flex flex-col gap-4 p-5 rounded-2xl border transition-all ${tool.active ? 'bg-white border-[var(--azul)]/20 shadow-sm' : 'bg-[#f8fafc] border-[var(--gris-borde)] opacity-60'}`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tool.color}15`, color: tool.color }}>
+                                            <i className={`bi ${tool.icon} text-[20px]`}></i>
+                                        </div>
+                                        <div className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${tool.active ? 'bg-[#f0fdf4] text-[#166534] border-[#dcfce7]' : 'bg-[#f1f5f9] text-[var(--gris-texto)] border-[var(--gris-borde)]'}`}>
+                                            {tool.active ? 'ACTIVO' : 'NO'}
+                                        </div>
                                     </div>
-                                    <div className="flex-1 text-[14px] font-bold text-[#1e293b]">{tool.name}</div>
-                                    <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full border shadow-sm ${tool.active ? 'bg-[#f0fdf4] border-[#dcfce7] text-[#166534]' : 'bg-[#f1f5f9] border-[#e2e8f0] text-[#64748b]'}`}>
-                                        {tool.active ? 'Activo' : 'Desactivado'}
-                                    </span>
+                                    <div className="text-[14px] font-bold text-[var(--oscuro)]">{tool.name}</div>
                                 </div>
                             ))}
                         </div>
                     </SummarySection>
                 </div>
 
-                <div className="mt-12 mb-8">
-                    <h3 className="text-[16px] font-bold text-[#1e293b] mb-4 flex items-center gap-2">
-                        <i className="bi bi-book text-[#267ab0] text-[18px]"></i> Base de conocimiento
-                    </h3>
-                    
-                    <div className="bg-white border-2 border-dashed border-[#e2e8f0] rounded-2xl p-10 text-center hover:border-[#267ab0] hover:bg-[#f8fafc] transition-all group">
-                        <input 
-                            type="file" 
-                            id="kb-upload-summary" 
-                            className="hidden" 
-                            multiple 
-                            accept=".md,.txt,.pdf,.docx" 
-                            onChange={handleFileUpload} 
-                        />
-                        <label htmlFor="kb-upload-summary" className="cursor-pointer block">
-                            <div className="w-16 h-16 rounded-full bg-[#f1f5f9] flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eff6ff] transition-all">
-                                <i className="bi bi-cloud-arrow-up text-[28px] text-[#94a3b8] group-hover:text-[#267ab0] transition-all"></i>
-                            </div>
-                            <div className="text-[16px] font-bold text-[#1e293b] mb-1">{isUploading ? 'Subiendo archivos...' : 'Subir documentos'}</div>
-                            <p className="text-[13px] text-[#64748b]">Añade archivos para que tu agente tenga más información.</p>
-                        </label>
-
-                        {wizardData.kbFiles.length > 0 && (
-                            <div className="mt-8 grid grid-cols-2 gap-3 text-left">
-                                {wizardData.kbFiles.map((f, i) => (
-                                    <div key={i} className="flex items-center justify-between bg-white border border-[#e2e8f0] rounded-xl px-4 py-3 shadow-sm">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            <i className="bi bi-file-earmark-text text-[#267ab0] flex-shrink-0"></i>
-                                            <span className="text-[13px] font-medium text-[#1e293b] truncate">{f.name}</span>
-                                        </div>
-                                        <button onClick={() => removeFile(i)} className="text-[#94a3b8] hover:text-[#ef4444] p-1">
-                                            <i className="bi bi-x-lg text-[14px]"></i>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                <div className="mt-16 mb-10 text-center relative">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="w-full border-t border-[var(--gris-borde)]"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                        <span className="bg-white px-6 text-[13px] font-bold text-[var(--gris-texto)] uppercase tracking-[4px]">Base de Conocimientos</span>
                     </div>
                 </div>
+                
+                <div className={`bg-white border-2 border-dashed rounded-[32px] p-12 text-center transition-all group overflow-hidden relative ${isUploading ? 'border-[var(--azul)] bg-[var(--azul)]/5' : 'border-[var(--gris-borde)] hover:border-[var(--azul)]/40 hover:bg-[#f8fafc]'}`}>
+                    <input 
+                        type="file" 
+                        id="kb-upload-summary" 
+                        className="hidden" 
+                        multiple 
+                        accept=".md,.txt,.pdf,.docx" 
+                        onChange={handleFileUpload} 
+                        disabled={isUploading}
+                    />
+                    <label htmlFor="kb-upload-summary" className={`${isUploading ? 'cursor-wait' : 'cursor-pointer'} block`}>
+                        <div className={`w-20 h-20 rounded-[24px] flex items-center justify-center mx-auto mb-6 transition-all shadow-sm ${isUploading ? 'bg-[var(--azul)] animate-pulse' : 'bg-[#f1f5f9] group-hover:bg-[var(--azul)]/10'}`}>
+                            {isUploading ? (
+                                <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            ) : (
+                                <i className="bi bi-cloud-arrow-up text-[32px] text-[var(--gris-texto)] group-hover:text-[var(--azul)] transition-all"></i>
+                            )}
+                        </div>
+                        <h3 className="text-[18px] font-bold text-[var(--oscuro)] mb-2">{isUploading ? 'Procesando documentos...' : 'Enriquece su conocimiento'}</h3>
+                        <p className="text-[14px] text-[var(--gris-texto)] max-w-sm mx-auto leading-relaxed">Arrastra o selecciona archivos PDF, TXT o MD para que tu agente responda con datos corporativos precisos.</p>
+                    </label>
 
-                <div className="mt-10">
+                    {wizardData.kbFiles.length > 0 && (
+                        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4 text-left animate-in fade-in slide-in-from-bottom-4">
+                            {wizardData.kbFiles.map((f, i) => (
+                                <div key={i} className="flex items-center justify-between bg-white border border-[var(--gris-borde)] rounded-2xl px-5 py-4 shadow-sm hover:border-[var(--azul)]/30 transition-all group/item">
+                                    <div className="flex items-center gap-4 overflow-hidden">
+                                        <div className="w-9 h-9 rounded-xl bg-[var(--azul)]/5 flex items-center justify-center text-[var(--azul)]">
+                                            <i className="bi bi-file-earmark-text text-[18px]"></i>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[13px] font-bold text-[var(--oscuro)] truncate max-w-[150px]">{f.name}</span>
+                                            <span className="text-[10px] text-[var(--gris-texto)] uppercase font-bold">Documento Activo</span>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => removeFile(i)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--gris-texto)] hover:bg-[#ef4444]/10 hover:text-[#ef4444] transition-all opacity-0 group-hover/item:opacity-100">
+                                        <i className="bi bi-trash3 text-[14px]"></i>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="wiz-footer mt-16 bg-[#f8fafc] -mx-8 -mb-8 p-10 rounded-b-2xl border-t border-[var(--gris-borde)] flex items-center gap-6">
+                    <button 
+                        onClick={prevStep} 
+                        className="btn-s shrink-0"
+                    >
+                        <i className="bi bi-arrow-left"></i> Modificar pasos
+                    </button>
+                    
                     <button 
                         onClick={handleCreateAgent} 
                         disabled={isCreating} 
-                        className="w-full bg-[#00a884] text-white py-4 px-8 rounded-xl font-bold text-[17px] hover:bg-[#008f70] transition-all shadow-[0_4px_14px_rgba(0,168,132,0.3)] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="btn-p flex-1 justify-center py-5 text-[18px] shadow-2xl shadow-[var(--azul)]/30 active:scale-95 disabled:grayscale"
                     >
                         {isCreating ? (
                             <>
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                Procesando...
+                                <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                Iniciando Despliegue...
                             </>
                         ) : (
                             <>
-                                <i className="bi bi-check2-circle text-[20px]"></i>
-                                {editingAgentId ? 'Guardar cambios del agente' : 'Crear agente IA'}
+                                <i className="bi bi-rocket-takeoff-fill text-[20px]"></i>
+                                {editingAgentId ? 'Confirmar y Guardar Cambios' : 'Activar Agente de Voz'}
                             </>
                         )}
                     </button>
                 </div>
-
-                <div className="mt-8 pt-6 border-t border-[#f1f5f9]">
-                    <button 
-                        onClick={prevStep} 
-                        className="bg-white border border-[#e2e8f0] rounded-xl px-6 py-2.5 text-[14px] font-bold text-[#64748b] hover:bg-[#f8fafc] transition-all flex items-center gap-2 shadow-sm"
-                    >
-                        <i className="bi bi-arrow-left"></i> Anterior
-                    </button>
-                </div>
             </div>
-            <div className="h-10"></div>
+            <div className="h-12"></div>
         </div>
     );
 };

@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { useWizardStore } from '../../store/wizardStore';
 
 const stepsMeta = [
-    { id: 1, name: 'Información básica' },
-    { id: 2, name: 'Cerebro (LLM)' },
-    { id: 3, name: 'Voz' },
-    { id: 4, name: 'Audio' },
-    { id: 5, name: 'Herramientas' },
-    { id: 6, name: 'Resumen' },
+    { id: 1, name: 'Información básica', icon: 'bi-info-circle' },
+    { id: 2, name: 'Cerebro (LLM)', icon: 'bi-cpu' },
+    { id: 3, name: 'Voz', icon: 'bi-mic' },
+    { id: 4, name: 'Audio', icon: 'bi-volume-up' },
+    { id: 5, name: 'Herramientas', icon: 'bi-tools' },
+    { id: 6, name: 'Resumen', icon: 'bi-check2-circle' },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -21,105 +21,90 @@ export const Sidebar: React.FC = () => {
     const progressPercent = Math.round(((currentStep - 1) / (stepsMeta.length - 1)) * 100);
 
     return (
-        <div className="sidebar" style={{ 
-            width: '320px', 
-            height: '100vh', 
-            background: 'white', 
-            borderRight: '1px solid #f1f5f9',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'relative',
-            zIndex: 10
-        }}>
+        <aside className="sidebar" style={{ background: 'var(--blanco)', borderRight: '1px solid var(--gris-borde)', zIndex: 100 }}>
             {/* Header */}
             <div style={{ padding: '40px 32px 32px' }}>
-                <div style={{ marginBottom: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fábrica de Agentes</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                    <Link href="/dashboard/agents" style={{ color: '#1e293b', textDecoration: 'none' }}>
-                        <i className="bi bi-arrow-left" style={{ fontSize: '20px' }}></i>
-                    </Link>
-                    <span style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>Configuración de Agente</span>
+                <Link href="/dashboard" className="flex-center gap-8" style={{ color: 'var(--gris-texto)', textDecoration: 'none', marginBottom: '12px', fontSize: '12px', fontWeight: 600 }}>
+                    <i className="bi bi-arrow-left"></i>
+                    VOLVER AL DASHBOARD
+                </Link>
+                <div className="logo-box" style={{ padding: 0, marginBottom: '0' }}>
+                    <div className="logo-text" style={{ color: 'var(--oscuro)', fontSize: '20px' }}>
+                        Configuración<span>Agente</span>
+                    </div>
                 </div>
             </div>
 
             {/* Steps Container */}
-            <div style={{ padding: '0', flex: 1, overflowY: 'auto' }}>
-                <div style={{ position: 'relative' }}>
-                    {stepsMeta.map((step) => {
-                        const isActive = currentStep === step.id;
-                        const isCompleted = currentStep > step.id;
-                        const isPending = currentStep < step.id;
-                        
-                        return (
-                            <div 
-                                key={step.id} 
-                                onClick={() => isCompleted && setStep(step.id)}
-                                style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center',
-                                    gap: '16px', 
-                                    padding: '16px 32px',
-                                    position: 'relative', 
-                                    zIndex: 2,
-                                    cursor: isCompleted ? 'pointer' : 'default',
-                                    transition: 'all 0.2s',
-                                    background: isActive ? '#f0f7ff' : 'transparent',
-                                    borderRight: isActive ? '4px solid #267ab0' : 'none',
-                                }}
-                            >
-                                {/* Circle Indicator */}
-                                <div style={{ 
-                                    width: '24px', 
-                                    height: '24px', 
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.3s',
-                                    background: isActive ? '#267ab0' : (isCompleted ? '#10b981' : 'transparent'),
-                                    border: isPending ? '2px solid #e2e8f0' : (isActive || isCompleted ? 'none' : 'none'),
-                                    boxShadow: isActive ? '0 0 0 4px rgba(38, 122, 176, 0.15)' : 'none'
-                                }}>
-                                    {isCompleted ? (
-                                        <i className="bi bi-check-lg" style={{ fontSize: '14px', color: 'white', fontWeight: 900 }}></i>
-                                    ) : isActive ? (
-                                        <div style={{ width: '6px', height: '6px', background: 'white', borderRadius: '50%' }}></div>
-                                    ) : null}
-                                </div>
-                                
-                                {/* Text Info */}
-                                <div style={{ 
-                                    fontSize: '15px', 
-                                    fontWeight: isActive ? 700 : 500, 
-                                    color: isActive ? '#267ab0' : (isCompleted ? '#475569' : '#94a3b8'),
-                                    transition: 'all 0.2s'
-                                }}>
-                                    {step.name}
-                                </div>
+            <div className="sidebar-nav" style={{ flex: 1, overflowY: 'auto' }}>
+                {stepsMeta.map((step) => {
+                    const isActive = currentStep === step.id;
+                    const isCompleted = currentStep > step.id;
+                    const isPending = currentStep < step.id;
+                    
+                    return (
+                        <div 
+                            key={step.id} 
+                            onClick={() => isCompleted && setStep(step.id)}
+                            className={`nav-link ${isActive ? 'active' : ''}`}
+                            style={{ 
+                                cursor: isCompleted ? 'pointer' : 'default',
+                                opacity: isPending ? 0.6 : 1,
+                                background: isActive ? 'var(--azul-light)' : 'transparent',
+                                borderLeft: isActive ? '4px solid var(--azul)' : '4px solid transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '16px',
+                                padding: '16px 28px'
+                            }}
+                        >
+                            {/* Circle Indicator */}
+                            <div className={`flex-center`} style={{ 
+                                width: '28px', 
+                                height: '28px', 
+                                borderRadius: '50%',
+                                background: isCompleted ? 'var(--exito)' : (isActive ? 'var(--azul)' : 'var(--gris-bg)'),
+                                color: (isCompleted || isActive) ? 'var(--blanco)' : 'var(--gris-texto)',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                transition: 'all 0.3s'
+                            }}>
+                                {isCompleted ? (
+                                    <i className="bi bi-check-lg"></i>
+                                ) : (
+                                    step.id
+                                )}
                             </div>
-                        );
-                    })}
-                </div>
+                            
+                            {/* Text Info */}
+                            <div style={{ 
+                                fontSize: '14px', 
+                                fontWeight: isActive ? 700 : 500, 
+                                color: isActive ? 'var(--azul)' : (isCompleted ? 'var(--oscuro)' : 'var(--gris-texto)'),
+                            }}>
+                                {step.name}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Footer / Progress Bar */}
-            <div style={{ padding: '24px 32px', borderTop: '1px solid #f1f5f9' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Progreso</span>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#267ab0' }}>{progressPercent}%</span>
+            <div style={{ padding: '24px 32px', borderTop: '1px solid var(--gris-borde)' }}>
+                <div className="flex-between" style={{ marginBottom: '10px' }}>
+                    <span className="lbl" style={{ margin: 0, fontSize: '11px' }}>PROGRESO</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--azul)' }}>{progressPercent}%</span>
                 </div>
-                <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ width: '100%', height: '6px', background: 'var(--gris-bg)', borderRadius: '10px', overflow: 'hidden' }}>
                     <div style={{ 
                         width: `${progressPercent}%`, 
                         height: '100%', 
-                        background: '#267ab0',
+                        background: 'var(--azul)',
                         borderRadius: '10px',
-                        transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                        transition: 'width 0.5s ease-in-out'
                     }}></div>
                 </div>
             </div>
-        </div>
+        </aside>
     );
 };
