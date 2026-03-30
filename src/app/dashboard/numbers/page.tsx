@@ -231,9 +231,9 @@ export default function NumbersPage() {
     };
 
     return (
-        <div className="app-container">
+        <div className="app">
             {notification && (
-                <div className={`notification-toast ${notification.type}`} style={{ 
+                <div className={`notification-toast ${notification.type}`} style={{
                     position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
                     zIndex: 2000, padding: '16px 24px', borderRadius: '12px', color: 'white',
                     background: notification.type === 'success' ? '#10b981' : '#ef4444',
@@ -245,11 +245,11 @@ export default function NumbersPage() {
                     </div>
                 </div>
             )}
-            
+
             <DashboardSidebar user={user} />
 
-            <div className="main-view">
-                <DashboardTopbar 
+            <main className="main">
+                <DashboardTopbar
                     title="Mis números"
                     user={user}
                     isAlertPanelOpen={false}
@@ -261,7 +261,7 @@ export default function NumbersPage() {
                     dropdownRef={dropdownRef}
                 />
 
-                <div className="dashboard-content">
+                <div className="content">
                     <div className="numbers-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid var(--slate-100)', borderRadius: '24px', padding: '24px 32px', marginBottom: '32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                         <div>
                             <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-900)', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>Conexión SIP Trunking</h2>
@@ -354,7 +354,7 @@ export default function NumbersPage() {
                         )}
                     </div>
                 </div>
-            </div>
+            </main>
 
             {/* Modal Añadir Número - SIP TRUNKING */}
             {showAddModal && (

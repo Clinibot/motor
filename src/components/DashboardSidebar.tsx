@@ -35,21 +35,21 @@ export default function DashboardSidebar({ user }: SidebarProps) {
         <aside className="sidebar">
             <div className="sidebar-header">
                 <Link href="/dashboard" className="sidebar-logo">
-                    <div className="logo-box">F</div>
-                    <div className="logo-text-group">
-                        <div className="logo-title">Fábrica de Agentes IA</div>
-                        <div className="logo-subtitle">netelip</div>
+                    <div className="logo-dot">F</div>
+                    <div>
+                        <div className="logo-text">Fábrica de Agentes IA</div>
+                        <div className="logo-sub">netelip</div>
                     </div>
                 </Link>
             </div>
 
             <div className="sidebar-nav">
-                <div className="nav-group">
+                <div className="nav-section">
                     {mainNav.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`nav-item ${pathname === item.href ? 'active' : ''}`}
+                            className={`nav-btn ${pathname === item.href ? 'active' : ''}`}
                         >
                             <i className={`bi ${item.icon}`}></i>
                             <span>{item.label}</span>
@@ -58,13 +58,13 @@ export default function DashboardSidebar({ user }: SidebarProps) {
                 </div>
 
                 {user?.role === 'superadmin' && (
-                    <div className="nav-group">
+                    <div className="nav-section">
                         <div className="nav-label">Equipo Netelip</div>
                         {adminNav.map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`nav-item ${pathname === item.href ? 'active' : ''}`}
+                                className={`nav-btn ${pathname === item.href ? 'active' : ''}`}
                             >
                                 <i className={`bi ${item.icon}`}></i>
                                 <span>{item.label}</span>
@@ -75,11 +75,12 @@ export default function DashboardSidebar({ user }: SidebarProps) {
             </div>
 
             <div className="sidebar-footer">
-                <div className="user-profile">
-                    <div className="user-avatar">{userInitial}</div>
-                    <div className="user-info">
-                        <span className="user-name">{user?.full_name || user?.email?.split('@')[0] || 'Usuario'}</span>
-                        <span className="user-role">{user?.role || 'Cliente'}</span>
+                <div className="user-pill">
+                    <div className="user-av">{userInitial}</div>
+                    <div>
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>{user?.full_name || user?.email?.split('@')[0] || 'Usuario'}</span>
+                        <br />
+                        <span style={{ fontSize: '11px', color: 'var(--gris-texto)' }}>{user?.role || 'Cliente'}</span>
                     </div>
                 </div>
             </div>

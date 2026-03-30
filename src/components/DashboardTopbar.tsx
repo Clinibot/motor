@@ -40,26 +40,24 @@ export default function DashboardTopbar({
 
     return (
         <header className="topbar">
-            <div className="t-left">
-                <h1 className="t-title" style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--slate-900)' }}>{title}</h1>
-            </div>
-            
-            <div className="t-actions">
-                <button 
-                    onClick={handleCreateAgent} 
+            <span className="topbar-title">{title}</span>
+
+            <div className="topbar-actions">
+                <button
+                    onClick={handleCreateAgent}
                     className="btn-p"
-                    style={{ height: '44px', borderRadius: '12px', padding: '0 20px', fontWeight: 800, fontSize: '14px', boxShadow: '0 4px 12px rgba(29, 78, 216, 0.1)' }}
+                    style={{ padding: '9px 18px', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600, boxShadow: 'none' }}
                 >
                     <i className="bi bi-plus-lg" style={{ marginRight: '8px' }}></i>
                     <span>Nuevo Agente</span>
                 </button>
 
-                <div style={{ 
-                    padding: '10px 16px', background: 'white', borderRadius: '14px', 
-                    display: 'flex', gap: '8px', fontSize: '13px', border: '1px solid var(--slate-100)',
-                    alignItems: 'center', boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                <div style={{
+                    padding: '8px 14px', background: 'white', borderRadius: 'var(--r-md)',
+                    display: 'flex', gap: '8px', fontSize: '13px', border: '1px solid var(--gris-borde)',
+                    alignItems: 'center'
                 }}>
-                    <span style={{ color: 'var(--slate-400)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>Balance</span>
+                    <span style={{ color: 'var(--gris-texto)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>Balance</span>
                     <span style={{ color: 'var(--azul)', fontWeight: 800, fontSize: '14px' }}>€{totalCost.toFixed(3)}</span>
                 </div>
 
@@ -67,9 +65,9 @@ export default function DashboardTopbar({
                     <button
                         className="btn-s"
                         onClick={() => setIsAlertPanelOpen(!isAlertPanelOpen)}
-                        style={{ width: '44px', height: '44px', padding: 0, borderRadius: '14px', justifyContent: 'center', border: '1px solid var(--slate-100)', background: 'white' }}
+                        style={{ width: '36px', height: '36px', padding: 0, borderRadius: 'var(--r-md)', justifyContent: 'center', border: '1px solid var(--gris-borde)', background: 'white' }}
                     >
-                        <i className={`bi bi-bell${isAlertPanelOpen ? '-fill' : ''}`} style={{ fontSize: '20px', color: 'var(--slate-600)' }}></i>
+                        <i className={`bi bi-bell${isAlertPanelOpen ? '-fill' : ''}`} style={{ fontSize: '16px', color: 'var(--gris-texto)' }}></i>
                     </button>
                     {isAlertPanelOpen && (
                         <div style={{
@@ -83,23 +81,23 @@ export default function DashboardTopbar({
                     )}
                 </div>
 
-                <div style={{ position: 'relative', marginLeft: '4px' }} ref={dropdownRef}>
+                <div style={{ position: 'relative' }} ref={dropdownRef}>
                     <button
-                        className="btn-s"
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        style={{ 
-                            width: '44px', height: '44px', padding: 0, borderRadius: '50%', 
-                            justifyContent: 'center', background: 'var(--slate-900)', color: 'white',
-                            border: 'none', fontWeight: 800, fontSize: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                        style={{
+                            width: '36px', height: '36px', padding: 0, borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'linear-gradient(135deg, var(--azul), var(--azul-hover))', color: 'white',
+                            border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer'
                         }}
                     >
                         {userInitial}
                     </button>
                     {isDropdownOpen && (
-                        <div style={{ 
-                            position: 'absolute', top: 'calc(100% + 12px)', right: 0, 
-                            width: 260, background: '#fff', border: '1px solid var(--slate-100)', 
-                            borderRadius: '24px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', 
+                        <div style={{
+                            position: 'absolute', top: 'calc(100% + 12px)', right: 0,
+                            width: 260, background: '#fff', border: '1px solid var(--slate-100)',
+                            borderRadius: '24px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
                             zIndex: 1000, overflow: 'hidden', padding: '8px'
                         }}>
                             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--slate-50)', background: 'white' }}>
@@ -111,10 +109,10 @@ export default function DashboardTopbar({
                                 </div>
                             </div>
                             <div style={{ padding: '8px' }}>
-                                <button 
-                                    onClick={handleLogout} 
+                                <button
+                                    onClick={handleLogout}
                                     className="nav-item"
-                                    style={{ 
+                                    style={{
                                         width: '100%', color: '#ef4444', border: 'none', background: 'transparent',
                                         cursor: 'pointer', padding: '12px 16px', borderRadius: '16px', gap: '12px',
                                         display: 'flex', alignItems: 'center', transition: 'all 0.2s',

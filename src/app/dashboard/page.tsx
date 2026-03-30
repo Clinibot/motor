@@ -433,14 +433,14 @@ export default function DashboardPage() {
 
 
     return (
-        <div className="app-container">
+        <div className="app">
             <Script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" onLoad={() => setChartJsReady(true)} />
             <Script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" strategy="afterInteractive" />
-            
+
             <DashboardSidebar user={user} />
 
-            <div className="main-view">
-                <DashboardTopbar 
+            <main className="main">
+                <DashboardTopbar
                     title="Dashboard principal"
                     user={user}
                     totalCost={totalCost}
@@ -454,7 +454,7 @@ export default function DashboardPage() {
                     dropdownRef={dropdownRef}
                 />
 
-                <div className="dashboard-content">
+                <div className="content">
                     <div className="content-header">
                         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>
                             Vista general
@@ -536,71 +536,62 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Row 2: Charts (Time, Sentiment) */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '24px', marginBottom: '24px' }}>
-                                <div className="card-premium" style={{ height: '340px' }}>
-                                    <div className="card-header" style={{ marginBottom: '12px' }}>
-                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Llamadas en el tiempo</h3>
-                                    </div>
-                                    <div style={{ height: '220px', position: 'relative' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '20px', height: '280px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>Llamadas en el tiempo</div>
+                                    <div style={{ height: '200px', position: 'relative' }}>
                                         <canvas ref={callsChartRef} />
                                     </div>
                                 </div>
-                                <div className="card-premium" style={{ height: '340px' }}>
-                                    <div className="card-header" style={{ marginBottom: '12px' }}>
-                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Sentimiento de usuarios</h3>
-                                    </div>
-                                    <div style={{ height: '220px', position: 'relative' }}>
+                                <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '20px', height: '280px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>Sentimiento de usuarios</div>
+                                    <div style={{ height: '200px', position: 'relative' }}>
                                         <canvas ref={sentimentChartRef} />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Row 3: Charts (Disconnection, By Agent) */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '24px', marginBottom: '24px' }}>
-                                <div className="card-premium" style={{ height: '340px' }}>
-                                    <div className="card-header" style={{ marginBottom: '12px' }}>
-                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Motivos de desconexión</h3>
-                                    </div>
-                                    <div style={{ height: '220px', position: 'relative' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '20px', height: '280px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>Motivos de desconexión</div>
+                                    <div style={{ height: '200px', position: 'relative' }}>
                                         <canvas ref={disconnectChartRef} />
                                     </div>
                                 </div>
-                                <div className="card-premium" style={{ height: '340px' }}>
-                                    <div className="card-header" style={{ marginBottom: '12px' }}>
-                                        <h3 className="card-title" style={{ fontSize: '15px' }}>Llamadas por agente</h3>
-                                    </div>
-                                    <div style={{ height: '220px', position: 'relative' }}>
+                                <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '20px', height: '280px' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>Llamadas por agente</div>
+                                    <div style={{ height: '200px', position: 'relative' }}>
                                         <canvas ref={agentsChartRef} />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="card-premium">
-                                <div className="flex-between" style={{ marginBottom: '24px', alignItems: 'center' }}>
-                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--slate-800)', margin: 0 }}>Llamadas recientes</h3>
-                                    <button className="btn-s" onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '13px', background: 'var(--slate-50)', border: '1px solid var(--slate-200)', color: 'var(--slate-600)' }}>
-                                        <i className="bi bi-download" style={{ fontSize: '14px' }}></i>
-                                        Exportar
+                            <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
+                                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gris-borde)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontSize: '14px', fontWeight: 700 }}>Llamadas recientes</div>
+                                    <button className="btn-s" onClick={handleExportCSV} style={{ fontSize: '12px' }}>
+                                        <i className="bi bi-download"></i> Exportar
                                     </button>
                                 </div>
 
-                                <div className="flex-center gap-12" style={{ marginBottom: '24px' }}>
-                                    <div style={{ flex: 1, position: 'relative' }}>
-                                        <i className="bi bi-search" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)', fontSize: '14px' }}></i>
+                                <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--gris-borde)', display: 'flex', gap: '12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '0 12px', flex: 1 }}>
+                                        <i className="bi bi-search" style={{ color: 'var(--gris-texto)', fontSize: '13px' }}></i>
                                         <input
                                             type="text"
                                             className="inp"
                                             placeholder="Buscar por número o nombre..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            style={{ paddingLeft: '42px', height: '42px', fontSize: '14px', background: 'var(--slate-50)', border: '1px solid var(--slate-100)' }}
+                                            style={{ border: 'none', background: 'none', padding: '8px', fontSize: '13px' }}
                                         />
                                     </div>
                                     <select
-                                        className="inp"
+                                        className="inp sel"
                                         value={agentFilter}
                                         onChange={(e) => setAgentFilter(e.target.value)}
-                                        style={{ width: '200px', height: '42px', fontSize: '14px', background: 'var(--slate-50)', border: '1px solid var(--slate-100)' }}
+                                        style={{ width: 'auto', padding: '8px 36px 8px 12px', fontSize: '12px' }}
                                     >
                                         <option value="all">Todos los agentes</option>
                                         {agents.map(ag => (
@@ -618,18 +609,13 @@ export default function DashboardPage() {
                                             : 'No hay resultados para esta búsqueda.'}
                                     </div>
                                 ) : (
-                                    <div style={{ overflowX: 'auto', margin: '0 -24px' }}>
-                                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                             <thead>
-                                                <tr style={{ background: 'var(--slate-50)', borderBottom: '1px solid var(--slate-100)' }}>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>FECHA Y HORA</th>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>USUARIO</th>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AGENTE</th>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>DURACIÓN</th>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>SENTIMIENTO</th>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ESTADO</th>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>COSTE</th>
-                                                    <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ACCIONES</th>
+                                                <tr style={{ background: 'var(--gris-bg)' }}>
+                                                    {['Fecha y hora','Usuario','Agente','Duración','Sentimiento','Estado','Coste','Acciones'].map(h => (
+                                                        <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--gris-texto)' }}>{h}</th>
+                                                    ))}
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -773,7 +759,7 @@ export default function DashboardPage() {
                     )}
                 </div>
                 <ViewSwitcher user={user} />
-            </div>
+            </main>
         </div>
     );
 }
