@@ -100,7 +100,7 @@ function WizardContent() {
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--gris-bg)' }}>
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--gris-bg)' }}>
             <Sidebar />
 
             <main className="wiz-main">
