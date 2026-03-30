@@ -222,7 +222,6 @@ export default function AgentsPage() {
                     <div className="page-header">
                         <div className="page-title-group">
                             <h2>Mis agentes IA</h2>
-                            <p>Gestiona y optimiza el rendimiento de tus agentes virtuales en tiempo real.</p>
                         </div>
                         <button onClick={handleCreateAgent} className="btn-p">
                             <i className="bi bi-plus-lg"></i>
@@ -269,76 +268,57 @@ export default function AgentsPage() {
                                 const colorIndex = idx % colors.length;
 
                                 return (
-                                    <div key={agent.id} className="card-premium" style={{ border: '1px solid var(--slate-100)' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-                                            <div style={{ 
-                                                width: '64px', height: '64px', borderRadius: '18px', 
+                                    <div key={agent.id} className="agent-card-v2">
+                                        <div className="ac-header">
+                                            <div className="ac-avatar" style={{ 
                                                 background: colors[colorIndex],
-                                                color: textColors[colorIndex],
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                                                fontSize: '28px', fontWeight: 800,
-                                                boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                                                color: textColors[colorIndex]
                                             }}>
                                                 {initial}
                                             </div>
-                                            <span style={{ 
-                                                display: 'flex', alignItems: 'center', gap: '6px',
-                                                padding: '6px 12px', borderRadius: '100px', fontSize: '11px', fontWeight: 700, 
-                                                background: 'var(--exito-light)', color: 'var(--exito)', textTransform: 'uppercase',
-                                                letterSpacing: '0.05em'
-                                            }}>
-                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--exito)' }}></span>
-                                                En línea
-                                            </span>
-                                        </div>
-
-                                        <div style={{ marginBottom: '28px' }}>
-                                            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--slate-900)', margin: '0 0 4px 0', letterSpacing: '-0.01em' }}>{agent.name}</h3>
-                                            <div style={{ fontSize: '13px', color: 'var(--slate-400)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <i className="bi bi-tag-fill" style={{ fontSize: '11px' }}></i>
-                                                {getAgentTypeName(agent.type)}
+                                            <div className="ac-name-group">
+                                                <h3 className="ac-name">{agent.name}</h3>
+                                                <p className="ac-role">{getAgentTypeName(agent.type)}</p>
                                             </div>
                                         </div>
 
-                                        <div style={{ padding: '16px', background: 'var(--slate-50)', borderRadius: '14px', marginBottom: '28px' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                <span style={{ fontSize: '12px', color: 'var(--slate-500)', fontWeight: 600 }}>Fecha de creación</span>
-                                                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-700)' }} suppressHydrationWarning>
-                                                    {new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        <div className="ac-stats-compact">
+                                            <div className="ac-stat-row">
+                                                <span className="ac-stat-label">Estado:</span>
+                                                <span className="badge-pill active">
+                                                    <span className="dot" style={{ background: 'var(--exito)' }}></span>
+                                                    Activo
                                                 </span>
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '12px', color: 'var(--slate-500)', fontWeight: 600 }}>ID de Retell</span>
-                                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', fontFamily: 'monospace' }}>
-                                                    {agent.retell_agent_id ? `${agent.retell_agent_id.substring(0, 12)}...` : 'No vinculado'}
+                                            <div className="ac-stat-row">
+                                                <span className="ac-stat-label">Creación:</span>
+                                                <span className="ac-stat-value" suppressHydrationWarning>
+                                                    {new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'numeric', year: 'numeric' })}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div className="ac-actions-v2">
                                             <button 
-                                                className="btn-p" 
+                                                className="ac-btn-test" 
                                                 onClick={() => setTestAgent(agent)}
-                                                style={{ flex: 1, height: '48px', justifyContent: 'center' }}
                                             >
-                                                <i className="bi bi-play-fill" style={{ fontSize: '20px' }}></i>
-                                                <span>Probar ahora</span>
+                                                <i className="bi bi-headphones"></i>
+                                                <span>Probar</span>
                                             </button>
-                                            <Link href={`/wizard?editId=${agent.id}`} className="btn-s" style={{ width: '48px', height: '48px', padding: 0, justifyContent: 'center', borderRadius: '14px', textDecoration: 'none' }}>
-                                                <i className="bi bi-gear-fill" style={{ fontSize: '18px' }}></i>
+                                            <Link href={`/wizard?editId=${agent.id}`} className="ac-btn-edit" style={{ textDecoration: 'none' }}>
+                                                <i className="bi bi-pencil-square"></i>
+                                                <span>Editar</span>
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(agent.id, agent.name)}
                                                 disabled={isDeletingId === agent.id}
-                                                className="btn-s"
-                                                style={{ width: '48px', height: '48px', padding: 0, justifyContent: 'center', color: 'var(--error)', borderColor: 'var(--error-light)', borderRadius: '14px' }}
-                                                onMouseOver={(e) => { e.currentTarget.style.background = 'var(--error-light)' }}
-                                                onMouseOut={(e) => { e.currentTarget.style.background = 'white' }}
+                                                className="ac-btn-delete"
                                             >
                                                 {isDeletingId === agent.id ? (
-                                                    <div className="spinner" style={{ width: '18px', height: '18px', border: '2px solid transparent', borderTopColor: 'var(--error)', margin: 0 }} />
+                                                    <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: 'var(--error)', margin: 0 }} />
                                                 ) : (
-                                                    <i className="bi bi-trash3-fill" style={{ fontSize: '18px' }}></i>
+                                                    <i className="bi bi-trash3"></i>
                                                 )}
                                             </button>
                                         </div>
