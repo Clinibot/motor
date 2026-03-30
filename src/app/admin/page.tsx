@@ -2,13 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    Plus, Users, Loader2, Trash2, 
-    Shield, Layout, Edit2
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { createClient } from '../../lib/supabase/client';
 import DashboardSidebar from '../../components/DashboardSidebar';
-import AdminAlertSettings from '../../components/AdminAlertSettings';
 
 interface Workspace {
     id: string;
@@ -167,7 +163,7 @@ export default function PlatformManagement() {
         } catch { setError("Error de conexión."); }
     };
 
-    const userInitial = (user?.full_name || user?.email || 'A')[0].toUpperCase();
+
 
     return (
         <div className="app-container">
