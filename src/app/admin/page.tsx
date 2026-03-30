@@ -170,146 +170,84 @@ export default function PlatformManagement() {
     const userInitial = (user?.full_name || user?.email || 'A')[0].toUpperCase();
 
     return (
-        <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex' }}>
-            <style>{`
-                *{margin:0;padding:0;box-sizing:border-box}
-                body{font-family:'Inter',-apple-system,sans-serif;background:#f5f6f8;color:#1a1a1a}
-                
-                .main-content{flex:1;margin-left:250px;min-height:100vh;display:flex;flex-direction:column;background:#f5f6f8}
-                
-                .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;height:64px}
-                .topbar-left h1{font-size:20px;font-weight:700;color:#1a1a1a}
-                
-                .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:13px;cursor:pointer;border:none}
-                
-                .tab-nav { display: flex; gap: 32px; border-bottom: 1px solid #e2e8f0; padding: 0 48px; background: #fff; }
-                .tab-item { padding: 16px 4px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; position: relative; display: flex; align-items: center; gap: 8px; border: none; background: none; }
-                .tab-item.active { color: #2563eb; }
-                .tab-item.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: #2563eb; }
-                
-                .content-area { padding: 32px 48px; }
-                
-                /* Cards and Tables */
-                .glass-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px; }
-                .card-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
-                .card-title { font-size: 16px; font-weight: 700; color: #1e293b; }
-                
-                .btn-primary { background: #1a6da1; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
-                .btn-primary:hover { background: #155a84; }
-                
-                .data-table { width: 100%; border-collapse: collapse; }
-                .data-table th { text-align: left; padding: 12px 24px; background: #fafafa; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; }
-                .data-table td { padding: 16px 24px; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
-                .data-table tr:hover { background: #fcfcfc; }
-                
-                .mono-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: #475569; }
-                
-                .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
-                .status-badge.active { background: #dcfce7; color: #15803d; }
-                .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-                /* Form Design */
-                .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px; }
-                .form-group label { display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px; }
-                .form-group label .required { color: #ef4444; }
-                .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; }
-                .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-                
-                .protocol-box { padding: 32px; text-align: center; color: #64748b; }
-                .protocol-box svg { color: #2563eb; margin-bottom: 16px; opacity: 0.8; }
-                .protocol-info { max-width: 500px; margin: 0 auto; line-height: 1.6; }
-                
-                .action-btn { padding: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; color: #94a3b8; cursor: pointer; transition: all 0.2s; }
-                .action-btn:hover { background: #fff; color: #1e293b; border-color: #cbd5e1; }
-                
-                .error-banner { background: #fef2f2; border: 1px solid #fee2e2; color: #b91c1c; padding: 12px 24px; margin: 32px 48px 0 48px; border-radius: 8px; font-size: 14px; }
-            `}</style>
-
+        <div className="app-container">
             <DashboardSidebar user={user} />
 
-            <main className="main-content">
-                <header className="topbar">
-                    <div className="topbar-left">
-                        <h1>Gestión de la Plataforma</h1>
-                    </div>
-                    <div className="topbar-right">
-                        <div className="user-avatar">{userInitial}</div>
+            <main className="main-view">
+                <header className="top-bar">
+                    <div className="t-left">
+                        <div className="t-title">Gestión de la plataforma</div>
+                        <div className="t-sep"></div>
+                        <div className="t-breadcrumb">Administración centralizada de nodos y usuarios</div>
                     </div>
                 </header>
 
-                <nav className="tab-nav">
-                    <button 
-                        className={`tab-item ${activeTab === 'workspaces' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('workspaces')}
-                    >
-                        <Layout size={18} />
-                        Workspaces
-                    </button>
-                    <button 
-                        className={`tab-item ${activeTab === 'protocolo' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('protocolo')}
-                    >
-                        <Shield size={18} />
-                        Protocolo
-                    </button>
-                    <button 
-                        className={`tab-item ${activeTab === 'users' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('users')}
-                    >
-                        <Users size={18} />
-                        Usuarios
-                    </button>
-                    <button 
-                        className={`tab-item ${activeTab === 'alerts' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('alerts')}
-                    >
-                        <Shield size={18} />
-                        Alertas
-                    </button>
-                </nav>
+                <div className="dashboard-content">
+                    <div className="adm-tabs-container">
+                        <button 
+                            className={`adm-tab ${activeTab === 'workspaces' ? 'on' : ''}`}
+                            onClick={() => setActiveTab('workspaces')}
+                        >
+                            <i className="bi bi-buildings"></i>
+                            <span>Workspaces</span>
+                        </button>
+                        <button 
+                            className={`adm-tab ${activeTab === 'users' ? 'on' : ''}`}
+                            onClick={() => setActiveTab('users')}
+                        >
+                            <i className="bi bi-people"></i>
+                            <span>Usuarios</span>
+                        </button>
+                    </div>
 
-                {error && <div className="error-banner">{error}</div>}
+                    {error && <div className="error-banner" style={{ marginBottom: '32px' }}>{error}</div>}
 
-                <div className="content-area">
                     {activeTab === 'workspaces' && (
-                        <>
-                            <div className="glass-card">
-                                <div className="card-header">
-                                    <h2 className="card-title">Workspaces registrados</h2>
-                                    <button className="btn-primary" onClick={() => {
+                        <div style={{ maxWidth: '1200px' }}>
+                            <div className="card-premium" style={{ padding: 0, overflow: 'hidden', marginBottom: '40px' }}>
+                                <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--slate-50)' }}>
+                                    <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--slate-900)' }}>Workspaces registrados</h2>
+                                    <button className="btn-p" onClick={() => {
                                         const form = document.getElementById('create-form');
                                         form?.scrollIntoView({ behavior: 'smooth' });
                                     }}>
-                                        <Plus size={16} />
-                                        Crear workspace
+                                        <i className="bi bi-plus-lg"></i>
+                                        <span>Nuevo Workspace</span>
                                     </button>
                                 </div>
-                                <div className="table-wrapper">
+                                <div style={{ overflowX: 'auto' }}>
                                     <table className="data-table">
                                         <thead>
                                             <tr>
                                                 <th>Nombre</th>
                                                 <th>Retell API Key</th>
-                                                <th>Usuarios</th>
+                                                <th style={{ textAlign: 'center' }}>Usuarios</th>
                                                 <th>Estado</th>
-                                                <th>Acc.</th>
+                                                <th style={{ textAlign: 'right' }}>Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {isLoading ? (
-                                                <tr><td colSpan={5} style={{textAlign:'center', padding: '40px', color: '#94a3b8'}}><Loader2 className="animate-spin inline mr-2" /> Cargando...</td></tr>
+                                                <tr><td colSpan={5} style={{textAlign:'center', padding: '80px'}}><Loader2 className="animate-spin" style={{ margin: '0 auto 16px', color: 'var(--azul)' }} /> <div style={{ color: 'var(--slate-400)', fontWeight: 600 }}>Cargando workspaces...</div></td></tr>
                                             ) : workspaces.length === 0 ? (
-                                                <tr><td colSpan={5} style={{textAlign:'center', padding: '40px', color: '#94a3b8'}}>No hay workspaces registrados</td></tr>
+                                                <tr><td colSpan={5} style={{textAlign:'center', padding: '80px', color: 'var(--slate-400)', fontWeight: 500 }}>No hay workspaces registrados en el sistema.</td></tr>
                                             ) : workspaces.map(ws => (
                                                 <tr key={ws.id}>
-                                                    <td style={{fontWeight: 600}}>{ws.name}</td>
-                                                    <td><span className="mono-badge">key_{ws.retell_api_key?.substring(0, 4)}...{ws.retell_api_key?.slice(-4)}</span></td>
-                                                    <td>{ws.users_count || 0}</td>
-                                                    <td><span className="status-badge active">Activo</span></td>
+                                                    <td style={{ fontWeight: 700, color: 'var(--slate-900)' }}>{ws.name}</td>
+                                                    <td><span className="mono-key">key_{ws.retell_api_key?.substring(0, 4)}...{ws.retell_api_key?.slice(-4)}</span></td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span style={{ fontWeight: 800, background: 'var(--slate-100)', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', color: 'var(--slate-700)' }}>{ws.users_count || 0}</span>
+                                                    </td>
                                                     <td>
-                                                        <div style={{display:'flex', gap: '8px'}}>
-                                                            <button className="action-btn" title="Editar" onClick={() => startEditing(ws)}><Edit2 size={14} /></button>
-                                                            <button className="action-btn" title="Eliminar" style={{color: '#ef4444'}} onClick={() => handleDeleteWorkspace(ws.id, ws.name)}><Trash2 size={14} /></button>
+                                                        <div className="badge-ok">
+                                                            <span style={{ width: '8px', height: '8px', background: 'var(--exito)', borderRadius: '50%' }}></span>
+                                                            Activo
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'right' }}>
+                                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                            <button className="btn-s" title="Editar" onClick={() => startEditing(ws)} style={{ width: '40px', height: '40px', padding: 0 }}><i className="bi bi-pencil"></i></button>
+                                                            <button className="btn-s" title="Eliminar" onClick={() => handleDeleteWorkspace(ws.id, ws.name)} style={{ width: '40px', height: '40px', padding: 0, color: 'var(--error)' }}><i className="bi bi-trash"></i></button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -319,38 +257,31 @@ export default function PlatformManagement() {
                                 </div>
                             </div>
 
-                            <div className="glass-card" id="create-form">
-                                <div className="card-header" style={{border: 'none'}}>
-                                    <h2 className="card-title" style={{display:'flex', alignItems:'center', gap: '8px'}}>
-                                        {editingId ? <Edit2 size={18} style={{color: '#2563eb'}} /> : <Plus size={18} style={{color: '#2563eb'}} />}
-                                        {editingId ? 'Editar workspace' : 'Crear nuevo workspace'}
+                            <div className="card-premium" id="create-form" style={{ maxWidth: '800px' }}>
+                                <div style={{ marginBottom: '32px' }}>
+                                    <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+                                        {editingId ? 'Editar Workspace' : 'Configurar acceso'}
                                     </h2>
-                                    {editingId && (
-                                        <button className="btn-secondary" onClick={cancelEditing} style={{
-                                            background: '#f1f5f9', color: '#475569', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
-                                        }}>
-                                            Cancelar edición
-                                        </button>
-                                    )}
+                                    <p style={{ fontSize: '15px', color: 'var(--slate-500)', lineHeight: 1.5 }}>Define las credenciales necesarias para que el cliente pueda operar en la plataforma.</p>
                                 </div>
                                 <form onSubmit={handleSubmit}>
-                                    <div className="form-grid">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
                                         <div className="form-group">
-                                            <label>Nombre <span className="required">*</span></label>
+                                            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-700)', marginBottom: '10px', display: 'block' }}>Razón Social / Nombre</label>
                                             <input 
                                                 type="text" 
-                                                className="form-input" 
-                                                placeholder="Ej: Clínica Dr. García" 
+                                                className="inp" 
+                                                placeholder="Ej: Clínica Dental Madrid" 
                                                 required
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
                                             />
                                         </div>
                                         <div className="form-group">
-                                            <label>Retell API Key {editingId ? '(Dejar vacío para mantener actual)' : <span className="required">*</span>}</label>
+                                            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-700)', marginBottom: '10px', display: 'block' }}>Retell API Key</label>
                                             <input 
                                                 type="password" 
-                                                className="form-input" 
+                                                className="inp" 
                                                 placeholder={editingId ? "********" : "key_..."}
                                                 required={!editingId}
                                                 value={retellApiKey}
@@ -358,88 +289,65 @@ export default function PlatformManagement() {
                                             />
                                         </div>
                                     </div>
-                                    <div style={{padding: '0 24px 24px 24px', display: 'flex', gap: '12px'}}>
-                                        <button className="btn-primary" type="submit" disabled={isCreating}>
-                                            {isCreating ? <Loader2 size={16} className="animate-spin" /> : (editingId ? <Edit2 size={16} /> : <Plus size={16} />)}
-                                            {editingId ? 'Actualizar workspace' : 'Crear workspace'}
+                                    <div style={{ display: 'flex', gap: '12px' }}>
+                                        <button className="btn-p" type="submit" disabled={isCreating}>
+                                            {isCreating ? <Loader2 size={18} className="animate-spin" /> : (editingId ? <i className="bi bi-check-lg"></i> : <i className="bi bi-plus-lg"></i>)}
+                                            <span style={{ marginLeft: '10px' }}>{editingId ? 'Guardar Cambios' : 'Confirmar y Crear'}</span>
                                         </button>
+                                        {editingId && (
+                                            <button className="btn-s" onClick={cancelEditing} type="button">Descartar</button>
+                                        )}
                                     </div>
                                 </form>
-                            </div>
-                        </>
-                    )}
-
-                    {activeTab === 'protocolo' && (
-                        <div className="glass-card">
-                            <div className="protocol-box">
-                                <Shield size={48} />
-                                <div className="protocol-info">
-                                    <h2 style={{fontSize: '18px', fontWeight: 800, color: '#1e293b', marginBottom: '8px'}}>Protocolo de Telefonía Forzado</h2>
-                                    <p style={{marginBottom: '20px'}}>
-                                        Toda la infraestructura de la Fábrica está actualmente configurada para forzar el protocolo <strong>UDP</strong>. 
-                                        Esto asegura la máxima compatibilidad y rendimiento con los troncales SIP de Netelip.
-                                    </p>
-                                    <div style={{background: '#f8fafc', padding: '16px', borderRadius: '12px', textAlign: 'left', fontSize: '13px'}}>
-                                        <p><strong>Configuración actual:</strong></p>
-                                        <ul style={{marginTop: '8px', marginLeft: '16px'}}>
-                                            <li>SIP Transport: <strong>UDP</strong> (Enforced)</li>
-                                            <li>RTP Encryption: SRTP (Optional)</li>
-                                            <li>Audio Codecs: PCMU, PCMA</li>
-                                        </ul>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     )}
 
                     {activeTab === 'users' && (
-                        <div className="glass-card">
-                            <div className="card-header">
-                                <h2 className="card-title">Usuarios del sistema</h2>
+                        <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
+                            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)' }}>
+                                <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--slate-900)' }}>Usuarios globales</h2>
                             </div>
-                            <div className="table-wrapper">
+                            <div style={{ overflowX: 'auto' }}>
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Nombre</th>
-                                            <th>Email</th>
+                                            <th>Nombre Completo</th>
+                                            <th>Email Acceso</th>
                                             <th>Workspace</th>
-                                            <th>Teléfonos</th>
-                                            <th style={{textAlign: 'right'}}>Consumo</th>
+                                            <th>Números Asignados</th>
+                                            <th style={{ textAlign: 'right' }}>Uso de Plataforma</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {isLoading ? (
-                                            <tr><td colSpan={5} style={{textAlign:'center', padding: '40px'}}><Loader2 className="animate-spin inline mr-2" /> Cargando...</td></tr>
+                                            <tr><td colSpan={5} style={{textAlign:'center', padding: '80px'}}><Loader2 className="animate-spin" style={{ margin: '0 auto 16px', color: 'var(--azul)' }} /> <div style={{ color: 'var(--slate-400)', fontWeight: 600 }}>Cargando usuarios...</div></td></tr>
                                         ) : users.length === 0 ? (
-                                            <tr><td colSpan={5} style={{textAlign:'center', padding: '40px'}}>No hay usuarios registrados</td></tr>
+                                            <tr><td colSpan={5} style={{textAlign:'center', padding: '80px', color: 'var(--slate-400)', fontWeight: 500 }}>No hay usuarios en la base de datos.</td></tr>
                                         ) : users.map(u => (
                                             <tr key={u.id}>
-                                                <td style={{fontWeight: 600}}>{u.full_name || 'Sin nombre'}</td>
-                                                <td>{u.email}</td>
-                                                <td><span className="mono-badge">{u.workspace_name}</span></td>
+                                                <td style={{ fontWeight: 700, color: 'var(--slate-900)' }}>{u.full_name || 'Sin identificar'}</td>
+                                                <td style={{ color: 'var(--slate-500)' }}>{u.email}</td>
+                                                <td><span style={{ background: 'var(--azul-light)', color: 'var(--azul)', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700 }}>{u.workspace_name}</span></td>
                                                 <td>
-                                                    <div style={{display:'flex', flexWrap:'wrap', gap: '4px'}}>
-                                                        {u.phone_numbers?.map((n, i) => (
-                                                            <span key={i} className="status-badge" style={{background: '#eff6ff', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '10px'}}>{n}</span>
-                                                        ))}
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                                        {u.phone_numbers && u.phone_numbers.length > 0 ? u.phone_numbers.map((n, i) => (
+                                                            <span key={i} style={{ background: 'var(--slate-100)', color: 'var(--slate-600)', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <i className="bi bi-telephone" style={{ fontSize: '10px' }}></i>
+                                                                {n}
+                                                            </span>
+                                                        )) : <span style={{ color: 'var(--slate-300)', fontSize: '12px', fontStyle: 'italic' }}>Sin líneas</span>}
                                                     </div>
                                                 </td>
-                                                <td style={{textAlign: 'right'}}>
-                                                    <div style={{fontWeight: 700}}>{u.total_minutes} min</div>
-                                                    <div style={{fontSize: '11px', color: '#94a3b8'}}>{u.calls_count} llamadas</div>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontWeight: 800, color: 'var(--slate-900)', fontSize: '15px' }}>{u.total_minutes} <small style={{ color: 'var(--slate-400)', fontWeight: 500 }}>min</small></div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>{u.calls_count} interacciones</div>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'alerts' && (
-                        <div className="glass-card" style={{padding: '24px'}}>
-                            <AdminAlertSettings />
                         </div>
                     )}
                 </div>

@@ -280,18 +280,18 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Contexto Adicional\n$
     const SummarySection = ({ step, icon, color, label, children }: { step: number; icon: string; color: string; label: string; children: React.ReactNode }) => {
         const isExpanded = expandedStep === step;
         return (
-            <div className={`bg-white border transition-all duration-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md ${isExpanded ? 'border-[var(--azul)]/30' : 'border-[var(--gris-borde)]'}`}>
+            <div className={`card-premium transition-all duration-300 overflow-hidden ${isExpanded ? 'ring-1 ring-[var(--azul)]/30' : ''}`}>
                 <div 
                     onClick={() => toggleStep(step)} 
-                    className={`flex items-center justify-between px-6 py-5 cursor-pointer transition-colors ${isExpanded ? 'bg-[var(--azul)]/5' : 'bg-white hover:bg-[#f8fafc]'}`}
+                    className={`flex items-center justify-between px-6 py-5 cursor-pointer transition-colors ${isExpanded ? 'bg-[var(--azul)]/5' : 'bg-white hover:bg-slate-50'}`}
                 >
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15`, color: color }}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: `${color}15`, color: color }}>
                             <i className={`bi ${icon} text-[18px]`}></i>
                         </div>
                         <div>
-                            <div className="text-[15px] font-bold text-[var(--oscuro)]">{label}</div>
-                            <div className="text-[12px] text-[var(--gris-texto)] font-semibold uppercase tracking-wider">Paso {step}</div>
+                            <div className="text-[15px] font-bold text-slate-800">{label}</div>
+                            <div className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Paso {step}</div>
                         </div>
                     </div>
                     <div className="flex items-center gap-5">
@@ -353,13 +353,13 @@ ${wizardData.customNotes ? `\n<!-- AUTO_NOTES_START -->\n# Contexto Adicional\n$
                     subtitle="Confirma la identidad y comportamiento de tu nuevo agente antes de activarlo." 
                 />
 
-                <div className="bg-[#eff6ff] border border-[var(--azul)]/10 rounded-2xl p-5 mb-10 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--azul)] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[var(--azul)]/20">
-                        <i className="bi bi-shield-check text-white text-[18px]" />
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 rounded-2xl p-6 mb-10 flex items-center gap-5">
+                    <div className="w-12 h-12 rounded-2xl bg-azul flex items-center justify-center flex-shrink-0 shadow-lg shadow-azul/20">
+                        <i className="bi bi-shield-check text-white text-[22px]" />
                     </div>
                     <div>
-                        <div className="font-bold text-[15px] text-[#1e40af]">Todo listo para el despliegue</div>
-                        <div className="text-[13px] text-[#2563eb] mt-0.5">Revisa las secciones desplegables. Hemos unificado tu configuración para maximizar el rendimiento del agente.</div>
+                        <div className="font-bold text-[16px] text-slate-900">Listo para producción</div>
+                        <div className="text-[13px] text-slate-500 mt-0.5 leading-relaxed">Hemos organizado tu configuración en secciones interactivas. Verifica los detalles antes de activar tu agente.</div>
                     </div>
                 </div>
 

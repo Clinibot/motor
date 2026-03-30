@@ -218,119 +218,127 @@ export default function AgentsPage() {
                     dropdownRef={dropdownRef}
                 />
 
-                <div className="dashboard-content" style={{ padding: '32px' }}>
-                    <div style={{ marginBottom: '32px' }}>
-                        <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 8px 0' }}>
-                            Mis agentes IA
-                        </h2>
-                        <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
-                            Gestiona y optimiza el rendimiento de tus agentes virtuales.
-                        </p>
+                <div className="dashboard-content">
+                    <div className="page-header">
+                        <div className="page-title-group">
+                            <h2>Mis agentes IA</h2>
+                            <p>Gestiona y optimiza el rendimiento de tus agentes virtuales en tiempo real.</p>
+                        </div>
+                        <button onClick={handleCreateAgent} className="btn-p">
+                            <i className="bi bi-plus-lg"></i>
+                            <span>Nuevo Agente</span>
+                        </button>
                     </div>
 
                     {deleteError && (
                         <div style={{
-                            background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px',
-                            padding: '16px 20px', marginBottom: '24px', display: 'flex',
+                            background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '16px',
+                            padding: '16px 24px', marginBottom: '32px', display: 'flex',
                             alignItems: 'center', justifyContent: 'space-between', gap: '12px',
-                            fontSize: '14px', color: '#ef4444', fontWeight: 500,
+                            fontSize: '14px', color: '#ef4444', fontWeight: 600,
                         }}>
-                            <div className="flex-center gap-8">
-                                <i className="bi bi-exclamation-circle-fill"></i>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <i className="bi bi-exclamation-circle-fill" style={{ fontSize: '18px' }}></i>
                                 {deleteError}
                             </div>
-                            <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '20px' }}>×</button>
+                            <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '24px', lineHeight: 1 }}>×</button>
                         </div>
                     )}
 
                     {isLoading ? (
-                        <div className="card-premium" style={{ textAlign: 'center', padding: '80px 0' }}>
-                            <div className="spinner" style={{ border: '3px solid var(--slate-100)', borderTop: '3px solid var(--azul)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
-                            <p style={{ color: 'var(--slate-500)', fontWeight: 500 }}>Cargando agentes...</p>
+                        <div className="card-premium" style={{ textAlign: 'center', padding: '100px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                            <div className="spinner" style={{ width: '48px', height: '48px', border: '4px solid var(--slate-100)', borderTopColor: 'var(--azul)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                            <p style={{ color: 'var(--slate-500)', fontWeight: 600, fontSize: '16px' }}>Sincronizando tus agentes...</p>
                         </div>
                     ) : agents.length === 0 ? (
-                        <div className="card-premium" style={{ textAlign: 'center', padding: '80px 40px', border: '2px dashed var(--slate-200)', background: 'transparent', boxShadow: 'none' }}>
-                            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🤖</div>
-                            <h3 style={{ fontSize: '20px', color: 'var(--slate-900)', marginBottom: '8px', fontWeight: 700 }}>Aún no tienes agentes</h3>
-                            <p style={{ marginBottom: '32px', color: 'var(--slate-500)', maxWidth: '400px', margin: '0 auto 32px' }}>Crea tu primer agente conversacional impulsado por IA para automatizar tus llamadas.</p>
-                            <button onClick={handleCreateAgent} className="btn-premium" style={{ margin: '0 auto' }}>
-                                <i className="bi bi-plus-lg"></i>
-                                Crear mi primer agente
+                        <div className="card-premium" style={{ textAlign: 'center', padding: '100px 40px', border: '2px dashed var(--slate-200)', background: 'rgba(248, 250, 252, 0.5)', boxShadow: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div style={{ width: '80px', height: '80px', background: 'var(--azul-light)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', marginBottom: '24px' }}>🤖</div>
+                            <h3 style={{ fontSize: '22px', color: 'var(--slate-900)', marginBottom: '12px', fontWeight: 800 }}>Todavía no has creado ningún agente</h3>
+                            <p style={{ marginBottom: '40px', color: 'var(--slate-500)', maxWidth: '420px', fontSize: '15px', lineHeight: 1.6 }}>Comienza ahora creando tu primer asistente virtual y descubre el poder de la automatización por voz.</p>
+                            <button onClick={handleCreateAgent} className="btn-p" style={{ padding: '16px 32px', fontSize: '16px' }}>
+                                <i className="bi bi-magic"></i>
+                                <span>Configurar mi primer agente</span>
                             </button>
                         </div>
                     ) : (
-                        <div className="agents-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+                        <div className="agents-grid">
                             {agents.map((agent, idx) => {
                                 const colors = ['#eff6ff', '#fff7ed', '#f5f3ff', '#f0fdf4'];
-                                const textColors = ['#1d4ed8', '#c2410c', '#6d28d9', '#15803d'];
+                                const textColors = ['#2563eb', '#f97316', '#8b5cf6', '#10b981'];
                                 const initial = (agent.name || 'A').charAt(0).toUpperCase();
                                 const colorIndex = idx % colors.length;
 
                                 return (
-                                    <div key={agent.id} className="card-premium" style={{ display: 'flex', flexDirection: 'column', padding: '24px', borderRadius: '16px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                                    <div key={agent.id} className="card-premium" style={{ border: '1px solid var(--slate-100)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
                                             <div style={{ 
-                                                width: '56px', height: '56px', borderRadius: '14px', 
+                                                width: '64px', height: '64px', borderRadius: '18px', 
                                                 background: colors[colorIndex],
                                                 color: textColors[colorIndex],
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                                                fontSize: '22px', fontWeight: 800,
-                                                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.03)'
+                                                fontSize: '28px', fontWeight: 800,
+                                                boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                                             }}>
                                                 {initial}
                                             </div>
-                                            <div style={{ flex: 1 }}>
-                                                <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 2px 0' }}>{agent.name}</h3>
-                                                <div style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 500 }}>
-                                                    {getAgentTypeName(agent.type)}
-                                                </div>
+                                            <span style={{ 
+                                                display: 'flex', alignItems: 'center', gap: '6px',
+                                                padding: '6px 12px', borderRadius: '100px', fontSize: '11px', fontWeight: 700, 
+                                                background: 'var(--exito-light)', color: 'var(--exito)', textTransform: 'uppercase',
+                                                letterSpacing: '0.05em'
+                                            }}>
+                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--exito)' }}></span>
+                                                En línea
+                                            </span>
+                                        </div>
+
+                                        <div style={{ marginBottom: '28px' }}>
+                                            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--slate-900)', margin: '0 0 4px 0', letterSpacing: '-0.01em' }}>{agent.name}</h3>
+                                            <div style={{ fontSize: '13px', color: 'var(--slate-400)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <i className="bi bi-tag-fill" style={{ fontSize: '11px' }}></i>
+                                                {getAgentTypeName(agent.type)}
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', flex: 1 }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '13px', color: 'var(--slate-500)' }}>Estado:</span>
-                                                <span style={{ 
-                                                    display: 'flex', alignItems: 'center', gap: '4px',
-                                                    padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 800, 
-                                                    background: '#ecfdf5', color: '#10b981', textTransform: 'uppercase'
-                                                }}>
-                                                    <i className="bi bi-check-lg" style={{ fontSize: '12px' }}></i>
-                                                    Activo
+                                        <div style={{ padding: '16px', background: 'var(--slate-50)', borderRadius: '14px', marginBottom: '28px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                <span style={{ fontSize: '12px', color: 'var(--slate-500)', fontWeight: 600 }}>Fecha de creación</span>
+                                                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-700)' }} suppressHydrationWarning>
+                                                    {new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </span>
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--slate-50)', paddingTop: '12px' }}>
-                                                <span style={{ fontSize: '13px', color: 'var(--slate-500)' }}>Creación:</span>
-                                                <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--slate-900)' }} suppressHydrationWarning>
-                                                    {new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontSize: '12px', color: 'var(--slate-500)', fontWeight: 600 }}>ID de Retell</span>
+                                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--slate-400)', fontFamily: 'monospace' }}>
+                                                    {agent.retell_agent_id ? `${agent.retell_agent_id.substring(0, 12)}...` : 'No vinculado'}
                                                 </span>
                                             </div>
                                         </div>
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <button 
-                                                className="btn-premium" 
+                                                className="btn-p" 
                                                 onClick={() => setTestAgent(agent)}
-                                                style={{ flex: 1.2, height: '42px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                                style={{ flex: 1, height: '48px', justifyContent: 'center' }}
                                             >
-                                                <i className="bi bi-headset" style={{ fontSize: '16px' }}></i>
-                                                Probar
+                                                <i className="bi bi-play-fill" style={{ fontSize: '20px' }}></i>
+                                                <span>Probar ahora</span>
                                             </button>
-                                            <Link href={`/wizard?editId=${agent.id}`} style={{ flex: 1, height: '42px', fontSize: '13px', background: 'white', color: 'var(--slate-600)', border: '1px solid var(--slate-200)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', fontWeight: 600 }}>
-                                                <i className="bi bi-pencil" style={{ fontSize: '14px' }}></i>
-                                                Editar
+                                            <Link href={`/wizard?editId=${agent.id}`} className="btn-s" style={{ width: '48px', height: '48px', padding: 0, justifyContent: 'center', borderRadius: '14px', textDecoration: 'none' }}>
+                                                <i className="bi bi-gear-fill" style={{ fontSize: '18px' }}></i>
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(agent.id, agent.name)}
                                                 disabled={isDeletingId === agent.id}
-                                                style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'white', color: '#ef4444', border: '1px solid #fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                onMouseOver={(e) => e.currentTarget.style.background = '#fef2f2'}
-                                                onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                                                className="btn-s"
+                                                style={{ width: '48px', height: '48px', padding: 0, justifyContent: 'center', color: 'var(--error)', borderColor: 'var(--error-light)', borderRadius: '14px' }}
+                                                onMouseOver={(e) => { e.currentTarget.style.background = 'var(--error-light)' }}
+                                                onMouseOut={(e) => { e.currentTarget.style.background = 'white' }}
                                             >
                                                 {isDeletingId === agent.id ? (
-                                                    <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: '#ef4444', margin: 0 }} />
+                                                    <div className="spinner" style={{ width: '18px', height: '18px', border: '2px solid transparent', borderTopColor: 'var(--error)', margin: 0 }} />
                                                 ) : (
-                                                    <i className="bi bi-trash" style={{ fontSize: '18px' }}></i>
+                                                    <i className="bi bi-trash3-fill" style={{ fontSize: '18px' }}></i>
                                                 )}
                                             </button>
                                         </div>
@@ -344,79 +352,85 @@ export default function AgentsPage() {
 
             {/* Test Modal Overlay */}
             {testAgent && (
-                <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', zIndex: 1000 }} onClick={() => { if (callStatus === 'inactive') setTestAgent(null) }}>
-                    <div className="card-premium" style={{ width: '100%', maxWidth: '480px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { if (callStatus === 'inactive') setTestAgent(null) }}>
+                    <div className="card-premium" style={{ width: '100%', maxWidth: '520px', padding: 0, overflow: 'hidden', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ padding: '32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>{testAgent.name}</h3>
-                                <p style={{ fontSize: '13px', color: 'var(--slate-500)', margin: '4px 0 0 0' }}>Prueba de agente por voz</p>
+                                <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--slate-900)', margin: 0, letterSpacing: '-0.02em' }}>{testAgent.name}</h3>
+                                <p style={{ fontSize: '14px', color: 'var(--slate-500)', margin: '4px 0 0 0', fontWeight: 500 }}>Prueba interactiva del asistente</p>
                             </div>
                             {callStatus === "inactive" && (
-                                <button onClick={() => setTestAgent(null)} style={{ background: 'var(--slate-200)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--slate-600)' }}>
+                                <button onClick={() => setTestAgent(null)} className="btn-s" style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%', justifyContent: 'center' }}>
                                     <i className="bi bi-x-lg"></i>
                                 </button>
                             )}
                         </div>
 
-                        <div style={{ padding: '40px 32px', textAlign: 'center' }}>
+                        <div style={{ padding: '48px 40px', textAlign: 'center' }}>
                             <div className={`voice-waves ${callStatus === "active" ? "active" : ""}`} style={{ 
-                                width: '100px', height: '100px', borderRadius: '50%', background: 'var(--slate-100)', 
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px',
-                                position: 'relative', fontSize: '40px', color: 'var(--azul)'
+                                width: '120px', height: '120px', borderRadius: '40px', background: 'var(--azul-light)', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 40px',
+                                position: 'relative', fontSize: '48px', color: 'var(--azul)',
+                                boxShadow: callStatus === 'active' ? '0 0 0 10px rgba(37, 99, 235, 0.1)' : 'none',
+                                transition: 'all 0.3s ease'
                             }}>
-                                <i className="bi bi-mic-fill"></i>
+                                <i className={`bi bi-mic${callStatus === 'active' ? '-fill' : ''}`}></i>
+                                {callStatus === "active" && (
+                                    <div style={{ position: 'absolute', top: -10, right: -10, width: 24, height: 24, background: 'var(--exito)', borderRadius: '50%', border: '4px solid white' }}></div>
+                                )}
                             </div>
 
                             {callError && (
                                 <div style={{
-                                    background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px',
-                                    padding: '12px 16px', marginBottom: '24px', display: 'flex',
-                                    alignItems: 'center', justifyContent: 'space-between', gap: '10px',
-                                    fontSize: '13px', color: '#ef4444', fontWeight: 500, textAlign: 'left',
+                                    background: 'var(--error-light)', border: '1px solid #fecaca', borderRadius: '16px',
+                                    padding: '16px 20px', marginBottom: '32px', display: 'flex',
+                                    alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                                    fontSize: '14px', color: 'var(--error)', fontWeight: 600, textAlign: 'left',
                                 }}>
                                     <span>{callError}</span>
-                                    <button onClick={() => setCallError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '18px' }}>×</button>
+                                    <button onClick={() => setCallError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', fontSize: '20px', lineHeight: 1 }}>×</button>
                                 </div>
                             )}
 
-                            <p style={{ color: 'var(--slate-600)', fontSize: '15px', lineHeight: '1.6', maxWidth: '340px', margin: '0 auto 32px' }}>
-                                {callStatus === "inactive" ? "Pulsa el botón de abajo, autoriza el uso de tu micrófono y empieza a hablar con tu agente." :
-                                    callStatus === "connecting" ? "Estableciendo conexión segura..." :
-                                        "Escuchando y respondiendo..."}
+                            <p style={{ color: 'var(--slate-600)', fontSize: '16px', lineHeight: '1.6', maxWidth: '380px', margin: '0 auto 40px', fontWeight: 500 }}>
+                                {callStatus === "inactive" ? "Pulsa el botón para iniciar una conversación por voz. Asegúrate de permitir el acceso al micrófono." :
+                                    callStatus === "connecting" ? "Conectando con los servidores de IA..." :
+                                        "Llamada en curso. El agente está listo para escucharte."}
                             </p>
 
-                            <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '16px', padding: '20px', textAlign: 'left', marginBottom: '32px' }}>
-                                <div className="flex-center gap-8" style={{ marginBottom: '12px', color: '#9a3412', fontWeight: 700, fontSize: '13px' }}>
-                                    <i className="bi bi-info-circle-fill"></i>
-                                    NOTAS DE PRUEBA
+                            <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '20px', padding: '24px', textAlign: 'left', marginBottom: '40px' }}>
+                                <div style={{ marginBottom: '16px', color: '#92400e', fontWeight: 800, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    <i className="bi bi-info-circle-fill" style={{ fontSize: '16px' }}></i>
+                                    IMPORTANTE
                                 </div>
-                                <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <li style={{ fontSize: '11px', color: '#c2410c', lineHeight: '1.5', display: 'flex', gap: '8px' }}>
-                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f97316', marginTop: '5px', flexShrink: 0 }}></div>
-                                        <span><strong>Transferencias:</strong> Solo funcionan en llamadas reales desde un teléfono móvil.</span>
+                                <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <li style={{ fontSize: '12px', color: '#b45309', lineHeight: '1.5', display: 'flex', gap: '10px' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#d97706', marginTop: '6px', flexShrink: 0 }}></div>
+                                        <span>Esta es una <strong>simulación web</strong>. El rendimiento puede variar según tu conexión a internet.</span>
                                     </li>
-                                    <li style={{ fontSize: '11px', color: '#c2410c', lineHeight: '1.5', display: 'flex', gap: '8px' }}>
-                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f97316', marginTop: '5px', flexShrink: 0 }}></div>
-                                        <span><strong>Instrucciones:</strong> Puedes editarlas en el panel de edición si necesitas ajustar el comportamiento.</span>
+                                    <li style={{ fontSize: '12px', color: '#b45309', lineHeight: '1.5', display: 'flex', gap: '10px' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#d97706', marginTop: '6px', flexShrink: 0 }}></div>
+                                        <span>Utiliza cascos para evitar ecos y mejorar la experiencia de cancelación de ruido.</span>
                                     </li>
                                 </ul>
                             </div>
 
                             <button
-                                className="btn-premium"
+                                className="btn-p"
                                 onClick={toggleCall}
                                 disabled={callStatus === "connecting"}
                                 style={{ 
-                                    width: '100%', padding: '16px', borderRadius: '16px', fontSize: '16px', 
-                                    background: callStatus === "inactive" ? '#10b981' : callStatus === "active" ? '#ef4444' : '#eab308'
+                                    width: '100%', padding: '20px', borderRadius: '20px', fontSize: '18px', justifyContent: 'center',
+                                    background: callStatus === "inactive" ? 'var(--exito)' : callStatus === "active" ? 'var(--error)' : 'var(--alerta)',
+                                    boxShadow: '0 10px 20px -5px rgba(0,0,0,0.1)'
                                 }}
                             >
                                 {callStatus === "inactive" ? (
-                                    <><i className="bi bi-mic-fill"></i> Iniciar llamada</>
+                                    <><i className="bi bi-mic-fill"></i> Iniciar Prueba de Voz</>
                                 ) : callStatus === "active" ? (
-                                    <><i className="bi bi-telephone-x-fill"></i> Finalizar llamada</>
+                                    <><i className="bi bi-telephone-x-fill"></i> Colgar Llamada</>
                                 ) : (
-                                    <>Conectando...</>
+                                    <>Estableciendo conexión...</>
                                 )}
                             </button>
                         </div>

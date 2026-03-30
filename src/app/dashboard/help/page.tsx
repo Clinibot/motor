@@ -423,71 +423,74 @@ export default function HelpPage() {
 
                 <div className="dashboard-content help-page-container">
                     <div id="helpHome">
-                        <div className="content-header">
-                            <div>
-                                <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>Centro de Ayuda</h2>
-                                <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>Todo lo que necesitas saber para dominar la Fábrica de Agentes.</p>
+                        <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 60px' }}>
+                            <h1 style={{ fontSize: '48px', fontWeight: 900, color: 'var(--slate-900)', marginBottom: '24px', letterSpacing: '-0.04em' }}>¿Cómo podemos ayudarte?</h1>
+                            <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto' }}>
+                                <i className="bi bi-search" style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)', fontSize: '18px' }}></i>
+                                <input 
+                                    id="helpSearch"
+                                    type="text" 
+                                    placeholder="Busca guías, tutoriales y respuestas..." 
+                                    style={{ width: '100%', padding: '20px 20px 20px 56px', borderRadius: '20px', border: '1px solid var(--slate-200)', fontSize: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', outline: 'none', transition: 'all 0.2s' }}
+                                    onFocus={(e) => e.currentTarget.style.borderColor = 'var(--azul)'}
+                                    onBlur={(e) => e.currentTarget.style.borderColor = 'var(--slate-200)'}
+                                    onInput={(e) => (window as unknown as ExtendedWindow).onHelpSearch?.(e.currentTarget.value)}
+                                />
+                                <div id="searchDrop" style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, background: 'white', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', border: '1px solid var(--slate-100)', zIndex: 100, display: 'none', overflow: 'hidden' }}></div>
                             </div>
                         </div>
 
-                        <div style={{ marginBottom: '32px', position: 'relative' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', background: 'white', border: '1px solid var(--slate-200)', borderRadius: '16px', padding: '0 20px', maxWidth: '600px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                                <i className="bi bi-search" style={{ color: 'var(--slate-400)', fontSize: '18px', flexShrink: 0 }}></i>
-                                <input id="helpSearch" className="inp" style={{ border: 'none', background: 'none', padding: '16px', width: '100%' }} placeholder="Buscar guías, tutoriales o herramientas..." onInput={(e: React.ChangeEvent<HTMLInputElement>) => (window as unknown as ExtendedWindow).onHelpSearch?.(e.target.value)} autoCapitalize="off" />
-                            </div>
-                            <div id="searchDrop" style={{ display: 'none', maxWidth: '600px', background: 'white', border: '1px solid var(--slate-200)', borderRadius: '16px', boxShadow: '0 12px 32px rgba(0,0,0,0.1)', marginTop: '8px', overflow: 'hidden', position: 'absolute', zIndex: 100, width: '100%' }}></div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px', marginBottom: '40px' }}>
-                            <div className="card-premium" style={{ background: 'linear-gradient(135deg, var(--azul), var(--azul-hover))', border: 'none', padding: '24px', color: 'white', cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.('crear-agente')}>
-                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '16px' }}>
+                        <div className="help-grid" style={{ marginBottom: '64px' }}>
+                            <div className="category-card card-premium featured-card" style={{ cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.('crear-agente')}>
+                                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', marginBottom: '24px' }}>
                                     <i className="bi bi-rocket-takeoff"></i>
                                 </div>
-                                <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>Empezar de cero</div>
-                                <div style={{ fontSize: '13px', opacity: 0.8, lineHeight: 1.4 }}>Cómo configurar tu primer agente en solo 6 pasos guiados.</div>
+                                <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '12px' }}>Guía de Inicio Rápido</h3>
+                                <p style={{ fontSize: '15px', opacity: 0.9, lineHeight: 1.6, margin: 0 }}>Todo lo que necesitas saber para poner en marcha tu primer agente en 5 minutos.</p>
                             </div>
-                            <div className="card-premium" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.('asignar-numero')}>
-                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--slate-50)', color: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '16px' }}>
-                                    <i className="bi bi-telephone-plus"></i>
+                            
+                            {[
+                                { id: 'wizard-llm', icon: 'bi-cpu', color: 'var(--azul)', title: 'Modelos de IA', desc: 'Comprende las diferencias entre Gemini y GPT para tu negocio.' },
+                                { id: 'wizard-herramientas', icon: 'bi-tools', color: '#f59e0b', title: 'Herramientas', desc: 'Configura transferencias, citas y cualificación de leads.' },
+                                { id: 'llamadas-entrantes', icon: 'bi-telephone-inbound', color: 'var(--exito)', title: 'Gestión de Llamadas', desc: 'Controla el flujo de llamadas entrantes y salientes.' },
+                                { id: 'asignar-numero', icon: 'bi-hash', color: '#8b5cf6', title: 'Números y SIP', desc: 'Configura tu numeración y conecta mediante SIP Trunk.' },
+                                { id: 'dashboard-metricas', icon: 'bi-bar-chart-line', color: '#ec4899', title: 'Métricas y Analítica', desc: 'Aprende a interpretar los datos de rendimiento de tus agentes.' }
+                            ].map(card => (
+                                <div key={card.id} className="category-card card-premium" style={{ cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.(card.id)}>
+                                    <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `${card.color}15`, color: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', marginBottom: '24px' }}>
+                                        <i className={`bi ${card.icon}`}></i>
+                                    </div>
+                                    <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '12px', color: 'var(--slate-900)' }}>{card.title}</h3>
+                                    <p style={{ fontSize: '14px', color: 'var(--slate-500)', lineHeight: 1.6, margin: 0 }}>{card.desc}</p>
                                 </div>
-                                <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px', color: 'var(--slate-900)' }}>Gestionar Números</div>
-                                <div style={{ fontSize: '13px', color: 'var(--slate-500)', lineHeight: 1.4 }}>Asigna números SIP de netelip y conecta con tus clientes.</div>
+                            ))}
+                        </div>
+
+                        <div className="elio-banner" style={{ marginBottom: '64px' }}>
+                            <div>
+                                <div className="elio-avatar-box">E</div>
+                                <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '16px', letterSpacing: '-0.03em' }}>¿No encuentras lo que buscas?<br /><span style={{ color: 'var(--azul)' }}>Pregúntale a Elio.</span></h2>
+                                <p style={{ fontSize: '17px', color: 'var(--slate-400)', marginBottom: '40px', maxWidth: '440px', lineHeight: 1.6 }}>Nuestro asistente inteligente conoce toda la documentación técnica y está listo para ayudarte 24/7.</p>
+                                <button className="btn-p" style={{ padding: '16px 32px', fontSize: '16px' }} onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()}>
+                                    <i className="bi bi-chat-dots-fill"></i>
+                                    <span>Chatear con Elio</span>
+                                </button>
                             </div>
-                            <div className="card-premium" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.('gdpr')}>
-                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--slate-50)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '16px' }}>
-                                    <i className="bi bi-shield-check"></i>
-                                </div>
-                                <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px', color: 'var(--slate-900)' }}>RGPD y LOPD</div>
-                                <div style={{ fontSize: '13px', color: 'var(--slate-500)', lineHeight: 1.4 }}>Información clave sobre cumplimiento legal y protección de datos.</div>
+                            <div className="elio-tags">
+                                <button className="btn-tag" onClick={() => (window as unknown as ExtendedWindow).askElio?.('Cómo crear un agente')}>¿Cómo creo un agente?</button>
+                                <button className="btn-tag" onClick={() => (window as unknown as ExtendedWindow).askElio?.('Cómo asigno un número')}>¿Cómo asigno un número?</button>
+                                <button className="btn-tag" onClick={() => (window as unknown as ExtendedWindow).askElio?.('Qué es la tasa de éxito')}>¿Qué es la tasa de éxito?</button>
+                                <button className="btn-tag" onClick={() => (window as unknown as ExtendedWindow).askElio?.('Funciona con Cal.com')}>¿Funciona con Cal.com?</button>
+                                <button className="btn-tag" onClick={() => (window as unknown as ExtendedWindow).askElio?.('Requisitos previos')}>¿Qué necesito para empezar?</button>
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '32px', alignItems: 'start' }}>
-                            <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
-                                <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', fontSize: '14px', fontWeight: 700, color: 'var(--slate-600)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                    Explorar por temas
-                                </div>
-                                <div id="helpArticleList"></div>
+                        <div className="card-premium" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--slate-100)' }}>
+                            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Centro de documentación</h3>
+                                <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>Mostrando 18 artículos</span>
                             </div>
-
-                            <div className="card-premium" style={{ background: 'linear-gradient(135deg, var(--slate-900), var(--azul))', border: 'none', padding: '32px', color: 'white', position: 'sticky', top: '100px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800 }}>E</div>
-                                    <div>
-                                        <div style={{ fontSize: '15px', fontWeight: 700 }}>Habla con Elio</div>
-                                        <div style={{ fontSize: '12px', opacity: 0.7 }}>Tu asistente inteligente</div>
-                                    </div>
-                                </div>
-                                <p style={{ fontSize: '14px', opacity: 0.8, marginBottom: '24px', lineHeight: 1.6 }}>Domina la Fábrica preguntándole a Elio. Conoce cada rincón de la plataforma.</p>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                                    <button onClick={() => (window as unknown as ExtendedWindow).askElio?.('Cómo creo un agente')} className="ask-btn">¿Cómo crear un agente?</button>
-                                    <button onClick={() => (window as unknown as ExtendedWindow).askElio?.('Cómo asigno un número')} className="ask-btn">¿Cómo asignar un número?</button>
-                                    <button onClick={() => (window as unknown as ExtendedWindow).askElio?.('Qué es la tasa de éxito')} className="ask-btn">¿Qué es la tasa de éxito?</button>
-                                </div>
-                                <button onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} style={{ width: '100%', background: 'white', color: 'var(--azul)', border: 'none', borderRadius: '12px', padding: '14px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                    <i className="bi bi-chat-dots"></i> Abrir Chat con Elio
-                                </button>
-                            </div>
+                            <div id="helpArticleList"></div>
                         </div>
                     </div>
 
@@ -495,27 +498,65 @@ export default function HelpPage() {
                         <div id="articleContent"></div>
                     </div>
 
-                    {/* CHAT ELIO WINDOW */}
-                    <div id="chatWindow" style={{ position: 'fixed', bottom: '80px', right: '30px', width: '360px', height: '520px', background: 'white', border: '1px solid var(--slate-200)', borderRadius: '24px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', display: 'none', flexDirection: 'column', zIndex: 500, overflow: 'hidden' }}>
-                        <div style={{ padding: '20px', background: 'linear-gradient(135deg, var(--slate-900), var(--azul))', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, color: 'white' }}>E</div>
+                    {/* Support Chat Overlay */}
+                    <div id="chatWindow" style={{ 
+                        position: 'fixed', bottom: '110px', right: '40px', width: '400px', height: '620px', 
+                        background: 'white', border: 'none', borderRadius: '28px', 
+                        boxShadow: '0 30px 60px -12px rgba(15, 23, 42, 0.25)', 
+                        display: 'none', flexDirection: 'column', zIndex: 1000, overflow: 'hidden' 
+                    }}>
+                        <div style={{ padding: '28px', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 900, color: 'white' }}>E</div>
                                 <div>
-                                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'white' }}>Elio Assistant</div>
-                                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>En línea • Resolución instantánea</div>
+                                    <div style={{ fontSize: '16px', fontWeight: 800, color: 'white', letterSpacing: '-0.01em' }}>Elio AI Assistant</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--exito)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                                        <span style={{ width: '6px', height: '6px', background: 'var(--exito)', borderRadius: '50%' }}></span>
+                                        Soporte Activo
+                                    </div>
                                 </div>
                             </div>
-                            <button onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                            <button onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                <i className="bi bi-chevron-down"></i>
+                            </button>
                         </div>
-                        <div id="chatMsgs" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}></div>
-                        <div style={{ padding: '16px', background: 'var(--slate-50)', borderTop: '1px solid var(--slate-100)', display: 'flex', gap: '10px' }}>
-                            <input id="chatInp" className="inp" style={{ flex: 1, border: '1px solid var(--slate-200)', borderRadius: '12px', padding: '12px 14px', fontSize: '14px' }} placeholder="Escribe tu duda..." onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && (window as unknown as ExtendedWindow).sendChat?.()} />
-                            <button onClick={() => (window as unknown as ExtendedWindow).sendChat?.()} className="btn-p" style={{ padding: '12px 16px', borderRadius: '12px' }}><i className="bi bi-send-fill"></i></button>
+                        <div id="chatMsgs" style={{ flex: 1, overflowY: 'auto', padding: '28px', display: 'flex', flexDirection: 'column', gap: '24px', background: 'var(--slate-50)' }}></div>
+                        <div style={{ padding: '20px 24px 28px', background: 'white', borderTop: '1px solid var(--slate-100)', display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+                            <div style={{ flex: 1, position: 'relative' }}>
+                                <textarea 
+                                    id="chatInp" 
+                                    rows={1}
+                                    style={{ width: '100%', border: '1.5px solid var(--slate-100)', borderRadius: '16px', padding: '14px 16px', fontSize: '14px', outline: 'none', transition: 'all 0.2s', resize: 'none', minHeight: '52px', maxHeight: '120px' }} 
+                                    placeholder="Describe tu duda aquí..." 
+                                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            (window as unknown as ExtendedWindow).sendChat?.();
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <button onClick={() => (window as unknown as ExtendedWindow).sendChat?.()} className="btn-p" style={{ width: '52px', height: '52px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px', flexShrink: 0 }}>
+                                <i className="bi bi-send-fill" style={{ fontSize: '18px' }}></i>
+                            </button>
                         </div>
                     </div>
 
-                    <button onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} id="chatFab" style={{ position: 'fixed', bottom: '40px', right: '40px', width: '64px', height: '64px', borderRadius: '20px', background: 'linear-gradient(135deg, var(--slate-900), var(--azul))', border: 'none', color: 'white', fontSize: '28px', cursor: 'pointer', boxShadow: '0 8px 24px rgba(38,122,176,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 499 }}>
+                    <button 
+                        onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} 
+                        id="chatFab" 
+                        style={{ 
+                            position: 'fixed', bottom: '40px', right: '40px', width: '72px', height: '72px', 
+                            borderRadius: '24px', background: 'var(--azul)', border: 'none', color: 'white', 
+                            fontSize: '32px', cursor: 'pointer', boxShadow: '0 12px 32px -8px rgba(37, 99, 235, 0.5)', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999,
+                            transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.08) rotate(3deg)'}
+                        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1) rotate(0deg)'}
+                    >
                         <i className="bi bi-chat-dots-fill"></i>
+                        <span style={{ position: 'absolute', top: '-5px', right: '-5px', width: '20px', height: '20px', background: 'var(--error)', borderRadius: '50%', border: '3px solid white' }}></span>
                     </button>
                 </div>
             </div>
