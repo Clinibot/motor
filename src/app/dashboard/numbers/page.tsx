@@ -262,7 +262,7 @@ export default function NumbersPage() {
                 />
 
                 <div className="content">
-                    <div className="numbers-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid var(--slate-100)', borderRadius: '24px', padding: '24px 32px', marginBottom: '32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '24px 32px', marginBottom: '28px' }}>
                         <div>
                             <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-900)', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>Conexión SIP Trunking</h2>
                             <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0, fontWeight: 500 }}>Conecta tu infraestructura de netelip para habilitar transferencias inteligentes.</p>
@@ -295,11 +295,11 @@ export default function NumbersPage() {
                             <div style={{ overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
-                                        <tr style={{ borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)' }}>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Número de Teléfono</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agente IA Asignado</th>
-                                            <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones</th>
+                                        <tr style={{ borderBottom: '1px solid var(--gris-borde)', background: 'var(--gris-bg)' }}>
+                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Número de Teléfono</th>
+                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado</th>
+                                            <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agente IA Asignado</th>
+                                            <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: 'var(--gris-texto)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
