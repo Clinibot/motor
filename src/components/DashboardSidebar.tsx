@@ -26,6 +26,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
 
     const adminNav = [
         { label: 'Gestión de la plataforma', href: '/admin', icon: 'bi-shield-check' },
+        { label: 'Biblioteca de plantillas', href: '/dashboard/templates', icon: 'bi-collection' },
     ];
 
     const userInitial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U');

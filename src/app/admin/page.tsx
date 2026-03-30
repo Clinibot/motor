@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createClient } from '../../lib/supabase/client';
@@ -31,12 +31,15 @@ interface UserProfile {
     role: string;
 }
 
+import DashboardTopbar from '../../components/DashboardTopbar';
+
 export default function PlatformManagement() {
     const router = useRouter();
     const [user, setUser] = useState<UserProfile | null>(null);
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     
     // Form states
     const [name, setName] = useState('');
@@ -65,6 +68,12 @@ export default function PlatformManagement() {
         };
         load();
     }, [router]);
+
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
 
     const fetchWorkspaces = async () => {
         setIsLoading(true);
@@ -163,20 +172,24 @@ export default function PlatformManagement() {
         } catch { setError("Error de conexión."); }
     };
 
-
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     return (
         <div className="app-container">
             <DashboardSidebar user={user} />
 
             <main className="main-view">
-                <header className="top-bar">
-                    <div className="t-left">
-                        <div className="t-title">Gestión de la plataforma</div>
-                        <div className="t-sep"></div>
-                        <div className="t-breadcrumb">Administración centralizada de nodos y usuarios</div>
-                    </div>
-                </header>
+                <DashboardTopbar 
+                    title="Gestión de la plataforma"
+                    user={user}
+                    isAlertPanelOpen={false}
+                    setIsAlertPanelOpen={() => {}}
+                    isDropdownOpen={isDropdownOpen}
+                    setIsDropdownOpen={setIsDropdownOpen}
+                    handleLogout={handleLogout}
+                    handleCreateAgent={() => router.push('/dashboard/agents?create=true')}
+                    dropdownRef={dropdownRef}
+                />
 
                 <div className="dashboard-content">
                     <div className="adm-tabs-container">

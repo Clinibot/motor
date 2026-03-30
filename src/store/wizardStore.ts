@@ -1,6 +1,27 @@
 import { create } from 'zustand';
 
 // Types for the Wizard State
+export interface Voice {
+    voice_id: string;
+    voice_name: string;
+    provider: string;
+    language: string;
+    gender: 'male' | 'female' | 'non-binary';
+    accent?: string;
+    preview_audio_url?: string;
+    isComingSoon?: boolean;
+}
+
+export const CURATED_VOICES_V2: Voice[] = [
+    { voice_id: 'v2-isabel', voice_name: 'Isabel', provider: 'premium', gender: 'female', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/isabel.mp3' },
+    { voice_id: 'v2-manuel', voice_name: 'Manuel', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/manuel.mp3' },
+    { voice_id: 'v2-santiago', voice_name: 'Santiago', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/santiago.mp3' },
+    { voice_id: 'v2-cristina', voice_name: 'Cristina', provider: 'soon', gender: 'female', language: 'es', isComingSoon: true },
+    { voice_id: 'v2-maricarme', voice_name: 'Mari Carme', provider: 'soon', gender: 'female', language: 'es', isComingSoon: true },
+    { voice_id: 'v2-adrian', voice_name: 'Adrian', provider: 'standard', gender: 'male', language: 'en', accent: 'Americano', preview_audio_url: 'https://storage.googleapis.com/retell-api/adrian.mp3' },
+    { voice_id: 'v2-cimo', voice_name: 'Cimo', provider: 'premium', gender: 'female', language: 'ca', accent: 'Multilingüe', preview_audio_url: 'https://storage.googleapis.com/retell-api/cimo.mp3' },
+];
+
 export interface TransferDestination {
     name: string;
     description: string;
@@ -171,10 +192,10 @@ export const useWizardStore = create<WizardState>((set) => ({
     tone: 'Semiformal',
     prompt: 'Eres un asistente útil.',
 
-    voiceId: '11labs-Adrian',
-    voiceName: 'Adrián',
-    voiceProvider: 'retell',
-    voiceDescription: 'Voz profesional y clara de España',
+    voiceId: 'cartesia-Isabel',
+    voiceName: 'Isabel',
+    voiceProvider: 'cartesia',
+    voiceDescription: 'Voz natural y profesional para atención al cliente',
     voiceSpeed: 1.0,
     voiceTemperature: 1.0,
 
@@ -245,7 +266,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         agentName: '', companyName: '', agentType: 'cualificacion',
         model: 'gemini-3.0-flash', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
         personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
-        voiceId: '11labs-Adrian', voiceName: 'Adrián', voiceProvider: 'retell', voiceDescription: 'Voz profesional y clara de España', voiceSpeed: 1.0, voiceTemperature: 1.0,
+        voiceId: 'cartesia-Isabel', voiceName: 'Isabel', voiceProvider: 'cartesia', voiceDescription: 'Voz natural y profesional para atención al cliente', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 0.8, interruptionSensitivity: 0.8,
         enableBackchannel: true, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
         boostedKeywords: [], normalizeForSpeech: true,

@@ -106,7 +106,7 @@ export const Step6_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const { 
         agentName, companyName, companyDescription, companyAddress, companyPhone, companyWebsite,
-        model, prompt, voiceId, voiceName, voiceProvider,
+        model, voiceId, voiceName, voiceProvider,
         kbFiles, leadQuestions, enableTransfer, transferDestinations,
         enableCalBooking, calApiKey, enableCalCancellation,
         businessHours, personality, tone, customNotes,
@@ -121,13 +121,9 @@ export const Step6_Summary: React.FC = () => {
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isUploading, setIsUploading] = useState(false);
-    const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({ 1: true });
+    const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true, 5: true });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const toggleStep = (s: number) => {
-        setExpandedSteps(prev => ({ ...prev, [s]: !prev[s] }));
-    };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -137,8 +133,8 @@ export const Step6_Summary: React.FC = () => {
     };
 
     const uploadMultipleFiles = async (files: File[]) => {
-        if (kbFiles.length + files.length > 5) {
-            setErrorMessage('Máximo 5 archivos permitidos.');
+        if (kbFiles.length + files.length > 10) {
+            setErrorMessage('Máximo 10 archivos permitidos.');
             setShowError(true);
             return;
         }
@@ -209,15 +205,19 @@ export const Step6_Summary: React.FC = () => {
         return `
 # Perfil y Misión
 Eres ${name}, representante de ${company}.
-# Estilo
+
+# Estilo y Comportamiento
 - Personalidad: ${personalityStr}
 - Tono: ${tone}
-- Fecha: ${today}
-${toolsContentArr.length > 0 ? `\n# Herramientas\n${toolsContentArr.join('\n\n')}` : ''}
-${kbFiles.length > 0 ? `\n# Base de Conocimientos\n` + kbFiles.map(f => `- ${f.name}`).join('\n') : ''}
-# Empresa
-${companyDescription ? `- Actividad: ${companyDescription}\n` : ''}- Horario: ${formattedHours}
-${customNotes ? `\n# Notas Adicionales\n${customNotes}` : ''}
+- Fecha Actual: ${today}
+
+# Información de la Empresa
+- Descripción: ${companyDescription || 'Empresa de servicios profesionales.'}
+- Horario de Atención: ${formattedHours}
+
+${toolsContentArr.length > 0 ? `# Herramientas de Automatización\n${toolsContentArr.join('\n\n')}\n` : ''}
+${kbFiles.length > 0 ? `# Base de Conocimiento\n` + kbFiles.map(f => `- Documento: ${f.name}`).join('\n') + '\n' : ''}
+${customNotes ? `# Notas Adicionales\n${customNotes}\n` : ''}
 `.trim();
     }, [agentName, companyName, businessHours, personality, tone, enableCalBooking, calApiKey, enableCalCancellation, enableTransfer, transferDestinations, kbFiles, companyDescription, customNotes]);
 
@@ -226,7 +226,7 @@ ${customNotes ? `\n# Notas Adicionales\n${customNotes}` : ''}
         const cleanedPrompt = cleanPromptForDeployment(finalPrompt);
 
         if (!agentName || !voiceId) {
-            setErrorMessage('Faltan datos críticos para la activación.');
+            setErrorMessage('Faltan datos obligatorios para configurar el agente.');
             setShowError(true);
             return;
         }
@@ -243,65 +243,11 @@ ${customNotes ? `\n# Notas Adicionales\n${customNotes}` : ''}
             if (!response.ok || !data.success) throw new Error(data.error || 'Error del servidor');
             setIsSuccess(true);
         } catch (e: any) {
-            setErrorMessage(e.message || 'Error técnico');
+            setErrorMessage(e.message || 'Error técnico durante la activación');
             setShowError(true);
         } finally {
             setIsCreating(false);
         }
-    };
-
-    const SectionHeader = ({ step, icon, title, isComplete, onEdit }: { step: number, icon: string, title: string, isComplete: boolean, onEdit: (e: React.MouseEvent) => void }) => {
-        const isExpanded = expandedSteps[step];
-        return (
-            <div 
-                onClick={() => toggleStep(step)}
-                style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    padding: '20px 24px',
-                    cursor: 'pointer',
-                    background: isExpanded ? 'var(--azul-light)' : 'transparent',
-                    borderBottom: isExpanded ? 'none' : '1px solid var(--slate-100)',
-                    transition: 'all 0.2s'
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                        width: '40px', 
-                        height: '40px', 
-                        borderRadius: '12px', 
-                        background: isComplete ? 'var(--azul)' : 'var(--slate-100)', 
-                        color: isComplete ? 'white' : 'var(--slate-400)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px'
-                    }}>
-                        <i className={`bi ${icon}`}></i>
-                    </div>
-                    <div>
-                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--slate-900)' }}>{title}</h3>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Paso {step}</span>
-                    </div>
-                    {isComplete && (
-                        <div style={{ background: '#dcfce7', color: '#166534', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 800 }}>
-                            LISTO
-                        </div>
-                    )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <button 
-                        type="button" 
-                        onClick={(e) => { e.stopPropagation(); onEdit(e); }}
-                        style={{ background: 'white', border: '1.5px solid var(--slate-200)', color: 'var(--slate-600)', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
-                    >
-                        Editar
-                    </button>
-                    <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'}`} style={{ color: 'var(--slate-400)' }}></i>
-                </div>
-            </div>
-        );
     };
 
     if (!mounted) return null;
@@ -310,34 +256,27 @@ ${customNotes ? `\n# Notas Adicionales\n${customNotes}` : ''}
         return (
             <div className="content-area flex-center" style={{ padding: '80px', textAlign: 'center', justifyContent: 'center' }}>
                 <div className="card-premium animate-in zoom-in-95 duration-500" style={{ maxWidth: '600px', padding: '60px', borderRadius: '40px' }}>
-                    <div className="success-icon-v2" style={{ 
-                        width: '100px', 
-                        height: '100px', 
+                    <div style={{ 
+                        width: '100px', height: '100px', borderRadius: '50%',
                         background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)', 
-                        color: 'white', 
-                        fontSize: '48px', 
-                        margin: '0 auto 32px',
+                        color: 'white', fontSize: '48px', margin: '0 auto 32px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: '0 20px 40px -10px rgba(16, 185, 129, 0.4)'
                     }}>
                         <i className="bi bi-check-lg"></i>
                     </div>
                     <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--slate-900)', marginBottom: '16px', letterSpacing: '-0.03em' }}>
-                        ¡Agente IA Activado!
+                        ¡Agente IA Listo!
                     </h1>
                     <p style={{ color: 'var(--slate-500)', fontSize: '17px', lineHeight: '1.6', marginBottom: '40px' }}>
-                        Tu agente <strong>{agentName}</strong> ya está configurado y operando con el cerebro de {model}.
+                        Tu asistente <strong>{agentName}</strong> ha sido configurado con éxito y ya puede empezar a recibir llamadas.
                     </p>
-                    
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <Link href="/dashboard/agents" className="btn-s" style={{ padding: '16px', borderRadius: '18px', fontWeight: 800, justifyContent: 'center' }}>
-                            Ir al panel
+                            Ver mis agentes
                         </Link>
-                        <button 
-                            onClick={() => window.location.reload()} 
-                            className="btn-p" 
-                            style={{ padding: '16px', borderRadius: '18px', fontWeight: 800, justifyContent: 'center' }}
-                        >
-                            Ver Detalles
+                        <button onClick={() => window.location.href = '/dashboard/agents'} className="btn-p" style={{ padding: '16px', borderRadius: '18px', fontWeight: 800, justifyContent: 'center' }}>
+                            Panel de control
                         </button>
                     </div>
                 </div>
@@ -346,125 +285,167 @@ ${customNotes ? `\n# Notas Adicionales\n${customNotes}` : ''}
     }
 
     return (
-        <div className="content-area" style={{ padding: '40px' }}>
+        <div className="content-area" style={{ padding: '60px' }}>
             <WizardStepHeader
                 title="Resumen y Activación"
-                subtitle="Revisa los detalles finales antes de dar vida a tu agente inteligente."
+                subtitle="Revisa tu configuración técnica y activa el agente."
                 showArrows={false}
             />
 
-            <div style={{ maxWidth: '1000px', margin: '32px auto 0' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px', alignItems: 'start' }}>
+            <div style={{ maxWidth: '1100px', marginTop: '40px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '40px', alignItems: 'start' }}>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {/* LEFT COLUMN: SUMMARY DETAILS */}
+                    <div style={{ display: 'grid', gap: '24px' }}>
                         
-                        <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
-                            <SectionHeader step={1} icon="bi-person-badge" title="Información Básica" isComplete={!!agentName && !!companyName} onEdit={() => setStep(1)} />
-                            {expandedSteps[1] && (
-                                <div style={{ padding: '24px', background: 'white' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                        <div style={{ background: 'var(--slate-50)', padding: '16px', borderRadius: '16px' }}>
-                                            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>Agente</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>{agentName}</div>
-                                        </div>
-                                        <div style={{ background: 'var(--slate-50)', padding: '16px', borderRadius: '16px' }}>
-                                            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>Empresa</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>{companyName}</div>
-                                        </div>
+                        {/* STEP 1 SUMMARY */}
+                        <div className="card-premium" style={{ padding: '32px' }}>
+                            <div className="flex-between" style={{ marginBottom: '24px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--azul-light)', color: 'var(--azul)', fontSize: '20px' }}>
+                                        <i className="bi bi-person-circle"></i>
                                     </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Identidad del Agente</h3>
+                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 1</span>
+                                    </div>
+                                </div>
+                                <button onClick={() => setStep(1)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px', border: '1.5px solid var(--slate-100)' }}>Editar</button>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <div style={{ background: 'var(--slate-50)', padding: '20px', borderRadius: '16px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Nombre Agent</span>
+                                    <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>{agentName}</span>
+                                </div>
+                                <div style={{ background: 'var(--slate-50)', padding: '20px', borderRadius: '16px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Empresa</span>
+                                    <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>{companyName}</span>
+                                </div>
+                            </div>
+                            {companyDescription && (
+                                <div style={{ background: 'var(--slate-50)', padding: '20px', borderRadius: '16px', marginTop: '20px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '8px', display: 'block', letterSpacing: '0.05em' }}>Descripción de Negocio</span>
+                                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--slate-600)', lineHeight: '1.6' }}>{companyDescription}</span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
-                            <SectionHeader step={2} icon="bi-cpu" title="Modelo e Inteligencia" isComplete={!!model && !!prompt} onEdit={() => setStep(2)} />
-                            {expandedSteps[2] && (
-                                <div style={{ padding: '24px', background: 'white' }}>
-                                    <div style={{ background: 'var(--azul-light)', color: 'var(--azul)', display: 'inline-flex', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800, marginBottom: '16px' }}>
-                                        {model}
+                        {/* STEP 2 SUMMARY: BRAIN */}
+                        <div className="card-premium" style={{ padding: '32px' }}>
+                            <div className="flex-between" style={{ marginBottom: '24px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#f0fdf4', color: '#16a34a', fontSize: '20px' }}>
+                                        <i className="bi bi-cpu"></i>
                                     </div>
-                                    <div style={{ 
-                                        background: 'var(--slate-50)', 
-                                        padding: '16px', 
-                                        borderRadius: '16px', 
-                                        fontSize: '14px', 
-                                        color: 'var(--slate-600)', 
-                                        lineHeight: '1.6',
-                                        maxHeight: '150px',
-                                        overflowY: 'auto'
-                                    }}>
-                                        {prompt}
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Modelo e Inteligencia</h3>
+                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 2</span>
                                     </div>
                                 </div>
-                            )}
+                                <button onClick={() => setStep(2)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Editar</button>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                <div style={{ background: 'var(--slate-900)', color: 'white', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>{model.toUpperCase()}</div>
+                                <div style={{ background: 'var(--slate-50)', color: 'var(--slate-600)', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>Tono {tone}</div>
+                                {personality.map(p => (
+                                    <div key={p} style={{ background: 'var(--azul-light)', color: 'var(--azul)', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>{p}</div>
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
-                            <SectionHeader step={3} icon="bi-mic-fill" title="Voz Seleccionada" isComplete={!!voiceId} onEdit={() => setStep(3)} />
-                            {expandedSteps[3] && (
-                                <div style={{ padding: '24px', background: 'white' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'var(--slate-50)', padding: '16px', borderRadius: '20px' }}>
-                                        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--azul)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 900 }}>
-                                            {voiceName?.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--slate-900)' }}>{voiceName}</div>
-                                            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--slate-500)' }}>{voiceProvider} • Alta Fidelidad</div>
-                                        </div>
+                        {/* STEP 3 & 4 SUMMARY: VOICE & AUDIO */}
+                        <div className="card-premium" style={{ padding: '32px' }}>
+                            <div className="flex-between" style={{ marginBottom: '24px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fdf2f8', color: '#db2777', fontSize: '20px' }}>
+                                        <i className="bi bi-mic-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Voz y Procesamiento</h3>
+                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 3 Y 4</span>
                                     </div>
                                 </div>
-                            )}
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button onClick={() => setStep(3)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Voz</button>
+                                    <button onClick={() => setStep(4)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Audio</button>
+                                </div>
+                            </div>
+                            <div style={{ background: 'var(--slate-50)', padding: '24px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <div className="flex-center" style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--azul)', color: 'white', fontSize: '24px', fontWeight: 900 }}>
+                                    {voiceName?.charAt(0)}
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-900)', letterSpacing: '-0.02em' }}>{voiceName}</div>
+                                    <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--azul)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--azul-light)', padding: '4px 10px', borderRadius: '100px', width: 'fit-content', marginTop: '4px' }}>Calidad HD Premium</div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
-                            <SectionHeader step={5} icon="bi-grid" title="Herramientas e Integraciones" isComplete={enableTransfer || enableCalBooking || leadQuestions.length > 0} onEdit={() => setStep(5)} />
-                            {expandedSteps[5] && (
-                                <div style={{ padding: '24px', background: 'white' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
-                                        {leadQuestions.length > 0 && <div className="btn-pill-v2" style={{ padding: '10px', fontSize: '12px', background: '#f0fdf4', color: '#166534', border: '1px solid #dcfce7' }}>Cualificación ACTIVA</div>}
-                                        {enableTransfer && <div className="btn-pill-v2" style={{ padding: '10px', fontSize: '12px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe' }}>Transferencia ACTIVA</div>}
-                                        {enableCalBooking && <div className="btn-pill-v2" style={{ padding: '10px', fontSize: '12px', background: '#fdf2f8', color: '#9d174d', border: '1px solid #fce7f3' }}>Cal.com ACTIVO</div>}
-                                        {!enableTransfer && !enableCalBooking && leadQuestions.length === 0 && <div style={{ fontSize: '14px', color: 'var(--slate-400)' }}>Sin herramientas configuradas.</div>}
+                        {/* STEP 5 SUMMARY: TOOLS */}
+                        <div className="card-premium" style={{ padding: '32px' }}>
+                            <div className="flex-between" style={{ marginBottom: '24px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fff7ed', color: '#ea580c', fontSize: '20px' }}>
+                                        <i className="bi bi-gear-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Automatizaciones</h3>
+                                        <span style={{ fontSize: '12px', color: 'var(--slate-400)', fontWeight: 600 }}>PASO 5</span>
                                     </div>
                                 </div>
-                            )}
+                                <button onClick={() => setStep(5)} className="btn-s" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '12px' }}>Editar</button>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                                <div style={{ border: '1px solid var(--slate-100)', padding: '16px', borderRadius: '16px', opacity: enableCalBooking ? 1 : 0.4 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                        <i className="bi bi-calendar-check" style={{ color: 'var(--azul)' }}></i>
+                                        <span style={{ fontWeight: 800, fontSize: '13px' }}>Agenda Citas</span>
+                                    </div>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: enableCalBooking ? '#166534' : 'var(--slate-400)' }}>{enableCalBooking ? 'ACTIVADO' : 'DESACTIVADO'}</span>
+                                </div>
+                                <div style={{ border: '1px solid var(--slate-100)', padding: '16px', borderRadius: '16px', opacity: enableTransfer ? 1 : 0.4 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                        <i className="bi bi-telephone-forward" style={{ color: '#ea580c' }}></i>
+                                        <span style={{ fontWeight: 800, fontSize: '13px' }}>Transferencia</span>
+                                    </div>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: enableTransfer ? '#166534' : 'var(--slate-400)' }}>{enableTransfer ? 'ACTIVADO' : 'DESACTIVADO'}</span>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'sticky', top: '40px' }}>
-                        <div className="card-premium" style={{ padding: '24px' }}>
-                            <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: 800, color: 'var(--slate-900)' }}>Conocimiento del Agente</h4>
-                            
+                    {/* RIGHT COLUMN: KNOWLEDGE BASE & DEPLOY */}
+                    <div style={{ display: 'grid', gap: '24px', position: 'sticky', top: '40px' }}>
+                        
+                        {/* KNOWLEDGE BASE CARD */}
+                        <div className="card-premium" style={{ padding: '32px' }}>
+                            <h4 style={{ margin: '0 0 20px 0', fontSize: '15px', fontWeight: 800, color: 'var(--slate-900)' }}>Conocimiento Pro</h4>
                             <div 
-                                style={{ 
-                                    border: '2px dashed var(--slate-200)', 
-                                    borderRadius: '20px', 
-                                    padding: '24px 16px', 
-                                    textAlign: 'center',
-                                    background: '#f8fafc',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
                                 onClick={() => fileInputRef.current?.click()}
+                                style={{ 
+                                    border: '2px dashed var(--slate-200)', borderRadius: '20px', padding: '32px 20px', textAlign: 'center', cursor: 'pointer',
+                                    background: '#f8fafc', transition: 'all 0.2s'
+                                }}
                                 onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--azul)'}
                                 onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--slate-200)'}
                             >
                                 <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} multiple />
-                                <i className="bi bi-cloud-arrow-up" style={{ fontSize: '24px', color: 'var(--azul)', marginBottom: '8px', display: 'block' }}></i>
-                                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--slate-700)' }}>Añadir Documentos</div>
-                                <div style={{ fontSize: '11px', color: 'var(--slate-400)', marginTop: '4px' }}>PDF, TXT, MD</div>
+                                <i className="bi bi-cloud-arrow-up-fill" style={{ fontSize: '32px', color: 'var(--azul)', marginBottom: '12px', display: 'block' }}></i>
+                                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--slate-700)', display: 'block' }}>Subir Documentos</span>
+                                <span style={{ fontSize: '11px', color: 'var(--slate-400)', marginTop: '4px', display: 'block' }}>PDF, TXT para el cerebro IA</span>
                             </div>
 
                             {kbFiles.length > 0 && (
-                                <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ marginTop: '24px', display: 'grid', gap: '10px' }}>
                                     {kbFiles.map(f => (
-                                        <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'white', borderRadius: '14px', border: '1px solid var(--slate-100)', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                                            <i className="bi bi-file-earmark-text" style={{ color: 'var(--azul)' }}></i>
-                                            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--slate-700)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {f.name}
+                                        <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', background: 'white', borderRadius: '16px', border: '1px solid var(--slate-100)', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
+                                            <div className="flex-center" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--azul-light)', color: 'var(--azul)' }}>
+                                                <i className="bi bi-file-earmark-text-fill"></i>
                                             </div>
-                                            <button onClick={() => removeFile(f.id)} style={{ border: 'none', background: 'none', color: 'var(--slate-400)', cursor: 'pointer' }}>
-                                                <i className="bi bi-trash"></i>
+                                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--slate-700)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
+                                            <button onClick={() => removeFile(f.id)} style={{ border: 'none', background: 'none', color: '#ef4444', opacity: 0.5, cursor: 'pointer' }}>
+                                                <i className="bi bi-trash3"></i>
                                             </button>
                                         </div>
                                     ))}
@@ -472,79 +453,88 @@ ${customNotes ? `\n# Notas Adicionales\n${customNotes}` : ''}
                             )}
                         </div>
 
-                        <div className="card-premium" style={{ padding: '24px', background: 'var(--slate-900)', color: 'white', boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.3)' }}>
-                            <h4 style={{ margin: '0 0 20px 0', fontSize: '12px', fontWeight: 900, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Estimación de Costes</h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {/* FINAL ACTIVATION CARD */}
+                        <div className="card-premium" style={{ 
+                            padding: '32px', background: 'var(--slate-900)', color: 'white', 
+                            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.4)',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}>
+                            <h4 style={{ margin: '0 0 24px 0', fontSize: '11px', fontWeight: 900, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Presupuesto Estimado</h4>
+                            
+                            <div style={{ display: 'grid', gap: '16px' }}>
                                 <div className="flex-between">
-                                    <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>Suscripción Mensual</span>
+                                    <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Tasa Mensual</span>
                                     <span style={{ fontWeight: 800 }}>€0.00</span>
                                 </div>
                                 <div className="flex-between">
-                                    <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>Coste por Minuto</span>
+                                    <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Coste/Minuto</span>
                                     <span style={{ fontWeight: 800 }}>€0.12</span>
                                 </div>
-                                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }}></div>
+                                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '8px 0' }}></div>
                                 <div className="flex-between">
-                                    <span style={{ fontSize: '14px', fontWeight: 800 }}>Pago Inicial</span>
-                                    <span style={{ fontSize: '20px', fontWeight: 900, color: '#4ade80' }}>GRATIS</span>
+                                    <span style={{ fontSize: '15px', fontWeight: 800 }}>Inversión Inicial</span>
+                                    <span style={{ fontSize: '24px', fontWeight: 900, color: '#4ade80' }}>GRATIS</span>
                                 </div>
                             </div>
-                            
+
                             <button 
                                 onClick={handleCreateAgent}
                                 disabled={isCreating}
-                                className="btn-p w-full"
+                                className="btn-p"
                                 style={{ 
-                                    marginTop: '28px', 
-                                    padding: '18px', 
-                                    borderRadius: '20px', 
-                                    background: 'var(--azul)', 
-                                    color: 'white', 
-                                    border: 'none', 
-                                    fontWeight: 900, 
-                                    fontSize: '16px', 
-                                    boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.5)',
-                                    justifyContent: 'center'
+                                    width: '100%', marginTop: '32px', height: '64px', borderRadius: '20px', 
+                                    background: 'var(--azul)', color: 'white', fontWeight: 900, fontSize: '16px',
+                                    boxShadow: '0 15px 30px -5px rgba(37, 99, 235, 0.4)',
+                                    justifyContent: 'center', transition: 'all 0.3s'
                                 }}
                             >
-                                {isCreating ? (
-                                    <>
-                                        <span className="spinner-border spinner-border-sm" style={{ marginRight: '12px' }}></span>
-                                        PROCESANDO...
-                                    </>
-                                ) : (
-                                    <>
-                                        {editingAgentId ? 'GUARDAR CAMBIOS' : 'ACTIVAR AGENTE'}
-                                        <i className="bi bi-lightning-charge-fill" style={{ marginLeft: '10px' }}></i>
-                                    </>
-                                )}
+                                {isCreating ? 'SINCRONIZANDO...' : (editingAgentId ? 'GUARDAR AGENTE' : 'ACTIVAR AGENTE')}
+                                {!isCreating && <i className="bi bi-lightning-charge-fill" style={{ marginLeft: '12px' }}></i>}
                             </button>
+                            
+                            <p style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '20px', margin: '20px 0 0 0', fontWeight: 600 }}>
+                                Al activar, aceptas los términos de servicio de la Fábrica de Agentes IA.
+                            </p>
                         </div>
+
                     </div>
                 </div>
 
-                <div className="flex-between" style={{ borderTop: '1px solid var(--slate-100)', paddingTop: '40px', marginTop: '40px' }}>
-                    <button type="button" className="btn-s" onClick={prevStep} style={{ padding: '14px 32px', borderRadius: '16px', fontWeight: 700 }}>
-                        <i className="bi bi-arrow-left"></i> Modificar pasos
+                {/* BOTTOM MODIFIER */}
+                <div style={{ marginTop: '40px', borderTop: '1px solid var(--slate-100)', paddingTop: '40px' }}>
+                    <button onClick={prevStep} className="btn-s" style={{ height: '56px', padding: '0 32px', borderRadius: '18px', fontWeight: 800 }}>
+                        <i className="bi bi-arrow-left" style={{ marginRight: '12px' }}></i>
+                        Regresar a Herramientas
                     </button>
-                    <div></div>
                 </div>
             </div>
 
+            {/* ERROR TOAST */}
             {showError && (
-                <div style={{ position: 'fixed', bottom: '40px', right: '40px', background: '#fff1f2', border: '1.5px solid #fecdd3', padding: '16px 24px', borderRadius: '20px', boxShadow: '0 20px 40px -10px rgba(225, 29, 72, 0.2)', display: 'flex', alignItems: 'center', gap: '16px', zIndex: 5000 }} className="animate-in slide-in-from-right-10">
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#ef4444', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ 
+                    position: 'fixed', bottom: '40px', right: '40px', background: '#fff1f2', border: '1.5px solid #fecdd3', 
+                    padding: '20px 32px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(225, 29, 72, 0.25)', 
+                    display: 'flex', alignItems: 'center', gap: '20px', zIndex: 9999, animation: 'slideInRight 0.4s'
+                }}>
+                    <div className="flex-center" style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#ef4444', color: 'white' }}>
                         <i className="bi bi-exclamation-triangle-fill"></i>
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#9f1239' }}>Error de Activación</div>
-                        <div style={{ fontSize: '13px', color: '#e11d48' }}>{errorMessage}</div>
+                    <div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#9f1239' }}>Error de Configuración</div>
+                        <div style={{ fontSize: '13px', color: '#e11d48', fontWeight: 600 }}>{errorMessage}</div>
                     </div>
-                    <button onClick={() => setShowError(false)} style={{ border: 'none', background: 'none', color: '#e11d48', cursor: 'pointer', fontSize: '20px' }}>
+                    <button onClick={() => setShowError(false)} style={{ background: 'none', border: 'none', color: '#e11d48', fontSize: '20px' }}>
                         <i className="bi bi-x-lg"></i>
                     </button>
                 </div>
             )}
+            
+            <style jsx>{`
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `}</style>
         </div>
     );
 };

@@ -424,7 +424,7 @@ export default function HelpPage() {
                 <div className="dashboard-content help-page-container">
                     <div id="helpHome">
                         <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 60px' }}>
-                            <h1 style={{ fontSize: '48px', fontWeight: 900, color: 'var(--slate-900)', marginBottom: '24px', letterSpacing: '-0.04em' }}>¿Cómo podemos ayudarte?</h1>
+                            {/* Title removed to fix double-title issue; handled by DashboardTopbar */}
                             <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto' }}>
                                 <i className="bi bi-search" style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)', fontSize: '18px' }}></i>
                                 <input 
