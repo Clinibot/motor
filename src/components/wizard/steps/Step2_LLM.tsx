@@ -6,7 +6,6 @@ import { WizardStepHeader } from '../WizardStepHeader';
 
 export const Step2_LLM: React.FC = () => {
     const {
-        whoFirst,
         beginMessage,
         personality,
         tone,

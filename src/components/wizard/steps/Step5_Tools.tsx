@@ -1,14 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 import { WizardStepHeader } from '../WizardStepHeader';
 
-interface LeadQuestion {
-    question: string;
-    key: string;
-    failAction?: 'end_call' | 'transfer' | 'booking' | 'continue';
-}
+
 
 // Global Toggle Switch Component for v2
 const PremiumToggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void; id: string }> = ({ checked, onChange, id }) => (
@@ -25,14 +21,13 @@ const PremiumToggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void
 
 export const Step5_Tools: React.FC = () => {
     const {
-        enableCalBooking, calApiKey, calEventId, calTimezone, calUrl, enableCalCancellation,
+        enableCalBooking, calApiKey, calEventId, calTimezone,
         enableTransfer, transferDestinations,
         extractionVariables, leadQuestions,
         updateField, prevStep, nextStep
     } = useWizardStore();
 
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [showCalGuide, setShowCalGuide] = useState(false);
+
 
     const timezones = [
         'Europe/Madrid', 'Europe/London', 'Europe/Paris', 'America/New_York',
@@ -40,16 +35,14 @@ export const Step5_Tools: React.FC = () => {
     ];
 
     const validate = () => {
-        const newErrors: Record<string, string> = {};
         if (enableCalBooking) {
-            if (!calApiKey) newErrors.calApiKey = 'Obligatorio';
-            if (!calEventId) newErrors.calEventId = 'Obligatorio';
+            if (!calApiKey) return false;
+            if (!calEventId) return false;
         }
         if (enableTransfer && transferDestinations.length === 0) {
-            newErrors.transfer = 'Añade al menos un destino';
+            return false;
         }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return true;
     };
 
     const handleNext = () => {
@@ -156,7 +149,7 @@ export const Step5_Tools: React.FC = () => {
                                                     <div>
                                                         <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--slate-500)', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>Acción si falla</label>
                                                         <select className="inp" value={q.failAction} 
-                                                            onChange={e => { const l = [...leadQuestions]; l[idx].failAction = e.target.value as any; updateField('leadQuestions', l); }}
+                                                            onChange={e => { const l = [...leadQuestions]; l[idx].failAction = e.target.value as 'end_call' | 'continue'; updateField('leadQuestions', l); }}
                                                             style={{ borderRadius: '16px', padding: '18px 20px', background: 'white' }}>
                                                             <option value="end_call">Terminar llamada</option>
                                                             <option value="continue">Continuar conversación</option>

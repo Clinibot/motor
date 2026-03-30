@@ -68,31 +68,9 @@ const groupBusinessHours = (hours: { day: string; open: string; close: string; c
     }).join(' ');
 };
 
-const formatPhoneForTTS = (phone: string) => {
-    if (!phone) return '';
-    const cleanPhone = phone.replace(/^\+34|^0034/, '');
-    const digitWords: Record<string, string> = {
-        '0': 'cero', '1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro',
-        '5': 'cinco', '6': 'seis', '7': 'siete', '8': 'ocho', '9': 'nueve'
-    };
 
-    return cleanPhone
-        .split('')
-        .map(d => digitWords[d] || d)
-        .join(' ')
-        .trim();
-};
 
-const formatUrlForTTS = (url: string) => {
-    if (!url) return '';
-    return url
-        .replace(/^https?:\/\//, '')
-        .replace(/^www\./, '')
-        .replace(/\//g, ' barra ')
-        .replace(/\./g, ' punto ')
-        .replace(/\s+/g, ' ')
-        .trim();
-};
+
 
 const cleanPromptForDeployment = (prompt: string) => {
     if (!prompt) return '';
@@ -105,10 +83,10 @@ const cleanPromptForDeployment = (prompt: string) => {
 export const Step6_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const { 
-        agentName, companyName, companyDescription, companyAddress, companyPhone, companyWebsite,
-        model, voiceId, voiceName, voiceProvider,
-        kbFiles, leadQuestions, enableTransfer, transferDestinations,
-        enableCalBooking, calApiKey, enableCalCancellation,
+        agentName, companyName, companyDescription, 
+        model, voiceId, voiceName, 
+        kbFiles, enableTransfer, transferDestinations,
+        enableCalBooking, calApiKey, enableCalCancellation, 
         businessHours, personality, tone, customNotes,
         setStep, prevStep, updateField, editingAgentId
     } = wizardData;
@@ -120,8 +98,6 @@ export const Step6_Summary: React.FC = () => {
     const [isSuccess, setIsSuccess] = useState(false);
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [isUploading, setIsUploading] = useState(false);
-    const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({ 1: true, 2: true, 3: true, 5: true });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -138,7 +114,6 @@ export const Step6_Summary: React.FC = () => {
             setShowError(true);
             return;
         }
-        setIsUploading(true);
         const newFiles = [...kbFiles];
 
         for (const f of files) {
@@ -171,7 +146,7 @@ export const Step6_Summary: React.FC = () => {
             }
         }
         updateField('kbFiles', newFiles);
-        setIsUploading(false);
+
     };
 
     const removeFile = (id: string) => {
@@ -243,7 +218,7 @@ ${customNotes ? `# Notas Adicionales\n${customNotes}\n` : ''}
             if (!response.ok || !data.success) throw new Error(data.error || 'Error del servidor');
             setIsSuccess(true);
         } catch (e: any) {
-            setErrorMessage(e.message || 'Error técnico durante la activación');
+            setErrorMessage(e instanceof Error ? e.message : 'Error técnico durante la activación');
             setShowError(true);
         } finally {
             setIsCreating(false);
