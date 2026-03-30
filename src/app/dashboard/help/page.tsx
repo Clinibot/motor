@@ -1,10 +1,35 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useEffect } from "react";
-import DashboardSidebar from "@/components/DashboardSidebar";
+import React, { useEffect, useState, useRef } from 'react';
+import DashboardSidebar from '../../../components/DashboardSidebar';
+import DashboardTopbar from '../../../components/DashboardTopbar';
+import { createClient } from '../../../lib/supabase/client';
+import { useRouter } from 'next/navigation';
+
+interface UserProfile {
+  full_name?: string | null;
+  email?: string | null;
+  role: string;
+  workspace_id?: string | null;
+}
+
+interface ExtendedWindow extends Window {
+  chatOpen?: boolean;
+  onHelpSearch?: (q: string) => void;
+  showArticle?: (id: string) => void;
+  showHelpHome?: () => void;
+  toggleChat?: () => void;
+  addMsg?: (role: string, text: string) => void;
+  showTyping?: () => void;
+  removeTyping?: () => void;
+  getBotResponse?: (text: string) => { t: string; a: string | null };
+  sendChat?: () => void;
+  askElio?: (q: string) => void;
+  buildArticleList?: () => void;
+}
 
 interface HelpArticle { cat: string; title: string; updated: string; body: string; }
+
 const helpArticles: Record<string, HelpArticle> = {
     'crear-agente': {
         cat: 'Primeros pasos', title: 'Crear tu primer agente', updated: '18 mar 2026', body: `<p>Crear tu primer agente en la Fábrica de Agentes IA es un proceso guiado en 6 pasos. El asistente de configuración te irá pidiendo la información necesaria para que tu agente esté listo en minutos.</p><h2>Antes de empezar</h2><p>Asegúrate de tener a mano:</p><ul><li>El nombre que quieres darle a tu agente</li><li>El nombre de tu empresa</li><li>Una descripción breve de para qué lo vas a usar</li></ul><h2>Pasos para crear el agente</h2><ol class="step-list" ><li>Desde el dashboard, haz clic en <strong>+ Crear nuevo agente</strong>.</li><li>Rellena la información básica: nombre del agente y empresa.</li><li>Selecciona el modelo de IA y configura el comportamiento.</li><li>Elige la voz.</li><li>Configura el audio y las herramientas.</li><li>Revisa el resumen, sube documentos y haz clic en <strong>Crear agente</strong>.</li></ol><div class="help-callout" ><span>ℹ</span><span>Una vez creado, tu agente estará listo para recibir llamadas si tienes un número asignado.</span></div>`
@@ -84,11 +109,33 @@ const botMap: Record<string, { t: string; a: string | null }> = {
 };
 
 export default function HelpPage() {
-    useEffect(() => {
-        // Initialization
-        (window as any).chatOpen = false;
+    const router = useRouter();
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-        (window as any).onHelpSearch = function (q: string) {
+    useEffect(() => {
+        const loadProfile = async () => {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+              router.push('/login');
+              return;
+            }
+            const { data: profile } = await supabase
+              .from('users')
+              .select('full_name, email, role, workspace_id')
+              .eq('id', session.user.id)
+              .single();
+            setUser(profile);
+        };
+        loadProfile();
+
+        // Initialization for help features
+        const extendedWindow = window as unknown as ExtendedWindow;
+        extendedWindow.chatOpen = false;
+
+        extendedWindow.onHelpSearch = function (q: string) {
             const drop = document.getElementById('searchDrop');
             if (!drop) return;
             if (!q.trim()) {
@@ -106,14 +153,14 @@ export default function HelpPage() {
             }
 
             drop.innerHTML = res.map(([id, a]) => `
-                <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--gris-borde);display:flex;align-items:center;gap:10px;" onmouseover="this.style.background='var(--gris-bg)'" onmouseout="this.style.background='white'" onclick="showArticle('${id}')" >
-                    <span style="font-size:10px;font-weight:700;text-transform:uppercase;background:var(--azul-light);color:var(--azul);padding:2px 7px;border-radius:4px;white-space:nowrap;" >${a.cat}</span>
-                    <span style="font-size:13px;" >${a.title}</span>
+                <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--slate-100);display:flex;align-items:center;gap:10px;" onmouseover="this.style.background='var(--slate-50)'" onmouseout="this.style.background='white'" onclick="showArticle('${id}')" >
+                    <span style="font-size:10px;font-weight:700;text-transform:uppercase;background:var(--slate-100);color:var(--azul);padding:2px 7px;border-radius:4px;white-space:nowrap;" >${a.cat}</span>
+                    <span style="font-size:13px;color:var(--slate-900);" >${a.title}</span>
                 </div>`).join('');
             drop.style.display = 'block';
         };
 
-        (window as any).showArticle = function (id: string) {
+        extendedWindow.showArticle = function (id: string) {
             const a = helpArticles[id];
             if (!a) return;
             const helpHome = document.getElementById('helpHome');
@@ -124,24 +171,24 @@ export default function HelpPage() {
             const content = document.getElementById('articleContent');
             if (content) {
                 content.innerHTML = `
-                <div style="margin-bottom:14px;font-size:12px;color:var(--gris-texto);display:flex;align-items:center;gap:6px;cursor:pointer;" onclick="showHelpHome()">
-                    <i class="bi bi-arrow-left"></i>Volver a ayuda
+                <div style="margin-bottom:20px;font-size:13px;color:var(--slate-500);display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;" onclick="showHelpHome()">
+                    <i class="bi bi-arrow-left"></i> Volver al Centro de Ayuda
                 </div>
-                <div style="background:white;border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:32px;max-width:700px;">
-                    <div style="font-size:11px;font-weight:700;background:var(--azul-light);color:var(--azul);padding:3px 10px;border-radius:12px;display:inline-block;margin-bottom:14px;">${a.cat}</div>
-                    <h1 style="font-size:22px;font-weight:800;margin-bottom:6px;letter-spacing:-.3px;">${a.title}</h1>
-                    <div style="font-size:12px;color:var(--gris-texto);margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--gris-borde);">Actualizado el ${a.updated}</div>
+                <div class="card-premium" style="padding:40px; max-width:800px;">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:var(--azul-light);color:var(--azul);padding:4px 12px;border-radius:100px;display:inline-block;margin-bottom:20px;">${a.cat}</div>
+                    <h1 style="font-size:28px;font-weight:800;color:var(--slate-900);margin-bottom:8px;letter-spacing:-0.5px;">${a.title}</h1>
+                    <div style="font-size:13px;color:var(--slate-400);margin-bottom:32px;padding-top:16px;border-top:1px solid var(--slate-100);">Actualizado el ${a.updated}</div>
                     <div class="help-body">${a.body}</div>
-                    <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--gris-borde);display:flex;justify-content:space-between;align-items:center;">
-                        <button class="btn-s" onclick="showHelpHome()"><i class="bi bi-arrow-left"></i>Volver a ayuda</button>
-                        <button class="btn-p" onclick="askElio('Tengo una duda sobre: ${a.title}')"><i class="bi bi-chat-dots"></i>Preguntarle a Elio</button>
+                    <div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--slate-100);display:flex;justify-content:space-between;align-items:center;">
+                        <button class="btn-s" onclick="showHelpHome()"><i class="bi bi-arrow-left"></i> Salir</button>
+                        <button class="btn-p" onclick="askElio('Tengo una duda sobre: ${a.title}')"><i class="bi bi-chat-dots"></i> Hablar con Elio</button>
                     </div>
                 </div>`;
             }
             window.scrollTo(0, 0);
         };
 
-        (window as any).showHelpHome = function () {
+        extendedWindow.showHelpHome = function () {
             const helpHome = document.getElementById('helpHome');
             const helpArticle = document.getElementById('helpArticle');
             if (helpHome) helpHome.style.display = 'block';
@@ -149,53 +196,53 @@ export default function HelpPage() {
             window.scrollTo(0, 0);
         };
 
-        (window as any).toggleChat = function () {
-            (window as any).chatOpen = !(window as any).chatOpen;
+        extendedWindow.toggleChat = function () {
+            extendedWindow.chatOpen = !extendedWindow.chatOpen;
             const w = document.getElementById('chatWindow');
             const fab = document.getElementById('chatFab');
             if (!w || !fab) return;
-            w.style.display = (window as any).chatOpen ? 'flex' : 'none';
-            fab.style.display = (window as any).chatOpen ? 'none' : 'flex';
+            w.style.display = extendedWindow.chatOpen ? 'flex' : 'none';
+            fab.style.display = extendedWindow.chatOpen ? 'none' : 'flex';
 
             const msgs = document.getElementById('chatMsgs');
-            if ((window as any).chatOpen && msgs && msgs.children.length === 0) {
-                (window as any).addMsg('bot', 'Hola 👋 Soy Elio, el asistente de la Fábrica. ¿En qué te puedo ayudar?');
+            if (extendedWindow.chatOpen && msgs && msgs.children.length === 0) {
+                extendedWindow.addMsg?.('bot', 'Hola 👋 Soy Elio, el asistente de la Fábrica. ¿En qué te puedo ayudar?');
             }
         };
 
-        (window as any).addMsg = function (role: string, text: string) {
+        extendedWindow.addMsg = function (role: string, text: string) {
             const msgs = document.getElementById('chatMsgs');
             if (!msgs) return;
             const d = document.createElement('div');
             d.style.cssText = `display: flex; align-items: flex-start; gap: 8px; ${role === 'user' ? 'flex-direction:row-reverse;' : ''}`;
 
             if (role === 'bot') {
-                d.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1a2428,#267ab0);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">E</div><div style="background:var(--gris-bg);border:1px solid var(--gris-borde);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;max-width:230px;">${text}</div>`;
+                d.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--slate-900),var(--azul));color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">E</div><div style="background:var(--slate-50);border:1px solid var(--slate-100);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;max-width:240px;color:var(--slate-900);">${text}</div>`;
             } else {
-                d.innerHTML = `<div style="background:var(--azul);color:white;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;line-height:1.6;max-width:230px;">${text}</div>`;
+                d.innerHTML = `<div style="background:var(--azul);color:white;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;line-height:1.6;max-width:240px;">${text}</div>`;
             }
 
             msgs.appendChild(d);
             msgs.scrollTop = msgs.scrollHeight;
         };
 
-        (window as any).showTyping = function () {
+        extendedWindow.showTyping = function () {
             const msgs = document.getElementById('chatMsgs');
             if (!msgs) return;
             const d = document.createElement('div');
             d.id = 'typingEl';
             d.style.cssText = 'display:flex;align-items:flex-start;gap:8px;';
-            d.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1a2428,#267ab0);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">E</div><div style="background:var(--gris-bg);border:1px solid var(--gris-borde);border-radius:12px;padding:12px 16px;display:flex;gap:4px;"><span style="width:6px;height:6px;background:#9ca3af;border-radius:50%;animation:bounce .8s infinite .0s;display:inline-block;"></span><span style="width:6px;height:6px;background:#9ca3af;border-radius:50%;animation:bounce .8s infinite .15s;display:inline-block;"></span><span style="width:6px;height:6px;background:#9ca3af;border-radius:50%;animation:bounce .8s infinite .3s;display:inline-block;"></span></div>`;
+            d.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--slate-900),var(--azul));color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">E</div><div style="background:var(--slate-50);border:1px solid var(--slate-100);border-radius:12px;padding:12px 16px;display:flex;gap:4px;"><span style="width:6px;height:6px;background:#9ca3af;border-radius:50%;animation:bounce .8s infinite .0s;display:inline-block;"></span><span style="width:6px;height:6px;background:#9ca3af;border-radius:50%;animation:bounce .8s infinite .15s;display:inline-block;"></span><span style="width:6px;height:6px;background:#9ca3af;border-radius:50%;animation:bounce .8s infinite .3s;display:inline-block;"></span></div>`;
             msgs.appendChild(d);
             msgs.scrollTop = msgs.scrollHeight;
         };
 
-        (window as any).removeTyping = function () {
+        extendedWindow.removeTyping = function () {
             const t = document.getElementById('typingEl');
             if (t) t.remove();
         };
 
-        (window as any).getBotResponse = function (text: string): { t: string; a: string | null } {
+        extendedWindow.getBotResponse = function (text: string): { t: string; a: string | null } {
             const l = text.toLowerCase();
             for (const [k, v] of Object.entries(botMap)) {
                 if (l.includes(k)) return v;
@@ -206,36 +253,38 @@ export default function HelpPage() {
             };
         };
 
-        (window as any).sendChat = function () {
+        extendedWindow.sendChat = function () {
             const inp = document.getElementById('chatInp') as HTMLInputElement;
             if (!inp) return;
             const txt = inp.value.trim();
             if (!txt) return;
             inp.value = '';
-            (window as any).addMsg('user', txt);
-            (window as any).showTyping();
+            extendedWindow.addMsg?.('user', txt);
+            extendedWindow.showTyping?.();
 
             setTimeout(() => {
-                (window as any).removeTyping();
-                const r = (window as any).getBotResponse(txt);
-                let html = r.t;
-                if (r.a) html += `<br><br><span style="font-size:12px;color:var(--azul);cursor:pointer;text-decoration:underline;" onclick="showArticle('${r.a}')" >Ver artículo completo</span>`;
-                (window as any).addMsg('bot', html);
+                extendedWindow.removeTyping?.();
+                const r = extendedWindow.getBotResponse?.(txt);
+                if (r) {
+                  let html = r.t;
+                  if (r.a) html += `<br><br><span style="font-size:12px;color:var(--azul);cursor:pointer;text-decoration:underline;font-weight:600;" onclick="showArticle('${r.a}')" >Leer artículo completo</span>`;
+                  extendedWindow.addMsg?.('bot', html);
+                }
             }, 800);
         };
 
-        (window as any).askElio = function (q: string) {
-            if (!(window as any).chatOpen) (window as any).toggleChat();
+        extendedWindow.askElio = function (q: string) {
+            if (!extendedWindow.chatOpen) extendedWindow.toggleChat?.();
             setTimeout(() => {
                 const inp = document.getElementById('chatInp') as HTMLInputElement;
                 if (inp) {
                     inp.value = q;
-                    (window as any).sendChat();
+                    extendedWindow.sendChat?.();
                 }
             }, 100);
         };
 
-        (window as any).buildArticleList = function () {
+        extendedWindow.buildArticleList = function () {
             const el = document.getElementById('helpArticleList');
             if (!el) return;
 
@@ -251,241 +300,192 @@ export default function HelpPage() {
                 const a = helpArticles[artId];
                 if (!a) return '';
                 return `
-                    <div style="padding:12px 20px;border-bottom:1px solid var(--gris-borde);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onmouseover="this.style.background='var(--gris-bg)'" onmouseout="this.style.background='white'" onclick="showArticle('${artId}')" >
+                    <div style="padding:16px 24px;border-bottom:1px solid var(--slate-100);cursor:pointer;display:flex;justify-content:space-between;align-items:center; transition: all 0.2s;" onmouseover="this.style.background='var(--slate-50)'" onmouseout="this.style.background='white'" onclick="showArticle('${artId}')" >
                         <div>
-                            <div style="font-size:13px;font-weight:600;">${a.title}</div>
-                            <div style="font-size:11px;color:var(--gris-texto);">${sec.cat}</div>
+                            <div style="font-size:14px;font-weight:600;color:var(--slate-900);">${a.title}</div>
+                            <div style="font-size:11px;color:var(--slate-400);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px;">${sec.cat}</div>
                         </div>
-                        <i class="bi bi-chevron-right" style="color:var(--gris-texto);font-size:12px;"></i>
+                        <i class="bi bi-chevron-right" style="color:var(--slate-300);font-size:12px;"></i>
                     </div>`;
             }).join('')).join('');
         };
 
-        (window as any).buildArticleList();
-        (window as any).showHelpHome();
-    }, []);
+        extendedWindow.buildArticleList();
+        extendedWindow.showHelpHome?.();
+    }, [router]);
+
+    const handleCreateAgent = (e: React.MouseEvent) => {
+        e.preventDefault();
+        router.push('/wizard');
+    };
+
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
 
     return (
-        <div style={{ fontFamily: "'Inter', sans-serif", minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-            <DashboardSidebar />
-            <main style={{ marginLeft: '260px', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div className="app-container">
+            <DashboardSidebar user={user} />
+            <div className="main-view">
                 <style dangerouslySetInnerHTML={{ __html: `
-
-                    .help-page-container {
-                        --azul: #267ab0;
-                        --azul-hover: #1e6291;
-                        --azul-light: #eff6fb;
-                        --gris-bg: #f5f6f8;
-                        --gris-borde: #e5e7eb;
-                        --gris-texto: #6c757d;
-                        --oscuro: #1a2428;
-                        --exito: #10b981;
-                        --amarillo: #f59e0b;
-                        --rojo: #ef4444;
-                        --blanco: #ffffff;
-                        --r-sm: 6px;
-                        --r-md: 8px;
-                        --r-lg: 12px;
-                    }
-
                     .help-page-container .help-body h2 {
-                        font-size: 16px;
+                        font-size: 18px;
                         font-weight: 700;
-                        margin-top: 24px;
-                        margin-bottom: 10px;
-                        color: var(--oscuro);
+                        margin-top: 32px;
+                        margin-bottom: 12px;
+                        color: var(--slate-900);
                     }
-
                     .help-body p {
-                        margin-bottom: 14px;
-                        color: #4b5563;
-                        font-size: 14px;
+                        margin-bottom: 16px;
+                        color: var(--slate-600);
+                        font-size: 15px;
+                        line-height: 1.6;
                     }
-
                     .help-callout {
-                        background: #f0f9ff;
+                        background: var(--azul-light);
                         border-left: 4px solid var(--azul);
-                        padding: 14px 16px;
-                        border-radius: var(--r-sm);
-                        margin: 20px 0;
+                        padding: 16px 20px;
+                        border-radius: 12px;
+                        margin: 24px 0;
                         display: flex;
-                        gap: 12px;
-                        font-size: 13px;
-                        color: #0c4a6e;
+                        gap: 14px;
+                        font-size: 14px;
+                        color: var(--azul);
+                        line-height: 1.5;
                     }
-
                     .help-callout-warn {
                         background: #fffbeb;
-                        border-left-color: var(--amarillo);
+                        border-left-color: #f59e0b;
                         color: #92400e;
                     }
-
                     .help-body ul, .help-body ol {
                         padding-left: 20px;
-                        margin-bottom: 14px;
+                        margin-bottom: 16px;
                     }
-
                     .help-body li {
-                        font-size: 14px;
-                        color: #374151;
-                        line-height: 1.75;
-                        margin-bottom: 4px;
+                        font-size: 15px;
+                        color: var(--slate-600);
+                        line-height: 1.7;
+                        margin-bottom: 6px;
                     }
-
                     .help-body .step-list {
                         list-style: none;
                         padding: 0;
                         counter-reset: steps;
                     }
-
                     .help-body .step-list li {
                         counter-increment: steps;
                         display: flex;
-                        gap: 12px;
+                        gap: 14px;
                         align-items: flex-start;
-                        margin-bottom: 10px;
+                        margin-bottom: 12px;
                     }
-
                     .help-body .step-list li::before {
                         content: counter(steps);
-                        min-width: 22px;
-                        height: 22px;
+                        min-width: 24px;
+                        height: 24px;
                         background: var(--azul);
                         color: white;
                         border-radius: 50%;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 11px;
+                        font-size: 12px;
                         font-weight: 800;
                         flex-shrink: 0;
-                        margin-top: 3px;
+                        margin-top: 2px;
                     }
-
-                    .btn-p {
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 8px;
-                        padding: 9px 18px;
-                        background: var(--azul);
-                        color: white;
-                        border: none;
-                        border-radius: var(--r-md);
-                        font-size: 13px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        font-family: inherit;
-                        transition: background .2s;
-                    }
-
-                    .btn-p:hover {
-                        background: var(--azul-hover);
-                    }
-
-                    .btn-s {
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 8px;
-                        padding: 9px 18px;
-                        background: var(--blanco);
-                        color: var(--gris-texto);
-                        border: 1px solid var(--gris-borde);
-                        border-radius: var(--r-md);
-                        font-size: 13px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        font-family: inherit;
-                        transition: all .15s;
-                    }
-
-                    .btn-s:hover {
-                        border-color: #9ca3af;
-                        color: var(--oscuro);
-                    }
-
-                    .inp {
-                        width: 100%;
-                        padding: 10px 14px;
-                        border: 1px solid var(--gris-borde);
-                        border-radius: var(--r-md);
-                        font-size: 13px;
-                        color: var(--oscuro);
-                        background: var(--blanco);
-                        outline: none;
-                        font-family: inherit;
-                        transition: border-color .15s;
-                    }
-
-                    .inp:focus {
-                        border-color: var(--azul);
-                        box-shadow: 0 0 0 3px rgba(38, 122, 176, .1);
-                    }
-
                     @keyframes bounce {
                         0%, 80%, 100% { transform: translateY(0) }
                         40% { transform: translateY(-5px) }
                     }
+                    .ask-btn {
+                        width: 100%; text-align: left; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); 
+                        border-radius: 10px; padding: 12px 14px; font-size: 13px; color: white; cursor: pointer; 
+                        font-family: inherit; transition: all 0.2s;
+                    }
+                    .ask-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25); }
                 ` }} />
 
-                <header className="sticky top-0 z-50 bg-white border-b border-[#e5e7eb] px-8 flex items-center justify-between h-14">
-                    <h1 className="text-lg font-bold tracking-tight">Ayuda y soporte</h1>
-                    <div className="flex items-center gap-2.5">
-                        <button className="btn-s" onClick={() => (window as any).toggleChat()}>
-                            <i className="bi bi-chat-dots"></i> Preguntarle a Elio
-                        </button>
-                    </div>
-                </header>
+                <DashboardTopbar 
+                    title="Ayuda y Soporte"
+                    user={user}
+                    isAlertPanelOpen={false}
+                    setIsAlertPanelOpen={() => {}}
+                    isDropdownOpen={isDropdownOpen}
+                    setIsDropdownOpen={setIsDropdownOpen}
+                    handleCreateAgent={handleCreateAgent}
+                    handleLogout={handleLogout}
+                    dropdownRef={dropdownRef}
+                />
 
-                <div className="p-8 help-page-container">
+                <div className="dashboard-content help-page-container">
                     <div id="helpHome">
-                        <div style={{ marginBottom: '20px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '0 16px', maxWidth: '500px' }}>
-                                <i className="bi bi-search" style={{ color: 'var(--gris-texto)', fontSize: '15px', flexShrink: 0 }}></i>
-                                <input id="helpSearch" className="inp" style={{ border: 'none', background: 'none', padding: '12px' }} placeholder="Buscar en el centro de ayuda..." onInput={(e: any) => (window as any).onHelpSearch(e.target.value)} autoCapitalize="off" />
-                            </div>
-                            <div id="searchDrop" style={{ display: 'none', maxWidth: '500px', background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', boxShadow: '0 8px 24px rgba(0,0,0,.1)', marginTop: '4px', overflow: 'hidden' }}></div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px', marginBottom: '28px' }}>
-                            <div style={{ background: 'linear-gradient(135deg,var(--azul),var(--azul-hover))', borderRadius: 'var(--r-lg)', padding: '22px', color: 'white', cursor: 'pointer' }} onClick={() => (window as any).showArticle('crear-agente')}>
-                                <i className="bi bi-rocket-takeoff" style={{ fontSize: '22px', display: 'block', marginBottom: '10px', opacity: 0.85 }}></i>
-                                <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '3px' }}>Crear tu primer agente</div>
-                                <div style={{ fontSize: '12px', opacity: 0.75 }}>Guía paso a paso en 6 pasos.</div>
-                            </div>
-                            <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '22px', cursor: 'pointer' }} onClick={() => (window as any).showArticle('asignar-numero')}>
-                                <i className="bi bi-telephone-plus" style={{ fontSize: '22px', display: 'block', marginBottom: '10px', color: 'var(--exito)' }}></i>
-                                <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '3px' }}>Asignar un número</div>
-                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Conecta tu número SIP de netelip.</div>
-                            </div>
-                            <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '22px', cursor: 'pointer' }} onClick={() => (window as any).showArticle('gdpr')}>
-                                <i className="bi bi-shield-check" style={{ fontSize: '22px', display: 'block', marginBottom: '10px', color: 'var(--amarillo)' }}></i>
-                                <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '3px' }}>RGPD y LOPD</div>
-                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Cumplimiento legal en España.</div>
+                        <div className="content-header">
+                            <div>
+                                <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>Centro de Ayuda</h2>
+                                <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>Todo lo que necesitas saber para dominar la Fábrica de Agentes.</p>
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                            <div style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-                                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--gris-borde)', fontSize: '14px', fontWeight: 700 }}>Artículos de ayuda</div>
+                        <div style={{ marginBottom: '32px', position: 'relative' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', background: 'white', border: '1px solid var(--slate-200)', borderRadius: '16px', padding: '0 20px', maxWidth: '600px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                                <i className="bi bi-search" style={{ color: 'var(--slate-400)', fontSize: '18px', flexShrink: 0 }}></i>
+                                <input id="helpSearch" className="inp" style={{ border: 'none', background: 'none', padding: '16px', width: '100%' }} placeholder="Buscar guías, tutoriales o herramientas..." onInput={(e: React.ChangeEvent<HTMLInputElement>) => (window as unknown as ExtendedWindow).onHelpSearch?.(e.target.value)} autoCapitalize="off" />
+                            </div>
+                            <div id="searchDrop" style={{ display: 'none', maxWidth: '600px', background: 'white', border: '1px solid var(--slate-200)', borderRadius: '16px', boxShadow: '0 12px 32px rgba(0,0,0,0.1)', marginTop: '8px', overflow: 'hidden', position: 'absolute', zIndex: 100, width: '100%' }}></div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px', marginBottom: '40px' }}>
+                            <div className="card-premium" style={{ background: 'linear-gradient(135deg, var(--azul), var(--azul-hover))', border: 'none', padding: '24px', color: 'white', cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.('crear-agente')}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '16px' }}>
+                                    <i className="bi bi-rocket-takeoff"></i>
+                                </div>
+                                <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>Empezar de cero</div>
+                                <div style={{ fontSize: '13px', opacity: 0.8, lineHeight: 1.4 }}>Cómo configurar tu primer agente en solo 6 pasos guiados.</div>
+                            </div>
+                            <div className="card-premium" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.('asignar-numero')}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--slate-50)', color: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '16px' }}>
+                                    <i className="bi bi-telephone-plus"></i>
+                                </div>
+                                <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px', color: 'var(--slate-900)' }}>Gestionar Números</div>
+                                <div style={{ fontSize: '13px', color: 'var(--slate-500)', lineHeight: 1.4 }}>Asigna números SIP de netelip y conecta con tus clientes.</div>
+                            </div>
+                            <div className="card-premium" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => (window as unknown as ExtendedWindow).showArticle?.('gdpr')}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--slate-50)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '16px' }}>
+                                    <i className="bi bi-shield-check"></i>
+                                </div>
+                                <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px', color: 'var(--slate-900)' }}>RGPD y LOPD</div>
+                                <div style={{ fontSize: '13px', color: 'var(--slate-500)', lineHeight: 1.4 }}>Información clave sobre cumplimiento legal y protección de datos.</div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '32px', alignItems: 'start' }}>
+                            <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
+                                <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', fontSize: '14px', fontWeight: 700, color: 'var(--slate-600)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    Explorar por temas
+                                </div>
                                 <div id="helpArticleList"></div>
                             </div>
 
-                            <div style={{ background: 'linear-gradient(135deg,#1a2428,#267ab0)', borderRadius: 'var(--r-lg)', padding: '24px', color: 'white', position: 'sticky', top: '80px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 800 }}>E</div>
+                            <div className="card-premium" style={{ background: 'linear-gradient(135deg, var(--slate-900), var(--azul))', border: 'none', padding: '32px', color: 'white', position: 'sticky', top: '100px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800 }}>E</div>
                                     <div>
-                                        <div style={{ fontSize: '14px', fontWeight: 700 }}>Pregúntale a Elio</div>
-                                        <div style={{ fontSize: '11px', opacity: 0.7 }}>Asistente de la Fábrica</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 700 }}>Habla con Elio</div>
+                                        <div style={{ fontSize: '12px', opacity: 0.7 }}>Tu asistente inteligente</div>
                                     </div>
                                 </div>
-                                <p style={{ fontSize: '12.5px', opacity: 0.8, marginBottom: '16px', lineHeight: 1.6 }}>Elio conoce toda la documentación y puede resolver tus dudas al instante.</p>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                                    <button onClick={() => (window as any).askElio('Cómo creo un agente')} style={{ width: '100%', textAlign: 'left', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '9px 12px', fontSize: '12px', color: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>¿Cómo creo un agente?</button>
-                                    <button onClick={() => (window as any).askElio('Cómo asigno un número')} style={{ width: '100%', textAlign: 'left', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '9px 12px', fontSize: '12px', color: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>¿Cómo asigno un número?</button>
-                                    <button onClick={() => (window as any).askElio('Qué es la tasa de éxito')} style={{ width: '100%', textAlign: 'left', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '9px 12px', fontSize: '12px', color: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>¿Qué es la tasa de éxito?</button>
+                                <p style={{ fontSize: '14px', opacity: 0.8, marginBottom: '24px', lineHeight: 1.6 }}>Domina la Fábrica preguntándole a Elio. Conoce cada rincón de la plataforma.</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+                                    <button onClick={() => (window as unknown as ExtendedWindow).askElio?.('Cómo creo un agente')} className="ask-btn">¿Cómo crear un agente?</button>
+                                    <button onClick={() => (window as unknown as ExtendedWindow).askElio?.('Cómo asigno un número')} className="ask-btn">¿Cómo asignar un número?</button>
+                                    <button onClick={() => (window as unknown as ExtendedWindow).askElio?.('Qué es la tasa de éxito')} className="ask-btn">¿Qué es la tasa de éxito?</button>
                                 </div>
-                                <button onClick={() => (window as any).toggleChat()} style={{ width: '100%', background: 'white', color: 'var(--azul)', border: 'none', borderRadius: '8px', padding: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                                    <i className="bi bi-chat-dots"></i> Abrir chat con Elio
+                                <button onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} style={{ width: '100%', background: 'white', color: 'var(--azul)', border: 'none', borderRadius: '12px', padding: '14px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                    <i className="bi bi-chat-dots"></i> Abrir Chat con Elio
                                 </button>
                             </div>
                         </div>
@@ -495,29 +495,30 @@ export default function HelpPage() {
                         <div id="articleContent"></div>
                     </div>
 
-                    {/* CHAT ELIO */}
-                    <div id="chatWindow" style={{ position: 'fixed', bottom: '60px', right: '20px', width: '340px', height: '480px', background: 'white', border: '1px solid var(--gris-borde)', borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)', display: 'none', flexDirection: 'column', zIndex: 500 }}>
-                        <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg,#1a2428,#267ab0)', borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, color: 'white' }}>E</div>
+                    {/* CHAT ELIO WINDOW */}
+                    <div id="chatWindow" style={{ position: 'fixed', bottom: '80px', right: '30px', width: '360px', height: '520px', background: 'white', border: '1px solid var(--slate-200)', borderRadius: '24px', boxShadow: '0 24px 64px rgba(0,0,0,0.15)', display: 'none', flexDirection: 'column', zIndex: 500, overflow: 'hidden' }}>
+                        <div style={{ padding: '20px', background: 'linear-gradient(135deg, var(--slate-900), var(--azul))', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, color: 'white' }}>E</div>
                                 <div>
-                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'white' }}>Elio</div>
-                                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>Asistente de la Fábrica</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'white' }}>Elio Assistant</div>
+                                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>En línea • Resolución instantánea</div>
                                 </div>
                             </div>
-                            <button onClick={() => (window as any).toggleChat()} style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                            <button onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                         </div>
-                        <div id="chatMsgs" style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}></div>
-                        <div style={{ padding: '12px', borderTop: '1px solid var(--gris-borde)', display: 'flex', gap: '8px' }}>
-                            <input id="chatInp" className="inp" style={{ flex: 1, padding: '9px 12px', fontSize: '13px' }} placeholder="Escribe tu pregunta..." onKeyDown={(e: any) => e.key === 'Enter' && (window as any).sendChat()} />
-                            <button onClick={() => (window as any).sendChat()} className="btn-p" style={{ padding: '9px 14px' }}><i className="bi bi-send"></i></button>
+                        <div id="chatMsgs" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}></div>
+                        <div style={{ padding: '16px', background: 'var(--slate-50)', borderTop: '1px solid var(--slate-100)', display: 'flex', gap: '10px' }}>
+                            <input id="chatInp" className="inp" style={{ flex: 1, border: '1px solid var(--slate-200)', borderRadius: '12px', padding: '12px 14px', fontSize: '14px' }} placeholder="Escribe tu duda..." onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && (window as unknown as ExtendedWindow).sendChat?.()} />
+                            <button onClick={() => (window as unknown as ExtendedWindow).sendChat?.()} className="btn-p" style={{ padding: '12px 16px', borderRadius: '12px' }}><i className="bi bi-send-fill"></i></button>
                         </div>
                     </div>
-                    <button onClick={() => (window as any).toggleChat()} style={{ position: 'fixed', bottom: '60px', right: '20px', width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg,#1a2428,#267ab0)', border: 'none', color: 'white', fontSize: '22px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(38,122,176,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 499 }} id="chatFab">
+
+                    <button onClick={() => (window as unknown as ExtendedWindow).toggleChat?.()} id="chatFab" style={{ position: 'fixed', bottom: '40px', right: '40px', width: '64px', height: '64px', borderRadius: '20px', background: 'linear-gradient(135deg, var(--slate-900), var(--azul))', border: 'none', color: 'white', fontSize: '28px', cursor: 'pointer', boxShadow: '0 8px 24px rgba(38,122,176,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 499 }}>
                         <i className="bi bi-chat-dots-fill"></i>
                     </button>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

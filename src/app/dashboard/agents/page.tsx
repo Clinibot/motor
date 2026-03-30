@@ -7,6 +7,7 @@ import { createClient } from '../../../lib/supabase/client';
 import { useWizardStore } from '../../../store/wizardStore';
 import { RetellWebClient } from "retell-client-js-sdk";
 import DashboardSidebar from '../../../components/DashboardSidebar';
+import DashboardTopbar from '../../../components/DashboardTopbar';
 
 const retellWebClient = new RetellWebClient();
 
@@ -189,7 +190,6 @@ export default function AgentsPage() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const userInitial = (user?.full_name || user?.email || 'U')[0].toUpperCase();
 
     const getAgentTypeName = (type: string) => {
         const types: Record<string, string> = {
@@ -201,243 +201,144 @@ export default function AgentsPage() {
     };
 
     return (
-        <div suppressHydrationWarning style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <style>{`
-                *{margin:0;padding:0;box-sizing:border-box}
-                body{font-family:'Inter',-apple-system,sans-serif;background:#f5f5f5;color:#1a1a1a}
-                .main-content{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;background:#f5f6f8;}
-                .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
-                .topbar-left h1{font-size:24px;font-weight:600;color:#1a1a1a}
-                .topbar-right{display:flex;align-items:center;gap:20px}
-                .notification-bell{position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#f9fafb;cursor:pointer;border:none;transition:all .2s}
-                .notification-bell:hover{background:#e5e7eb}
-                .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#267ab0 0%,#1e5a87 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;cursor:pointer;border:none}
-                .content{flex:1;padding:32px}
-                .btn-primary{padding:10px 20px;background:#267ab0;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;font-family:inherit;text-decoration:none}
-                .btn-primary:hover{background:#1e5a87;transform:translateY(-1px);box-shadow:0 4px 12px rgba(38,122,176,.3)}
-                
-                /* Dropdown */
-                .user-profile-container { position: relative; }
-                .user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 220px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden; animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: top right; }
-                .user-dropdown-header { padding: 16px; border-bottom: 1px solid #f3f4f6; background: #f9fafb; text-align: center; }
-                .user-dropdown-name { margin: 0; font-size: 14px; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-                .user-dropdown-email { margin: 4px 0 0; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-                .user-dropdown-body { padding: 8px; }
-                .user-dropdown-item { width: 100%; padding: 10px 12px; display: flex; align-items: center; gap: 10px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 8px; transition: all 0.2s; color: #4b5563; }
-                .user-dropdown-item:hover { background: #f3f4f6; color: #1a1a1a; }
-                .user-dropdown-item.text-red { color: #dc2626; }
-                .user-dropdown-item.text-red:hover { background: #fef2f2; color: #b91c1c; }
-                @keyframes slideDown { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-                
-                .agents-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px}
-                .agent-card{background:#fff;border-radius:12px;padding:24px;border:1px solid #e5e7eb;transition:all .3s;display:flex;flex-direction:column}
-                .agent-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,.08)}
-                .agent-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-                .agent-info-left{display:flex;align-items:center;gap:12px}
-                .agent-avatar-lg{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#eff6fb 0%,#dbeafe 100%);color:#267ab0;display:flex;align-items:center;justify-content:center;font-size:24px}
-                .agent-title{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
-                .agent-type{font-size:13px;color:#6b7280;font-weight:500;}
-                .agent-status{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;background:#dcfce7;color:#16a34a}
-                .agent-meta{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:#6b7280}
-                .agent-actions{display:flex;gap:10px;margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb;}
-                .btn-edit{flex:1;padding:8px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;color:#4b5563;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
-                .btn-edit:hover{background:#f9fafb;border-color:#d1d5db;color:#1a1a1a;}
-                .btn-delete{padding:8px 12px;border:1px solid #fee2e2;background:#fff;border-radius:8px;color:#ef4444;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
-                .btn-delete:hover{background:#fef2f2;border-color:#ef4444}
-                .spinner{border:3px solid #f3f4f6;border-top:3px solid #267ab0;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 16px}
-                @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-                .empty-state{padding:80px 40px;text-align:center;color:#6b7280;background:#fff;border-radius:12px;border:1px dashed #d1d5db}
-                .empty-icon{font-size:48px;color:#9ca3af;margin-bottom:16px}
-                .btn-test{flex:1;padding:8px;background:#267ab0;border:1px solid #267ab0;border-radius:8px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
-                .btn-test:hover{background:#1e5a87;border-color:#1e5a87}
-                .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
-                .modal-content{background:#fff;border-radius:24px;width:100%;max-width:480px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);overflow:hidden;animation:modal-enter 0.3s cubic-bezier(0.16,1,0.3,1)}
-                .modal-header{padding:24px 32px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;background:#f9fafb}
-                .modal-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#f3f4f6;border:none;cursor:pointer;color:#6b7280;transition:all .2s}
-                .modal-close:hover{background:#e5e7eb;color:#1a1a1a}
-                .modal-body{padding:40px 32px;display:flex;flex-direction:column;align-items:center;text-align:center}
-                .voice-waves{width:120px;height:120px;border-radius:50%;background:#eff6fb;display:flex;align-items:center;justify-content:center;margin-bottom:24px;position:relative}
-                .voice-waves.active::before,.voice-waves.active::after{content:'';position:absolute;inset:-10px;border-radius:50%;border:2px solid #267ab0;animation:ripple 2s linear infinite;opacity:0}
-                .voice-waves.active::after{animation-delay:1s}
-                .voice-waves svg{width:48px;height:48px;color:#267ab0}
-                @keyframes ripple{0%{transform:scale(0.8);opacity:0.5}100%{transform:scale(1.5);opacity:0}}
-                @keyframes modal-enter{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
-                .call-btn{width:100%;padding:16px;border-radius:16px;border:none;font-size:16px;font-weight:600;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:32px;transition:all .2s}
-                .call-btn.start{background:#16a34a}
-                .call-btn.start:hover{background:#15803d;transform:translateY(-1px);box-shadow:0 10px 15px -3px rgba(22,163,74,0.3)}
-                .call-btn.stop{background:#ef4444}
-                .call-btn.stop:hover{background:#dc2626;transform:translateY(-1px);box-shadow:0 10px 15px -3px rgba(239,68,68,0.3)}
-                .call-btn.connecting{background:#ca8a04;cursor:wait;opacity:0.8}
-            `}</style>
-
+        <div className="app-container">
             <DashboardSidebar user={user} />
 
-            {/* MAIN CONTENT */}
-            <main className="main-content">
-                <header className="topbar">
-                    <div className="topbar-left">
-                        <h1>Mis agentes IA</h1>
-                    </div>
-                    <div className="topbar-right">
-                        <button onClick={handleCreateAgent} className="btn-primary">
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                            </svg>
+            <div className="main-view">
+                <DashboardTopbar 
+                    title="Mis agentes IA"
+                    user={user}
+                    isAlertPanelOpen={false}
+                    setIsAlertPanelOpen={() => {}}
+                    isDropdownOpen={isDropdownOpen}
+                    setIsDropdownOpen={setIsDropdownOpen}
+                    handleCreateAgent={handleCreateAgent}
+                    handleLogout={handleLogout}
+                    dropdownRef={dropdownRef}
+                />
+
+                <div className="dashboard-content">
+                    <div className="content-header">
+                        <div>
+                            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>
+                                Gestión de Agentes
+                            </h2>
+                            <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
+                                Crea, configura y prueba tus agentes conversacionales.
+                            </p>
+                        </div>
+                        <button onClick={handleCreateAgent} className="btn-premium">
+                            <i className="bi bi-plus-lg"></i>
                             Crear nuevo agente
                         </button>
-                        <button className="notification-bell">
-                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                            </svg>
-                            <span className="notification-badge" />
-                        </button>
-                        <div className="user-profile-container" ref={dropdownRef}>
-                            <button
-                                className="user-avatar"
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                title="Mi perfil"
-                            >
-                                {userInitial}
-                            </button>
-                            {isDropdownOpen && (
-                                <div className="user-dropdown">
-                                    <div className="user-dropdown-header">
-                                        <span className="user-dropdown-name">{user?.full_name || 'Mi cuenta'}</span>
-                                        <span className="user-dropdown-email">{user?.email || 'user@example.com'}</span>
-                                    </div>
-                                    <div className="user-dropdown-body">
-                                        <button onClick={handleLogout} className="user-dropdown-item text-red">
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                            </svg>
-                                            Cerrar sesión
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
                     </div>
-                </header>
 
-                <div className="content" style={{ position: 'relative' }}>
                     {deleteError && (
                         <div style={{
-                            background: '#fff1f2', border: '1px solid #fca5a5', borderRadius: '10px',
-                            padding: '14px 20px', marginBottom: '20px', display: 'flex',
+                            background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px',
+                            padding: '16px 20px', marginBottom: '24px', display: 'flex',
                             alignItems: 'center', justifyContent: 'space-between', gap: '12px',
-                            fontSize: '14px', color: '#dc2626', fontWeight: 500,
+                            fontSize: '14px', color: '#ef4444', fontWeight: 500,
                         }}>
-                            <span>
-                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '8px', verticalAlign: '-2px' }}>
-                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
+                            <div className="flex-center gap-8">
+                                <i className="bi bi-exclamation-circle-fill"></i>
                                 {deleteError}
-                            </span>
-                            <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: '18px', lineHeight: 1 }}>×</button>
+                            </div>
+                            <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '20px' }}>×</button>
                         </div>
                     )}
+
                     {isLoading ? (
-                        <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
-                            <div className="spinner" />
-                            <p>Cargando agentes...</p>
+                        <div className="card-premium" style={{ textAlign: 'center', padding: '80px 0' }}>
+                            <div className="spinner" style={{ border: '3px solid var(--slate-100)', borderTop: '3px solid var(--azul)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
+                            <p style={{ color: 'var(--slate-500)', fontWeight: 500 }}>Cargando agentes...</p>
                         </div>
                     ) : agents.length === 0 ? (
-                        <div className="empty-state">
-                            <div className="empty-icon">🤖</div>
-                            <h3 style={{ fontSize: '20px', color: '#1a1a1a', marginBottom: '8px', fontWeight: 600 }}>Aún no tienes agentes</h3>
-                            <p style={{ marginBottom: '24px' }}>Crea tu primer agente conversacional impulsado por IA para automatizar tus llamadas.</p>
-                            <button onClick={handleCreateAgent} className="btn-primary" style={{ display: 'inline-flex', margin: '0 auto' }}>
+                        <div className="card-premium" style={{ textAlign: 'center', padding: '80px 40px', border: '2px dashed var(--slate-200)', background: 'transparent', boxShadow: 'none' }}>
+                            <div style={{ fontSize: '48px', marginBottom: '20px' }}>🤖</div>
+                            <h3 style={{ fontSize: '20px', color: 'var(--slate-900)', marginBottom: '8px', fontWeight: 700 }}>Aún no tienes agentes</h3>
+                            <p style={{ marginBottom: '32px', color: 'var(--slate-500)', maxWidth: '400px', margin: '0 auto 32px' }}>Crea tu primer agente conversacional impulsado por IA para automatizar tus llamadas.</p>
+                            <button onClick={handleCreateAgent} className="btn-premium" style={{ margin: '0 auto' }}>
+                                <i className="bi bi-plus-lg"></i>
                                 Crear mi primer agente
                             </button>
                         </div>
                     ) : (
-                        <div className="agents-grid">
+                        <div className="agents-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
                             {agents.map(agent => {
-                                const modelNames: Record<string, string> = {
-                                    'gpt-4.1': 'gpt-4.1',
-                                    'gpt-5.1': 'gpt-5.1',
-                                    'gpt-5.2': 'gpt-5.2',
-                                    'gemini-3.0-flash': 'gemini-3.0-flash',
-                                    'gemini-2.5-pro': 'gemini-2.5-pro',
-                                    'claude-3.5-sonnet': 'claude-3.5-sonnet'
-                                };
                                 const _mdl = agent.configuration?.model || 'gpt-4.1';
-                                const displayModel = modelNames[_mdl] || _mdl;
-
-                                const displayVoiceMap: Record<string, string> = {
-                                    '11labs-Adrian': 'Voz Adrián',
-                                    'cartesia-Isabel': 'Voz Isabel',
-                                    '11068': 'Voz Cristina',
-                                    '11844': 'Voz Mari Carme',
-                                    '12051': 'Voz Cimo',
-                                    'cartesia-Manuel': 'Voz Manuel',
-                                    '11375': 'Voz Santiago',
-                                    '11753': 'Voz Adrian'
-                                };
                                 const _voice = agent.configuration?.voiceId || '11labs-Adrian';
-                                const displayVoice = displayVoiceMap[_voice] || ('Voz ' + _voice.split('-').pop());
-
+                                
                                 return (
-                                    <div key={agent.id} className="agent-card">
-                                        <div className="agent-header">
-                                            <div className="agent-info-left">
-                                                <div className="agent-avatar-lg" style={{ background: agent.type === 'transferencia' ? '#fff7ed' : '#eff6fb', color: agent.type === 'transferencia' ? '#f97316' : '#267ab0' }}>
-                                                    {agent.type === 'transferencia' ? (
-                                                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 5h6m0 0v6m0-6l-7 7" />
-                                                        </svg>
-                                                    ) : (
-                                                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                                                        </svg>
-                                                    )}
+                                    <div key={agent.id} className="card-premium" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px' }}>
+                                        <div className="flex-between" style={{ marginBottom: '20px', alignItems: 'flex-start' }}>
+                                            <div className="flex-center gap-16">
+                                                <div style={{ 
+                                                    width: '52px', height: '52px', borderRadius: '14px', 
+                                                    background: agent.type === 'transferencia' ? '#fff7ed' : '#f0f9ff',
+                                                    color: agent.type === 'transferencia' ? '#f97316' : 'var(--azul)',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px'
+                                                }}>
+                                                    <i className={`bi bi-${agent.type === 'transferencia' ? 'telephone-outbound' : 'chat-dots'}`}></i>
                                                 </div>
                                                 <div>
-                                                    <h3 className="agent-title">{agent.name}</h3>
-                                                    <div className="agent-type">
+                                                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>{agent.name}</h3>
+                                                    <div style={{ fontSize: '13px', color: 'var(--slate-500)', fontWeight: 500 }}>
                                                         {getAgentTypeName(agent.type)}
-                                                        {agent.type === 'cualificacion' && ' y atención'}
                                                     </div>
                                                 </div>
                                             </div>
-                                            <span className="agent-status" style={{ background: agent.status === 'active' ? '#dcfce7' : undefined, color: agent.status === 'active' ? '#16a34a' : undefined }}>
-                                                {agent.status === 'active' ? '● Activo' : agent.status}
+                                            <span style={{ 
+                                                padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, 
+                                                background: agent.status === 'active' ? '#ecfdf5' : '#f1f5f9',
+                                                color: agent.status === 'active' ? '#10b981' : '#64748b',
+                                                textTransform: 'uppercase'
+                                            }}>
+                                                {agent.status === 'active' ? 'En línea' : agent.status}
                                             </span>
                                         </div>
 
-                                        <div className="agent-meta">
-                                            <div style={{ paddingBottom: '0px', color: '#6b7280', fontSize: '13px', display: 'flex', gap: '4px' }}>
-                                                {displayModel} · {displayVoice} · <span suppressHydrationWarning>{new Date(agent.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                        <div style={{ background: 'var(--slate-50)', borderRadius: '12px', padding: '16px', margin: '0 0 24px 0', flex: 1 }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>MODELO</div>
+                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--slate-700)' }}>{_mdl}</div>
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>VOZ</div>
+                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--slate-700)' }}>{_voice.split('-').pop()}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ marginTop: '12px', borderTop: '1px solid var(--slate-100)', paddingTop: '12px', fontSize: '12px', color: 'var(--slate-400)' }}>
+                                                <i className="bi bi-calendar3" style={{ marginRight: '6px' }}></i>
+                                                Creado el <span suppressHydrationWarning>{new Date(agent.created_at).toLocaleDateString('es-ES')}</span>
                                             </div>
                                         </div>
 
-                                        <div className="agent-actions">
-                                            <Link href={`/wizard?editId=${agent.id}`} className="btn-edit">
-                                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                </svg>
+                                        <div className="flex-center gap-12">
+                                            <Link href={`/wizard?editId=${agent.id}`} className="btn-premium" style={{ flex: 1, padding: '10px', fontSize: '13px', background: 'white', color: 'var(--slate-700)', border: '1px solid var(--slate-200)', boxShadow: 'none' }}>
+                                                <i className="bi bi-pencil-square"></i>
                                                 Editar
                                             </Link>
+                                            <button 
+                                                className="btn-premium" 
+                                                onClick={() => setTestAgent(agent)}
+                                                style={{ flex: 1, padding: '10px', fontSize: '13px' }}
+                                            >
+                                                <i className="bi bi-play-fill"></i>
+                                                Probar
+                                            </button>
                                             <button
-                                                className="btn-delete"
-                                                title="Eliminar agente"
+                                                className="btn-premium"
                                                 onClick={() => handleDelete(agent.id, agent.name)}
                                                 disabled={isDeletingId === agent.id}
+                                                style={{ padding: '10px', fontSize: '13px', background: 'white', color: '#ef4444', border: '1px solid #fee2e2', boxShadow: 'none' }}
                                             >
                                                 {isDeletingId === agent.id ? (
-                                                    <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', marginBottom: 0, borderColor: '#ef4444', borderTopColor: 'transparent' }} />
+                                                    <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: '#ef4444', margin: 0 }} />
                                                 ) : (
-                                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
+                                                    <i className="bi bi-trash3"></i>
                                                 )}
-                                            </button>
-                                            <button className="btn-test" onClick={() => setTestAgent(agent)}>
-                                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                                </svg>
-                                                Probar
                                             </button>
                                         </div>
                                     </div>
@@ -446,94 +347,81 @@ export default function AgentsPage() {
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
 
             {/* Test Modal Overlay */}
             {testAgent && (
-                <div className="modal-overlay" onClick={() => { if (callStatus === 'inactive') setTestAgent(null) }}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
+                <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)', zIndex: 1000 }} onClick={() => { if (callStatus === 'inactive') setTestAgent(null) }}>
+                    <div className="card-premium" style={{ width: '100%', maxWidth: '480px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1a1a1a', margin: 0 }}>{testAgent.name}</h3>
-                                <p style={{ fontSize: '13px', color: '#6b7280', margin: '4px 0 0 0' }}>Prueba de agente por voz</p>
+                                <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>{testAgent.name}</h3>
+                                <p style={{ fontSize: '13px', color: 'var(--slate-500)', margin: '4px 0 0 0' }}>Prueba de agente por voz</p>
                             </div>
                             {callStatus === "inactive" && (
-                                <button className="modal-close" onClick={() => setTestAgent(null)}>
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
+                                <button onClick={() => setTestAgent(null)} style={{ background: 'var(--slate-200)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--slate-600)' }}>
+                                    <i className="bi bi-x-lg"></i>
                                 </button>
                             )}
                         </div>
 
-                        <div className="modal-body">
-                            <div className={`voice-waves ${callStatus === "active" ? "active" : ""}`}>
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-                                </svg>
+                        <div style={{ padding: '40px 32px', textAlign: 'center' }}>
+                            <div className={`voice-waves ${callStatus === "active" ? "active" : ""}`} style={{ 
+                                width: '100px', height: '100px', borderRadius: '50%', background: 'var(--slate-100)', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px',
+                                position: 'relative', fontSize: '40px', color: 'var(--azul)'
+                            }}>
+                                <i className="bi bi-mic-fill"></i>
                             </div>
 
                             {callError && (
                                 <div style={{
-                                    background: '#fff1f2', border: '1px solid #fca5a5', borderRadius: '8px',
-                                    padding: '12px 16px', marginBottom: '12px', display: 'flex',
+                                    background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px',
+                                    padding: '12px 16px', marginBottom: '24px', display: 'flex',
                                     alignItems: 'center', justifyContent: 'space-between', gap: '10px',
-                                    fontSize: '13px', color: '#dc2626', fontWeight: 500, width: '100%', textAlign: 'left',
+                                    fontSize: '13px', color: '#ef4444', fontWeight: 500, textAlign: 'left',
                                 }}>
                                     <span>{callError}</span>
-                                    <button onClick={() => setCallError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: '16px', lineHeight: 1 }}>×</button>
+                                    <button onClick={() => setCallError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '18px' }}>×</button>
                                 </div>
                             )}
-                            <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', maxWidth: '300px' }}>
+
+                            <p style={{ color: 'var(--slate-600)', fontSize: '15px', lineHeight: '1.6', maxWidth: '340px', margin: '0 auto 32px' }}>
                                 {callStatus === "inactive" ? "Pulsa el botón de abajo, autoriza el uso de tu micrófono y empieza a hablar con tu agente." :
                                     callStatus === "connecting" ? "Estableciendo conexión segura..." :
                                         "Escuchando y respondiendo..."}
                             </p>
 
-                            <div className="mt-8 p-4 bg-orange-50 border border-orange-100 rounded-xl text-left w-full">
-                                <div className="flex gap-3 items-start mb-2">
-                                    <div className="bg-orange-100 p-1.5 rounded-lg">
-                                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                    </div>
-                                    <h4 className="text-xs font-bold text-orange-900 pt-1">Notas de prueba</h4>
+                            <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '16px', padding: '20px', textAlign: 'left', marginBottom: '32px' }}>
+                                <div className="flex-center gap-8" style={{ marginBottom: '12px', color: '#9a3412', fontWeight: 700, fontSize: '13px' }}>
+                                    <i className="bi bi-info-circle-fill"></i>
+                                    NOTAS DE PRUEBA
                                 </div>
-                                <div className="space-y-3 pl-1">
-                                    <div className="flex gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 flex-shrink-0" />
-                                        <p className="text-[11px] text-orange-800 leading-normal">
-                                            <strong>Transferencias:</strong> No funcionan desde La Fábrica de agentes, únicamente en llamadas reales desde un número de teléfono.
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 flex-shrink-0" />
-                                        <p className="text-[11px] text-orange-800 leading-normal">
-                                            <strong>Instrucciones:</strong> Si necesitas perfilar o mejorar el comportamiento, puedes editar las instrucciones en el panel de edición con cuidado.
-                                        </p>
-                                    </div>
-                                </div>
+                                <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <li style={{ fontSize: '11px', color: '#c2410c', lineHeight: '1.5', display: 'flex', gap: '8px' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f97316', marginTop: '5px', flexShrink: 0 }}></div>
+                                        <span><strong>Transferencias:</strong> Solo funcionan en llamadas reales desde un teléfono móvil.</span>
+                                    </li>
+                                    <li style={{ fontSize: '11px', color: '#c2410c', lineHeight: '1.5', display: 'flex', gap: '8px' }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f97316', marginTop: '5px', flexShrink: 0 }}></div>
+                                        <span><strong>Instrucciones:</strong> Puedes editarlas en el panel de edición si necesitas ajustar el comportamiento.</span>
+                                    </li>
+                                </ul>
                             </div>
 
                             <button
-                                className={`call-btn ${callStatus === "inactive" ? "start" : callStatus === "active" ? "stop" : "connecting"}`}
+                                className="btn-premium"
                                 onClick={toggleCall}
                                 disabled={callStatus === "connecting"}
+                                style={{ 
+                                    width: '100%', padding: '16px', borderRadius: '16px', fontSize: '16px', 
+                                    background: callStatus === "inactive" ? '#10b981' : callStatus === "active" ? '#ef4444' : '#eab308'
+                                }}
                             >
                                 {callStatus === "inactive" ? (
-                                    <>
-                                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                                        </svg>
-                                        Iniciar llamada
-                                    </>
+                                    <><i className="bi bi-mic-fill"></i> Iniciar llamada</>
                                 ) : callStatus === "active" ? (
-                                    <>
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 8v8H8V8h8z" />
-                                        </svg>
-                                        Finalizar llamada
-                                    </>
+                                    <><i className="bi bi-telephone-x-fill"></i> Finalizar llamada</>
                                 ) : (
                                     <>Conectando...</>
                                 )}

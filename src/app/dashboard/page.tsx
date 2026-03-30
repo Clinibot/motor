@@ -359,14 +359,14 @@ export default function DashboardPage() {
 
 
     return (
-        <div className="app">
+        <div className="app-container">
             <Script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" onLoad={() => setChartJsReady(true)} />
             
             <DashboardSidebar user={user} />
 
-            <main className="main">
+            <div className="main-view">
                 <DashboardTopbar 
-                    title="Dashboard de Control"
+                    title="Dashboard principal"
                     user={user}
                     totalCost={totalCost}
                     isAlertPanelOpen={isAlertPanelOpen}
@@ -379,15 +379,22 @@ export default function DashboardPage() {
                     dropdownRef={dropdownRef}
                 />
 
-                <div className="content">
-                    <div className="flex-between" style={{ marginBottom: '24px' }}>
-                        <h2 className="form-title" style={{ margin: 0 }}>Vista general de rendimiento</h2>
-                        <div className="flex-center gap-8">
+                <div className="dashboard-content">
+                    <div className="content-header">
+                        <div>
+                            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>
+                                Vista general de rendimiento
+                            </h2>
+                            <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
+                                Monitorea las métricas clave de tus agentes en tiempo real.
+                            </p>
+                        </div>
+                        <div className="flex-center gap-12">
                             <select
-                                className="inp sel"
+                                className="inp"
                                 value={timeFilter}
                                 onChange={(e) => setTimeFilter(e.target.value)}
-                                style={{ width: 'auto', padding: '8px 36px 8px 12px' }}
+                                style={{ width: 'auto', minWidth: '160px' }}
                             >
                                 <option value="today">Hoy</option>
                                 <option value="yesterday">Ayer</option>
@@ -397,87 +404,133 @@ export default function DashboardPage() {
                             </select>
                             {timeFilter === 'custom' && (
                                 <div className="flex-center gap-8">
-                                    <input type="date" className="inp" value={customDateRange.start} onChange={e => setCustomDateRange({ ...customDateRange, start: e.target.value })} style={{ width: 'auto', padding: '8px 12px' }} />
-                                    <span style={{ color: 'var(--gris-texto)' }}>-</span>
-                                    <input type="date" className="inp" value={customDateRange.end} onChange={e => setCustomDateRange({ ...customDateRange, end: e.target.value })} style={{ width: 'auto', padding: '8px 12px' }} />
+                                    <input type="date" className="inp" value={customDateRange.start} onChange={e => setCustomDateRange({ ...customDateRange, start: e.target.value })} style={{ width: 'auto' }} />
+                                    <span style={{ color: 'var(--slate-400)' }}>-</span>
+                                    <input type="date" className="inp" value={customDateRange.end} onChange={e => setCustomDateRange({ ...customDateRange, end: e.target.value })} style={{ width: 'auto' }} />
                                 </div>
                             )}
                         </div>
                     </div>
 
                     {isLoading ? (
-                        <div className="form-card" style={{ textAlign: 'center', padding: '60px' }}>
-                            <div className="spinner" style={{ border: '3px solid var(--gris-bg)', borderTop: '3px solid var(--azul)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-                            <p style={{ color: 'var(--gris-texto)' }}>Cargando métricas...</p>
+                        <div className="card-premium" style={{ textAlign: 'center', padding: '80px 0' }}>
+                            <div className="spinner" style={{ border: '3px solid var(--slate-100)', borderTop: '3px solid var(--azul)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
+                            <p style={{ color: 'var(--slate-500)', fontWeight: 500 }}>Cargando métricas de rendimiento...</p>
                         </div>
                     ) : (
                         <>
-                            <div className="stats-row">
+                            <div className="stats-grid">
                                 <div className="stat-card">
-                                    <div className="lbl" style={{ textTransform: 'uppercase', fontSize: '10px', letterSpacing: '.5px' }}>LLAMADAS TOTALES</div>
-                                    <div className="stat-val">{totalCalls}</div>
-                                    <div className="hint"><i className="bi bi-telephone"></i> En el periodo</div>
+                                    <div className="stat-icon icon-blue">
+                                        <i className="bi bi-telephone"></i>
+                                    </div>
+                                    <div className="stat-info">
+                                        <div className="stat-label">Llamadas Totales</div>
+                                        <div className="stat-value">{totalCalls}</div>
+                                        <div className="stat-diff positive">
+                                            <i className="bi bi-arrow-up"></i>
+                                            <span>En el periodo</span>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div className="stat-card">
-                                    <div className="lbl" style={{ textTransform: 'uppercase', fontSize: '10px', letterSpacing: '.5px' }}>TASA DE ÉXITO</div>
-                                    <div className="stat-val" style={{ color: 'var(--exito)' }}>{successRate}</div>
-                                    <div className="hint"><i className="bi bi-check-circle"></i> Conversiones</div>
+                                    <div className="stat-icon icon-green">
+                                        <i className="bi bi-check2-circle"></i>
+                                    </div>
+                                    <div className="stat-info">
+                                        <div className="stat-label">Tasa de Éxito</div>
+                                        <div className="stat-value">{successRate}</div>
+                                        <div className="stat-diff positive">
+                                            <i className="bi bi-shield-check"></i>
+                                            <span>Conversiones</span>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div className="stat-card">
-                                    <div className="lbl" style={{ textTransform: 'uppercase', fontSize: '10px', letterSpacing: '.5px' }}>DURACIÓN PROMEDIO</div>
-                                    <div className="stat-val">{avgDur}</div>
-                                    <div className="hint"><i className="bi bi-clock"></i> Por llamada</div>
+                                    <div className="stat-icon icon-purple">
+                                        <i className="bi bi-clock"></i>
+                                    </div>
+                                    <div className="stat-info">
+                                        <div className="stat-label">Duración Media</div>
+                                        <div className="stat-value">{avgDur}</div>
+                                        <div className="stat-diff">
+                                            <i className="bi bi-lightning-charge"></i>
+                                            <span>Por llamada</span>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div className="stat-card">
-                                    <div className="lbl" style={{ textTransform: 'uppercase', fontSize: '10px', letterSpacing: '.5px' }}>COSTE ESTIMADO</div>
-                                    <div className="stat-val">€{totalCost.toFixed(3)}</div>
-                                    <div className="hint"><i className="bi bi-currency-euro"></i> Gasto total</div>
+                                    <div className="stat-icon icon-orange">
+                                        <i className="bi bi-currency-euro"></i>
+                                    </div>
+                                    <div className="stat-info">
+                                        <div className="stat-label">Gasto Total</div>
+                                        <div className="stat-value">€{totalCost.toFixed(3)}</div>
+                                        <div className="stat-diff">
+                                            <i className="bi bi-wallet2"></i>
+                                            <span>Coste estimado</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-                                <div className="form-card" style={{ marginBottom: 0 }}>
-                                    <div className="form-section-title"><i className="bi bi-bar-chart-line"></i> Volumen de llamadas</div>
-                                    <div style={{ height: '240px', position: 'relative' }}>
+                                <div className="card-premium">
+                                    <div className="card-header">
+                                        <h3 className="card-title">
+                                            <i className="bi bi-graph-up icon-blue" style={{ background: 'transparent', padding: 0 }}></i>
+                                            Volumen de llamadas
+                                        </h3>
+                                    </div>
+                                    <div style={{ height: '300px', position: 'relative', marginTop: '12px' }}>
                                         <canvas ref={callsChartRef} />
                                     </div>
                                 </div>
-                                <div className="form-card" style={{ marginBottom: 0 }}>
-                                    <div className="form-section-title"><i className="bi bi-emoji-smile"></i> Análisis de sentimiento</div>
-                                    <div style={{ height: '240px', position: 'relative' }}>
+                                <div className="card-premium">
+                                    <div className="card-header">
+                                        <h3 className="card-title">
+                                            <i className="bi bi-emoji-smile icon-green" style={{ background: 'transparent', padding: 0 }}></i>
+                                            Análisis de sentimiento
+                                        </h3>
+                                    </div>
+                                    <div style={{ height: '300px', position: 'relative', marginTop: '12px' }}>
                                         <canvas ref={sentimentChartRef} />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="form-card">
-                                <div className="flex-between" style={{ marginBottom: '20px' }}>
-                                    <div className="form-section-title" style={{ margin: 0 }}><i className="bi bi-list-task"></i> Llamadas recientes</div>
-                                    <div className="flex-center gap-8">
-                                        <button className="btn-s mini" onClick={handleExportCSV}>
-                                            <i className="bi bi-download"></i>
-                                            Exportar CSV
-                                        </button>
-                                    </div>
+                            <div className="card-premium">
+                                <div className="flex-between" style={{ marginBottom: '24px' }}>
+                                    <h3 className="card-title">
+                                        <i className="bi bi-list-stars icon-purple" style={{ background: 'transparent', padding: 0 }}></i>
+                                        Historial de llamadas recientes
+                                    </h3>
+                                    <button className="btn-premium" onClick={handleExportCSV} style={{ padding: '8px 16px', fontSize: '13px' }}>
+                                        <i className="bi bi-download"></i>
+                                        Exportar CSV
+                                    </button>
                                 </div>
 
-                                <div className="flex-center gap-12" style={{ marginBottom: '20px' }}>
+                                <div className="flex-center gap-12" style={{ marginBottom: '24px' }}>
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <i className="bi bi-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gris-texto)' }}></i>
+                                        <i className="bi bi-search" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)' }}></i>
                                         <input
                                             type="text"
                                             className="inp"
-                                            placeholder="Buscar por número o nombre..."
+                                            placeholder="Buscar por número o nombre de cliente..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            style={{ paddingLeft: '36px' }}
+                                            style={{ paddingLeft: '42px' }}
                                         />
                                     </div>
                                     <select
-                                        className="inp sel"
+                                        className="inp"
                                         value={agentFilter}
                                         onChange={(e) => setAgentFilter(e.target.value)}
-                                        style={{ width: '220px' }}
+                                        style={{ width: '240px' }}
                                     >
                                         <option value="all">Todos los agentes</option>
                                         {agents.map(ag => (
@@ -489,23 +542,23 @@ export default function DashboardPage() {
                                 </div>
 
                                 {filteredCalls.length === 0 ? (
-                                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gris-texto)', background: 'var(--gris-bg)', borderRadius: 'var(--r-md)', border: '1px dashed var(--gris-borde)' }}>
+                                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--slate-500)', background: 'var(--slate-50)', borderRadius: '12px', border: '1px dashed var(--slate-200)' }}>
                                         {calls.length === 0
                                             ? 'No hay llamadas registradas aún.'
                                             : 'No hay resultados para esta búsqueda.'}
                                     </div>
                                 ) : (
-                                    <div style={{ overflowX: 'auto' }}>
+                                    <div style={{ overflowX: 'auto', margin: '0 -24px' }}>
                                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
-                                                <tr style={{ borderBottom: '2px solid var(--gris-bg)', textAlign: 'left' }}>
-                                                    <th className="lbl" style={{ padding: '12px 8px' }}>FECHA</th>
-                                                    <th className="lbl" style={{ padding: '12px 8px' }}>USUARIO</th>
-                                                    <th className="lbl" style={{ padding: '12px 8px' }}>AGENTE</th>
-                                                    <th className="lbl" style={{ padding: '12px 8px' }}>DURACIÓN</th>
-                                                    <th className="lbl" style={{ padding: '12px 8px' }}>SNT</th>
-                                                    <th className="lbl" style={{ padding: '12px 8px' }}>ESTADO</th>
-                                                    <th className="lbl" style={{ padding: '12px 8px' }}>ACCIONES</th>
+                                                <tr style={{ background: 'var(--slate-50)', borderBottom: '1px solid var(--slate-100)' }}>
+                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>FECHA</th>
+                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>CLIENTE</th>
+                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>AGENTE</th>
+                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>DURACIÓN</th>
+                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>SENTIMIENTO</th>
+                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'left', fontWeight: 600 }}>ESTADO</th>
+                                                    <th className="nav-label" style={{ padding: '12px 24px', textAlign: 'center', fontWeight: 600 }}>ACCIONES</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -515,87 +568,107 @@ export default function DashboardPage() {
                                                     const isExpanded = expandedCallId === call.id;
                                                     const internalAgentId = agents.find(a => a.retell_agent_id === call.retell_agent_id)?.id;
                                                     
-                                                    let sBadge = 'badge-gray';
-                                                    if (sentiment?.toLowerCase() === 'positive') sBadge = 'badge-ok';
-                                                    if (sentiment?.toLowerCase() === 'negative') sBadge = 'badge-err';
-                                                    if (sentiment?.toLowerCase() === 'neutral') sBadge = 'badge-gray';
+                                                    let sBadgeStyle = { background: '#f1f5f9', color: '#64748b' };
+                                                    if (sentiment?.toLowerCase() === 'positive') sBadgeStyle = { background: '#ecfdf5', color: '#10b981' };
+                                                    if (sentiment?.toLowerCase() === 'negative') sBadgeStyle = { background: '#fef2f2', color: '#ef4444' };
 
                                                     return (
                                                         <React.Fragment key={call.id}>
                                                             <tr 
-                                                                style={{ borderBottom: '1px solid var(--gris-bg)', cursor: 'pointer', background: isExpanded ? 'var(--azul-light)' : 'transparent' }}
+                                                                style={{ borderBottom: '1px solid var(--slate-100)', cursor: 'pointer', background: isExpanded ? 'var(--slate-50)' : 'transparent', transition: 'background 0.2s' }}
                                                                 onClick={() => setExpandedCallId(isExpanded ? null : call.id)}
+                                                                onMouseOver={(e) => !isExpanded && (e.currentTarget.style.background = '#fcfdfe')}
+                                                                onMouseOut={(e) => !isExpanded && (e.currentTarget.style.background = 'transparent')}
                                                             >
-                                                                <td style={{ padding: '14px 8px', fontSize: '13px' }} suppressHydrationWarning>
+                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-600)' }} suppressHydrationWarning>
                                                                     {new Date(call.created_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                                 </td>
-                                                                <td style={{ padding: '14px 8px' }}>
-                                                                    <div style={{ fontWeight: 600, fontSize: '13px' }}>{call.customer_number || 'Web Call'}</div>
-                                                                    <div style={{ fontSize: '11px', color: 'var(--gris-texto)' }}>{call.customer_name || 'Anónimo'}</div>
+                                                                <td style={{ padding: '16px 24px' }}>
+                                                                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--slate-900)' }}>{call.customer_number || 'Web Call'}</div>
+                                                                    <div style={{ fontSize: '12px', color: 'var(--slate-500)' }}>{call.customer_name || 'Anónimo'}</div>
                                                                 </td>
-                                                                <td style={{ padding: '14px 8px', fontSize: '13px' }}>
+                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-700)', fontWeight: 500 }}>
                                                                     {getAgentName(call.retell_agent_id)}
                                                                 </td>
-                                                                <td style={{ padding: '14px 8px', fontSize: '13px' }}>{formatDuration(call.duration_ms)}</td>
-                                                                <td style={{ padding: '14px 8px' }}>
-                                                                    <span className={`badge ${sBadge}`}>{sentimentLabel(sentiment)}</span>
+                                                                <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--slate-600)' }}>{formatDuration(call.duration_ms)}</td>
+                                                                <td style={{ padding: '16px 24px' }}>
+                                                                    <span style={{ 
+                                                                        padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
+                                                                        ...sBadgeStyle
+                                                                    }}>
+                                                                        {sentimentLabel(sentiment)}
+                                                                    </span>
                                                                 </td>
-                                                                <td style={{ padding: '14px 8px' }}>
-                                                                    <span className={`badge ${successful ? 'badge-ok' : 'badge-err'}`}>
+                                                                <td style={{ padding: '16px 24px' }}>
+                                                                    <span style={{ 
+                                                                        padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
+                                                                        background: successful ? '#ecfdf5' : '#fef2f2',
+                                                                        color: successful ? '#10b981' : '#ef4444'
+                                                                    }}>
                                                                         {successful ? 'Éxito' : 'Fallo'}
                                                                     </span>
                                                                 </td>
-                                                                <td style={{ padding: '14px 8px' }}>
-                                                                    <button className="btn-s mini">
+                                                                <td style={{ padding: '16px 24px', textAlign: 'center' }}>
+                                                                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: isExpanded ? 'var(--azul)' : 'var(--slate-100)', color: isExpanded ? '#fff' : 'var(--slate-500)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
                                                                         <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'}`}></i>
-                                                                    </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                             {isExpanded && (
                                                                 <tr>
-                                                                    <td colSpan={7} style={{ background: 'var(--blanco)', padding: '24px', borderBottom: '1px solid var(--gris-borde)' }}>
-                                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                                                                    <td colSpan={7} style={{ background: '#fafbfc', padding: '32px 48px', borderBottom: '1px solid var(--slate-100)' }}>
+                                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
                                                                             <div>
-                                                                                <div className="form-section-title"><i className="bi bi-mic"></i> Transcripción y Grabación</div>
+                                                                                <div className="card-title" style={{ marginBottom: '16px', fontSize: '14px' }}>
+                                                                                    <i className="bi bi-mic icon-blue" style={{ background: 'transparent', padding: 0 }}></i>
+                                                                                    Transcripción y Grabación
+                                                                                </div>
                                                                                 {call.recording_url && (
-                                                                                    <audio controls src={call.recording_url} style={{ width: '100%', height: '36px', marginBottom: '16px' }} />
+                                                                                    <audio controls src={call.recording_url} style={{ width: '100%', height: '40px', marginBottom: '20px' }} />
                                                                                 )}
-                                                                                <div style={{ background: 'var(--gris-bg)', padding: '16px', borderRadius: 'var(--r-md)', fontSize: '13px', maxHeight: '200px', overflowY: 'auto' }}>
-                                                                                    {call.transcript || 'No hay transcripción disponible.'}
+                                                                                <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid var(--slate-100)', fontSize: '13px', lineHeight: '1.6', color: 'var(--slate-700)', maxHeight: '300px', overflowY: 'auto' }}>
+                                                                                    {call.transcript || 'No hay transcripción disponible para esta llamada.'}
                                                                                 </div>
                                                                             </div>
                                                                             <div>
-                                                                                <div className="form-section-title"><i className="bi bi-chat-quote"></i> Resumen del Agente</div>
-                                                                                <div className="form-card" style={{ padding: '16px', fontSize: '13px', background: 'var(--azul-light)', borderColor: 'var(--azul)', marginBottom: '16px' }}>
+                                                                                <div className="card-title" style={{ marginBottom: '16px', fontSize: '14px' }}>
+                                                                                    <i className="bi bi-chat-left-text icon-green" style={{ background: 'transparent', padding: 0 }}></i>
+                                                                                    Resumen de la Inteligencia Artificial
+                                                                                </div>
+                                                                                <div style={{ padding: '20px', fontSize: '13px', lineHeight: '1.6', background: 'white', borderLeft: '4px solid var(--azul)', borderRadius: '8px', color: 'var(--slate-800)', marginBottom: '24px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                                                                                     {call.call_analysis?.call_summary || 'Resumen no disponible.'}
                                                                                 </div>
                                                                                 
-                                                                                <div className="form-section-title" style={{ marginTop: '24px' }}><i className="bi bi-database"></i> Datos Extraídos</div>
+                                                                                <div className="card-title" style={{ marginBottom: '16px', fontSize: '14px' }}>
+                                                                                    <i className="bi bi-database-check icon-purple" style={{ background: 'transparent', padding: 0 }}></i>
+                                                                                    Datos Extraídos
+                                                                                </div>
                                                                                 {(() => {
                                                                                     const customVars = (call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data || {}) as Record<string, unknown>;
                                                                                     if (Object.keys(customVars).length > 0) {
                                                                                         return (
-                                                                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
+                                                                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
                                                                                                 {Object.entries(customVars).map(([key, value]) => (
-                                                                                                    <div key={key} style={{ background: 'var(--blanco)', padding: '10px', borderRadius: 'var(--r-sm)', border: '1px solid var(--gris-borde)' }}>
-                                                                                                        <div className="lbl" style={{ fontSize: '9px', marginBottom: '4px' }}>{key}</div>
-                                                                                                        <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--azul)' }}>{String(value)}</div>
+                                                                                                    <div key={key} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--slate-100)' }}>
+                                                                                                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--slate-400)', textTransform: 'uppercase', marginBottom: '4px' }}>{key}</div>
+                                                                                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--slate-900)' }}>{String(value)}</div>
                                                                                                     </div>
                                                                                                 ))}
                                                                                             </div>
                                                                                         );
                                                                                     }
                                                                                     return (
-                                                                                        <div style={{ fontSize: '12px', color: 'var(--gris-texto)', fontStyle: 'italic' }}>
-                                                                                            No hay datos extraídos para esta llamada.
+                                                                                        <div style={{ fontSize: '13px', color: 'var(--slate-500)', fontStyle: 'italic', padding: '12px', background: 'var(--slate-50)', borderRadius: '8px', border: '1px dashed var(--slate-200)' }}>
+                                                                                            No se han detectado datos específicos para extraer en esta conversación.
                                                                                         </div>
                                                                                     );
                                                                                 })()}
                                                                                 
                                                                                 {internalAgentId && (
-                                                                                    <div style={{ marginTop: '16px' }}>
-                                                                                        <Link href={`/wizard?editId=${internalAgentId}&step=8#extraction`} className="btn-s mini" style={{ color: 'var(--azul)', background: 'transparent', padding: 0 }}>
-                                                                                            <i className="bi bi-gear"></i> Configurar extracción
+                                                                                    <div style={{ marginTop: '24px', textAlign: 'right' }}>
+                                                                                        <Link href={`/wizard?editId=${internalAgentId}&step=8#extraction`} className="nav-item" style={{ display: 'inline-flex', width: 'auto', padding: '4px 12px', border: 'none', background: 'transparent' }}>
+                                                                                            <i className="bi bi-gear" style={{ fontSize: '14px' }}></i>
+                                                                                            <span style={{ fontSize: '12px' }}>Configurar extracción de datos</span>
                                                                                         </Link>
                                                                                     </div>
                                                                                 )}
@@ -616,7 +689,7 @@ export default function DashboardPage() {
                     )}
                 </div>
                 <ViewSwitcher user={user} />
-            </main>
+            </div>
         </div>
     );
 }

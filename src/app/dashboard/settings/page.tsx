@@ -7,13 +7,20 @@ import { createClient } from '../../../lib/supabase/client';
 import AlertSettings from '../../../components/AlertSettings';
 import DashboardSidebar from '../../../components/DashboardSidebar';
 
+import DashboardTopbar from '../../../components/DashboardTopbar';
+
 interface UserProfile {
+  full_name?: string | null;
+  email?: string | null;
   role: string;
+  workspace_id?: string | null;
 }
 
 export default function SettingsPage() {
   const router = useRouter();
   const [user, setUser] = React.useState<UserProfile | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const loadProfile = async () => {
@@ -25,13 +32,18 @@ export default function SettingsPage() {
       }
       const { data: profile } = await supabase
         .from('users')
-        .select('role')
+        .select('full_name, email, role, workspace_id')
         .eq('id', session.user.id)
         .single();
       setUser(profile);
     };
     loadProfile();
   }, [router]);
+
+  const handleCreateAgent = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push('/wizard');
+  };
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -40,59 +52,66 @@ export default function SettingsPage() {
   };
 
   return (
-    <>
-      <style>{`
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Inter',-apple-system,sans-serif;background:#f5f5f5;color:#1a1a1a}
-        .main-content{margin-left:260px;min-height:100vh;display:flex;flex-direction:column}
-        .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
-        .topbar-left h1{font-size:24px;font-weight:600;color:#1a1a1a}
-        .content{flex:1;padding:32px}
-        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-      `}</style>
+    <div className="app-container">
+      <DashboardSidebar user={user} />
 
-      <div style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}>
-        <DashboardSidebar user={user} />
+      <div className="main-view">
+        <DashboardTopbar 
+            title="Configuración"
+            user={user}
+            isAlertPanelOpen={false}
+            setIsAlertPanelOpen={() => {}}
+            isDropdownOpen={isDropdownOpen}
+            setIsDropdownOpen={setIsDropdownOpen}
+            handleCreateAgent={handleCreateAgent}
+            handleLogout={handleLogout}
+            dropdownRef={dropdownRef}
+        />
 
-        {/* MAIN */}
-        <main className="main-content">
-          <header className="topbar">
-            <div className="topbar-left">
-              <h1>Configuración</h1>
-            </div>
-            <button
-              onClick={handleLogout}
-              style={{ padding: '8px 16px', border: '1px solid #e5e7eb', background: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: 'pointer', color: '#dc2626', fontFamily: 'inherit' }}
-            >
-              Cerrar sesión
-            </button>
-          </header>
-
-          <div className="content">
-            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-
-              {/* ALERTS SECTION */}
-              <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 24 }}>
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eff6fb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" fill="none" stroke="#267ab0" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 style={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', margin: 0 }}>Alertas por email</h2>
-                    <p style={{ fontSize: 13, color: '#6b7280', margin: '3px 0 0' }}>Recibe avisos automáticos cuando algo requiere tu atención.</p>
-                  </div>
-                </div>
-                <div style={{ padding: '24px' }}>
-                  <AlertSettings />
-                </div>
-              </div>
-
+        <div className="dashboard-content">
+          <div className="content-header">
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--slate-900)', margin: '0 0 4px 0' }}>
+                Ajustes de la Cuenta
+              </h2>
+              <p style={{ color: 'var(--slate-500)', fontSize: '14px', margin: 0 }}>
+                Gestiona tus preferencias, notificaciones y seguridad.
+              </p>
             </div>
           </div>
-        </main>
+
+          <div style={{ maxWidth: '800px' }}>
+            {/* ALERTS SECTION */}
+            <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--azul)', fontSize: '20px' }}>
+                  <i className="bi bi-bell-fill"></i>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>Notificaciones por Email</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--slate-500)', margin: '4px 0 0' }}>Configura cuándo quieres recibir alertas de sistema.</p>
+                </div>
+              </div>
+              <div style={{ padding: '32px' }}>
+                <AlertSettings />
+              </div>
+            </div>
+
+            {/* ACCOUNT INFO SECTION (FUTURE) */}
+            <div className="card-premium" style={{ marginTop: '24px', opacity: 0.7 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--slate-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--slate-400)', fontSize: '20px' }}>
+                  <i className="bi bi-person-fill"></i>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>Perfil de Usuario</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--slate-500)', margin: '4px 0 0' }}>Próximamente: Cambia tu nombre, email y contraseña.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

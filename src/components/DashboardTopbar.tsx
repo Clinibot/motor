@@ -12,23 +12,23 @@ interface UserProfile {
 interface TopbarProps {
     title: string;
     user: UserProfile | null;
-    totalCost: number;
-    isAlertPanelOpen: boolean;
-    setIsAlertPanelOpen: (open: boolean) => void;
+    totalCost?: number;
+    isAlertPanelOpen?: boolean;
+    setIsAlertPanelOpen?: (open: boolean) => void;
     isDropdownOpen: boolean;
     setIsDropdownOpen: (open: boolean) => void;
     handleCreateAgent: (e: React.MouseEvent) => void;
     handleLogout: () => void;
-    alertPanelRef: React.RefObject<HTMLDivElement>;
+    alertPanelRef?: React.RefObject<HTMLDivElement>;
     dropdownRef: React.RefObject<HTMLDivElement>;
 }
 
 export default function DashboardTopbar({
     title,
     user,
-    totalCost,
-    isAlertPanelOpen,
-    setIsAlertPanelOpen,
+    totalCost = 0,
+    isAlertPanelOpen = false,
+    setIsAlertPanelOpen = () => {},
     isDropdownOpen,
     setIsDropdownOpen,
     handleCreateAgent,
@@ -36,40 +36,40 @@ export default function DashboardTopbar({
     alertPanelRef,
     dropdownRef,
 }: TopbarProps) {
-    const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'U';
+    const userInitial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U');
 
     return (
         <header className="topbar">
-            <div className="topbar-title">{title}</div>
+            <h1 className="topbar-title">{title}</h1>
             
             <div className="topbar-actions">
                 <button 
                     onClick={handleCreateAgent} 
-                    className="btn-p"
+                    className="btn-premium"
                 >
                     <i className="bi bi-plus-lg"></i>
-                    Crear nuevo agente
+                    <span>Crear nuevo agente</span>
                 </button>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'var(--azul-light)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 700, color: 'var(--azul)' }}>
-                    <span>Créditos:</span>
-                    <span>€{totalCost.toFixed(3)}</span>
+                <div className="btn-pill">
+                    <span style={{ color: 'var(--slate-500)', fontWeight: 500 }}>Balance:</span>
+                    <span style={{ color: 'var(--azul)', fontWeight: 700 }}>€{totalCost.toFixed(3)}</span>
                 </div>
 
                 <div style={{ position: 'relative' }} ref={alertPanelRef}>
                     <button
-                        className="btn-s mini"
+                        className="nav-item"
                         onClick={() => setIsAlertPanelOpen(!isAlertPanelOpen)}
-                        style={{ border: 'none', background: isAlertPanelOpen ? 'var(--gris-bg)' : 'transparent', fontSize: '18px', padding: '6px' }}
+                        style={{ border: 'none', background: 'transparent', width: '40px', height: '40px', padding: 0, justifyContent: 'center' }}
                     >
-                        <i className={`bi bi-bell${isAlertPanelOpen ? '-fill' : ''}`}></i>
+                        <i className={`bi bi-bell${isAlertPanelOpen ? '-fill' : ''}`} style={{ fontSize: '20px' }}></i>
                     </button>
                     {isAlertPanelOpen && (
                         <div style={{
-                            position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+                            position: 'absolute', top: 'calc(100% + 12px)', right: 0,
                             width: 380, background: '#fff', borderRadius: '16px',
-                            border: '1px solid var(--gris-borde)', boxShadow: '0 20px 40px -8px rgba(0,0,0,0.12)',
-                            zIndex: 1000, overflow: 'hidden', padding: 0
+                            border: '1px solid var(--slate-100)', boxShadow: '0 20px 40px -8px rgba(0,0,0,0.12)',
+                            zIndex: 1000, overflow: 'hidden'
                         }}>
                             <NotificationsPanel workspaceId={user?.workspace_id || undefined} />
                         </div>
@@ -78,40 +78,38 @@ export default function DashboardTopbar({
 
                 <div style={{ position: 'relative' }} ref={dropdownRef}>
                     <button
-                        className="user-av"
+                        className="user-avatar"
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        style={{ width: '32px', height: '32px', cursor: 'pointer', border: 'none' }}
+                        style={{ border: 'none', cursor: 'pointer' }}
                     >
                         {userInitial}
                     </button>
                     {isDropdownOpen && (
                         <div style={{ 
-                            position: 'absolute', top: 'calc(100% + 10px)', right: 0, 
-                            width: 220, background: '#fff', border: '1px solid var(--gris-borde)', 
-                            borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', 
+                            position: 'absolute', top: 'calc(100% + 12px)', right: 0, 
+                            width: 240, background: '#fff', border: '1px solid var(--slate-100)', 
+                            borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', 
                             zIndex: 1000, overflow: 'hidden' 
                         }}>
-                            <div style={{ padding: '16px', borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
-                                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--oscuro)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ padding: '16px', borderBottom: '1px solid var(--slate-50)', background: 'var(--slate-50)' }}>
+                                <div className="user-name">
                                     {user?.full_name || 'Mi cuenta'}
                                 </div>
-                                <div style={{ fontSize: '12px', color: 'var(--gris-texto)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <div className="user-role" style={{ textTransform: 'none' }}>
                                     {user?.email || 'user@example.com'}
                                 </div>
                             </div>
                             <div style={{ padding: '8px' }}>
                                 <button 
                                     onClick={handleLogout} 
+                                    className="nav-item"
                                     style={{ 
-                                        width: '100%', padding: '10px 12px', display: 'flex', alignItems: 'center', 
-                                        gap: '10px', border: 'none', background: 'transparent', cursor: 'pointer', 
-                                        fontSize: '13px', fontWeight: 500, borderRadius: '8px', color: '#dc2626' 
+                                        width: '100%', color: '#ef4444', border: 'none', background: 'transparent',
+                                        cursor: 'pointer'
                                     }}
-                                    onMouseOver={(e) => (e.currentTarget.style.background = '#fef2f2')}
-                                    onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
                                 >
                                     <i className="bi bi-box-arrow-right"></i>
-                                    Cerrar sesión
+                                    <span>Cerrar sesión</span>
                                 </button>
                             </div>
                         </div>
