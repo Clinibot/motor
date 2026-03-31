@@ -37,6 +37,8 @@ export interface ToolsPayload {
     // Cal.com cancellation
     enableCalCancellation?: boolean;
     calTimezone?: string;
+    // Resolved absolute site URL (set by the route handler before calling buildRetellTools)
+    siteUrl?: string;
     // Company Info (kept for legacy but no longer injected into prompts)
     companyName?: string;
     companyAddress?: string;
@@ -90,7 +92,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
 
     // 3. Cal.com Cancellation (custom webhook tool)
     if (parseBool(p.enableCalBooking) && parseBool(p.enableCalCancellation) && p.calApiKey) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+        const siteUrl = p.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
         const encodedKey = encodeURIComponent(p.calApiKey);
         tools.push({
             type: 'custom',

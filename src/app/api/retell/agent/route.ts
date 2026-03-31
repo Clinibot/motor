@@ -23,6 +23,11 @@ function getSupabaseAdmin() {
 export async function POST(request: Request) {
     try {
         const payload: AgentPayload = await request.json();
+        // Resolve absolute site URL early so buildRetellTools can use it for webhook URLs
+        const _protocol = request.headers.get('x-forwarded-proto') || 'https';
+        const _host = request.headers.get('host');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload as any).siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (_host ? `${_protocol}://${_host}` : 'https://lafabrica.netelip.com');
 
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
@@ -245,6 +250,10 @@ export async function PATCH(request: Request) {
     try {
         const supabaseAdmin = getSupabaseAdmin();
         payload = await request.json();
+        // Resolve absolute site URL early so buildRetellTools can use it for webhook URLs
+        const _pProtocol = request.headers.get('x-forwarded-proto') || 'https';
+        const _pHost = request.headers.get('host');
+        payload.siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (_pHost ? `${_pProtocol}://${_pHost}` : 'https://lafabrica.netelip.com');
 
         if (!payload.id) {
             return NextResponse.json({ success: false, error: "Entity ID is required for PATCH." }, { status: 400 });
