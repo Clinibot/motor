@@ -337,23 +337,28 @@ Convierte siempre la fecha que diga el usuario a una fecha ISO absoluta antes de
 - "el viernes por la tarde" → ese viernes en la franja de tarde disponible
 Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.
 
-### Proceso de Agendamiento
-1. **Oferta inicial**: Cuando el usuario acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?".
-2. **Más opciones**: Si no le conviene ninguna, ofrece opciones de \`{{consultar_disponibilidad}}\`.
-3. **Recogida de datos**: Una vez elegido el hueco, pide solamente el nombre y el email:
-   - Di: "Estupendo. Para confirmar tu cita necesito tu nombre completo."
-   - Tras el nombre, pide el email.
-4. **Email y deletreo (CRÍTICO)**:
-   - Di siempre: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."
-   - Espera el deletreo completo antes de continuar.
-5. **Ejecución (CRÍTICO)**: Tras el deletreo di "Perfecto, déjame confirmar tu cita, un momento..." y ejecuta \`book_appointment\` con:
-   - La fecha ISO correcta
-   - El nombre y email que te dio el usuario
-   - **El teléfono: SIEMPRE usa \`{{user_number}}\`** (el número desde el que llama). Nunca uses otro número. Esto es imprescindible para poder localizar y cancelar la cita después.
-6. **Confirmación**: Confirma fecha y hora en formato hablado y avisa de que recibirá un correo.
+### Proceso de Agendamiento (sigue este orden exacto)
+1. Cuando el contacto acepta agendar, di: "Excelente. Déjame consultar qué horarios tenemos disponibles..." y muestra los 2 huecos de \`{{disponibilidad_mas_temprana}}\`: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"
+2. Si ninguna opción le funciona o pide más, muestra la disponibilidad completa de \`{{consultar_disponibilidad}}\` (próximos días).
+3. Cuando el contacto acepta un horario, di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"
+4. Tras confirmar el teléfono, di: "Genial. Ahora, ¿cuál es tu correo electrónico?"
+5. Escucha el email. Luego di con calma: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."
+6. Escucha el deletreo completo. Convierte MENTALMENTE el deletreo a formato email estándar (NO lo digas en voz alta):
+   - "punto" → .  |  "arroba" → @  |  "guion" → -  |  "guion bajo" → _
+   - Letras en minúsculas sin espacios. Ejemplo: "a-ene-a-punto-garcia-arroba-empresa-punto-com" → ana.garcia@empresa.com
+7. Inmediatamente tras el deletreo di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\` con:
+   - La fecha y hora ISO correcta (zona horaria Europe/Madrid)
+   - El nombre y email del contacto
+   - **Teléfono: SIEMPRE \`{{user_number}}\`** — el número desde el que llama. Nunca uses otro. Es imprescindible para poder localizar y cancelar la cita.
+8. Tras ejecutar \`book_appointment\` con éxito, di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite la fecha/hora aceptada], hora de Madrid. Recibirás un correo de confirmación en unos minutos."
 
-### Formato de fechas y horas al hablar
-Sigue las reglas de pronunciación de fechas y horas del apartado "Estilo de Pronunciación" del prompt.`;
+### Interpretación de fechas coloquiales (CRÍTICO)
+Convierte siempre la fecha que diga el usuario a una fecha ISO absoluta antes de llamar a \`book_appointment\`:
+- "mañana" → ${tomorrowStr}
+- "pasado mañana" → suma 2 días a hoy
+- "el lunes" → el próximo lunes (si hoy ya es lunes, el siguiente)
+- "la próxima semana" → el lunes de la semana que viene
+Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.`;
 
         if (p.enableCalCancellation) {
             calBlock += `
