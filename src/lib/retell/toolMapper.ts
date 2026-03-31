@@ -368,7 +368,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         }
 
         if (hasEndCall) {
-            scriptLines.push(`\n**PASO ${paso} — Cierre**\nDespídete de forma cordial y ejecuta \`end_call\`.`);
+            scriptLines.push(`\n**PASO ${paso} — Cierre**\nAntes de despedirte, pregunta siempre: "¿Hay algo más en lo que pueda ayudarte?" y espera la respuesta.\n- Si dice que no → despídete usando \`{{user_name}}\`, menciona la fecha de la cita si se agendó, desea un buen día y ejecuta \`end_call\` DESPUÉS de completar la despedida (nunca antes).`);
         }
 
         blocks.push(scriptLines.join('\n'));
@@ -390,47 +390,39 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         let calBlock = `## Gestión de Agenda y Citas
 Hoy es ${dateStr} (ISO: ${today.toISOString().split('T')[0]}).
 
-### Disponibilidad (llamadas entrantes)
+### Disponibilidad
 Las variables del sistema llevan la disponibilidad pre-calculada:
-- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos (respuesta rápida)
+- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos
 - \`{{consultar_disponibilidad}}\` → disponibilidad completa de los próximos días
 
-**Cuándo usarlas:**
-- Si el usuario pregunta simplemente "¿cuándo puedo?" o acepta agendar → di primero los 2 huecos de \`{{disponibilidad_mas_temprana}}\`.
-- Si pide más opciones o un día concreto → consulta \`{{consultar_disponibilidad}}\` y ofrécele lo que se ajuste.
-- Si las variables están vacías (llamada saliente o sin webhook) → pregunta al usuario qué día prefiere e intenta agendar con la fecha que diga.
-
-### Interpretación de fechas coloquiales (CRÍTICO)
-Convierte siempre la fecha que diga el usuario a una fecha ISO absoluta antes de llamar a \`book_appointment\`:
-- "mañana" → ${tomorrowStr}
-- "pasado mañana" → suma 2 días a hoy
-- "el lunes" → el próximo lunes (si hoy ya es lunes, el siguiente)
-- "la próxima semana" → el lunes de la semana que viene
-- "el viernes por la tarde" → ese viernes en la franja de tarde disponible
-Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.
+Cuándo usarlas:
+- El contacto acepta agendar → ofrece los 2 huecos de \`{{disponibilidad_mas_temprana}}\`.
+- Pide más opciones o un día concreto → muestra \`{{consultar_disponibilidad}}\`.
+- Variables vacías (llamada saliente) → pregunta qué día prefiere e intenta agendar con esa fecha.
 
 ### Proceso de Agendamiento (sigue este orden exacto)
-1. Cuando el contacto acepta agendar, di: "Excelente. Déjame consultar qué horarios tenemos disponibles..." y muestra los 2 huecos de \`{{disponibilidad_mas_temprana}}\`: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"
-2. Si ninguna opción le funciona o pide más, muestra la disponibilidad completa de \`{{consultar_disponibilidad}}\` (próximos días).
-3. Cuando el contacto acepta un horario, di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"
-4. Tras confirmar el teléfono, di: "Genial. Ahora, ¿cuál es tu correo electrónico?"
-5. Escucha el email. Luego di con calma: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."
-6. Escucha el deletreo completo. Convierte MENTALMENTE el deletreo a formato email estándar (NO lo digas en voz alta):
+1. Cuando el contacto acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"
+2. Si ninguna opción le funciona o pide más, muestra \`{{consultar_disponibilidad}}\`.
+3. **Validación (CRÍTICO)**: antes de continuar, verifica MENTALMENTE que el horario elegido por el contacto aparece en \`{{disponibilidad_mas_temprana}}\` o \`{{consultar_disponibilidad}}\`. Si no aparece, dile que ese horario no está disponible y ofrece los que sí lo están.
+4. Cuando el contacto confirma un horario disponible, di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"
+5. Tras el teléfono, di: "Perfecto, anotado queda. Ahora, ¿cuál es tu correo electrónico?"
+6. Escucha el email. Di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."
+7. Escucha el deletreo completo. Convierte MENTALMENTE a formato email estándar (NO lo digas en voz alta):
    - "punto" → .  |  "arroba" → @  |  "guion" → -  |  "guion bajo" → _
-   - Letras en minúsculas sin espacios. Ejemplo: "a-ene-a-punto-garcia-arroba-empresa-punto-com" → ana.garcia@empresa.com
-7. Inmediatamente tras el deletreo di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\` con:
-   - La fecha y hora ISO correcta (zona horaria Europe/Madrid)
-   - El nombre y email del contacto
-   - **Teléfono: SIEMPRE \`{{user_number}}\`** — el número desde el que llama. Nunca uses otro. Es imprescindible para poder localizar y cancelar la cita.
-8. Tras ejecutar \`book_appointment\` con éxito, di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite la fecha/hora aceptada], hora de Madrid. Recibirás un correo de confirmación en unos minutos."
+   - Letras en minúsculas sin espacios. Ej: "a-ene-a-punto-garcia-arroba-empresa-punto-com" → ana.garcia@empresa.com
+8. Inmediatamente tras el deletreo di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\` con:
+   - La fecha y hora ISO exacta del slot elegido (zona horaria Europe/Madrid)
+   - Nombre y email que te dio el contacto
+   - Teléfono: el número que te proporcionó en el paso 4
+9. Tras ejecutar \`book_appointment\` con éxito, di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite la fecha/hora aceptada], hora de Madrid. Recibirás un correo de confirmación en unos minutos."
 
 ### Interpretación de fechas coloquiales (CRÍTICO)
-Convierte siempre la fecha que diga el usuario a una fecha ISO absoluta antes de llamar a \`book_appointment\`:
+Convierte siempre la fecha que diga el usuario a fecha ISO absoluta antes de llamar a \`book_appointment\`:
 - "mañana" → ${tomorrowStr}
 - "pasado mañana" → suma 2 días a hoy
 - "el lunes" → el próximo lunes (si hoy ya es lunes, el siguiente)
 - "la próxima semana" → el lunes de la semana que viene
-Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.`;
+Usa siempre la zona horaria Europe/Madrid.`;
 
         if (p.enableCalCancellation) {
             calBlock += `
