@@ -55,15 +55,20 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (error || !agentData || !agentData.configuration) {
-            console.warn(`Webhook received for unknown or unconfigured retell_agent_id: ${agent_id}`);
-            return NextResponse.json({ call_inbound: { override_agent_id: agent_id } });
+            console.warn(`[inbound-webhook] Agent not found in DB for retell_agent_id: ${agent_id}`, error);
+            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'agent_not_found' } } });
         }
 
         const config = agentData.configuration;
 
-        // If Cal.com is not fully configured, just return the agent_id
-        if (!config.enableCalBooking || !config.calApiKey || !config.calEventId) {
-            return NextResponse.json({ call_inbound: { override_agent_id: agent_id } });
+        const calEnabled = config.enableCalBooking === true || config.enableCalBooking === 'true';
+        const hasApiKey  = !!config.calApiKey;
+        const hasEventId = !!config.calEventId;
+
+        console.log(`[inbound-webhook] config check — enableCalBooking:${config.enableCalBooking}(${calEnabled}) calApiKey:${hasApiKey} calEventId:${config.calEventId}(${hasEventId})`);
+
+        if (!calEnabled || !hasApiKey || !hasEventId) {
+            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: `cal_not_configured:enabled=${calEnabled},key=${hasApiKey},event=${hasEventId}` } } });
         }
 
         // Configuration exists for Cal.com
@@ -88,8 +93,9 @@ export async function POST(request: NextRequest) {
         });
 
         if (!calResponse.ok) {
-            console.error(`Error fetching Cal.com: ${calResponse.status}`, await calResponse.text());
-            return NextResponse.json({ call_inbound: { override_agent_id: agent_id } });
+            const calErr = await calResponse.text();
+            console.error(`[inbound-webhook] Cal.com slots fetch failed: ${calResponse.status}`, calErr);
+            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: `calcom_error:${calResponse.status}` } } });
         }
 
         const calData = await calResponse.json();
@@ -243,8 +249,8 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
         // Call OpenAI for both prompts in parallel
         const openAiKey = process.env.OPENAI_API_KEY;
         if (!openAiKey) {
-            console.error("Missing OPENAI_API_KEY environment variable");
-            return NextResponse.json({ call_inbound: { override_agent_id: agent_id } });
+            console.error("[inbound-webhook] Missing OPENAI_API_KEY environment variable");
+            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'missing_openai_key' } } });
         }
 
         const [earliestResponse, fullResponse] = await Promise.all([
