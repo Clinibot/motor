@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useWizardStore, CURATED_VOICES_V2, Voice } from '../../../store/wizardStore';
 import { toast } from 'react-hot-toast';
 
@@ -341,7 +342,7 @@ export const Step3_Voice: React.FC = () => {
         </div>
 
         {/* ═══ MODAL CLONAR VOZ ═══ */}
-        {showCloneModal && (
+        {showCloneModal && createPortal(
             <div
                 style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 onClick={(e) => { if (e.target === e.currentTarget) setShowCloneModal(false); }}
@@ -420,7 +421,8 @@ export const Step3_Voice: React.FC = () => {
                         )}
                     </button>
                 </div>
-            </div>
+            </div>,
+            document.body
         )}
         </>
     );
