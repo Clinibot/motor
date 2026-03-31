@@ -111,7 +111,7 @@ export async function POST(request: Request) {
         // 5. El prompt llega ya procesado desde el wizard (fuente de verdad).
         // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
         const basePrompt = payload.prompt || 'Eres un asistente amable.';
-        const finalPrompt = `${basePrompt}\n\n${SECURITY_RULES}`;
+        const finalPrompt = SECURITY_RULES ? `${basePrompt}\n\n${SECURITY_RULES}` : basePrompt;
 
         console.log(`Prompt recibido para ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
 
@@ -285,7 +285,7 @@ export async function PATCH(request: Request) {
         // El prompt llega ya procesado desde el wizard (fuente de verdad).
         // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
         const basePrompt = payload.prompt || 'Eres un asistente amable.';
-        const finalPrompt = `${basePrompt}\n\n${SECURITY_RULES}`;
+        const finalPrompt = SECURITY_RULES ? `${basePrompt}\n\n${SECURITY_RULES}` : basePrompt;
 
         console.log(`Prompt recibido para PATCH ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
 
