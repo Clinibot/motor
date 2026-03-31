@@ -107,7 +107,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                 properties: {
                     phone_number: {
                         type: 'string',
-                        description: 'Número de teléfono del llamante en formato E.164 (por ejemplo +34612345678). Usa siempre {{user_number}} para obtenerlo automáticamente.',
+                        description: 'Número de teléfono para buscar la cita en formato E.164 (ej: +34612345678). En el primer intento usa siempre el valor de {{user_number}}. Si no se encuentra la cita, usa el número alternativo que indique el usuario.',
                     },
                 },
                 required: ['phone_number'],
@@ -340,12 +340,16 @@ Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.
 ### Proceso de Agendamiento
 1. **Oferta inicial**: Cuando el usuario acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?".
 2. **Más opciones**: Si no le conviene ninguna, ofrece opciones de \`{{consultar_disponibilidad}}\`.
-3. **Recogida de datos**: Una vez elegido el hueco, di: "Estupendo. Para confirmar tu cita necesito un par de datos. ¿Cuál es tu número de teléfono?".
+3. **Recogida de datos**: Una vez elegido el hueco, pide solamente el nombre y el email:
+   - Di: "Estupendo. Para confirmar tu cita necesito tu nombre completo."
+   - Tras el nombre, pide el email.
 4. **Email y deletreo (CRÍTICO)**:
-   - Tras el teléfono, pide el email.
    - Di siempre: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."
    - Espera el deletreo completo antes de continuar.
-5. **Ejecución**: Tras el deletreo di: "Perfecto, déjame confirmar tu cita, un momento..." y ejecuta \`book_appointment\` con la fecha ISO correcta.
+5. **Ejecución (CRÍTICO)**: Tras el deletreo di "Perfecto, déjame confirmar tu cita, un momento..." y ejecuta \`book_appointment\` con:
+   - La fecha ISO correcta
+   - El nombre y email que te dio el usuario
+   - **El teléfono: SIEMPRE usa \`{{user_number}}\`** (el número desde el que llama). Nunca uses otro número. Esto es imprescindible para poder localizar y cancelar la cita después.
 6. **Confirmación**: Confirma fecha y hora en formato hablado y avisa de que recibirá un correo.
 
 ### Formato de voz para fechas y horas
@@ -357,11 +361,15 @@ Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.
             calBlock += `
 
 ### Cancelaciones
-Cuando el usuario quiera cancelar su cita:
-1. Dile: "Voy a buscarte la cita con tu número de teléfono, un momento."
-2. Ejecuta \`cancel_appointment\` pasando \`phone_number: {{user_number}}\` (el número del llamante — NO lo preguntes al usuario).
-3. Si se cancela correctamente, confirma la cancelación.
-4. Si no se encuentra la cita, indícalo y ofrece hablar con una persona.`;
+Cuando el usuario quiera cancelar su cita, sigue este proceso exacto:
+1. Di: "Voy a buscarte la cita ahora mismo, un momento."
+2. Ejecuta \`cancel_appointment\` con \`phone_number: {{user_number}}\` (el número del llamante — NO se lo preguntes).
+3. **Si se cancela correctamente**: confirma la cancelación al usuario.
+4. **Si NO se encuentra la cita** (la respuesta indica que no hay cita con ese número):
+   - Di: "No he encontrado ninguna cita con tu número. ¿Podrías decirme el número de teléfono con el que hiciste la reserva?"
+   - Espera el número que te dé el usuario.
+   - Ejecuta \`cancel_appointment\` de nuevo, esta vez con el número que te acaba de proporcionar.
+   - Si tampoco encuentra la cita, indícalo y ofrece transferirle con una persona.`;
         }
 
         blocks.push(calBlock);
