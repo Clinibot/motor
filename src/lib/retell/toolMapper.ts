@@ -352,10 +352,8 @@ Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.
    - **El teléfono: SIEMPRE usa \`{{user_number}}\`** (el número desde el que llama). Nunca uses otro número. Esto es imprescindible para poder localizar y cancelar la cita después.
 6. **Confirmación**: Confirma fecha y hora en formato hablado y avisa de que recibirá un correo.
 
-### Formato de voz para fechas y horas
-- Día con número: "martes dieciocho", "jueves primero".
-- Horas siempre con palabras: "diez de la mañana", "cuatro de la tarde". Nunca formato 24h.
-- Para la 1:00 → "la una" (nunca "un").`;
+### Formato de fechas y horas al hablar
+Sigue las reglas de pronunciación de fechas y horas del apartado "Estilo de Pronunciación" del prompt.`;
 
         if (p.enableCalCancellation) {
             calBlock += `
@@ -416,11 +414,9 @@ Cuando el usuario quiera cancelar su cita, sigue este proceso exacto:
         cleanPrompt = cleanPrompt.replace(companyRegex, '').trim();
     }
 
-    // ALWAYS add Voice Style Rules for phonetic consistency
-    blocks.push(`## Normas de Estilo de Voz (CRÍTICO)
-Para que suenes natural y cercano, sigue estas reglas de pronunciación en ESPAÑOL:
-- **Correos Electrónicos**: Di "arroba" para "@" y "punto" para ".". Ejemplo: "contacto arroba empresa punto com".
-- **General**: No leas números, símbolos o formatos técnicos. Di siempre las palabras tal y como se pronuncian en una conversación natural.`);
+    // Reminder to follow the pronunciation style rules defined in the base prompt
+    blocks.push(`## Recordatorio de Pronunciación
+Sigue siempre las reglas del apartado "Estilo de Pronunciación" del prompt: teléfonos (2-3-2-2), emails (antes de arroba - arroba - después), fechas y horas en palabras.`);
 
     if (blocks.length === 0) return cleanPrompt;
 
