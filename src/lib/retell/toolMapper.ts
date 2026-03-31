@@ -443,14 +443,17 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             `7. Escucha el deletreo. Convierte MENTALMENTE a email estándar (NO lo digas en voz alta):\n` +
             `   "punto"→. | "arroba"→@ | "guion"→- | "guion bajo"→_. Letras en minúsculas, sin espacios.\n` +
             `8. Di: "Perfecto, déjame confirmar tu cita, un momento por favor..." ` +
-            `y ejecuta \`book_appointment\` con: la fecha/hora ISO EXACTA del slot tal como aparece en las variables de disponibilidad, nombre, email y teléfono del paso 4.\n` +
+            `y ejecuta \`book_appointment\` con los parámetros del slot elegido.\n` +
+            `   ⚠️ El campo \`view_time\` (start_time) DEBE ser la cadena ISO del slot TAL CUAL aparece en los datos de disponibilidad, ` +
+            `incluyendo el offset de zona horaria completo. Formato obligatorio: "YYYY-MM-DDTHH:mm:ss.sss+HH:MM". ` +
+            `Ejemplo válido: "2026-04-02T10:00:00.000+02:00". ` +
+            `NUNCA envíes el datetime sin offset (ej: "2026-04-01T09:00:00" es INCORRECTO y causará un error).\n` +
             `9. Si \`book_appointment\` tiene éxito → Di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite fecha/hora], ` +
             `hora de Madrid. Recibirás un correo de confirmación en unos minutos."\n` +
-            `10. Si \`book_appointment\` falla con error de disponibilidad → Di: "Vaya, parece que ese hueco acaba de ocuparse. ` +
+            `10. Si \`book_appointment\` falla → Di: "Vaya, parece que ese hueco acaba de ocuparse. ` +
             `Déjame ofrecerte otra opción." y vuelve al paso 1 con los slots restantes.\n\n` +
             `**Fechas coloquiales:** "mañana"→${tomorrowStr} | "pasado mañana"→+2 días | ` +
-            `"el lunes"→próximo lunes | "la próxima semana"→lunes siguiente. Zona horaria: Europe/Madrid.\n` +
-            `**IMPORTANTE:** Pasa siempre el valor ISO exacto del slot (ej: "2026-04-02T10:00:00.000+02:00"), nunca lo reformules.`;
+            `"el lunes"→próximo lunes | "la próxima semana"→lunes siguiente. Zona horaria: Europe/Madrid.`;
 
         if (hasCancel) {
             calDetail +=
