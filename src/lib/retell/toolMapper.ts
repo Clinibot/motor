@@ -274,236 +274,213 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
 }
 
 /**
- * Injects tool usage instructions at the END of the system prompt.
- * This ensures the LLM knows when and how to call each tool.
+ * Injects a structured call script + tool instructions into the system prompt.
+ * Produces a single, clean, non-repetitive block. Called server-side on every
+ * POST/PATCH so the LLM always gets an up-to-date version.
  */
 export function injectToolInstructions(basePrompt: string, p: ToolsPayload): string {
     let cleanPrompt = basePrompt;
 
-    // Lista de posibles encabezados que queremos limpiar antes de re-inyectar
-    const sectionsToClean = [
+    // ── 1. STRIP OLD INJECTED SECTIONS ───────────────────────────────────────
+    const cutMarkers = [
+        '# Guión de la Llamada',
         '# Uso de herramientas',
         '# Instrucciones de Herramientas',
         '### INSTRUCCIONES_HERRAMIENTAS_START ###',
         '## Agenda',
         '## Transferencias',
-        '## Normas de Estilo de Voz'
+        '## Normas de Estilo de Voz',
+        '## Guión de la Llamada',
     ];
-
-    for (const section of sectionsToClean) {
-        if (cleanPrompt.includes(section)) {
-            // Limpiamos todo lo que haya después del primer encabezado de herramientas encontrado
-            cleanPrompt = cleanPrompt.split(section)[0].trim();
+    for (const marker of cutMarkers) {
+        if (cleanPrompt.includes(marker)) {
+            cleanPrompt = cleanPrompt.split(marker)[0].trim();
             break;
         }
     }
 
-    // Limpieza de marcadores del frontend si aún quedaran
-    const fePatterns = [
-        /<!-- AUTO_TOOLS_START -->[\s\S]*<!-- AUTO_TOOLS_END -->/g,
-        /<!-- AUTO_KB_START -->[\s\S]*<!-- AUTO_KB_END -->/g,
-        /<!-- AUTO_COMPANY_START -->[\s\S]*<!-- AUTO_COMPANY_END -->/g
-    ];
-    fePatterns.forEach(regex => {
-        cleanPrompt = cleanPrompt.replace(regex, '');
-    });
+    // Strip AUTO_* markers and company section (legacy)
+    [
+        /<!-- AUTO_TOOLS_START -->[\s\S]*?<!-- AUTO_TOOLS_END -->/g,
+        /<!-- AUTO_KB_START -->[\s\S]*?<!-- AUTO_KB_END -->/g,
+        /<!-- AUTO_COMPANY_START -->[\s\S]*?<!-- AUTO_COMPANY_END -->/g,
+        /<!-- AUTO_NOTES_START -->[\s\S]*?<!-- AUTO_NOTES_END -->/g,
+    ].forEach(re => { cleanPrompt = cleanPrompt.replace(re, ''); });
 
+    // Extract & remove KB and Notes from base prompt (we'll re-add cleanly at the end)
+    cleanPrompt = cleanPrompt.replace(/\n?# Base de Conocimiento[\s\S]*?(?=\n#|$)/m, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Notas Adicionales[\s\S]*?(?=\n#|$)/m, '').trim();
     cleanPrompt = cleanPrompt.trim();
 
-    const blocks: string[] = [];
-    const lowerPrompt = cleanPrompt.toLowerCase();
+    // ── 2. FLAGS ──────────────────────────────────────────────────────────────
+    const hasQualification = (p.leadQuestions?.length ?? 0) > 0;
+    const hasCal    = parseBool(p.enableCalBooking) && !!p.calApiKey;
+    const hasCancel = hasCal && parseBool(p.enableCalCancellation);
+    const hasTransfer = parseBool(p.enableTransfer) && p.transferDestinations.length > 0;
+    const hasEndCall  = parseBool(p.enableEndCall);
+    const hasCustomTools = parseBool(p.enableCustomTools) && (p.customTools?.length ?? 0) > 0;
+    const hasKB   = (p.kbFiles?.length ?? 0) > 0;
+    const notes   = p.customNotes?.trim() || '';
 
-    // ── CALL SCRIPT ──────────────────────────────────────────────────────────
-    // Build a structured call flow based on configured tools and qualification questions
-    {
-        const hasQualification = (p.leadQuestions?.length ?? 0) > 0;
-        const hasCal = parseBool(p.enableCalBooking) && !!p.calApiKey;
-        const hasTransfer = parseBool(p.enableTransfer) && p.transferDestinations.length > 0;
-        const hasEndCall = parseBool(p.enableEndCall);
+    const validDests = p.transferDestinations.filter(
+        d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId)
+    );
 
-        const scriptLines: string[] = [];
-        scriptLines.push(`## Guión de la Llamada\nSigue este flujo en orden:`);
-        scriptLines.push(`\n**PASO 1 — Saludo**\nSaluda cordialmente, preséntate como ${p.agentName || 'asistente'} de ${p.companyName || 'la empresa'} y explica brevemente el motivo de la llamada.`);
+    // ── 3. CALL SCRIPT ────────────────────────────────────────────────────────
+    const scriptSteps: string[] = [];
+    let paso = 1;
 
-        let paso = 2;
+    // Greeting
+    scriptSteps.push(
+        `**PASO ${paso} — Saludo**\n` +
+        `Saluda cordialmente, preséntate como ${p.agentName || 'el asistente'} ` +
+        `de ${p.companyName || 'la empresa'} y explica brevemente el motivo de la llamada.`
+    );
+    paso++;
 
-        if (hasQualification) {
-            const questions = p.leadQuestions!;
-            const qLines = questions.map((q, i) => {
-                let failDesc = '';
-                if (q.failAction === 'end_call') failDesc = 'finaliza la llamada con `end_call`';
-                else if (q.failAction === 'booking') failDesc = 'ofrece agendar una cita';
-                else if (q.failAction === 'transfer') {
-                    const dest = p.transferDestinations[q.failTransferIdx ?? 0];
-                    const toolName = dest ? `transfer_to_${dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}` : 'transferencia';
-                    failDesc = `ejecuta \`${toolName}\``;
-                } else failDesc = 'continúa con el siguiente paso';
-                return `   ${i + 1}. "${q.question}" → Si no cualifica: ${failDesc}.`;
-            });
-            scriptLines.push(`\n**PASO ${paso} — Cualificación**\nRealiza las siguientes preguntas en orden. Si el contacto no cualifica en alguna, sigue la acción indicada:\n${qLines.join('\n')}`);
-            paso++;
-            scriptLines.push(`\n**PASO ${paso} — Si cualifica en todas**`);
-            paso++;
-        }
-
-        if (hasCal && hasTransfer) {
-            const transferNames = p.transferDestinations
-                .filter(d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId))
-                .map(d => `\`transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}\``)
-                .join(' o ');
-            scriptLines.push(`\n**PASO ${paso} — Acción principal**\nOfrece agendar una cita o transferir al equipo según necesite el contacto:\n- Si quiere cita → sigue el proceso de agendamiento.\n- Si prefiere hablar con alguien → ${transferNames}.`);
-            paso++;
-        } else if (hasCal) {
-            scriptLines.push(`\n**PASO ${paso} — Agendamiento**\nOfrece agendar una cita y sigue el proceso de agendamiento detallado más abajo.`);
-            paso++;
-        } else if (hasTransfer) {
-            const transferNames = p.transferDestinations
-                .filter(d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId))
-                .map(d => {
-                    const toolName = `transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                    return `- ${d.name}: \`${toolName}\``;
-                }).join('\n');
-            scriptLines.push(`\n**PASO ${paso} — Transferencia**\nTransfiere al contacto según corresponda:\n${transferNames}`);
-            paso++;
-        }
-
-        if (hasEndCall) {
-            scriptLines.push(`\n**PASO ${paso} — Cierre**\nAntes de despedirte, pregunta siempre: "¿Hay algo más en lo que pueda ayudarte?" y espera la respuesta.\n- Si dice que no → despídete usando \`{{user_name}}\`, menciona la fecha de la cita si se agendó, desea un buen día y ejecuta \`end_call\` DESPUÉS de completar la despedida (nunca antes).`);
-        }
-
-        blocks.push(scriptLines.join('\n'));
-    }
-    // ─────────────────────────────────────────────────────────────────────────
-
-    if (p.enableEndCall && !lowerPrompt.includes('end_call')) {
-        blocks.push(`## Finalizar llamada\nCuando el usuario dice adiós o la conversación llega al final del flujo, activa la función \`end_call\` para finalizar la llamada de forma cordial.`);
+    // Qualification
+    if (hasQualification) {
+        const qLines = p.leadQuestions!.map((q, i) => {
+            let onFail = 'continúa con la siguiente pregunta';
+            if (q.failAction === 'end_call')  onFail = 'finaliza la llamada con `end_call`';
+            else if (q.failAction === 'booking') onFail = 'ofrece agendar una cita (ve al apartado Agendamiento)';
+            else if (q.failAction === 'transfer') {
+                const dest = validDests[q.failTransferIdx ?? 0];
+                const tName = dest
+                    ? `transfer_to_${dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
+                    : 'transferencia';
+                onFail = `transfiere con \`${tName}\``;
+            }
+            return `   ${i + 1}. "${q.question}"\n      → Si no cualifica: ${onFail}.`;
+        });
+        scriptSteps.push(
+            `**PASO ${paso} — Cualificación**\n` +
+            `Haz estas preguntas de una en una. Si el contacto no supera alguna, aplica la acción indicada:\n` +
+            qLines.join('\n')
+        );
+        paso++;
     }
 
-    if (p.enableCalBooking && p.calApiKey && !lowerPrompt.includes('book_appointment')) {
+    // Main action
+    if (hasCal && hasTransfer) {
+        const tNames = validDests.map(d => `\`transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}\``).join(' o ');
+        scriptSteps.push(
+            `**PASO ${paso} — Acción principal**\n` +
+            `Según la necesidad del contacto:\n` +
+            `- Quiere agendar una cita → sigue el apartado *Agendamiento* más abajo.\n` +
+            `- Prefiere hablar con alguien → usa ${tNames}.`
+        );
+        paso++;
+    } else if (hasCal) {
+        scriptSteps.push(
+            `**PASO ${paso} — Agendamiento**\n` +
+            `Ofrece una cita y sigue el apartado *Agendamiento* más abajo.`
+        );
+        paso++;
+    } else if (hasTransfer) {
+        const tLines = validDests.map(d => {
+            const tName = `transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+            return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
+        }).join('\n');
+        scriptSteps.push(`**PASO ${paso} — Transferencia**\n${tLines}`);
+        paso++;
+    }
+
+    // Closing
+    if (hasEndCall) {
+        scriptSteps.push(
+            `**PASO ${paso} — Cierre**\n` +
+            `Pregunta: "¿Hay algo más en lo que pueda ayudarte?" y espera la respuesta.\n` +
+            `- Si dice que no → despídete usando \`{{user_name}}\`, menciona la cita si se agendó, ` +
+            `desea un buen día y ejecuta \`end_call\` DESPUÉS de terminar la despedida.`
+        );
+    }
+
+    const callScript = `# Guión de la Llamada\n\nSigue este flujo en orden:\n\n${scriptSteps.join('\n\n')}`;
+
+    // ── 4. TOOL DETAILS ───────────────────────────────────────────────────────
+    const toolDetails: string[] = [];
+
+    // Cal.com booking
+    if (hasCal) {
         const today = new Date();
-        const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' };
-        const dateStr = today.toLocaleDateString('es-ES', options);
-        const tomorrowDate = new Date(today);
-        tomorrowDate.setDate(today.getDate() + 1);
-        const tomorrowStr = tomorrowDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dateStr = today.toLocaleDateString('es-ES', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid'
+        });
+        const tomorrowStr = new Date(today.getTime() + 86400000).toISOString().split('T')[0];
 
-        let calBlock = `## Gestión de Agenda y Citas
-Hoy es ${dateStr} (ISO: ${today.toISOString().split('T')[0]}).
+        let calDetail =
+            `### Agendamiento\n` +
+            `Hoy es ${dateStr} (ISO: ${today.toISOString().split('T')[0]}).\n\n` +
+            `**Disponibilidad:**\n` +
+            `- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos.\n` +
+            `- \`{{consultar_disponibilidad}}\` → disponibilidad completa de los próximos días.\n` +
+            `- Si las variables están vacías (llamada saliente) → pregunta qué día prefiere.\n\n` +
+            `**Proceso (en este orden exacto):**\n` +
+            `1. Di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"\n` +
+            `2. Si pide más opciones o ninguna le va → muestra \`{{consultar_disponibilidad}}\`.\n` +
+            `3. **Validación**: verifica MENTALMENTE que el horario elegido existe en las variables. ` +
+            `Si no existe, comunícalo y ofrece solo los slots reales.\n` +
+            `4. Di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"\n` +
+            `5. Di: "Perfecto, anotado queda. Ahora, ¿cuál es tu correo electrónico?"\n` +
+            `6. Di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."\n` +
+            `7. Escucha el deletreo. Convierte MENTALMENTE a email estándar (NO lo digas en voz alta):\n` +
+            `   "punto"→. | "arroba"→@ | "guion"→- | "guion bajo"→_. Letras en minúsculas, sin espacios.\n` +
+            `8. Di: "Perfecto, déjame confirmar tu cita, un momento por favor..." ` +
+            `y ejecuta \`book_appointment\` con: la fecha/hora ISO del slot elegido, nombre, email y teléfono del paso 4.\n` +
+            `9. Di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite fecha/hora], ` +
+            `hora de Madrid. Recibirás un correo de confirmación en unos minutos."\n\n` +
+            `**Fechas coloquiales:** "mañana"→${tomorrowStr} | "pasado mañana"→+2 días | ` +
+            `"el lunes"→próximo lunes | "la próxima semana"→lunes siguiente. Zona horaria: Europe/Madrid.`;
 
-### Disponibilidad
-Las variables del sistema llevan la disponibilidad pre-calculada:
-- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos
-- \`{{consultar_disponibilidad}}\` → disponibilidad completa de los próximos días
-
-Cuándo usarlas:
-- El contacto acepta agendar → ofrece los 2 huecos de \`{{disponibilidad_mas_temprana}}\`.
-- Pide más opciones o un día concreto → muestra \`{{consultar_disponibilidad}}\`.
-- Variables vacías (llamada saliente) → pregunta qué día prefiere e intenta agendar con esa fecha.
-
-### Proceso de Agendamiento (sigue este orden exacto)
-1. Cuando el contacto acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"
-2. Si ninguna opción le funciona o pide más, muestra \`{{consultar_disponibilidad}}\`.
-3. **Validación (CRÍTICO)**: antes de continuar, verifica MENTALMENTE que el horario elegido por el contacto aparece en \`{{disponibilidad_mas_temprana}}\` o \`{{consultar_disponibilidad}}\`. Si no aparece, dile que ese horario no está disponible y ofrece los que sí lo están.
-4. Cuando el contacto confirma un horario disponible, di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"
-5. Tras el teléfono, di: "Perfecto, anotado queda. Ahora, ¿cuál es tu correo electrónico?"
-6. Escucha el email. Di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."
-7. Escucha el deletreo completo. Convierte MENTALMENTE a formato email estándar (NO lo digas en voz alta):
-   - "punto" → .  |  "arroba" → @  |  "guion" → -  |  "guion bajo" → _
-   - Letras en minúsculas sin espacios. Ej: "a-ene-a-punto-garcia-arroba-empresa-punto-com" → ana.garcia@empresa.com
-8. Inmediatamente tras el deletreo di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\` con:
-   - La fecha y hora ISO exacta del slot elegido (zona horaria Europe/Madrid)
-   - Nombre y email que te dio el contacto
-   - Teléfono: el número que te proporcionó en el paso 4
-9. Tras ejecutar \`book_appointment\` con éxito, di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite la fecha/hora aceptada], hora de Madrid. Recibirás un correo de confirmación en unos minutos."
-
-### Interpretación de fechas coloquiales (CRÍTICO)
-Convierte siempre la fecha que diga el usuario a fecha ISO absoluta antes de llamar a \`book_appointment\`:
-- "mañana" → ${tomorrowStr}
-- "pasado mañana" → suma 2 días a hoy
-- "el lunes" → el próximo lunes (si hoy ya es lunes, el siguiente)
-- "la próxima semana" → el lunes de la semana que viene
-Usa siempre la zona horaria Europe/Madrid.`;
-
-        if (p.enableCalCancellation) {
-            calBlock += `
-
-### Cancelaciones
-Cuando el usuario quiera cancelar su cita, sigue este proceso exacto:
-1. Di: "Voy a buscarte la cita ahora mismo, un momento."
-2. Ejecuta \`cancel_appointment\` con \`phone_number: {{user_number}}\` (el número del llamante — NO se lo preguntes).
-3. **Si se cancela correctamente**: confirma la cancelación al usuario.
-4. **Si NO se encuentra la cita** (la respuesta indica que no hay cita con ese número):
-   - Di: "No he encontrado ninguna cita con tu número. ¿Podrías decirme el número de teléfono con el que hiciste la reserva?"
-   - Espera el número que te dé el usuario.
-   - Ejecuta \`cancel_appointment\` de nuevo, esta vez con el número que te acaba de proporcionar.
-   - Si tampoco encuentra la cita, indícalo y ofrece transferirle con una persona.`;
+        if (hasCancel) {
+            calDetail +=
+                `\n\n**Cancelaciones:**\n` +
+                `1. Di: "Voy a buscarte la cita ahora mismo, un momento." ` +
+                `y ejecuta \`cancel_appointment\` con \`phone_number: {{user_number}}\`.\n` +
+                `2. Si se cancela → confirma al usuario.\n` +
+                `3. Si no se encuentra → pregunta: "¿Con qué teléfono hiciste la reserva?" ` +
+                `y reintenta con ese número. Si sigue sin encontrar → ofrece transferir con una persona.`;
         }
 
-        blocks.push(calBlock);
+        toolDetails.push(calDetail);
     }
 
-    if (p.enableTransfer && p.transferDestinations.length > 0) {
-        const destList = p.transferDestinations
-            .filter(d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId))
-            .map((d) => {
-                const cleanName = d.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
-                const toolName = `transfer_to_${cleanName}`;
-                if (lowerPrompt.includes(toolName)) return null;
-                return `- **${d.name}**: ${d.description || `Transferir`} (llamar a \`${toolName}\`)`;
-            })
-            .filter(Boolean)
-            .join('\n');
-
-        if (destList && !lowerPrompt.includes('transferir llamada')) {
-            blocks.push(`## Transferencias\nCasos:\n${destList}`);
-        }
+    // Transfers
+    if (hasTransfer) {
+        const tLines = validDests.map(d => {
+            const tName = `transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+            return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
+        }).join('\n');
+        toolDetails.push(`### Transferencias\n${tLines}`);
     }
 
-    if (p.enableCustomTools && (p.customTools?.length ?? 0) > 0) {
-        const toolList = (p.customTools || [])
+    // Custom tools
+    if (hasCustomTools) {
+        const ctLines = (p.customTools || [])
             .filter(t => t.name && t.url)
-            .map(t => {
-                const tName = t.name.toLowerCase();
-                if (lowerPrompt.includes(tName)) return null;
-                return `- **${t.name}**: ${t.description}`;
-            })
-            .filter(Boolean)
+            .map(t => `- **${t.name}**: ${t.description}`)
             .join('\n');
-
-        if (toolList) blocks.push(`## Herramientas personalizadas\n${toolList}`);
+        if (ctLines) toolDetails.push(`### Herramientas personalizadas\n${ctLines}`);
     }
 
-    if (p.kbFiles && p.kbFiles.length > 0 && !lowerPrompt.includes('base de conocimientos')) {
-        blocks.push(`## Base de Conocimientos\nConsulta los documentos si el usuario tiene dudas sobre los servicios.`);
+    // ── 5. ASSEMBLE ───────────────────────────────────────────────────────────
+    let finalPrompt = cleanPrompt + '\n\n' + callScript;
+
+    if (toolDetails.length > 0) {
+        finalPrompt += `\n\n---\n\n## Instrucciones de Herramientas\n\n${toolDetails.join('\n\n')}`;
     }
 
-    // Remove any stale company blocks left over from older agent versions
-    const companyRegex = /<!-- AUTO_COMPANY_START -->[\s\S]*<!-- AUTO_COMPANY_END -->/;
-    if (companyRegex.test(cleanPrompt)) {
-        cleanPrompt = cleanPrompt.replace(companyRegex, '').trim();
+    // KB — clean, single occurrence
+    if (hasKB) {
+        const kbNames = p.kbFiles!.map(f => `- ${f.name || f.id}`).join('\n');
+        finalPrompt += `\n\n# Base de Conocimiento\nConsulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa:\n${kbNames}`;
     }
 
-    // Reminder to follow the pronunciation style rules defined in the base prompt
-    blocks.push(`## Recordatorio de Pronunciación
-Sigue siempre las reglas del apartado "Estilo de Pronunciación" del prompt: teléfonos (2-3-2-2), emails (antes de arroba - arroba - después), fechas y horas en palabras.`);
-
-    if (blocks.length === 0) return cleanPrompt;
-
-    let finalPrompt = cleanPrompt;
-    if (blocks.length > 0) {
-        finalPrompt += `\n\n# Uso de herramientas\n\n${blocks.join('\n\n')}`;
+    // Notes — clean, single occurrence
+    if (notes) {
+        finalPrompt += `\n\n# Notas Específicas\n${notes}`;
     }
 
-    // --- CUSTOM NOTES INJECTION ---
-    if (p.customNotes) {
-        const notesSection = `\n\n<!-- AUTO_NOTES_START -->\n# Notas\n${p.customNotes}\n<!-- AUTO_NOTES_END -->\n`;
-        const notesRegex = /<!-- AUTO_NOTES_START -->[\s\S]*<!-- AUTO_NOTES_END -->/;
-        if (notesRegex.test(finalPrompt)) {
-            finalPrompt = finalPrompt.replace(notesRegex, () => notesSection.trim());
-        } else {
-            finalPrompt += notesSection;
-        }
-    }
-
-    return finalPrompt;
+    return finalPrompt.trim();
 }
