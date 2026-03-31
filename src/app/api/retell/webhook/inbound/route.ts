@@ -41,10 +41,8 @@ export async function POST(request: NextRequest) {
         const supabaseAdmin = getSupabaseAdmin();
 
         if (!supabaseAdmin) {
-            console.error('Webhook ERROR: Supabase environment variables are missing');
-            return NextResponse.json(
-                { call_inbound: { override_agent_id: agent_id } }
-            );
+            console.error('[inbound-webhook] Supabase env vars missing');
+            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'supabase_env_missing' } } });
         }
 
         // Get internal agent details
