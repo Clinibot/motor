@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
         const payload = await request.json();
         const call_inbound = payload.call_inbound;
 
+        console.log('[inbound-webhook] Called. agent_id:', call_inbound?.agent_id ?? '(missing)');
+
         if (!call_inbound || !call_inbound.agent_id) {
             return NextResponse.json({ error: 'Missing agent_id in call_inbound payload' }, { status: 400 });
         }
@@ -288,6 +290,8 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
         } else {
              console.error("Error from OpenAI 2:", await fullResponse.text());
         }
+
+        console.log(`[inbound-webhook] Returning variables for agent ${agent_id}. disponibilidad_mas_temprana: "${req1Text.slice(0,80)}..."`);
 
         // Return the dynamic variables injected payload
         return NextResponse.json({

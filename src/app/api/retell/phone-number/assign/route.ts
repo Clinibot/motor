@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
                 .eq('id', localAgentId)
                 .single();
             
-            if (agentConfig?.configuration?.enableCalBooking) {
+            if (agentConfig?.configuration?.enableCalBooking && agentConfig?.configuration?.calApiKey) {
                 needsInboundWebhook = true;
             }
         }
