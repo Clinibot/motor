@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
+import { createClient } from '../../../lib/supabase/client';
+
+interface AgentOption {
+    id: string;
+    name: string;
+    retell_agent_id: string | null;
+}
 
 const Toggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void }> = ({ checked, onChange }) => (
     <div
@@ -20,6 +27,20 @@ export const Step5_Tools: React.FC = () => {
     } = useWizardStore();
 
     const [showVarDropdown, setShowVarDropdown] = useState(false);
+    const [availableAgents, setAvailableAgents] = useState<AgentOption[]>([]);
+
+    useEffect(() => {
+        const fetchAgents = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const { data: profile } = await supabase.from('profiles').select('workspace_id').eq('id', user.id).single();
+            if (!profile?.workspace_id) return;
+            const { data } = await supabase.from('agents').select('id, name, retell_agent_id').eq('workspace_id', profile.workspace_id);
+            setAvailableAgents(data ?? []);
+        };
+        fetchAgents();
+    }, []);
 
     const timezones = [
         'Europe/Madrid', 'Europe/London', 'Europe/Paris', 'America/New_York',
@@ -218,14 +239,32 @@ export const Step5_Tools: React.FC = () => {
                                                     <option value="agent">Otro agente IA</option>
                                                 </select>
                                             </div>
-                                            <div className="fg" style={{ marginBottom: 0 }}>
-                                                <label className="lbl">Número de teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
-                                                <input type="text" className="inp" placeholder="+34911234567"
-                                                    value={dest.number || ''}
-                                                    onChange={e => { const d = [...transferDestinations]; d[idx].number = e.target.value; updateField('transferDestinations', d); }}
-                                                />
-                                                <div className="hint">Formato E.164 (ej: +34911234567)</div>
-                                            </div>
+                                            {dest.destination_type === 'agent' ? (
+                                                <div className="fg" style={{ marginBottom: 0 }}>
+                                                    <label className="lbl">Agente destino <span style={{ color: 'var(--error)' }}>*</span></label>
+                                                    <select className="inp sel"
+                                                        value={dest.agentId || ''}
+                                                        onChange={e => { const d = [...transferDestinations]; d[idx].agentId = e.target.value; updateField('transferDestinations', d); }}
+                                                    >
+                                                        <option value="" disabled>Selecciona un agente</option>
+                                                        {availableAgents.filter(a => a.retell_agent_id).map(a => (
+                                                            <option key={a.id} value={a.retell_agent_id!}>{a.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    {availableAgents.filter(a => a.retell_agent_id).length === 0 && (
+                                                        <div className="hint">No hay otros agentes disponibles en tu workspace.</div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="fg" style={{ marginBottom: 0 }}>
+                                                    <label className="lbl">Número de teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
+                                                    <input type="text" className="inp" placeholder="+34911234567"
+                                                        value={dest.number || ''}
+                                                        onChange={e => { const d = [...transferDestinations]; d[idx].number = e.target.value; updateField('transferDestinations', d); }}
+                                                    />
+                                                    <div className="hint">Formato E.164 (ej: +34911234567)</div>
+                                                </div>
+                                            )}
                                         </div>
                                         <button
                                             type="button"
