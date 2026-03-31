@@ -176,16 +176,61 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
  * Builds the `post_call_analysis_data` array for the Retell LLM.
  */
 export function buildPostCallAnalysis(p: ToolsPayload) {
-    if (!p.extractionVariables || p.extractionVariables.length === 0) return undefined;
+    // Predefined system variables always included
+    const predefined = [
+        {
+            name: 'resumen_llamada',
+            type: 'string' as const,
+            description: 'Escribe un resumen de 1 a 3 frases basado en la transcripción, capturando la información importante y acciones tomadas.',
+        },
+        {
+            name: 'llamada_exitosa',
+            type: 'boolean' as const,
+            description: 'Evalúa si el agente tuvo una llamada exitosa: conversación completa, tarea finalizada, sin problemas técnicos ni buzón de voz.',
+        },
+        {
+            name: 'sentimiento_usuario',
+            type: 'string' as const,
+            description: 'Evalúa el sentimiento, estado de ánimo y nivel de satisfacción del usuario durante la llamada.',
+        },
+    ];
 
-    return p.extractionVariables
+    // Map Spanish type names → Retell valid types
+    const typeMap: Record<string, string> = {
+        texto: 'string',
+        selector: 'enum',
+        booleano: 'boolean',
+        numero: 'number',
+        string: 'string',
+        boolean: 'boolean',
+        number: 'number',
+        enum: 'enum',
+    };
+
+    const custom = (p.extractionVariables || [])
         .filter(v => v.name && v.type)
-        .map(v => ({
-            name: v.name,
-            type: v.type as 'string' | 'boolean' | 'number',
-            description: v.description,
-            required: v.required ?? false,
-        }));
+        .map(v => {
+            const retellType = typeMap[v.type] || 'string';
+            if (retellType === 'enum') {
+                // enum requires 'choices' array — parse from description or use placeholder
+                const choices = v.description
+                    ? v.description.split(',').map((s: string) => s.trim()).filter(Boolean)
+                    : ['opcion_1', 'opcion_2'];
+                return {
+                    name: v.name.toLowerCase().replace(/\s+/g, '_'),
+                    type: 'enum' as const,
+                    description: v.description || v.name,
+                    choices,
+                };
+            }
+            return {
+                name: v.name.toLowerCase().replace(/\s+/g, '_'),
+                type: retellType as 'string' | 'boolean' | 'number',
+                description: v.description || v.name,
+            };
+        });
+
+    return [...predefined, ...custom];
 }
 
 // ---- Formatting Utilities (Sync with Step 8) ----
