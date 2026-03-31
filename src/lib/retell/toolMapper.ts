@@ -428,25 +428,29 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             `### Agendamiento\n` +
             `Hoy es ${dateStr} (ISO: ${today.toISOString().split('T')[0]}).\n\n` +
             `**Disponibilidad:**\n` +
-            `- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos.\n` +
+            `- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos (usa este primero).\n` +
             `- \`{{consultar_disponibilidad}}\` → disponibilidad completa de los próximos días.\n` +
             `- Si las variables están vacías (llamada saliente) → pregunta qué día prefiere.\n\n` +
             `**Proceso (en este orden exacto):**\n` +
             `1. Di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"\n` +
             `2. Si pide más opciones o ninguna le va → muestra \`{{consultar_disponibilidad}}\`.\n` +
-            `3. **Validación**: verifica MENTALMENTE que el horario elegido existe en las variables. ` +
-            `Si no existe, comunícalo y ofrece solo los slots reales.\n` +
+            `3. **Validación CRÍTICA**: el horario que el usuario elija DEBE existir exactamente en las variables de disponibilidad. ` +
+            `Nunca inventes ni calcules un horario distinto. Si el usuario pide uno que no está en las variables, ` +
+            `dile: "Lo siento, ese horario no está disponible. Los que tenemos son..." y repite las opciones reales.\n` +
             `4. Di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"\n` +
             `5. Di: "Perfecto, anotado queda. Ahora, ¿cuál es tu correo electrónico?"\n` +
             `6. Di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."\n` +
             `7. Escucha el deletreo. Convierte MENTALMENTE a email estándar (NO lo digas en voz alta):\n` +
             `   "punto"→. | "arroba"→@ | "guion"→- | "guion bajo"→_. Letras en minúsculas, sin espacios.\n` +
             `8. Di: "Perfecto, déjame confirmar tu cita, un momento por favor..." ` +
-            `y ejecuta \`book_appointment\` con: la fecha/hora ISO del slot elegido, nombre, email y teléfono del paso 4.\n` +
-            `9. Di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite fecha/hora], ` +
-            `hora de Madrid. Recibirás un correo de confirmación en unos minutos."\n\n` +
+            `y ejecuta \`book_appointment\` con: la fecha/hora ISO EXACTA del slot tal como aparece en las variables de disponibilidad, nombre, email y teléfono del paso 4.\n` +
+            `9. Si \`book_appointment\` tiene éxito → Di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite fecha/hora], ` +
+            `hora de Madrid. Recibirás un correo de confirmación en unos minutos."\n` +
+            `10. Si \`book_appointment\` falla con error de disponibilidad → Di: "Vaya, parece que ese hueco acaba de ocuparse. ` +
+            `Déjame ofrecerte otra opción." y vuelve al paso 1 con los slots restantes.\n\n` +
             `**Fechas coloquiales:** "mañana"→${tomorrowStr} | "pasado mañana"→+2 días | ` +
-            `"el lunes"→próximo lunes | "la próxima semana"→lunes siguiente. Zona horaria: Europe/Madrid.`;
+            `"el lunes"→próximo lunes | "la próxima semana"→lunes siguiente. Zona horaria: Europe/Madrid.\n` +
+            `**IMPORTANTE:** Pasa siempre el valor ISO exacto del slot (ej: "2026-04-02T10:00:00.000+02:00"), nunca lo reformules.`;
 
         if (hasCancel) {
             calDetail +=
