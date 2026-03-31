@@ -304,7 +304,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     const lowerPrompt = cleanPrompt.toLowerCase();
 
     if (p.enableEndCall && !lowerPrompt.includes('end_call')) {
-        blocks.push(`## Finalizar llamada\nUsa la herramienta \`end_call\` para cerrar la llamada de forma cordial cuando termines.`);
+        blocks.push(`## Finalizar llamada\nCuando el usuario dice adiós o la conversación llega al final del flujo, activa la función \`end_call\` para finalizar la llamada de forma cordial.`);
     }
 
     if (p.enableCalBooking && p.calApiKey && !lowerPrompt.includes('book_appointment')) {
