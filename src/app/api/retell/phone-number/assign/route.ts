@@ -85,15 +85,15 @@ export async function POST(request: Request) {
         // 3. Actualizar en Retell
         console.log(`Updating Retell phone number ${phone_number} with agent ${retellAgentId}`);
 
-        const updatePayload: Record<string, string> = {
-            inbound_agent_id: retellAgentId
-        };
-        
-        if (needsInboundWebhook && process.env.NEXT_PUBLIC_SITE_URL) {
-            updatePayload.inbound_webhook_url = `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook/inbound`;
-        }
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+        const webhookUrl = needsInboundWebhook && siteUrl
+            ? `${siteUrl}/api/retell/webhook/inbound`
+            : null; // null explicitly clears any previously set webhook
 
-        await retellClient.phoneNumber.update(phone_number, updatePayload);
+        await retellClient.phoneNumber.update(phone_number, {
+            inbound_agent_id: retellAgentId,
+            inbound_webhook_url: webhookUrl,
+        });
 
         // 4. Actualizar en nuestra DB con el UUID local
         const { error: dbError } = await supabaseAdmin
