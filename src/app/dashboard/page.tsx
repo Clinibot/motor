@@ -8,7 +8,6 @@ import { useWizardStore } from '../../store/wizardStore';
 import Script from 'next/script';
 import DashboardSidebar from '../../components/DashboardSidebar';
 import DashboardTopbar from '../../components/DashboardTopbar';
-import ViewSwitcher from '../../components/ViewSwitcher';
 
 interface Call {
     id: string;
@@ -758,7 +757,6 @@ export default function DashboardPage() {
                         </>
                     )}
                 </div>
-                <ViewSwitcher user={user} />
             </main>
         </div>
     );

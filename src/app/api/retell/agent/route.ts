@@ -2,10 +2,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
-import { buildRetellTools, buildPostCallAnalysis } from '@/lib/retell/toolMapper';
+import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { AgentPayload } from '@/lib/retell/types';
-import { SECURITY_RULES } from '@/lib/retell/securityRules';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
@@ -108,12 +107,11 @@ export async function POST(request: Request) {
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
 
-        // 5. El prompt llega ya procesado desde el wizard (fuente de verdad).
-        // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
+        // 5. Build the final prompt: start from what the wizard sent, then inject tool instructions server-side.
         const basePrompt = payload.prompt || 'Eres un asistente amable.';
-        const finalPrompt = SECURITY_RULES ? `${basePrompt}\n\n${SECURITY_RULES}` : basePrompt;
+        const finalPrompt = injectToolInstructions(basePrompt, payload);
 
-        console.log(`Prompt recibido para ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
+        console.log(`Prompt final para ${payload.agentName}. Length: ${finalPrompt.length}`);
 
         console.log(`Tools configured for ${payload.agentName}: ${retellTools.length}`, JSON.stringify(retellTools, null, 2));
         console.log(`Knowledge base configuration:`, payload.kbFiles?.length || 0, "files");
@@ -282,12 +280,11 @@ export async function PATCH(request: Request) {
         await enrichSipCredentials(payload, supabaseAdmin, payload.id);
         const retellTools = buildRetellTools(payload);
         const postCallAnalysis = buildPostCallAnalysis(payload);
-        // El prompt llega ya procesado desde el wizard (fuente de verdad).
-        // Los marcadores AUTO_* se eliminan en el cliente antes de enviar.
+        // Build the final prompt: start from what the wizard sent, then inject tool instructions server-side.
         const basePrompt = payload.prompt || 'Eres un asistente amable.';
-        const finalPrompt = SECURITY_RULES ? `${basePrompt}\n\n${SECURITY_RULES}` : basePrompt;
+        const finalPrompt = injectToolInstructions(basePrompt, payload);
 
-        console.log(`Prompt recibido para PATCH ${payload.agentName}. Company: ${payload.companyName}. Length: ${finalPrompt.length}`);
+        console.log(`Prompt final para PATCH ${payload.agentName}. Length: ${finalPrompt.length}`);
 
         console.log(`Tools mapped for PATCH (${payload.agentName}):`, JSON.stringify(retellTools, null, 2));
 
@@ -382,6 +379,33 @@ export async function PATCH(request: Request) {
                 updated_at: new Date().toISOString()
             })
             .eq('id', payload.id);
+
+        // Sync inbound_webhook_url on any phone numbers assigned to this agent
+        try {
+            const { data: assignedNumbers } = await supabaseAdmin
+                .from('phone_numbers')
+                .select('phone_number')
+                .eq('assigned_inbound_agent_id', payload.id);
+
+            if (assignedNumbers && assignedNumbers.length > 0) {
+                const needsWebhook = Boolean(payload.enableCalBooking && payload.calApiKey);
+                const webhookUrl = needsWebhook
+                    ? `${siteUrl}/api/retell/webhook/inbound`
+                    : null;
+
+                console.log(`Syncing inbound webhook (${webhookUrl ?? 'none'}) on ${assignedNumbers.length} number(s)`);
+
+                await Promise.all(
+                    assignedNumbers.map((row: { phone_number: string }) =>
+                        retellClient.phoneNumber.update(row.phone_number, {
+                            inbound_webhook_url: webhookUrl,
+                        })
+                    )
+                );
+            }
+        } catch (webhookSyncErr) {
+            console.warn("Could not sync inbound webhook on phone numbers:", webhookSyncErr);
+        }
 
         return NextResponse.json({ success: true, agent_id: retellAgentId, llm_id: llmId });
     } catch (error: unknown) {

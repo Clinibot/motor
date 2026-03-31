@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import Retell from 'retell-sdk';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
@@ -16,7 +16,7 @@ function getSupabaseAdmin() {
     return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const payload = await request.json();
         const {
@@ -85,10 +85,15 @@ export async function POST(request: Request) {
         // 3. Actualizar en Retell
         console.log(`Updating Retell phone number ${phone_number} with agent ${retellAgentId}`);
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-        const webhookUrl = needsInboundWebhook && siteUrl
+        // Derive the base URL from env var (production) or fall back to the request origin (local/dev)
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+            || `${request.nextUrl.protocol}//${request.nextUrl.host}`;
+
+        const webhookUrl = needsInboundWebhook
             ? `${siteUrl}/api/retell/webhook/inbound`
             : null; // null explicitly clears any previously set webhook
+
+        console.log(`Inbound webhook URL to set: ${webhookUrl ?? '(none)'}`);
 
         await retellClient.phoneNumber.update(phone_number, {
             inbound_agent_id: retellAgentId,

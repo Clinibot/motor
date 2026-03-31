@@ -34,7 +34,10 @@ export interface ToolsPayload {
     customNotes?: string;
     kbFiles?: KBFile[];
     kbUsageInstructions?: string;
-    // Company Info
+    // Cal.com cancellation
+    enableCalCancellation?: boolean;
+    calTimezone?: string;
+    // Company Info (kept for legacy but no longer injected into prompts)
     companyName?: string;
     companyAddress?: string;
     companyPhone?: string;
@@ -83,6 +86,31 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                 ...calSettings,
             });
         }
+    }
+
+    // 3. Cal.com Cancellation (custom webhook tool)
+    if (parseBool(p.enableCalBooking) && parseBool(p.enableCalCancellation) && p.calApiKey) {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+        const encodedKey = encodeURIComponent(p.calApiKey);
+        tools.push({
+            type: 'custom',
+            name: 'cancel_appointment',
+            description: 'Cancela una cita existente en el calendario buscándola por el número de teléfono del llamante. Usa esta herramienta cuando el usuario quiera cancelar su cita.',
+            url: `${siteUrl}/api/retell/calcom/cancel?cal_api_key=${encodedKey}`,
+            speak_during_execution: true,
+            speak_after_execution: true,
+            execution_message_description: 'Informa al usuario que estás buscando su cita para cancelarla.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    phone_number: {
+                        type: 'string',
+                        description: 'Número de teléfono del llamante en formato E.164 (por ejemplo +34612345678). Usa siempre {{user_number}} para obtenerlo automáticamente.',
+                    },
+                },
+                required: ['phone_number'],
+            },
+        });
     }
 
     // 4. Call Transfer
@@ -233,86 +261,6 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
     return [...predefined, ...custom];
 }
 
-// ---- Formatting Utilities (Sync with Step 8) ----
-
-const formatTimeToSpanishWords = (timeStr: string) => {
-    if (!timeStr) return '';
-    const [hoursStr, minutesStr] = timeStr.split(':');
-    const hours = parseInt(hoursStr);
-    const minutes = parseInt(minutesStr);
-
-    const minutesToWords = (n: number) => {
-        const words: Record<number, string> = {
-            1: 'un', 2: 'dos', 3: 'tres', 4: 'cuatro', 5: 'cinco', 6: 'seis', 7: 'siete', 8: 'ocho', 9: 'nueve', 10: 'diez',
-            11: 'once', 12: 'doce', 13: 'trece', 14: 'catorce', 15: 'quince', 16: 'dieciséis', 17: 'diecisiete', 18: 'dieciocho', 19: 'diecinueve',
-            20: 'veinte', 21: 'veintiuno', 22: 'veintidós', 23: 'veintitrés', 24: 'veinticuatro', 25: 'veinticinco', 26: 'veintiséis', 27: 'veintisiete', 28: 'veintiocho', 29: 'veintinueve',
-            30: 'treinta', 31: 'treinta y uno', 32: 'treinta y dos', 33: 'treinta y tres', 34: 'treinta y cuatro', 35: 'treinta y cinco', 36: 'treinta y seis', 37: 'treinta y siete', 38: 'treinta y ocho', 39: 'treinta y nueve',
-            40: 'cuarenta', 41: 'cuarenta y uno', 42: 'cuarenta y dos', 43: 'cuarenta y tres', 44: 'cuarenta y cuatro', 45: 'cuarenta y cinco', 46: 'cuarenta y seis', 47: 'cuarenta y siete', 48: 'cuarenta y ocho', 49: 'cuarenta y nueve',
-            50: 'cincuenta', 51: 'cincuenta y uno', 52: 'cincuenta y dos', 53: 'cincuenta y tres', 54: 'cincuenta y cuatro', 55: 'cincuenta y cinco', 56: 'cincuenta y seis', 57: 'cincuenta y siete', 58: 'cincuenta y ocho', 59: 'cincuenta y nueve'
-        };
-        return words[n] || String(n);
-    };
-
-    let hourWord = '';
-    const hoursMap: Record<number, string> = {
-        0: 'las doce de la noche', 1: 'la una de la mañana', 2: 'las dos de la mañana', 3: 'las tres de la mañana',
-        4: 'las cuatro de la mañana', 5: 'las cinco de la mañana', 6: 'las seis de la mañana', 7: 'las siete de la mañana',
-        8: 'las ocho de la mañana', 9: 'las nueve de la mañana', 10: 'las diez de la mañana', 11: 'las once de la mañana',
-        12: 'las doce del mediodía', 13: 'la una de la tarde', 14: 'las dos de la tarde', 15: 'las tres de la tarde',
-        16: 'las cuatro de la tarde', 17: 'las cinco de la tarde', 18: 'las seis de la tarde', 19: 'las siete de la tarde',
-        20: 'las ocho de la tarde', 21: 'las nueve de la noche', 22: 'las diez de la noche', 23: 'las once de la noche'
-    };
-
-    hourWord = hoursMap[hours] || `${hours}`;
-
-    if (minutes === 0) return hourWord;
-    if (minutes === 30) return `${hourWord} y media`;
-    if (minutes === 15) return `${hourWord} y cuarto`;
-
-    return `${hourWord} y ${minutesToWords(minutes)} minutos`;
-};
-
-const groupBusinessHours = (hours: { day: string; open: string; close: string; closed: boolean }[]) => {
-    const active = hours.filter(h => !h.closed);
-    if (active.length === 0) return "Estamos cerrados todos los días.";
-
-    const groups: { hoursKey: string; open: string; close: string; days: string[] }[] = [];
-
-    active.forEach(h => {
-        const hoursKey = `${h.open}-${h.close}`;
-        const existing = groups.find(g => g.hoursKey === hoursKey);
-        if (existing) {
-            existing.days.push(h.day);
-        } else {
-            groups.push({ hoursKey, open: h.open, close: h.close, days: [h.day] });
-        }
-    });
-
-    return groups.map(g => {
-        const formattedDays = g.days.map((d, i) => i === 0 ? d : d.toLowerCase());
-        const daysJoined = formattedDays.length === 1
-            ? formattedDays[0]
-            : formattedDays.slice(0, -1).join(', ') + ' y ' + formattedDays[formattedDays.length - 1];
-
-        return `${daysJoined} de ${formatTimeToSpanishWords(g.open)} a ${formatTimeToSpanishWords(g.close)}.`;
-    }).join(' ');
-};
-
-const formatPhoneForTTS = (phone: string) => {
-    if (!phone) return '';
-    const cleanPhone = phone.replace(/^\+34|^0034/, '');
-    const digitWords: Record<string, string> = {
-        '0': 'cero', '1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro',
-        '5': 'cinco', '6': 'seis', '7': 'siete', '8': 'ocho', '9': 'nueve'
-    };
-    return cleanPhone.split('').map(d => digitWords[d] || d).join(' ').trim();
-};
-
-const formatUrlForTTS = (url: string) => {
-    if (!url) return '';
-    return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\//g, ' barra ').replace(/\./g, ' punto ').replace(/\s+/g, ' ').trim();
-};
-
 /**
  * Injects tool usage instructions at the END of the system prompt.
  * This ensures the LLM knows when and how to call each tool.
@@ -361,30 +309,60 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         const today = new Date();
         const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' };
         const dateStr = today.toLocaleDateString('es-ES', options);
+        const tomorrowDate = new Date(today);
+        tomorrowDate.setDate(today.getDate() + 1);
+        const tomorrowStr = tomorrowDate.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        blocks.push(`## Gestión de Agenda y Citas
-Hoy es ${dateStr}.
+        let calBlock = `## Gestión de Agenda y Citas
+Hoy es ${dateStr} (ISO: ${today.toISOString().split('T')[0]}).
 
-Tienes la información de disponibilidad inyectada en las variables dinámicas del sistema (si provienen de una llamada entrante):
-- Disponibilidad rápida: {{disponibilidad_mas_temprana}}
-- Disponibilidad extendida: {{consultar_disponibilidad}}
+### Disponibilidad (llamadas entrantes)
+Las variables del sistema llevan la disponibilidad pre-calculada:
+- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos (respuesta rápida)
+- \`{{consultar_disponibilidad}}\` → disponibilidad completa de los próximos días
 
-### Proceso de Agendamiento:
-1. **Consulta / Oferta Inicial**: Cuando el contacto acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?".
-   > *Nota: Si las fechas no se muestran, pide al usuario qué día prefiere e intenta agendar a ciegas.*
-2. **Más opciones**: Si no le valen, revisa la disponibilidad extendida y ofrécele algo de allí: {{consultar_disponibilidad}}.
-3. **Recogida de datos**: Una vez elegido el horario, di: "Estupendo. Para confirmar tu cita necesito un par de datos. ¿Cuál es tu número de teléfono?"
-4. **Email y Deletreo (CRÍTICO)**: 
+**Cuándo usarlas:**
+- Si el usuario pregunta simplemente "¿cuándo puedo?" o acepta agendar → di primero los 2 huecos de \`{{disponibilidad_mas_temprana}}\`.
+- Si pide más opciones o un día concreto → consulta \`{{consultar_disponibilidad}}\` y ofrécele lo que se ajuste.
+- Si las variables están vacías (llamada saliente o sin webhook) → pregunta al usuario qué día prefiere e intenta agendar con la fecha que diga.
+
+### Interpretación de fechas coloquiales (CRÍTICO)
+Convierte siempre la fecha que diga el usuario a una fecha ISO absoluta antes de llamar a \`book_appointment\`:
+- "mañana" → ${tomorrowStr}
+- "pasado mañana" → suma 2 días a hoy
+- "el lunes" → el próximo lunes (si hoy ya es lunes, el siguiente)
+- "la próxima semana" → el lunes de la semana que viene
+- "el viernes por la tarde" → ese viernes en la franja de tarde disponible
+Usa siempre la zona horaria Europe/Madrid al construir el timestamp final.
+
+### Proceso de Agendamiento
+1. **Oferta inicial**: Cuando el usuario acepta agendar, di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?".
+2. **Más opciones**: Si no le conviene ninguna, ofrece opciones de \`{{consultar_disponibilidad}}\`.
+3. **Recogida de datos**: Una vez elegido el hueco, di: "Estupendo. Para confirmar tu cita necesito un par de datos. ¿Cuál es tu número de teléfono?".
+4. **Email y deletreo (CRÍTICO)**:
    - Tras el teléfono, pide el email.
-   - Una vez escuchado el email, di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien".
-   - Escucha el deletreo completo.
-5. **Ejecución**: Inmediatamente después del deletreo, di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta \`book_appointment\`.
-6. **Confirmación**: Tras el éxito, confirma fecha/hora y menciona que recibirá un correo.
+   - Di siempre: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."
+   - Espera el deletreo completo antes de continuar.
+5. **Ejecución**: Tras el deletreo di: "Perfecto, déjame confirmar tu cita, un momento..." y ejecuta \`book_appointment\` con la fecha ISO correcta.
+6. **Confirmación**: Confirma fecha y hora en formato hablado y avisa de que recibirá un correo.
 
-### Reglas de formato de voz:
-- Día: "martes dieciocho".
-- Horas: Siempre con LETRAS (diez de la mañana, cuatro de la tarde). No digas formato 24h.
-- "la una" (nunca "un").`);
+### Formato de voz para fechas y horas
+- Día con número: "martes dieciocho", "jueves primero".
+- Horas siempre con palabras: "diez de la mañana", "cuatro de la tarde". Nunca formato 24h.
+- Para la 1:00 → "la una" (nunca "un").`;
+
+        if (p.enableCalCancellation) {
+            calBlock += `
+
+### Cancelaciones
+Cuando el usuario quiera cancelar su cita:
+1. Dile: "Voy a buscarte la cita con tu número de teléfono, un momento."
+2. Ejecuta \`cancel_appointment\` pasando \`phone_number: {{user_number}}\` (el número del llamante — NO lo preguntes al usuario).
+3. Si se cancela correctamente, confirma la cancelación.
+4. Si no se encuentra la cita, indícalo y ofrece hablar con una persona.`;
+        }
+
+        blocks.push(calBlock);
     }
 
     if (p.enableTransfer && p.transferDestinations.length > 0) {
@@ -422,11 +400,7 @@ Tienes la información de disponibilidad inyectada en las variables dinámicas d
         blocks.push(`## Base de Conocimientos\nConsulta los documentos si el usuario tiene dudas sobre los servicios.`);
     }
 
-    // --- COMPANY INFO INJECTION ---
-    const formattedHours = p.businessHours ? groupBusinessHours(p.businessHours) : '';
-    const companySection = `\n\n<!-- AUTO_COMPANY_START -->\n# Información de Contacto de ${p.companyName || 'la empresa'}\n${p.companyDescription ? `- Actividad: ${p.companyDescription}\n` : ''}- Dirección: ${p.companyAddress || 'No especificada'}\n- Teléfono para contacto (leído dígito a dígito): ${formatPhoneForTTS(p.companyPhone || '') || 'No especificado'}\n- Web: ${formatUrlForTTS(p.companyWebsite || '') || 'No especificada'}\n\n# Horario comercial:\n${formattedHours}\n<!-- AUTO_COMPANY_END -->\n`;
-
-    // Clean existing company blocks if they exist
+    // Remove any stale company blocks left over from older agent versions
     const companyRegex = /<!-- AUTO_COMPANY_START -->[\s\S]*<!-- AUTO_COMPANY_END -->/;
     if (companyRegex.test(cleanPrompt)) {
         cleanPrompt = cleanPrompt.replace(companyRegex, '').trim();
@@ -435,17 +409,14 @@ Tienes la información de disponibilidad inyectada en las variables dinámicas d
     // ALWAYS add Voice Style Rules for phonetic consistency
     blocks.push(`## Normas de Estilo de Voz (CRÍTICO)
 Para que suenes natural y cercano, sigue estas reglas de pronunciación en ESPAÑOL:
-4. **Correos Electrónicos**: Di "arroba" para "@" y "punto" para ".". Ejemplo: "contacto arroba empresa punto com".
-5. **General**: No leas números, símbolos o formatos técnicos. Di siempre las palabras tal y como se pronuncian en una conversación natural.`);
+- **Correos Electrónicos**: Di "arroba" para "@" y "punto" para ".". Ejemplo: "contacto arroba empresa punto com".
+- **General**: No leas números, símbolos o formatos técnicos. Di siempre las palabras tal y como se pronuncian en una conversación natural.`);
 
-    if (blocks.length === 0 && !companySection) return cleanPrompt;
+    if (blocks.length === 0) return cleanPrompt;
 
     let finalPrompt = cleanPrompt;
     if (blocks.length > 0) {
         finalPrompt += `\n\n# Uso de herramientas\n\n${blocks.join('\n\n')}`;
-    }
-    if (companySection) {
-        finalPrompt += `\n\n${companySection.trim()}`;
     }
 
     // --- CUSTOM NOTES INJECTION ---

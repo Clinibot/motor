@@ -166,7 +166,7 @@ export const Step5_Tools: React.FC = () => {
                                                 {transferDestinations.length === 0 ? (
                                                     <div className="hint" style={{ color: 'var(--error)' }}>
                                                         <i className="bi bi-exclamation-triangle" style={{ marginRight: '4px' }}></i>
-                                                        Activa y configura "Transferir llamada" primero para poder seleccionar un destino.
+                                                        Activa y configura &quot;Transferir llamada&quot; primero para poder seleccionar un destino.
                                                     </div>
                                                 ) : (
                                                     <select className="inp sel"
