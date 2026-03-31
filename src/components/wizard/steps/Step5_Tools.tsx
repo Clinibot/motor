@@ -150,15 +150,37 @@ export const Step5_Tools: React.FC = () => {
                                             <div className="fg" style={{ marginBottom: 0 }}>
                                                 <label className="lbl">Si no cualifica</label>
                                                 <select className="inp sel" value={q.failAction || 'end_call'}
-                                                    onChange={e => { const l = [...leadQuestions]; l[idx].failAction = e.target.value as 'end_call' | 'transfer' | 'booking' | 'continue'; updateField('leadQuestions', l); }}
+                                                    onChange={e => { const l = [...leadQuestions]; l[idx].failAction = e.target.value as 'end_call' | 'transfer' | 'booking' | 'continue'; if (e.target.value !== 'transfer') l[idx].failTransferIdx = undefined; updateField('leadQuestions', l); }}
                                                 >
                                                     <option value="" disabled>¿Qué hace el agente?</option>
                                                     <option value="end_call">Terminar la llamada</option>
+                                                    <option value="transfer">Ejecutar transferencia</option>
                                                     <option value="booking">Agendar cita</option>
                                                     <option value="continue">Continuar sin cualificar</option>
                                                 </select>
                                             </div>
                                         </div>
+                                        {q.failAction === 'transfer' && (
+                                            <div className="fg" style={{ marginTop: '10px', marginBottom: 0 }}>
+                                                <label className="lbl">¿A qué destino transferir?</label>
+                                                {transferDestinations.length === 0 ? (
+                                                    <div className="hint" style={{ color: 'var(--error)' }}>
+                                                        <i className="bi bi-exclamation-triangle" style={{ marginRight: '4px' }}></i>
+                                                        Activa y configura "Transferir llamada" primero para poder seleccionar un destino.
+                                                    </div>
+                                                ) : (
+                                                    <select className="inp sel"
+                                                        value={q.failTransferIdx ?? ''}
+                                                        onChange={e => { const l = [...leadQuestions]; l[idx].failTransferIdx = Number(e.target.value); updateField('leadQuestions', l); }}
+                                                    >
+                                                        <option value="" disabled>Selecciona un destino</option>
+                                                        {transferDestinations.map((dest, di) => (
+                                                            <option key={di} value={di}>{dest.name || `Destino #${di + 1}`}</option>
+                                                        ))}
+                                                    </select>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                                 {leadQuestions.length < 3 && (
