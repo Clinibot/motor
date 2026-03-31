@@ -39,6 +39,16 @@ export interface ToolsPayload {
     calTimezone?: string;
     // Resolved absolute site URL (set by the route handler before calling buildRetellTools)
     siteUrl?: string;
+    // Agent identity (used to build the call script)
+    agentName?: string;
+    agentType?: string;
+    // Lead qualification questions
+    leadQuestions?: {
+        question: string;
+        key: string;
+        failAction?: 'end_call' | 'transfer' | 'booking' | 'continue';
+        failTransferIdx?: number;
+    }[];
     // Company Info (kept for legacy but no longer injected into prompts)
     companyName?: string;
     companyAddress?: string;
@@ -50,14 +60,14 @@ export interface ToolsPayload {
 
 type RetellTool = Record<string, unknown>;
 
+// Helper to handle both boolean true and string "true" from Supabase JSON
+const parseBool = (val: unknown): boolean => val === true || val === 'true';
+
 /**
  * Builds the `tools` array for the Retell LLM create/update call.
  */
 export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     const tools: RetellTool[] = [];
-
-    // Helper to handle both boolean true and string "true" from Supabase JSON
-    const parseBool = (val: unknown): boolean => val === true || val === 'true';
 
     // 1. End Call
     if (parseBool(p.enableEndCall)) {
@@ -302,6 +312,68 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
 
     const blocks: string[] = [];
     const lowerPrompt = cleanPrompt.toLowerCase();
+
+    // ── CALL SCRIPT ──────────────────────────────────────────────────────────
+    // Build a structured call flow based on configured tools and qualification questions
+    {
+        const hasQualification = (p.leadQuestions?.length ?? 0) > 0;
+        const hasCal = parseBool(p.enableCalBooking) && !!p.calApiKey;
+        const hasTransfer = parseBool(p.enableTransfer) && p.transferDestinations.length > 0;
+        const hasEndCall = parseBool(p.enableEndCall);
+
+        const scriptLines: string[] = [];
+        scriptLines.push(`## Guión de la Llamada\nSigue este flujo en orden:`);
+        scriptLines.push(`\n**PASO 1 — Saludo**\nSaluda cordialmente, preséntate como ${p.agentName || 'asistente'} de ${p.companyName || 'la empresa'} y explica brevemente el motivo de la llamada.`);
+
+        let paso = 2;
+
+        if (hasQualification) {
+            const questions = p.leadQuestions!;
+            const qLines = questions.map((q, i) => {
+                let failDesc = '';
+                if (q.failAction === 'end_call') failDesc = 'finaliza la llamada con `end_call`';
+                else if (q.failAction === 'booking') failDesc = 'ofrece agendar una cita';
+                else if (q.failAction === 'transfer') {
+                    const dest = p.transferDestinations[q.failTransferIdx ?? 0];
+                    const toolName = dest ? `transfer_to_${dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}` : 'transferencia';
+                    failDesc = `ejecuta \`${toolName}\``;
+                } else failDesc = 'continúa con el siguiente paso';
+                return `   ${i + 1}. "${q.question}" → Si no cualifica: ${failDesc}.`;
+            });
+            scriptLines.push(`\n**PASO ${paso} — Cualificación**\nRealiza las siguientes preguntas en orden. Si el contacto no cualifica en alguna, sigue la acción indicada:\n${qLines.join('\n')}`);
+            paso++;
+            scriptLines.push(`\n**PASO ${paso} — Si cualifica en todas**`);
+            paso++;
+        }
+
+        if (hasCal && hasTransfer) {
+            const transferNames = p.transferDestinations
+                .filter(d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId))
+                .map(d => `\`transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}\``)
+                .join(' o ');
+            scriptLines.push(`\n**PASO ${paso} — Acción principal**\nOfrece agendar una cita o transferir al equipo según necesite el contacto:\n- Si quiere cita → sigue el proceso de agendamiento.\n- Si prefiere hablar con alguien → ${transferNames}.`);
+            paso++;
+        } else if (hasCal) {
+            scriptLines.push(`\n**PASO ${paso} — Agendamiento**\nOfrece agendar una cita y sigue el proceso de agendamiento detallado más abajo.`);
+            paso++;
+        } else if (hasTransfer) {
+            const transferNames = p.transferDestinations
+                .filter(d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId))
+                .map(d => {
+                    const toolName = `transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                    return `- ${d.name}: \`${toolName}\``;
+                }).join('\n');
+            scriptLines.push(`\n**PASO ${paso} — Transferencia**\nTransfiere al contacto según corresponda:\n${transferNames}`);
+            paso++;
+        }
+
+        if (hasEndCall) {
+            scriptLines.push(`\n**PASO ${paso} — Cierre**\nDespídete de forma cordial y ejecuta \`end_call\`.`);
+        }
+
+        blocks.push(scriptLines.join('\n'));
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     if (p.enableEndCall && !lowerPrompt.includes('end_call')) {
         blocks.push(`## Finalizar llamada\nCuando el usuario dice adiós o la conversación llega al final del flujo, activa la función \`end_call\` para finalizar la llamada de forma cordial.`);
