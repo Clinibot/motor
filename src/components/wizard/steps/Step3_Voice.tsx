@@ -64,23 +64,31 @@ export const Step3_Voice: React.FC = () => {
 
     // Custom cloned voices from Retell
     const [clonedVoices, setClonedVoices] = useState<RetellVoice[]>([]);
+    // Real voice IDs + preview URLs from Retell, keyed by lowercase name
+    const [retellVoiceMap, setRetellVoiceMap] = useState<Record<string, RetellVoice>>({});
 
     useEffect(() => {
-        const fetchClonedVoices = async () => {
+        const fetchVoices = async () => {
             try {
                 const res = await fetch('/api/retell/voices');
                 if (!res.ok) return;
                 const data = await res.json();
                 if (data.success && Array.isArray(data.voices)) {
-                    // Only voices cloned by this workspace (type === 'clone')
-                    const cloned = (data.voices as RetellVoice[]).filter(v => v.voice_type === 'clone');
-                    setClonedVoices(cloned);
+                    const all = data.voices as RetellVoice[];
+                    // Cloned voices (workspace-specific)
+                    setClonedVoices(all.filter(v => v.voice_type === 'clone'));
+                    // Map system voices by lowercase name for preview URL lookup
+                    const map: Record<string, RetellVoice> = {};
+                    all.filter(v => v.voice_type !== 'clone').forEach(v => {
+                        map[v.voice_name.toLowerCase()] = v;
+                    });
+                    setRetellVoiceMap(map);
                 }
             } catch {
-                // silent — not critical
+                // silent
             }
         };
-        fetchClonedVoices();
+        fetchVoices();
     }, []);
 
     const filteredVoices = useMemo(() => {
@@ -95,9 +103,12 @@ export const Step3_Voice: React.FC = () => {
             return;
         }
         if (audioRef.current) audioRef.current.pause();
-        if (!v.preview_audio_url) { toast.error('Audio no disponible'); return; }
+        // Prefer real preview URL from Retell over hardcoded one
+        const realVoice = retellVoiceMap[v.voice_name.toLowerCase()];
+        const previewUrl = realVoice?.preview_audio_url || v.preview_audio_url;
+        if (!previewUrl) { toast.error('Audio no disponible'); return; }
 
-        const newAudio = new Audio(v.preview_audio_url);
+        const newAudio = new Audio(previewUrl);
         newAudio.onplay = () => setPlayingId(id);
         newAudio.onended = () => setPlayingId(null);
         newAudio.onerror = () => setPlayingId(null);
@@ -107,7 +118,9 @@ export const Step3_Voice: React.FC = () => {
 
     const selectVoice = (v: Voice) => {
         if (v.isComingSoon) return;
-        updateField('voiceId', v.voice_id);
+        // Use real Retell voice ID if available, otherwise fall back to our curated ID
+        const realVoice = retellVoiceMap[v.voice_name.toLowerCase()];
+        updateField('voiceId', realVoice?.voice_id ?? v.voice_id);
         updateField('voiceName', v.voice_name);
         updateField('voiceProvider', v.provider);
     };
