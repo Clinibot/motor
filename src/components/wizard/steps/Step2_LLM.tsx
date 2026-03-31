@@ -28,9 +28,9 @@ export const Step2_LLM: React.FC = () => {
                 <label className="lbl">Selecciona el modelo <span style={{ color: 'var(--error)' }}>*</span></label>
                 <div className="rcards-2" style={{ marginTop: '8px' }}>
                     <div
-                        className={`rcard${model === 'gemini-3.1-flash' ? ' on' : ''}`}
+                        className={`rcard${model === 'gemini-3.0-flash' ? ' on' : ''}`}
                         style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}
-                        onClick={() => updateField('model', 'gemini-3.1-flash')}
+                        onClick={() => updateField('model', 'gemini-3.0-flash')}
                     >
                         <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--azul-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <i className="bi bi-stars" style={{ color: 'var(--azul)', fontSize: '18px' }}></i>
@@ -41,9 +41,9 @@ export const Step2_LLM: React.FC = () => {
                         </div>
                     </div>
                     <div
-                        className={`rcard${model === 'gpt-4o' ? ' on' : ''}`}
+                        className={`rcard${model === 'gpt-4.1' ? ' on' : ''}`}
                         style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}
-                        onClick={() => updateField('model', 'gpt-4o')}
+                        onClick={() => updateField('model', 'gpt-4.1')}
                     >
                         <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <i className="bi bi-robot" style={{ color: 'var(--exito)', fontSize: '18px' }}></i>
