@@ -343,7 +343,14 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
 
     // Qualification
     if (hasQualification) {
+        const totalQ = p.leadQuestions!.length;
         const qLines = p.leadQuestions!.map((q, i) => {
+            // Success condition
+            const onPass = q.key?.trim()
+                ? `la respuesta cumple: "${q.key.trim()}"`
+                : 'la respuesta es satisfactoria';
+
+            // Fail action
             let onFail = 'continúa con la siguiente pregunta';
             if (q.failAction === 'end_call')  onFail = 'finaliza la llamada con `end_call`';
             else if (q.failAction === 'booking') onFail = 'ofrece agendar una cita (ve al apartado Agendamiento)';
@@ -354,11 +361,16 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
                     : 'transferencia';
                 onFail = `transfiere con \`${tName}\``;
             }
-            return `   ${i + 1}. "${q.question}"\n      → Si no cualifica: ${onFail}.`;
+
+            const passLine = i === totalQ - 1
+                ? `→ Si cualifica (${onPass}): continúa al flujo principal.`
+                : `→ Si cualifica (${onPass}): pasa a la pregunta ${i + 2}.`;
+
+            return `   ${i + 1}. "${q.question}"\n      ${passLine}\n      → Si NO cualifica: ${onFail}.`;
         });
         scriptSteps.push(
             `**PASO ${paso} — Cualificación**\n` +
-            `Haz estas preguntas de una en una. Si el contacto no supera alguna, aplica la acción indicada:\n` +
+            `Haz estas preguntas de una en una. Aplica la acción indicada según la respuesta:\n` +
             qLines.join('\n')
         );
         paso++;
