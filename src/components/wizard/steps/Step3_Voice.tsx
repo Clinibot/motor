@@ -72,10 +72,9 @@ export const Step3_Voice: React.FC = () => {
                 if (!res.ok) return;
                 const data = await res.json();
                 if (data.success && Array.isArray(data.voices)) {
-                    // Only custom/cloned voices (not the curated ones)
-                    const curatedIds = new Set(CURATED_VOICES_V2.map(v => v.voice_id));
-                    const custom = (data.voices as RetellVoice[]).filter(v => !curatedIds.has(v.voice_id) && v.voice_type !== 'system');
-                    setClonedVoices(custom);
+                    // Only voices cloned by this workspace (type === 'clone')
+                    const cloned = (data.voices as RetellVoice[]).filter(v => v.voice_type === 'clone');
+                    setClonedVoices(cloned);
                 }
             } catch {
                 // silent — not critical
