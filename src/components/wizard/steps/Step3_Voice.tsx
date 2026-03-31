@@ -211,7 +211,8 @@ export const Step3_Voice: React.FC = () => {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '8px' }}>
                             {voices.map(v => {
-                                const isSelected = voiceId === v.voice_id;
+                                const realId = retellVoiceMap[v.voice_name.toLowerCase()]?.voice_id ?? v.voice_id;
+                                const isSelected = voiceId === realId || voiceId === v.voice_id;
                                 const isComingSoon = v.isComingSoon;
                                 const providerColor: Record<string, { bg: string; color: string; border: string }> = {
                                     cartesia: { bg: 'var(--azul-light)', color: 'var(--azul)', border: '#bee3f8' },
