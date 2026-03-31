@@ -308,8 +308,10 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     ].forEach(re => { cleanPrompt = cleanPrompt.replace(re, ''); });
 
     // Extract & remove KB and Notes from base prompt (we'll re-add cleanly at the end)
-    cleanPrompt = cleanPrompt.replace(/\n?# Base de Conocimiento[\s\S]*?(?=\n#|$)/m, '').trim();
-    cleanPrompt = cleanPrompt.replace(/\n?# Notas Adicionales[\s\S]*?(?=\n#|$)/m, '').trim();
+    // NOTE: no 'm' flag — without it, '$' matches end-of-string so the full section is consumed
+    cleanPrompt = cleanPrompt.replace(/\n?# Base de Conocimiento[\s\S]*?(?=\n#|$)/, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Notas Adicionales[\s\S]*?(?=\n#|$)/, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Estilo de Pronunciación[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.trim();
 
     // ── 2. FLAGS ──────────────────────────────────────────────────────────────
@@ -330,11 +332,12 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     const scriptSteps: string[] = [];
     let paso = 1;
 
-    // Greeting
+    // Greeting (inbound — the beginMessage has already been sent)
     scriptSteps.push(
-        `**PASO ${paso} — Saludo**\n` +
-        `Saluda cordialmente, preséntate como ${p.agentName || 'el asistente'} ` +
-        `de ${p.companyName || 'la empresa'} y explica brevemente el motivo de la llamada.`
+        `**PASO ${paso} — Inicio**\n` +
+        `Ya enviaste el saludo de bienvenida. Ahora:\n` +
+        `- Si no sabes el nombre del usuario, pregunta: "¿Con quién tengo el gusto de hablar?"\n` +
+        `- Identifica el motivo de la llamada: "¿En qué puedo ayudarte hoy?"`
     );
     paso++;
 
@@ -465,7 +468,24 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     }
 
     // ── 5. ASSEMBLE ───────────────────────────────────────────────────────────
-    let finalPrompt = cleanPrompt + '\n\n' + callScript;
+    const pronunciationSection =
+        `# Estilo de Pronunciación\n\n` +
+        `### Cómo pronunciar los números de teléfono\n` +
+        `Nunca repitas el teléfono del usuario; solo pregunta si es el número desde el que llama. ` +
+        `Cuando debas dar un número al usuario, sigue esta regla exacta — nunca te la saltes:\n` +
+        `Pronuncia los 2 primeros dígitos, pausa breve, los 3 siguientes, los 2 siguientes y los 2 últimos.\n` +
+        `Ejemplo: 666 522 22 22 → "seis seis - cinco dos dos - dos dos - dos dos"\n\n` +
+        `### Cómo pronunciar los emails\n` +
+        `Cuando tengas que dar o confirmar un email, di primero: "Esta parte me cuesta un poco, así que lo haré poco a poco." ` +
+        `Luego pronuncia lo que va antes de la arroba, di "arroba" y después lo que va después.\n` +
+        `Ejemplo: pepe@pepe.com → "pepe - arroba - pepe punto com"\n\n` +
+        `### Cómo pronunciar las fechas y horas\n` +
+        `- Día con número: "martes dieciocho", "jueves primero".\n` +
+        `- Horas siempre con palabras: "diez de la mañana", "cuatro de la tarde". Nunca formato 24h.\n` +
+        `- Para la 1:00 → "la una" (nunca "un").\n` +
+        `- Para los 30 minutos → "y media": "diez y media de la mañana".`;
+
+    let finalPrompt = cleanPrompt + '\n\n' + pronunciationSection + '\n\n' + callScript;
 
     if (toolDetails.length > 0) {
         finalPrompt += `\n\n---\n\n## Instrucciones de Herramientas\n\n${toolDetails.join('\n\n')}`;
@@ -474,7 +494,12 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // KB — clean, single occurrence
     if (hasKB) {
         const kbNames = p.kbFiles!.map(f => `- ${f.name || f.id}`).join('\n');
-        finalPrompt += `\n\n# Base de Conocimiento\nConsulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa:\n${kbNames}`;
+        finalPrompt +=
+            `\n\n# Base de Conocimiento\n` +
+            `Consulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa:\n` +
+            `${kbNames}\n\n` +
+            `Si la información no está en estos documentos ni en el prompt, díselo amablemente ` +
+            `y ofrécete a consultarlo con el equipo: "No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar."`;
     }
 
     // Notes — clean, single occurrence
