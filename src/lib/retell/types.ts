@@ -74,7 +74,7 @@ export interface AgentPayload {
     temperature?: number;
     highPriority?: boolean;
     whoFirst?: 'agent' | 'user';
-    language?: unknown;
+    language?: string;
     responsiveness?: number;
     interruptionSensitivity?: number;
     enableBackchannel?: boolean;

@@ -42,6 +42,8 @@ export interface ToolsPayload {
     // Agent identity (used to build the call script)
     agentName?: string;
     agentType?: string;
+    // Language (used to enforce language rule in prompt)
+    language?: string;
     // Lead qualification questions
     leadQuestions?: {
         question: string;
@@ -561,7 +563,17 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         `- Para la 1:00 → "la una" (nunca "un").\n` +
         `- Para los 30 minutos → "y media": "diez y media de la mañana".`;
 
-    let finalPrompt = cleanPrompt + '\n\n' + pronunciationSection + '\n\n' + callScript;
+    // Language rule — injected only when a non-Spanish language is set
+    const langCode = p.language?.split('-')[0];
+    const langRule = langCode === 'ca'
+        ? `# Idioma\n\n**NORMA ABSOLUTA: Habla SIEMPRE en catalán, sin excepción.** Aunque el usuario te hable en castellano, inglés o cualquier otro idioma, debes responder siempre en catalán. No existe ninguna circunstancia que justifique cambiar de idioma.`
+        : langCode === 'en'
+        ? `# Language\n\n**ABSOLUTE RULE: Always speak in English without exception.** Even if the user addresses you in another language, always respond in English.`
+        : null;
+
+    let finalPrompt = cleanPrompt + '\n\n' + pronunciationSection;
+    if (langRule) finalPrompt += '\n\n' + langRule;
+    finalPrompt += '\n\n' + callScript;
 
     if (toolDetails.length > 0) {
         finalPrompt += `\n\n---\n\n## Instrucciones de Herramientas\n\n${toolDetails.join('\n\n')}`;

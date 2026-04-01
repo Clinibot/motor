@@ -124,6 +124,10 @@ export const Step3_Voice: React.FC = () => {
         updateField('voiceId', realVoice?.voice_id ?? v.voice_id);
         updateField('voiceName', v.voice_name);
         updateField('voiceProvider', v.provider);
+        // Auto-set language based on voice language
+        if (v.language === 'ca') updateField('language', 'ca-ES');
+        else if (v.language === 'en') updateField('language', 'en-US');
+        else if (v.language === 'es') updateField('language', 'es-ES');
     };
 
     const selectClonedVoice = (v: RetellVoice) => {
