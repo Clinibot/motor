@@ -29,13 +29,16 @@ export async function POST(request: NextRequest) {
 
         console.log('[calcom/book] Parsed body keys:', Object.keys(body));
 
-        const start_time = body.start_time as string;
-        const name = body.name as string;
-        const email = body.email as string;
-        const phone = body.phone as string;
+        // Retell wraps custom tool parameters inside body.args
+        const args = (body.args as Record<string, unknown>) || body;
+
+        const start_time = args.start_time as string;
+        const name = args.name as string;
+        const email = args.email as string;
+        const phone = args.phone as string;
 
         if (!start_time || !name || !email) {
-            return NextResponse.json({ success: false, error: `Missing fields — received keys: ${Object.keys(body).join(', ')}` }, { status: 400 });
+            return NextResponse.json({ success: false, error: `Missing fields — received args keys: ${Object.keys(args).join(', ')}` }, { status: 400 });
         }
 
         // Validate that start_time is a parseable ISO date

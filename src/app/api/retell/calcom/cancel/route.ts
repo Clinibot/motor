@@ -15,7 +15,9 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const rawPhone: string = body.phone_number || '';
+        // Retell wraps custom tool parameters inside body.args
+        const args = (body.args as Record<string, unknown>) || body;
+        const rawPhone: string = (args.phone_number as string) || '';
 
         if (!rawPhone) {
             return NextResponse.json({ success: false, error: 'Missing phone_number parameter' }, { status: 400 });
