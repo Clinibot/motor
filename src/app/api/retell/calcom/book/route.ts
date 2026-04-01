@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         const email = args.email as string;
         const phone = args.phone as string;
 
-        if (!start_time || !name || !email) {
+        if (!start_time || !name) {
             return NextResponse.json({ success: false, error: `Missing fields — received args keys: ${Object.keys(args).join(', ')}` }, { status: 400 });
         }
 
@@ -50,20 +50,24 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        console.log(`[calcom/book] Booking event ${eventTypeId} at ${start_time} for ${name} <${email}> ${phone || ''}`);
+        // Use a placeholder email if none provided or invalid format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const safeEmail = email && emailRegex.test(email) ? email : 'sin-email@reserva.local';
+
+        console.log(`[calcom/book] Booking event ${eventTypeId} at ${start_time} for ${name} <${safeEmail}> ${phone || ''}`);
 
         const bookingBody: Record<string, unknown> = {
             start: start_time,
             eventTypeId: parseInt(eventTypeId, 10),
             attendee: {
                 name,
-                email,
+                email: safeEmail,
                 timeZone: 'Europe/Madrid',
                 language: 'es',
                 ...(phone ? { phoneNumber: phone } : {}),
             },
             bookingFieldsResponses: {
-                email,
+                email: safeEmail,
                 name,
                 ...(phone ? { phone } : {}),
             },
