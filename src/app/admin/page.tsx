@@ -182,8 +182,12 @@ export default function PlatformManagement() {
             if (data.success) {
                 const ok = data.results?.filter((r: { status: string }) => r.status === 'ok').length ?? 0;
                 const skipped = data.results?.filter((r: { status: string }) => r.status === 'skipped').length ?? 0;
-                const errors = data.results?.filter((r: { status: string }) => r.status === 'error').length ?? 0;
-                setImportVoicesResult({ id: ws.id, message: `✓ ${ok} importadas, ${skipped} ya existían${errors > 0 ? `, ${errors} errores` : ''}` });
+                const errorItems = data.results?.filter((r: { status: string }) => r.status === 'error') ?? [];
+                const firstError = errorItems[0]?.error ?? '';
+                const msg = ok > 0 || skipped > 0
+                    ? `✓ ${ok} importadas, ${skipped} ya existían${errorItems.length > 0 ? `, ${errorItems.length} errores: ${firstError}` : ''}`
+                    : `Error (${errorItems.length}): ${firstError}`;
+                setImportVoicesResult({ id: ws.id, message: msg });
             } else {
                 setImportVoicesResult({ id: ws.id, message: `Error: ${data.error}` });
             }
