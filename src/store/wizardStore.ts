@@ -13,11 +13,11 @@ export interface Voice {
 }
 
 export const CURATED_VOICES_V2: Voice[] = [
-    { voice_id: 'custom-carolina', voice_name: 'Carolina', provider: 'premium', gender: 'female', language: 'es', accent: 'Natural, Neutral and Clear' },
+    { voice_id: 'custom-carolina', voice_name: 'Carolina', provider: 'premium', gender: 'female', language: 'es', accent: 'Natural, Neutral and Clear', preview_audio_url: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/UOIqAnmS11Reiei1Ytkc/preview.mp3' },
     { voice_id: 'v2-manuel', voice_name: 'Manuel', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/manuel.mp3' },
     { voice_id: 'v2-santiago', voice_name: 'Santiago', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/santiago.mp3' },
-    { voice_id: '11labs-YDDaC9XKjODs7hY78qEW', voice_name: 'MariCarmen', provider: 'premium', gender: 'female', language: 'es', accent: 'Hurried and Intimidating' },
-    { voice_id: '11labs-gD1IexrzCvsXPHUuT0s3', voice_name: 'Sara Martin', provider: 'premium', gender: 'female', language: 'es', accent: 'Young and Reflective' },
+    { voice_id: '11labs-YDDaC9XKjODs7hY78qEW', voice_name: 'MariCarmen', provider: 'premium', gender: 'female', language: 'es', accent: 'Hurried and Intimidating', preview_audio_url: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/YDDaC9XKjODs7hY78qEW/preview.mp3' },
+    { voice_id: '11labs-gD1IexrzCvsXPHUuT0s3', voice_name: 'Sara Martin', provider: 'premium', gender: 'female', language: 'es', accent: 'Young and Reflective', preview_audio_url: 'https://storage.googleapis.com/eleven-public-prod/premade/voices/gD1IexrzCvsXPHUuT0s3/preview.mp3' },
     { voice_id: '11labs-Andrea', voice_name: 'Andrea', provider: 'premium', gender: 'female', language: 'es', accent: 'Mexicano' },
     { voice_id: 'v2-adrian', voice_name: 'Adrian', provider: 'standard', gender: 'male', language: 'en', accent: 'Americano', preview_audio_url: 'https://storage.googleapis.com/retell-api/adrian.mp3' },
     { voice_id: 'v2-cimo', voice_name: 'Cimo', provider: 'premium', gender: 'female', language: 'ca', accent: 'Multilingüe', preview_audio_url: 'https://storage.googleapis.com/retell-api/cimo.mp3' },
