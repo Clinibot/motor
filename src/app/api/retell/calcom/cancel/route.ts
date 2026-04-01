@@ -47,13 +47,20 @@ export async function POST(request: NextRequest) {
         }
 
         const bookingsData = await bookingsRes.json();
+        console.log('[calcom/cancel] bookingsData keys:', Object.keys(bookingsData));
+        console.log('[calcom/cancel] bookingsData.data length:', Array.isArray(bookingsData?.data) ? bookingsData.data.length : typeof bookingsData?.data);
+        if (Array.isArray(bookingsData?.data) && bookingsData.data.length > 0) {
+            console.log('[calcom/cancel] first booking keys:', Object.keys(bookingsData.data[0]));
+            console.log('[calcom/cancel] first booking attendees:', JSON.stringify(bookingsData.data[0]?.attendees));
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookings: any[] = bookingsData?.data || bookingsData?.bookings || [];
 
         if (bookings.length === 0) {
             return NextResponse.json({
                 success: false,
-                message: 'No se encontraron citas próximas en la agenda.'
+                message: `No se encontraron citas próximas en la agenda. (API keys: ${Object.keys(bookingsData).join(', ')})`
             });
         }
 
