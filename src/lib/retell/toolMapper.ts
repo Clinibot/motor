@@ -363,6 +363,8 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     cleanPrompt = cleanPrompt.replace(/\n?# Base de Conocimiento[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Notas Adicionales[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Estilo de Pronunciación[\s\S]*?(?=\n#|$)/, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Idioma[\s\S]*?(?=\n#|$)/, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Language[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.trim();
 
     // ── 2. FLAGS ──────────────────────────────────────────────────────────────
@@ -569,7 +571,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         ? `# Idioma\n\n**NORMA ABSOLUTA: Habla SIEMPRE en catalán, sin excepción.** Aunque el usuario te hable en castellano, inglés o cualquier otro idioma, debes responder siempre en catalán. No existe ninguna circunstancia que justifique cambiar de idioma.`
         : langCode === 'en'
         ? `# Language\n\n**ABSOLUTE RULE: Always speak in English without exception.** Even if the user addresses you in another language, always respond in English.`
-        : null;
+        : `# Idioma\n\n**NORMA ABSOLUTA: Habla SIEMPRE en español, sin excepción.** Aunque el usuario te hable en otro idioma, debes responder siempre en español. No existe ninguna circunstancia que justifique cambiar de idioma.`;
 
     let finalPrompt = cleanPrompt + '\n\n' + pronunciationSection;
     if (langRule) finalPrompt += '\n\n' + langRule;
