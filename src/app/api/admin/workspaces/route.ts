@@ -61,6 +61,15 @@ export async function POST(req: Request) {
 
         if (error) throw error;
 
+        // Auto-import curated ElevenLabs voices into the new workspace (fire and forget)
+        if (retell_api_key && newWorkspace) {
+            fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/retell/voices/import-defaults`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ retell_api_key }),
+            }).catch(e => console.warn('[workspaces] import-defaults failed:', e));
+        }
+
         return NextResponse.json({ success: true, workspace: newWorkspace });
     } catch (error: unknown) {
         console.error("Error creating workspace:", error);
@@ -123,6 +132,15 @@ export async function PATCH(req: Request) {
             .eq('id', id);
 
         if (error) throw error;
+
+        // If API key was updated, re-import curated voices (fire and forget)
+        if (retell_api_key) {
+            fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/retell/voices/import-defaults`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ retell_api_key }),
+            }).catch(e => console.warn('[workspaces] import-defaults failed on PATCH:', e));
+        }
 
         return NextResponse.json({ success: true });
     } catch (error: unknown) {
