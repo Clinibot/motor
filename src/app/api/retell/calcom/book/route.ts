@@ -62,6 +62,11 @@ export async function POST(request: NextRequest) {
                 language: 'es',
                 ...(phone ? { phoneNumber: phone } : {}),
             },
+            bookingFieldsResponses: {
+                email,
+                name,
+                ...(phone ? { phone } : {}),
+            },
         };
 
         const res = await fetch('https://api.cal.com/v2/bookings', {
