@@ -19,8 +19,8 @@ export const CURATED_VOICES_V2: Voice[] = [
     { voice_id: '11labs-YDDaC9XKjODs7hY78qEW', voice_name: 'MariCarmen', provider: 'premium', gender: 'female', language: 'es', accent: 'Hurried and Intimidating' },
     { voice_id: '11labs-gD1IexrzCvsXPHUuT0s3', voice_name: 'Sara Martin', provider: 'premium', gender: 'female', language: 'es', accent: 'Young and Reflective' },
     { voice_id: '11labs-Andrea', voice_name: 'Andrea', provider: 'premium', gender: 'female', language: 'es', accent: 'Mexicano' },
-    { voice_id: 'retell-Nico', voice_name: 'Nico', provider: 'premium', gender: 'male', language: 'en' },
-    { voice_id: 'v2-willa', voice_name: 'Willa', provider: 'premium', gender: 'female', language: 'en', preview_audio_url: 'https://storage.googleapis.com/retell-api/willa.mp3' },
+    { voice_id: '11labs-Nico', voice_name: 'Nico', provider: 'premium', gender: 'male', language: 'en' },
+    { voice_id: '11labs-Willa', voice_name: 'Willa', provider: 'premium', gender: 'female', language: 'en' },
     { voice_id: 'openai-Cimo', voice_name: 'Cimo', provider: 'premium', gender: 'female', language: 'ca', accent: 'Multilingüe', preview_audio_url: 'https://storage.googleapis.com/retell-api/cimo.mp3' },
     { voice_id: 'openai-Alloy', voice_name: 'Alloy', provider: 'standard', gender: 'male', language: 'ca' },
 ];
