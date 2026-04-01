@@ -13,11 +13,12 @@ export interface Voice {
 }
 
 export const CURATED_VOICES_V2: Voice[] = [
-    { voice_id: 'v2-isabel', voice_name: 'Isabel', provider: 'premium', gender: 'female', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/isabel.mp3' },
+    { voice_id: 'custom-carolina', voice_name: 'Carolina', provider: 'premium', gender: 'female', language: 'es', accent: 'Natural, Neutral and Clear' },
     { voice_id: 'v2-manuel', voice_name: 'Manuel', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/manuel.mp3' },
     { voice_id: 'v2-santiago', voice_name: 'Santiago', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/santiago.mp3' },
-    { voice_id: 'v2-cristina', voice_name: 'Cristina', provider: 'soon', gender: 'female', language: 'es', isComingSoon: true },
-    { voice_id: 'v2-maricarme', voice_name: 'Mari Carme', provider: 'soon', gender: 'female', language: 'es', isComingSoon: true },
+    { voice_id: '11labs-YDDaC9XKjODs7hY78qEW', voice_name: 'MariCarmen', provider: 'premium', gender: 'female', language: 'es', accent: 'Hurried and Intimidating' },
+    { voice_id: '11labs-gD1IexrzCvsXPHUuT0s3', voice_name: 'Sara Martin', provider: 'premium', gender: 'female', language: 'es', accent: 'Young and Reflective' },
+    { voice_id: '11labs-Andrea', voice_name: 'Andrea', provider: 'premium', gender: 'female', language: 'es', accent: 'Mexicano' },
     { voice_id: 'v2-adrian', voice_name: 'Adrian', provider: 'standard', gender: 'male', language: 'en', accent: 'Americano', preview_audio_url: 'https://storage.googleapis.com/retell-api/adrian.mp3' },
     { voice_id: 'v2-cimo', voice_name: 'Cimo', provider: 'premium', gender: 'female', language: 'ca', accent: 'Multilingüe', preview_audio_url: 'https://storage.googleapis.com/retell-api/cimo.mp3' },
 ];
@@ -193,9 +194,9 @@ export const useWizardStore = create<WizardState>((set) => ({
     tone: 'Semiformal',
     prompt: 'Eres un asistente útil.',
 
-    voiceId: 'cartesia-Isabel',
-    voiceName: 'Isabel',
-    voiceProvider: 'cartesia',
+    voiceId: 'custom-carolina',
+    voiceName: 'Carolina',
+    voiceProvider: 'elevenlabs',
     voiceDescription: 'Voz natural y profesional para atención al cliente',
     voiceSpeed: 1.0,
     voiceTemperature: 1.0,
@@ -268,7 +269,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         agentName: '', companyName: '', agentType: 'cualificacion',
         model: 'gemini-3.0-flash', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
         personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
-        voiceId: 'cartesia-Isabel', voiceName: 'Isabel', voiceProvider: 'cartesia', voiceDescription: 'Voz natural y profesional para atención al cliente', voiceSpeed: 1.0, voiceTemperature: 1.0,
+        voiceId: 'custom-carolina', voiceName: 'Carolina', voiceProvider: 'elevenlabs', voiceDescription: 'Voz natural y profesional para atención al cliente', voiceSpeed: 1.0, voiceTemperature: 1.0,
         language: 'es-ES', responsiveness: 0.8, interruptionSensitivity: 0.8,
         enableBackchannel: true, backchannelFrequency: 0.9, backchannelWords: ['Ajá', 'Entiendo', 'Mmm', 'Claro'],
         boostedKeywords: [], normalizeForSpeech: true,
