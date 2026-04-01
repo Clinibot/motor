@@ -162,6 +162,38 @@ export default function PlatformManagement() {
         setRetellApiKey('');
     };
 
+    const [importingVoicesId, setImportingVoicesId] = useState<string | null>(null);
+    const [importVoicesResult, setImportVoicesResult] = useState<{ id: string; message: string } | null>(null);
+
+    const handleImportVoices = async (ws: Workspace) => {
+        if (!ws.retell_api_key) {
+            setImportVoicesResult({ id: ws.id, message: 'Sin API key configurada' });
+            return;
+        }
+        setImportingVoicesId(ws.id);
+        setImportVoicesResult(null);
+        try {
+            const res = await fetch('/api/retell/voices/import-defaults', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ retell_api_key: ws.retell_api_key })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const ok = data.results?.filter((r: { status: string }) => r.status === 'ok').length ?? 0;
+                const skipped = data.results?.filter((r: { status: string }) => r.status === 'skipped').length ?? 0;
+                const errors = data.results?.filter((r: { status: string }) => r.status === 'error').length ?? 0;
+                setImportVoicesResult({ id: ws.id, message: `✓ ${ok} importadas, ${skipped} ya existían${errors > 0 ? `, ${errors} errores` : ''}` });
+            } else {
+                setImportVoicesResult({ id: ws.id, message: `Error: ${data.error}` });
+            }
+        } catch {
+            setImportVoicesResult({ id: ws.id, message: 'Error de conexión' });
+        } finally {
+            setImportingVoicesId(null);
+        }
+    };
+
     const handleDeleteWorkspace = async (id: string, name: string) => {
         if (!window.confirm(`¿Estás seguro de que deseas eliminar "${name}"?`)) return;
         try {
@@ -254,7 +286,13 @@ export default function PlatformManagement() {
                                                         </div>
                                                     </td>
                                                     <td style={{ textAlign: 'right' }}>
-                                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                                            {importVoicesResult?.id === ws.id && (
+                                                                <span style={{ fontSize: '11px', color: importVoicesResult.message.startsWith('✓') ? 'var(--exito)' : 'var(--error)', fontWeight: 600 }}>{importVoicesResult.message}</span>
+                                                            )}
+                                                            <button className="btn-s" title="Importar voces" onClick={() => handleImportVoices(ws)} disabled={importingVoicesId === ws.id} style={{ padding: '5px 8px' }}>
+                                                                {importingVoicesId === ws.id ? <Loader2 size={12} className="animate-spin" /> : <i className="bi bi-soundwave" style={{ fontSize: '12px' }}></i>}
+                                                            </button>
                                                             <button className="btn-s" title="Editar" onClick={() => startEditing(ws)} style={{ padding: '5px 8px' }}><i className="bi bi-pencil" style={{ fontSize: '12px' }}></i></button>
                                                             <button className="btn-s" title="Eliminar" onClick={() => handleDeleteWorkspace(ws.id, ws.name)} style={{ padding: '5px 8px', color: 'var(--error)', borderColor: '#fecaca' }}><i className="bi bi-trash" style={{ fontSize: '12px' }}></i></button>
                                                         </div>
