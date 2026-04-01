@@ -77,10 +77,11 @@ export const Step3_Voice: React.FC = () => {
                     const all = data.voices as RetellVoice[];
                     // Cloned voices (workspace-specific)
                     setClonedVoices(all.filter(v => v.voice_type === 'clone'));
-                    // Map system voices by lowercase name for preview URL lookup
+                    // Map voices by lowercase name AND by voice_id for preview URL lookup
                     const map: Record<string, RetellVoice> = {};
                     all.filter(v => v.voice_type !== 'clone').forEach(v => {
                         map[v.voice_name.toLowerCase()] = v;
+                        map[v.voice_id.toLowerCase()] = v;
                     });
                     setRetellVoiceMap(map);
                 }
@@ -103,10 +104,10 @@ export const Step3_Voice: React.FC = () => {
             return;
         }
         if (audioRef.current) audioRef.current.pause();
-        // Prefer real preview URL from Retell over hardcoded one
-        const realVoice = retellVoiceMap[v.voice_name.toLowerCase()];
+        // Look up by voice_id first (most reliable), then by name
+        const realVoice = retellVoiceMap[v.voice_id.toLowerCase()] || retellVoiceMap[v.voice_name.toLowerCase()];
         const previewUrl = realVoice?.preview_audio_url || v.preview_audio_url;
-        if (!previewUrl) { toast.error('Audio no disponible'); return; }
+        if (!previewUrl) { toast.error('Audio no disponible aún'); return; }
 
         const newAudio = new Audio(previewUrl);
         newAudio.onplay = () => setPlayingId(id);
@@ -118,8 +119,8 @@ export const Step3_Voice: React.FC = () => {
 
     const selectVoice = (v: Voice) => {
         if (v.isComingSoon) return;
-        // Use real Retell voice ID if available, otherwise fall back to our curated ID
-        const realVoice = retellVoiceMap[v.voice_name.toLowerCase()];
+        // Use real Retell voice ID if available (lookup by id then by name), otherwise fall back
+        const realVoice = retellVoiceMap[v.voice_id.toLowerCase()] || retellVoiceMap[v.voice_name.toLowerCase()];
         updateField('voiceId', realVoice?.voice_id ?? v.voice_id);
         updateField('voiceName', v.voice_name);
         updateField('voiceProvider', v.provider);
