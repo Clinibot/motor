@@ -17,11 +17,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Missing cal_api_key or event_type_id' }, { status: 400 });
         }
 
-        const body = await request.json();
-        const { start_time, name, email, phone } = body;
+        const rawText = await request.text();
+        console.log('[calcom/book] Raw body:', rawText);
+
+        let body: Record<string, unknown> = {};
+        try {
+            body = JSON.parse(rawText);
+        } catch {
+            return NextResponse.json({ success: false, error: `Body is not valid JSON: ${rawText.slice(0, 200)}` }, { status: 400 });
+        }
+
+        console.log('[calcom/book] Parsed body keys:', Object.keys(body));
+
+        const start_time = body.start_time as string;
+        const name = body.name as string;
+        const email = body.email as string;
+        const phone = body.phone as string;
 
         if (!start_time || !name || !email) {
-            return NextResponse.json({ success: false, error: 'Missing required fields: start_time, name, email' }, { status: 400 });
+            return NextResponse.json({ success: false, error: `Missing fields — received keys: ${Object.keys(body).join(', ')}` }, { status: 400 });
         }
 
         // Validate that start_time is a parseable ISO date
