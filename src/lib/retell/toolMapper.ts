@@ -79,23 +79,43 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
         });
     }
 
-    // 2. Cal.com Booking (Availability handled via Inbound Webhook variables)
+    // 2. Cal.com Booking (custom endpoint — bypasses Retell's internal cal_util to avoid "Invalid time value")
     if (parseBool(p.enableCalBooking) && p.calApiKey && p.calEventId) {
         const eventId = parseInt(p.calEventId, 10);
-        
-        if (!isNaN(eventId)) {
-            const calSettings = {
-                cal_api_key: p.calApiKey,
-                event_type_id: eventId,
-                timezone: 'Europe/Madrid',
-            };
+        const siteUrl = p.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
 
-            // Booking tool
+        if (!isNaN(eventId) && siteUrl) {
+            const encodedKey = encodeURIComponent(p.calApiKey);
             tools.push({
-                type: 'book_appointment_cal',
+                type: 'custom',
                 name: 'book_appointment',
-                description: 'Reserva una cita en el calendario una vez el usuario ha elegido un horario.',
-                ...calSettings,
+                description: 'Reserva una cita en el calendario. Úsala una vez el usuario ha confirmado el horario exacto.',
+                url: `${siteUrl}/api/retell/calcom/book?cal_api_key=${encodedKey}&event_type_id=${eventId}`,
+                speak_during_execution: true,
+                speak_after_execution: true,
+                execution_message_description: 'Indica al usuario que estás confirmando la cita, que espere un momento.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        start_time: {
+                            type: 'string',
+                            description: 'Fecha y hora exacta del slot en formato ISO 8601 con offset de zona horaria, copiado literalmente de los datos de disponibilidad. Ejemplo válido: "2026-04-07T10:00:00.000+02:00". NUNCA construyas este valor — cópialo tal cual del slot elegido.',
+                        },
+                        name: {
+                            type: 'string',
+                            description: 'Nombre completo del usuario.',
+                        },
+                        email: {
+                            type: 'string',
+                            description: 'Correo electrónico del usuario.',
+                        },
+                        phone: {
+                            type: 'string',
+                            description: 'Número de teléfono del usuario en formato E.164 (ej: +34612345678). Usa {{user_number}} si el usuario no ha dado otro número.',
+                        },
+                    },
+                    required: ['start_time', 'name', 'email'],
+                },
             });
         }
     }
