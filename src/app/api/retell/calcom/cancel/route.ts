@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
         // Normalize phone: strip spaces, dashes. Keep + prefix.
         const normalizedPhone = rawPhone.replace(/[\s\-().]/g, '');
 
-        // 1. Fetch upcoming bookings from Cal.com v2
+        // 1. Fetch recent bookings (all statuses) to find the booking by phone
         const bookingsRes = await fetch(
-            'https://api.cal.com/v2/bookings?status=upcoming&limit=50',
+            'https://api.cal.com/v2/bookings?limit=50',
             {
                 headers: {
                     'cal-api-version': '2026-02-25',
@@ -85,6 +85,15 @@ export async function POST(request: NextRequest) {
 
         const bookingUid: string = matchedBooking.uid;
         const startTime: string = matchedBooking.start || matchedBooking.startTime || '';
+        const bookingStatus: string = matchedBooking.status || '';
+
+        // If already cancelled, return success immediately
+        if (bookingStatus === 'cancelled' || bookingStatus === 'canceled') {
+            return NextResponse.json({
+                success: true,
+                message: 'La cita ya estaba cancelada anteriormente. No hay ninguna cita activa pendiente.',
+            });
+        }
 
         // 3. Cancel the booking
         const cancelRes = await fetch(
