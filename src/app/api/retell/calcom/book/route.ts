@@ -77,14 +77,13 @@ export async function POST(request: NextRequest) {
         if (!res.ok) {
             const errText = await res.text();
             console.error('[calcom/book] Cal.com API error:', res.status, errText);
+            console.error('[calcom/book] Sent body:', JSON.stringify(bookingBody));
 
-            let userMsg = 'No se pudo confirmar la cita. ';
+            let userMsg = `Cal.com ${res.status}: ${errText.slice(0, 300)}`;
             if (res.status === 409 || errText.includes('already has booking') || errText.includes('not available')) {
-                userMsg += 'Ese horario acaba de ocuparse. Por favor elige otro.';
-            } else {
-                userMsg += 'Por favor inténtalo de nuevo.';
+                userMsg = 'Ese horario acaba de ocuparse. Por favor elige otro.';
             }
-            return NextResponse.json({ success: false, error: userMsg }, { status: res.status });
+            return NextResponse.json({ success: false, error: userMsg }, { status: 400 });
         }
 
         const data = await res.json();
