@@ -183,7 +183,7 @@ export const Step3_Voice: React.FC = () => {
             <div className="ci" style={{ marginBottom: '20px' }}>
                 <i className="bi bi-info-circle-fill" style={{ flexShrink: 0, marginTop: '1px' }}></i>
                 <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
-                    Cada voz está optimizada para su idioma. Las voces de <strong>Cartesia</strong> y <strong>ElevenLabs</strong> son las más naturales en español. Las voces marcadas como <em>Próximamente</em> estarán disponibles en futuras versiones.
+                    Recuerda adaptar el saludo inicial al idioma seleccionado para tu agente.
                 </div>
             </div>
 
