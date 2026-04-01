@@ -55,12 +55,18 @@ export async function POST(request: NextRequest) {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const bookings: any[] = bookingsData?.data || bookingsData?.bookings || [];
+        const allBookings: any[] = bookingsData?.data || bookingsData?.bookings || [];
+
+        // Only consider active (non-cancelled) bookings for cancellation
+        const bookings = allBookings.filter((b: { status?: string }) => {
+            const s = (b.status || '').toLowerCase();
+            return s !== 'cancelled' && s !== 'canceled';
+        });
 
         if (bookings.length === 0) {
             return NextResponse.json({
                 success: false,
-                message: `No se encontraron citas próximas en la agenda. (API keys: ${Object.keys(bookingsData).join(', ')})`
+                message: 'No se encontraron citas activas en la agenda.',
             });
         }
 

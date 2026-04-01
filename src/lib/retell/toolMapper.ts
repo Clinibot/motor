@@ -145,6 +145,31 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
         });
     }
 
+    // 3b. Cal.com Check appointment (always added when Cal.com is enabled)
+    if (parseBool(p.enableCalBooking) && p.calApiKey) {
+        const siteUrl = p.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
+        const encodedKey = encodeURIComponent(p.calApiKey);
+        tools.push({
+            type: 'custom',
+            name: 'check_appointment',
+            description: 'Consulta si el usuario tiene una cita activa buscando por su número de teléfono. Úsala cuando el usuario pregunte por su cita, quiera saber cuándo la tiene, o antes de cancelar.',
+            url: `${siteUrl}/api/retell/calcom/check?cal_api_key=${encodedKey}`,
+            speak_during_execution: true,
+            speak_after_execution: true,
+            execution_message_description: 'Informa al usuario que estás buscando su cita.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    phone_number: {
+                        type: 'string',
+                        description: 'Número de teléfono en formato E.164 (ej: +34612345678). Usa {{user_number}} por defecto.',
+                    },
+                },
+                required: ['phone_number'],
+            },
+        });
+    }
+
     // 4. Call Transfer
     if (parseBool(p.enableTransfer) && p.transferDestinations.length > 0) {
         p.transferDestinations.forEach((dest) => {
@@ -475,14 +500,21 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             `**Fechas coloquiales:** "mañana"→${tomorrowStr} | "pasado mañana"→+2 días | ` +
             `"el lunes"→próximo lunes | "la próxima semana"→lunes siguiente. Zona horaria: Europe/Madrid.`;
 
+        calDetail +=
+            `\n\n**Consultar cita:**\n` +
+            `Cuando el usuario pregunte por su cita o quiera saber cuándo la tiene:\n` +
+            `1. Ejecuta \`check_appointment\` con \`phone_number: {{user_number}}\`.\n` +
+            `2. Si la encuentra → comunica la fecha y hora al usuario.\n` +
+            `3. Si no la encuentra → pregunta: "¿Con qué teléfono hiciste la reserva?" y reintenta con ese número.`;
+
         if (hasCancel) {
             calDetail +=
                 `\n\n**Cancelaciones:**\n` +
-                `1. Di: "Voy a buscarte la cita ahora mismo, un momento." ` +
-                `y ejecuta \`cancel_appointment\` con \`phone_number: {{user_number}}\`.\n` +
-                `2. Si se cancela → confirma al usuario.\n` +
-                `3. Si no se encuentra → pregunta: "¿Con qué teléfono hiciste la reserva?" ` +
-                `y reintenta con ese número. Si sigue sin encontrar → ofrece transferir con una persona.`;
+                `1. Ejecuta primero \`check_appointment\` con \`phone_number: {{user_number}}\` para confirmar que existe la cita.\n` +
+                `2. Di: "Tengo tu cita del [fecha]. ¿Confirmas que quieres cancelarla?"\n` +
+                `3. Si confirma → ejecuta \`cancel_appointment\` con el mismo \`phone_number\`.\n` +
+                `4. Si no se encuentra en ningún intento → pregunta: "¿Con qué teléfono hiciste la reserva?" ` +
+                `y reintenta. Si sigue sin encontrar → ofrece transferir con una persona.`;
         }
 
         toolDetails.push(calDetail);
