@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
             'https://api.cal.com/v2/bookings?status=upcoming&limit=50',
             {
                 headers: {
-                    'cal-api-version': '2024-08-13',
+                    'cal-api-version': '2026-02-25',
                     'Authorization': `Bearer ${calApiKey}`,
                 },
             }
@@ -85,19 +85,19 @@ export async function POST(request: NextRequest) {
             {
                 method: 'POST',
                 headers: {
-                    'cal-api-version': '2024-08-13',
+                    'cal-api-version': '2026-02-25',
                     'Authorization': `Bearer ${calApiKey}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ reason: 'Cancelado por el usuario a través del asistente virtual.' }),
+                body: JSON.stringify({ cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: true }),
             }
         );
 
         if (!cancelRes.ok) {
             const errText = await cancelRes.text();
-            console.error('Cal.com cancel failed:', cancelRes.status, errText);
+            console.error('[calcom/cancel] Cal.com cancel failed:', cancelRes.status, errText);
             return NextResponse.json(
-                { success: false, error: 'No se pudo cancelar la cita. Inténtalo de nuevo más tarde.' },
+                { success: false, error: `No se pudo cancelar la cita (Cal.com ${cancelRes.status}): ${errText.slice(0, 200)}` },
                 { status: 502 }
             );
         }

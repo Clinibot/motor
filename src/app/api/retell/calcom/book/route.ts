@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         const res = await fetch('https://api.cal.com/v2/bookings', {
             method: 'POST',
             headers: {
-                'cal-api-version': '2024-08-13',
+                'cal-api-version': '2026-02-25',
                 'Authorization': `Bearer ${calApiKey}`,
                 'Content-Type': 'application/json',
             },
