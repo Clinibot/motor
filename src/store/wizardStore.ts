@@ -22,7 +22,7 @@ export const CURATED_VOICES_V2: Voice[] = [
     { voice_id: 'v2-adrian', voice_name: 'Adrian', provider: 'standard', gender: 'male', language: 'en', accent: 'Americano', preview_audio_url: 'https://storage.googleapis.com/retell-api/adrian.mp3' },
     { voice_id: 'v2-willa', voice_name: 'Willa', provider: 'premium', gender: 'female', language: 'en', preview_audio_url: 'https://storage.googleapis.com/retell-api/willa.mp3' },
     { voice_id: 'v2-cimo', voice_name: 'Cimo', provider: 'premium', gender: 'female', language: 'ca', accent: 'Multilingüe', preview_audio_url: 'https://storage.googleapis.com/retell-api/cimo.mp3' },
-    { voice_id: 'openai-alloy', voice_name: 'Alloy', provider: 'standard', gender: 'female', language: 'ca' },
+    { voice_id: 'openai-Alloy', voice_name: 'Alloy', provider: 'standard', gender: 'female', language: 'ca' },
 ];
 
 export interface TransferDestination {
