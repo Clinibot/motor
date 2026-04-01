@@ -54,7 +54,13 @@ export async function POST(request: NextRequest) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const safeEmail = email && emailRegex.test(email) ? email : 'sin-email@reserva.local';
 
-        console.log(`[calcom/book] Booking event ${eventTypeId} at ${start_time} for ${name} <${safeEmail}> ${phone || ''}`);
+        // Normalize phone to E.164: if no + prefix, assume Spanish (+34)
+        let safePhone = phone ? phone.replace(/[\s\-().]/g, '') : '';
+        if (safePhone && !safePhone.startsWith('+')) {
+            safePhone = '+34' + safePhone;
+        }
+
+        console.log(`[calcom/book] Booking event ${eventTypeId} at ${start_time} for ${name} <${safeEmail}> ${safePhone}`);
 
         const bookingBody: Record<string, unknown> = {
             start: start_time,
@@ -64,12 +70,12 @@ export async function POST(request: NextRequest) {
                 email: safeEmail,
                 timeZone: 'Europe/Madrid',
                 language: 'es',
-                ...(phone ? { phoneNumber: phone } : {}),
+                ...(safePhone ? { phoneNumber: safePhone } : {}),
             },
             bookingFieldsResponses: {
                 email: safeEmail,
                 name,
-                ...(phone ? { phone } : {}),
+                ...(safePhone ? { attendeePhoneNumber: safePhone } : {}),
             },
         };
 
