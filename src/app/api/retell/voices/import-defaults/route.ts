@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { importDefaultVoices } from '@/lib/retell/importDefaultVoices';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Vercel: allow up to 60s for Retell search calls
 
 /**
  * POST /api/retell/voices/import-defaults

@@ -31,7 +31,7 @@ async function getPublicUserId(apiKey: string, provider_voice_id: string, voice_
                 headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ voice_provider: 'elevenlabs', search_query: provider_voice_id }),
             },
-            20000
+            30000
         );
         if (!res.ok) {
             console.warn(`[import-defaults] Search ${voice_name} HTTP ${res.status}`);
