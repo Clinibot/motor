@@ -18,7 +18,7 @@ export const Step6_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const {
         agentName, companyName, companyDescription,
-        model, voiceId, voiceName, voiceProvider,
+        model, voiceId, voiceName, voiceProvider, language,
         kbFiles, kbUsageInstructions,
         enableTransfer, transferDestinations,
         enableCalBooking,
@@ -330,7 +330,7 @@ Rol: Eres ${name}, el agente virtual que trabaja para la empresa ${company}.
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '15px', fontWeight: 700 }}>{voiceName || 'Sin seleccionar'}</div>
                                 <div style={{ fontSize: '12px', color: 'var(--gris-texto)', marginTop: '2px' }}>
-                                    {voiceProvider ? `${voiceProvider.charAt(0).toUpperCase() + voiceProvider.slice(1)} · ` : ''}Español
+                                    {voiceProvider ? `${voiceProvider.charAt(0).toUpperCase() + voiceProvider.slice(1)} · ` : ''}{language?.startsWith('ca') ? 'Catalán' : language?.startsWith('en') ? 'English' : 'Español'}
                                 </div>
                             </div>
                             {!voiceId && (

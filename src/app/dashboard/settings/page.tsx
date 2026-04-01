@@ -4,6 +4,7 @@ import React from 'react';
 
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
+import { useWizardStore } from '../../../store/wizardStore';
 import AlertSettings from '../../../components/AlertSettings';
 import DashboardSidebar from '../../../components/DashboardSidebar';
 
@@ -18,6 +19,7 @@ interface UserProfile {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { resetWizard } = useWizardStore();
   const [user, setUser] = React.useState<UserProfile | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -42,6 +44,7 @@ export default function SettingsPage() {
 
   const handleCreateAgent = (e: React.MouseEvent) => {
     e.preventDefault();
+    resetWizard();
     router.push('/wizard');
   };
 

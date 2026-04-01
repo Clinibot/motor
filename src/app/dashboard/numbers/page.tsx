@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
+import { useWizardStore } from '../../../store/wizardStore';
 import DashboardSidebar from '../../../components/DashboardSidebar';
 
 interface PhoneNumber {
@@ -32,6 +33,7 @@ import DashboardTopbar from '../../../components/DashboardTopbar';
 
 export default function NumbersPage() {
     const router = useRouter();
+    const { resetWizard } = useWizardStore();
     const [user, setUser] = useState<UserProfile | null>(null);
     const [numbers, setNumbers] = useState<PhoneNumber[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
@@ -60,6 +62,7 @@ export default function NumbersPage() {
 
     const handleCreateAgent = (e: React.MouseEvent) => {
         e.preventDefault();
+        resetWizard();
         router.push('/wizard');
     };
 
