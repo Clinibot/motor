@@ -135,12 +135,16 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             parameters: {
                 type: 'object',
                 properties: {
+                    booking_uid: {
+                        type: 'string',
+                        description: 'UID de la reserva devuelto por check_appointment. Úsalo siempre que lo tengas disponible para evitar búsquedas adicionales.',
+                    },
                     phone_number: {
                         type: 'string',
-                        description: 'Número de teléfono para buscar la cita en formato E.164 (ej: +34612345678). En el primer intento usa siempre el valor de {{user_number}}. Si no se encuentra la cita, usa el número alternativo que indique el usuario.',
+                        description: 'Número de teléfono E.164 para buscar la cita (ej: +34612345678). Solo necesario si no tienes booking_uid.',
                     },
                 },
-                required: ['phone_number'],
+                required: [],
             },
         });
     }
@@ -510,11 +514,12 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         if (hasCancel) {
             calDetail +=
                 `\n\n**Cancelaciones:**\n` +
-                `1. Ejecuta primero \`check_appointment\` con \`phone_number: {{user_number}}\` para confirmar que existe la cita.\n` +
-                `2. Di: "Tengo tu cita del [fecha]. ¿Confirmas que quieres cancelarla?"\n` +
-                `3. Si confirma → ejecuta \`cancel_appointment\` con el mismo \`phone_number\`.\n` +
-                `4. Si no se encuentra en ningún intento → pregunta: "¿Con qué teléfono hiciste la reserva?" ` +
-                `y reintenta. Si sigue sin encontrar → ofrece transferir con una persona.`;
+                `1. Ejecuta \`check_appointment\` con \`phone_number: {{user_number}}\`.\n` +
+                `2. Si lo encuentra → di: "Tengo tu cita del [fecha]. ¿Confirmas que quieres cancelarla?"\n` +
+                `3. Si confirma → ejecuta \`cancel_appointment\` pasando el \`booking_uid\` que devolvió \`check_appointment\`. ` +
+                `NO uses phone_number para cancelar si ya tienes el uid.\n` +
+                `4. Si \`check_appointment\` no encuentra → pregunta: "¿Con qué teléfono hiciste la reserva?" ` +
+                `y reintenta con ese número. Si sigue sin encontrar → ofrece transferir con una persona.`;
         }
 
         toolDetails.push(calDetail);

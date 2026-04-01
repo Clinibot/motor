@@ -18,80 +18,60 @@ export async function POST(request: NextRequest) {
         // Retell wraps custom tool parameters inside body.args
         const args = (body.args as Record<string, unknown>) || body;
         const rawPhone: string = (args.phone_number as string) || '';
-
-        if (!rawPhone) {
-            return NextResponse.json({ success: false, error: 'Missing phone_number parameter' }, { status: 400 });
-        }
+        const directUid: string = (args.booking_uid as string) || '';
 
         // Normalize phone: strip spaces, dashes. Keep + prefix.
         const normalizedPhone = rawPhone.replace(/[\s\-().]/g, '');
 
-        // 1. Fetch recent bookings (all statuses) to find the booking by phone
-        const bookingsRes = await fetch(
-            'https://api.cal.com/v2/bookings?limit=50',
-            {
-                headers: {
-                    'cal-api-version': '2026-02-25',
-                    'Authorization': `Bearer ${calApiKey}`,
-                },
+        let bookingUid: string = directUid;
+        let startTime = '';
+        let bookingStatus = '';
+
+        // If no uid provided, search by phone
+        if (!bookingUid) {
+            if (!rawPhone) {
+                return NextResponse.json({ success: false, error: 'Se requiere phone_number o booking_uid.' }, { status: 400 });
             }
-        );
 
-        if (!bookingsRes.ok) {
-            const errText = await bookingsRes.text();
-            console.error('Cal.com bookings fetch failed:', bookingsRes.status, errText);
-            return NextResponse.json(
-                { success: false, error: 'No se pudo consultar las citas en Cal.com.' },
-                { status: 502 }
+            const bookingsRes = await fetch(
+                'https://api.cal.com/v2/bookings?limit=50',
+                { headers: { 'cal-api-version': '2026-02-25', 'Authorization': `Bearer ${calApiKey}` } }
             );
-        }
 
-        const bookingsData = await bookingsRes.json();
-        console.log('[calcom/cancel] bookingsData keys:', Object.keys(bookingsData));
-        console.log('[calcom/cancel] bookingsData.data length:', Array.isArray(bookingsData?.data) ? bookingsData.data.length : typeof bookingsData?.data);
-        if (Array.isArray(bookingsData?.data) && bookingsData.data.length > 0) {
-            console.log('[calcom/cancel] first booking keys:', Object.keys(bookingsData.data[0]));
-            console.log('[calcom/cancel] first booking attendees:', JSON.stringify(bookingsData.data[0]?.attendees));
-        }
+            if (!bookingsRes.ok) {
+                const errText = await bookingsRes.text();
+                console.error('[calcom/cancel] fetch failed:', bookingsRes.status, errText);
+                return NextResponse.json({ success: false, error: 'No se pudo consultar las citas en Cal.com.' }, { status: 502 });
+            }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const allBookings: any[] = bookingsData?.data || bookingsData?.bookings || [];
-
-        // Only consider active (non-cancelled) bookings for cancellation
-        const bookings = allBookings.filter((b: { status?: string }) => {
-            const s = (b.status || '').toLowerCase();
-            return s !== 'cancelled' && s !== 'canceled';
-        });
-
-        if (bookings.length === 0) {
-            return NextResponse.json({
-                success: false,
-                message: 'No se encontraron citas activas en la agenda.',
+            const bookingsData = await bookingsRes.json();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const allBookings: any[] = bookingsData?.data || bookingsData?.bookings || [];
+            const active = allBookings.filter((b: { status?: string }) => {
+                const s = (b.status || '').toLowerCase();
+                return s !== 'cancelled' && s !== 'canceled';
             });
-        }
 
-        // 2. Find a booking where the attendee's phone matches the caller's number
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const matchedBooking = bookings.find((b: any) => {
-            const attendees: { phoneNumber?: string; phone?: string }[] = b.attendees || [];
-            return attendees.some((a) => {
-                const attendeePhone = (a.phoneNumber || a.phone || '').replace(/[\s\-().]/g, '');
-                if (!attendeePhone) return false;
-                // Match if one ends with the other (handles country code variants)
-                return attendeePhone.endsWith(normalizedPhone) || normalizedPhone.endsWith(attendeePhone);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const matched = active.find((b: any) => {
+                const attendees: { phoneNumber?: string; phone?: string }[] = b.attendees || [];
+                return attendees.some((a) => {
+                    const ap = (a.phoneNumber || a.phone || '').replace(/[\s\-().]/g, '');
+                    return ap && (ap.endsWith(normalizedPhone) || normalizedPhone.endsWith(ap));
+                });
             });
-        });
 
-        if (!matchedBooking) {
-            return NextResponse.json({
-                success: false,
-                message: `No se encontró ninguna cita asociada al número ${rawPhone}. Verifica que el número sea correcto.`
-            });
+            if (!matched) {
+                return NextResponse.json({
+                    success: false,
+                    message: `No se encontró ninguna cita activa para el número ${rawPhone}. Verifica que el número sea correcto.`
+                });
+            }
+
+            bookingUid = matched.uid;
+            startTime = matched.start || matched.startTime || '';
+            bookingStatus = matched.status || '';
         }
-
-        const bookingUid: string = matchedBooking.uid;
-        const startTime: string = matchedBooking.start || matchedBooking.startTime || '';
-        const bookingStatus: string = matchedBooking.status || '';
 
         // If already cancelled, return success immediately
         if (bookingStatus === 'cancelled' || bookingStatus === 'canceled') {
