@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,8 +28,19 @@ function getFormattedNow() {
 }
 
 export async function POST(request: NextRequest) {
+    let agent_id: string | undefined;
     try {
-        const payload = await request.json();
+        const rawBody = await request.text();
+        const valid = await verifyRetellWebhook(
+            rawBody,
+            request.headers.get('x-retell-signature'),
+            process.env.RETELL_WEBHOOK_SECRET
+        );
+        if (!valid) {
+            console.warn('[inbound-webhook] Invalid signature — request rejected');
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const payload = JSON.parse(rawBody);
         const call_inbound = payload.call_inbound;
 
         console.log('[inbound-webhook] Called. agent_id:', call_inbound?.agent_id ?? '(missing)');
@@ -37,7 +49,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing agent_id in call_inbound payload' }, { status: 400 });
         }
 
-        const agent_id = call_inbound.agent_id;
+        agent_id = call_inbound.agent_id;
         const supabaseAdmin = getSupabaseAdmin();
 
         if (!supabaseAdmin) {
@@ -309,7 +321,16 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
         });
 
     } catch (err: unknown) {
-        console.error("Error handling call_inbound webhook:", err);
+        console.error("[inbound-webhook] Unhandled error:", err);
+        // Return 200 with empty variables so Retell doesn't retry and the agent still starts
+        if (agent_id) {
+            return NextResponse.json({
+                call_inbound: {
+                    override_agent_id: agent_id,
+                    dynamic_variables: { _debug: 'internal_error' }
+                }
+            });
+        }
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

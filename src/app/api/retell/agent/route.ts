@@ -4,7 +4,7 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
-import { AgentPayload } from '@/lib/retell/types';
+import { AgentPayload, TransferDestination, resolveVoiceId } from '@/lib/retell/types';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
@@ -147,14 +147,8 @@ export async function POST(request: Request) {
 
         const llmResponse = await retellClient.llm.create(llmCreateParams);
 
-        // 6.5 Verify and Alias Voice ID
-        let finalVoiceId = payload.voiceId || "11labs-Adrian";
-
-        // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA (Solo si es carolina o vacía)
-        if (!finalVoiceId || finalVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
-            console.log("Forzando fallback de voz a 11labs-Adrian");
-            finalVoiceId = '11labs-Adrian';
-        }
+        // 6.5 Resolve voice ID (normalises unimported ElevenLabs provider IDs to a safe fallback)
+        const finalVoiceId = resolveVoiceId(payload.voiceId);
 
         // 7. Create the Voice Agent in Retell
         const protocol = request.headers.get('x-forwarded-proto') || 'https';
@@ -198,6 +192,9 @@ export async function POST(request: Request) {
                 type: payload.agentType || "Desconocido",
                 configuration: {
                     ...payload,
+                    // Strip sensitive fields — these are looked up from DB at runtime, not stored
+                    calApiKey: undefined,
+                    transferDestinations: payload.transferDestinations?.map(d => { const { sip_password: _, ...rest } = d as unknown as { sip_password?: string } & Record<string, unknown>; return rest; }),
                     _toolsMapped: retellTools.map(t => t.name || t.type),
                 },
                 status: 'active'
@@ -336,14 +333,7 @@ export async function PATCH(request: Request) {
             llmId = createdLlm.llm_id;
         }
 
-        const finalVoiceId = payload.voiceId || currentAgent?.configuration?.voiceId || "11labs-Adrian";
-        let cleanVoiceId = finalVoiceId;
-
-        // ELIMINAR VOZ CAROLINA Y FORZAR ADRIÁN SI SE DETECTA EN EDICIÓN
-        if (!cleanVoiceId || cleanVoiceId === '11labs-UOIqAnmS11Reiei1Ytkc') {
-            console.log("Forzando fallback de voz en edición a 11labs-Adrian (Voz Carolina o vacía detectada)");
-            cleanVoiceId = '11labs-Adrian';
-        }
+        const cleanVoiceId = resolveVoiceId(payload.voiceId || currentAgent?.configuration?.voiceId);
 
         const retellAgentId = currentAgent.retell_agent_id;
         const protocol = request.headers.get('x-forwarded-proto') || 'https';
@@ -387,6 +377,9 @@ export async function PATCH(request: Request) {
                 retell_llm_id: llmId,
                 configuration: {
                     ...payload,
+                    // Strip sensitive fields — these are looked up from DB at runtime, not stored
+                    calApiKey: undefined,
+                    transferDestinations: (payload.transferDestinations as TransferDestination[] | undefined)?.map(({ sip_password: _, ...rest }) => rest),
                     _toolsMapped: retellTools.map(t => t.name || t.type),
                 },
                 updated_at: new Date().toISOString()

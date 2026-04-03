@@ -39,6 +39,18 @@ export interface TransferDestination {
     sip_password?: string;
 }
 
+/**
+ * If a voice was selected before being imported into the workspace, the wizard
+ * stores the ElevenLabs provider_voice_id instead of the Retell workspace voice_id.
+ * This function normalises it to a safe fallback so agent creation never fails.
+ */
+const UNIMPORTED_VOICE_IDS = ['11labs-UOIqAnmS11Reiei1Ytkc'];
+const FALLBACK_VOICE_ID = '11labs-Adrian';
+export function resolveVoiceId(voiceId?: string): string {
+    if (!voiceId || UNIMPORTED_VOICE_IDS.includes(voiceId)) return FALLBACK_VOICE_ID;
+    return voiceId;
+}
+
 export interface AgentPayload {
     id?: string;
     agentName: string;

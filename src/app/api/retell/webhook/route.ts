@@ -1,13 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
+import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 
 export const dynamic = 'force-dynamic';
-
-// Retell signs each webhook with a header we can optionally verify
-// For production, validate: Authorization: Bearer <RETELL_API_KEY>
-// Since each workspace has a different key, we use a shared webhook secret if configured,
-// or trust the payload agent_id to look up the workspace securely.
 
 function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,7 +21,17 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let payload: Record<string, any> = {};
     try {
-        payload = await request.json();
+        const rawBody = await request.text();
+        const valid = await verifyRetellWebhook(
+            rawBody,
+            request.headers.get('x-retell-signature'),
+            process.env.RETELL_WEBHOOK_SECRET
+        );
+        if (!valid) {
+            console.warn('[webhook] Invalid signature — request rejected');
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        payload = JSON.parse(rawBody);
 
         // --- LOGGING PARA DEPURACIÓN ---
         if (supabaseAdmin) {
