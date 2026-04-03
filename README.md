@@ -226,6 +226,61 @@ El resto de funciones usa el timeout por defecto de Vercel Pro (60s máximo disp
 
 ---
 
+## Tests
+
+El proyecto usa **Vitest** para tests unitarios. No requieren ninguna API key ni conexión a servicios externos.
+
+### Ejecutar
+
+```bash
+npm test
+```
+
+### Modo watch (mientras desarrollas)
+
+```bash
+npm run test:watch
+```
+
+### Qué se testea
+
+Los tests están en `src/lib/retell/__tests__/toolMapper.test.ts` y cubren las dos funciones más críticas del proyecto:
+
+**`injectToolInstructions`** — la función que construye el prompt final del agente:
+- Que siempre se incluyen las secciones obligatorias (pronunciación, idioma, guión)
+- Que el prompt base del usuario se conserva
+- **Idempotencia** — que si se regenera el prompt dos veces no se duplican secciones (crítico al editar un agente)
+- Que el idioma cambia correctamente según la voz seleccionada (español / inglés / catalán)
+- Que al cambiar de voz el idioma anterior se limpia y se reemplaza
+- Que se incluyen las instrucciones de Cal.com cuando está activo
+- Que se incluye el paso de cualificación con las preguntas configuradas
+- Que se incluyen las transferencias con los destinos correctos
+- Que la base de conocimiento no se duplica al regenerar
+- Que las notas adicionales aparecen en el prompt
+
+**`buildRetellTools`** — la función que construye las herramientas que Retell envía al LLM:
+- Que devuelve array vacío si no hay herramientas activas
+- Que `end_call`, `book_appointment`, `check_appointment` se añaden correctamente
+- Que `book_appointment` no se añade si el `calEventId` no es un número válido
+- Que no se añade si falta la `calApiKey`
+- Que las transferencias se generan con el nombre correcto
+- Que acepta `"true"` como string (así llegan los booleanos desde Supabase JSON)
+
+**`resolveVoiceId`** — la función que normaliza el ID de voz:
+- Que devuelve el ID si es válido
+- Que devuelve el fallback (`11labs-Adrian`) si el ID está vacío
+- Que devuelve el fallback si el ID es el `provider_voice_id` de Carolina antes de importarse
+
+### Resultado actual
+
+```
+Test Files  1 passed (1)
+     Tests  33 passed (33)
+  Duration  ~300ms
+```
+
+---
+
 ## Supabase — Tablas principales
 
 | Tabla | Descripción |
