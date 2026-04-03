@@ -1,0 +1,266 @@
+import { describe, it, expect } from 'vitest';
+import { injectToolInstructions, buildRetellTools, ToolsPayload } from '../toolMapper';
+import { resolveVoiceId } from '../types';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const base: ToolsPayload = {
+    enableTransfer: false,
+    transferDestinations: [],
+};
+
+const withCal: ToolsPayload = {
+    ...base,
+    enableCalBooking: true,
+    calApiKey: 'test-cal-key',
+    calEventId: '42',
+    siteUrl: 'https://test.example.com',
+};
+
+// ─── injectToolInstructions ───────────────────────────────────────────────────
+
+describe('injectToolInstructions', () => {
+
+    describe('secciones siempre presentes', () => {
+        it('incluye la sección de pronunciación', () => {
+            const result = injectToolInstructions('Eres un asistente.', base);
+            expect(result).toContain('# Estilo de Pronunciación');
+        });
+
+        it('incluye siempre la sección de idioma', () => {
+            const result = injectToolInstructions('Eres un asistente.', base);
+            expect(result).toContain('# Idioma');
+        });
+
+        it('incluye el guión de la llamada', () => {
+            const result = injectToolInstructions('Eres un asistente.', base);
+            expect(result).toContain('# Guión de la Llamada');
+        });
+
+        it('conserva el contenido del prompt base', () => {
+            const result = injectToolInstructions('Eres un asistente de clínica dental.', base);
+            expect(result).toContain('Eres un asistente de clínica dental.');
+        });
+    });
+
+    describe('idempotencia', () => {
+        it('llamarlo dos veces no duplica # Estilo de Pronunciación', () => {
+            const first = injectToolInstructions('Prompt base.', base);
+            const second = injectToolInstructions(first, base);
+            const count = (second.match(/# Estilo de Pronunciación/g) || []).length;
+            expect(count).toBe(1);
+        });
+
+        it('llamarlo dos veces no duplica # Idioma', () => {
+            const first = injectToolInstructions('Prompt base.', base);
+            const second = injectToolInstructions(first, base);
+            const count = (second.match(/# Idioma/g) || []).length;
+            expect(count).toBe(1);
+        });
+
+        it('llamarlo dos veces no duplica # Guión de la Llamada', () => {
+            const first = injectToolInstructions('Prompt base.', base);
+            const second = injectToolInstructions(first, base);
+            const count = (second.match(/# Guión de la Llamada/g) || []).length;
+            expect(count).toBe(1);
+        });
+    });
+
+    describe('idioma', () => {
+        it('inyecta norma de español por defecto', () => {
+            const result = injectToolInstructions('Prompt.', base);
+            expect(result).toContain('siempre en español');
+        });
+
+        it('inyecta norma de catalán cuando language es ca-ES', () => {
+            const result = injectToolInstructions('Prompt.', { ...base, language: 'ca-ES' });
+            expect(result).toContain('NORMA ABSOLUTA');
+            expect(result).toContain('catalán');
+        });
+
+        it('inyecta norma de inglés cuando language es en-US', () => {
+            const result = injectToolInstructions('Prompt.', { ...base, language: 'en-US' });
+            expect(result).toContain('ABSOLUTE RULE');
+            expect(result).toContain('English');
+        });
+
+        it('cambia de catalán a español al cambiar la voz', () => {
+            const promptCa = injectToolInstructions('Prompt.', { ...base, language: 'ca-ES' });
+            const promptEs = injectToolInstructions(promptCa, { ...base, language: 'es-ES' });
+            expect(promptEs).not.toContain('catalán');
+            expect(promptEs).toContain('siempre en español');
+        });
+
+        it('cambia de inglés a español al cambiar la voz', () => {
+            const promptEn = injectToolInstructions('Prompt.', { ...base, language: 'en-US' });
+            const promptEs = injectToolInstructions(promptEn, { ...base, language: 'es-ES' });
+            expect(promptEs).not.toContain('ABSOLUTE RULE');
+            expect(promptEs).toContain('siempre en español');
+        });
+    });
+
+    describe('Cal.com', () => {
+        it('incluye instrucciones de agendamiento cuando Cal.com está activo', () => {
+            const result = injectToolInstructions('Prompt.', withCal);
+            expect(result).toContain('Agendamiento');
+        });
+
+        it('no incluye agendamiento si Cal.com está desactivado', () => {
+            const result = injectToolInstructions('Prompt.', base);
+            expect(result).not.toContain('### Agendamiento');
+        });
+
+        it('incluye instrucciones de cancelación si cancellation está activo', () => {
+            const result = injectToolInstructions('Prompt.', {
+                ...withCal,
+                enableCalCancellation: true,
+            });
+            expect(result).toContain('cancel');
+        });
+    });
+
+    describe('cualificación', () => {
+        it('incluye el paso de cualificación cuando hay preguntas', () => {
+            const result = injectToolInstructions('Prompt.', {
+                ...base,
+                leadQuestions: [
+                    { question: '¿Cuántos empleados tiene?', key: 'más de 10', failAction: 'end_call' },
+                ],
+            });
+            expect(result).toContain('Cualificación');
+            expect(result).toContain('¿Cuántos empleados tiene?');
+        });
+
+        it('muestra la condición de éxito', () => {
+            const result = injectToolInstructions('Prompt.', {
+                ...base,
+                leadQuestions: [
+                    { question: '¿Tiene seguro?', key: 'sí', failAction: 'end_call' },
+                ],
+            });
+            expect(result).toContain('sí');
+        });
+    });
+
+    describe('transferencias', () => {
+        it('incluye instrucciones de transferencia cuando hay destinos', () => {
+            const result = injectToolInstructions('Prompt.', {
+                enableTransfer: true,
+                transferDestinations: [
+                    { name: 'Soporte', destination_type: 'number', number: '+34900000000' },
+                ],
+            });
+            expect(result).toContain('Transferencias');
+            expect(result).toContain('Soporte');
+        });
+    });
+
+    describe('base de conocimiento', () => {
+        it('incluye sección de KB si hay archivos', () => {
+            const result = injectToolInstructions('Prompt.', {
+                ...base,
+                kbFiles: [{ id: 'kb-123', name: 'Servicios.pdf' }],
+            });
+            expect(result).toContain('# Base de Conocimiento');
+            expect(result).toContain('Servicios.pdf');
+        });
+
+        it('no duplica la sección KB al regenerar', () => {
+            const first = injectToolInstructions('Prompt.', {
+                ...base,
+                kbFiles: [{ id: 'kb-123', name: 'Servicios.pdf' }],
+            });
+            const second = injectToolInstructions(first, {
+                ...base,
+                kbFiles: [{ id: 'kb-123', name: 'Servicios.pdf' }],
+            });
+            const count = (second.match(/# Base de Conocimiento/g) || []).length;
+            expect(count).toBe(1);
+        });
+    });
+
+    describe('notas adicionales', () => {
+        it('incluye notas si se proporcionan', () => {
+            const result = injectToolInstructions('Prompt.', {
+                ...base,
+                customNotes: 'Siempre ofrecer café al final.',
+            });
+            expect(result).toContain('Siempre ofrecer café al final.');
+        });
+    });
+});
+
+// ─── buildRetellTools ─────────────────────────────────────────────────────────
+
+describe('buildRetellTools', () => {
+
+    it('devuelve array vacío si no hay herramientas activas', () => {
+        const tools = buildRetellTools(base);
+        expect(tools).toHaveLength(0);
+    });
+
+    it('añade end_call cuando está activo', () => {
+        const tools = buildRetellTools({ ...base, enableEndCall: true });
+        expect(tools.some(t => t.name === 'end_call')).toBe(true);
+    });
+
+    it('añade book_appointment cuando Cal.com está configurado', () => {
+        const tools = buildRetellTools(withCal);
+        expect(tools.some(t => t.name === 'book_appointment')).toBe(true);
+    });
+
+    it('añade check_appointment siempre que Cal.com está activo', () => {
+        const tools = buildRetellTools(withCal);
+        expect(tools.some(t => t.name === 'check_appointment')).toBe(true);
+    });
+
+    it('no añade book_appointment si calEventId no es un número válido', () => {
+        const tools = buildRetellTools({ ...withCal, calEventId: 'no-es-un-id' });
+        expect(tools.some(t => t.name === 'book_appointment')).toBe(false);
+    });
+
+    it('no añade book_appointment si no hay calApiKey', () => {
+        const tools = buildRetellTools({ ...base, enableCalBooking: true, calEventId: '42' });
+        expect(tools.some(t => t.name === 'book_appointment')).toBe(false);
+    });
+
+    it('añade transfer cuando hay destinos válidos', () => {
+        const tools = buildRetellTools({
+            enableTransfer: true,
+            transferDestinations: [
+                { name: 'Ventas', destination_type: 'number', number: '+34900000001' },
+            ],
+        });
+        expect(tools.some(t => String(t.name).startsWith('transfer_to_'))).toBe(true);
+    });
+
+    it('acepta "true" como string (valor de Supabase JSON)', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableEndCall: 'true' as unknown as boolean,
+        });
+        expect(tools.some(t => t.name === 'end_call')).toBe(true);
+    });
+});
+
+// ─── resolveVoiceId ───────────────────────────────────────────────────────────
+
+describe('resolveVoiceId', () => {
+
+    it('devuelve el voice_id si es válido', () => {
+        expect(resolveVoiceId('11labs-Nico')).toBe('11labs-Nico');
+    });
+
+    it('devuelve fallback si el voice_id está vacío', () => {
+        expect(resolveVoiceId('')).toBe('11labs-Adrian');
+        expect(resolveVoiceId(undefined)).toBe('11labs-Adrian');
+    });
+
+    it('devuelve fallback si el ID es el provider_voice_id de Carolina (no importada)', () => {
+        expect(resolveVoiceId('11labs-UOIqAnmS11Reiei1Ytkc')).toBe('11labs-Adrian');
+    });
+
+    it('no bloquea voice IDs válidos que empiecen por 11labs-', () => {
+        expect(resolveVoiceId('11labs-Willa')).toBe('11labs-Willa');
+    });
+});
