@@ -194,7 +194,9 @@ export async function POST(request: Request) {
                     ...payload,
                     // Strip sensitive fields — these are looked up from DB at runtime, not stored
                     calApiKey: undefined,
-                    transferDestinations: payload.transferDestinations?.map(d => { const { sip_password: _, ...rest } = d as unknown as { sip_password?: string } & Record<string, unknown>; return rest; }),
+                    transferDestinations: payload.transferDestinations?.map(d =>
+                        Object.fromEntries(Object.entries(d as unknown as Record<string, unknown>).filter(([k]) => k !== 'sip_password'))
+                    ),
                     _toolsMapped: retellTools.map(t => t.name || t.type),
                 },
                 status: 'active'
