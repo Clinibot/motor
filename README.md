@@ -210,7 +210,19 @@ npm run dev
 
 El proyecto está desplegado en **Vercel** (plan Pro). Cada push a `main` dispara un deploy automático.
 
-Variables de entorno configuradas en Vercel Settings → Environment Variables (ver `.env.example`).
+Variables de entorno configuradas en **Vercel Settings → Environment Variables** (ver `.env.example`).
+
+### Funciones serverless en Vercel
+
+Todas las rutas bajo `src/app/api/` son **Vercel Serverless Functions**. Algunas tienen configuración especial:
+
+| Ruta | `maxDuration` | Motivo |
+|------|--------------|--------|
+| `/api/retell/voices/import-defaults` | 60s | La importación de voces ElevenLabs vía Retell search puede tardar 30-50s |
+
+El resto de funciones usa el timeout por defecto de Vercel Pro (60s máximo disponible).
+
+> **Importante:** el plan **Pro** es obligatorio. El plan Hobby tiene un límite de 10s por función que hace que la importación de voces falle siempre.
 
 ---
 
