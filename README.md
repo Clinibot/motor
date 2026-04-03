@@ -244,7 +244,7 @@ npm run test:watch
 
 ### Qué se testea
 
-Los tests están en `src/lib/retell/__tests__/toolMapper.test.ts` y cubren las dos funciones más críticas del proyecto:
+Los tests están en `src/lib/retell/__tests__/` y cubren las funciones más críticas del proyecto:
 
 **`injectToolInstructions`** — la función que construye el prompt final del agente:
 - Que siempre se incluyen las secciones obligatorias (pronunciación, idioma, guión)
@@ -252,9 +252,12 @@ Los tests están en `src/lib/retell/__tests__/toolMapper.test.ts` y cubren las d
 - **Idempotencia** — que si se regenera el prompt dos veces no se duplican secciones (crítico al editar un agente)
 - Que el idioma cambia correctamente según la voz seleccionada (español / inglés / catalán)
 - Que al cambiar de voz el idioma anterior se limpia y se reemplaza
-- Que se incluyen las instrucciones de Cal.com cuando está activo
+- Que se incluyen las instrucciones de Cal.com cuando está activo (incluyendo cancelación)
 - Que se incluye el paso de cualificación con las preguntas configuradas
 - Que se incluyen las transferencias con los destinos correctos
+- Que el guión incluye el paso de cierre cuando `end_call` está activo
+- Que las herramientas personalizadas aparecen en el prompt
+- Que Cal.com + transferencia simultáneos generan un guión con ambas opciones
 - Que la base de conocimiento no se duplica al regenerar
 - Que las notas adicionales aparecen en el prompt
 
@@ -266,17 +269,50 @@ Los tests están en `src/lib/retell/__tests__/toolMapper.test.ts` y cubren las d
 - Que las transferencias se generan con el nombre correcto
 - Que acepta `"true"` como string (así llegan los booleanos desde Supabase JSON)
 
+**`buildPostCallAnalysis`** — la función que genera las variables de análisis post-llamada:
+- Que siempre incluye las 3 variables predefinidas del sistema (`resumen_llamada`, `llamada_exitosa`, `sentimiento_usuario`)
+- Que añade variables de extracción custom y normaliza el nombre a snake_case
+- Que mapea correctamente los tipos: `texto`→`string`, `booleano`→`boolean`, `selector`→`enum`
+- Que los tipos `enum` parsean las opciones desde la descripción (separadas por coma)
+- Que los `enum` sin descripción usan un placeholder por defecto
+- Que ignora variables incompletas (sin nombre o sin tipo)
+
+**`verifyRetellWebhook`** — la función que verifica firmas HMAC-SHA256 de Retell:
+- Que devuelve `true` en modo degradado si no hay secret configurado
+- Que devuelve `false` si falta la cabecera `x-retell-signature`
+- Que valida correctamente una firma HMAC-SHA256 válida
+- Que rechaza firmas incorrectas
+- Que la firma de un body no sirve para otro body distinto (protección anti-manipulación)
+
 **`resolveVoiceId`** — la función que normaliza el ID de voz:
 - Que devuelve el ID si es válido
 - Que devuelve el fallback (`11labs-Adrian`) si el ID está vacío
 - Que devuelve el fallback si el ID es el `provider_voice_id` de Carolina antes de importarse
 
+### Cobertura
+
+```bash
+npm run test:coverage
+```
+
+Genera una tabla en terminal y un reporte HTML en `coverage/index.html`.
+
+Los umbrales están configurados por fichero crítico (no por media global):
+
+| Fichero | Líneas | Funciones | Ramas |
+|---------|--------|-----------|-------|
+| `toolMapper.ts` | ≥ 95% | 100% | ≥ 75% |
+| `webhookAuth.ts` | 100% | 100% | 100% |
+
 ### Resultado actual
 
 ```
-Test Files  1 passed (1)
-     Tests  33 passed (33)
-  Duration  ~300ms
+Test Files  2 passed (2)
+     Tests  54 passed (54)
+  Duration  ~250ms
+
+toolMapper.ts    | 97.2% lines | 100% funcs | 77.9% branches
+webhookAuth.ts   |      100%   |     100%   |         100%
 ```
 
 ---

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { injectToolInstructions, buildRetellTools, ToolsPayload } from '../toolMapper';
+import { injectToolInstructions, buildRetellTools, buildPostCallAnalysis, ToolsPayload } from '../toolMapper';
 import { resolveVoiceId } from '../types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -240,6 +240,190 @@ describe('buildRetellTools', () => {
             enableEndCall: 'true' as unknown as boolean,
         });
         expect(tools.some(t => t.name === 'end_call')).toBe(true);
+    });
+});
+
+// ─── buildPostCallAnalysis ────────────────────────────────────────────────────
+
+describe('buildPostCallAnalysis', () => {
+
+    it('incluye siempre las 3 variables predefinidas del sistema', () => {
+        const result = buildPostCallAnalysis(base);
+        const names = result.map(v => v.name);
+        expect(names).toContain('resumen_llamada');
+        expect(names).toContain('llamada_exitosa');
+        expect(names).toContain('sentimiento_usuario');
+    });
+
+    it('sin extractionVariables devuelve solo las 3 predefinidas', () => {
+        const result = buildPostCallAnalysis(base);
+        expect(result).toHaveLength(3);
+    });
+
+    it('añade variables de extracción custom de tipo texto → string', () => {
+        const result = buildPostCallAnalysis({
+            ...base,
+            enableExtractions: true,
+            extractionVariables: [{ name: 'Motivo Llamada', type: 'texto', description: 'Por qué llama' }],
+        });
+        const custom = result.find(v => v.name === 'motivo_llamada');
+        expect(custom).toBeDefined();
+        expect(custom?.type).toBe('string');
+    });
+
+    it('normaliza el nombre a snake_case', () => {
+        const result = buildPostCallAnalysis({
+            ...base,
+            extractionVariables: [{ name: 'Nombre Completo', type: 'string', description: '' }],
+        });
+        expect(result.find(v => v.name === 'nombre_completo')).toBeDefined();
+    });
+
+    it('mapea tipo selector → enum con choices desde description', () => {
+        const result = buildPostCallAnalysis({
+            ...base,
+            extractionVariables: [{
+                name: 'Interés',
+                type: 'selector',
+                description: 'alto, medio, bajo',
+            }],
+        });
+        const variable = result.find(v => v.name === 'interés');
+        expect(variable?.type).toBe('enum');
+        expect((variable as any)?.choices).toEqual(['alto', 'medio', 'bajo']);
+    });
+
+    it('enum sin description usa choices placeholder', () => {
+        const result = buildPostCallAnalysis({
+            ...base,
+            extractionVariables: [{ name: 'Estado', type: 'enum', description: '' }],
+        });
+        const variable = result.find(v => v.name === 'estado');
+        expect((variable as any)?.choices).toEqual(['opcion_1', 'opcion_2']);
+    });
+
+    it('mapea booleano → boolean', () => {
+        const result = buildPostCallAnalysis({
+            ...base,
+            extractionVariables: [{ name: 'Tiene seguro', type: 'booleano', description: '' }],
+        });
+        expect(result.find(v => v.name === 'tiene_seguro')?.type).toBe('boolean');
+    });
+
+    it('tipo desconocido cae en string por defecto', () => {
+        const result = buildPostCallAnalysis({
+            ...base,
+            extractionVariables: [{ name: 'dato', type: 'inexistente', description: '' }],
+        });
+        expect(result.find(v => v.name === 'dato')?.type).toBe('string');
+    });
+
+    it('ignora variables sin nombre o sin tipo', () => {
+        const result = buildPostCallAnalysis({
+            ...base,
+            extractionVariables: [
+                { name: '', type: 'string', description: '' },
+                { name: 'válida', type: '', description: '' },
+            ],
+        });
+        expect(result).toHaveLength(3); // solo las predefinidas
+    });
+});
+
+// ─── injectToolInstructions — ramas adicionales ───────────────────────────────
+
+describe('injectToolInstructions — ramas no cubiertas', () => {
+
+    it('incluye paso de cierre cuando enableEndCall está activo', () => {
+        const result = injectToolInstructions('Prompt.', { ...base, enableEndCall: true });
+        expect(result).toContain('Cierre');
+        expect(result).toContain('end_call');
+    });
+
+    it('incluye herramientas personalizadas cuando customTools está activo', () => {
+        const result = injectToolInstructions('Prompt.', {
+            ...base,
+            enableCustomTools: true,
+            customTools: [
+                { name: 'consultar_stock', url: 'https://api.ejemplo.com/stock', description: 'Consulta el stock disponible', method: 'GET' },
+            ],
+        });
+        expect(result).toContain('Herramientas personalizadas');
+        expect(result).toContain('consultar_stock');
+    });
+
+    it('guión con Cal.com y transferencia simultáneos incluye ambas opciones', () => {
+        const result = injectToolInstructions('Prompt.', {
+            enableTransfer: true,
+            transferDestinations: [{ name: 'Ventas', destination_type: 'number', number: '+34900000001' }],
+            enableCalBooking: true,
+            calApiKey: 'key',
+            calEventId: '10',
+            siteUrl: 'https://test.example.com',
+        });
+        expect(result).toContain('agendar');
+        expect(result).toContain('transfer_to_ventas');
+    });
+
+    it('cualificación con failAction booking ofrece agendar cita', () => {
+        const result = injectToolInstructions('Prompt.', {
+            ...base,
+            leadQuestions: [{ question: '¿Tiene empresa?', key: 'sí', failAction: 'booking' }],
+        });
+        expect(result).toContain('agendar una cita');
+    });
+
+    it('cualificación con failAction transfer usa el destino correcto', () => {
+        const result = injectToolInstructions('Prompt.', {
+            enableTransfer: true,
+            transferDestinations: [{ name: 'Soporte', destination_type: 'number', number: '+34900000002' }],
+            leadQuestions: [{
+                question: '¿Tiene contrato?',
+                key: 'sí',
+                failAction: 'transfer',
+                failTransferIdx: 0,
+            }],
+        });
+        expect(result).toContain('transfer_to_soporte');
+    });
+});
+
+// ─── buildRetellTools — custom tools con parámetros ──────────────────────────
+
+describe('buildRetellTools — custom tools con parámetros', () => {
+
+    it('añade custom tool con parámetros al array de herramientas', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableCustomTools: true,
+            customTools: [{
+                name: 'consultar_precio',
+                url: 'https://api.ejemplo.com/precio',
+                description: 'Consulta el precio de un producto',
+                method: 'POST',
+                parameters: [
+                    { name: 'producto_id', type: 'string', description: 'ID del producto', required: true },
+                    { name: 'moneda', type: 'string', description: 'Moneda (EUR, USD)', required: false },
+                ],
+            }],
+        });
+        const tool = tools.find(t => t.name === 'consultar_precio');
+        expect(tool).toBeDefined();
+        expect((tool as any)?.parameters?.properties).toHaveProperty('producto_id');
+        expect((tool as any)?.parameters?.required).toContain('producto_id');
+        expect((tool as any)?.parameters?.required).not.toContain('moneda');
+    });
+
+    it('ignora custom tools sin url o sin nombre', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableCustomTools: true,
+            customTools: [
+                { name: '', url: 'https://api.ejemplo.com', description: '', method: 'GET' },
+                { name: 'valida', url: '', description: '', method: 'GET' },
+            ],
+        });
+        expect(tools).toHaveLength(0);
     });
 });
 
