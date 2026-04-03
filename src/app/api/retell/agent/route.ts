@@ -381,7 +381,9 @@ export async function PATCH(request: Request) {
                     ...payload,
                     // Strip sensitive fields — these are looked up from DB at runtime, not stored
                     calApiKey: undefined,
-                    transferDestinations: (payload.transferDestinations as TransferDestination[] | undefined)?.map(({ sip_password: _, ...rest }) => rest),
+                    transferDestinations: (payload.transferDestinations as TransferDestination[] | undefined)?.map(d =>
+                        Object.fromEntries(Object.entries(d as unknown as Record<string, unknown>).filter(([k]) => k !== 'sip_password'))
+                    ),
                     _toolsMapped: retellTools.map(t => t.name || t.type),
                 },
                 updated_at: new Date().toISOString()
