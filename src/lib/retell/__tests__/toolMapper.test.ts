@@ -290,6 +290,7 @@ describe('buildPostCallAnalysis', () => {
         });
         const variable = result.find(v => v.name === 'interés');
         expect(variable?.type).toBe('enum');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((variable as any)?.choices).toEqual(['alto', 'medio', 'bajo']);
     });
 
@@ -299,6 +300,7 @@ describe('buildPostCallAnalysis', () => {
             extractionVariables: [{ name: 'Estado', type: 'enum', description: '' }],
         });
         const variable = result.find(v => v.name === 'estado');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((variable as any)?.choices).toEqual(['opcion_1', 'opcion_2']);
     });
 
@@ -345,7 +347,7 @@ describe('injectToolInstructions — ramas no cubiertas', () => {
             ...base,
             enableCustomTools: true,
             customTools: [
-                { name: 'consultar_stock', url: 'https://api.ejemplo.com/stock', description: 'Consulta el stock disponible', method: 'GET' },
+                { name: 'consultar_stock', url: 'https://api.ejemplo.com/stock', description: 'Consulta el stock disponible', speakDuring: false, speakAfter: false, parameters: [] },
             ],
         });
         expect(result).toContain('Herramientas personalizadas');
@@ -400,17 +402,21 @@ describe('buildRetellTools — custom tools con parámetros', () => {
                 name: 'consultar_precio',
                 url: 'https://api.ejemplo.com/precio',
                 description: 'Consulta el precio de un producto',
-                method: 'POST',
+                speakDuring: false,
+                speakAfter: false,
                 parameters: [
-                    { name: 'producto_id', type: 'string', description: 'ID del producto', required: true },
-                    { name: 'moneda', type: 'string', description: 'Moneda (EUR, USD)', required: false },
+                    { name: 'producto_id', type: 'string' as const, description: 'ID del producto', required: true },
+                    { name: 'moneda', type: 'string' as const, description: 'Moneda (EUR, USD)', required: false },
                 ],
             }],
         });
         const tool = tools.find(t => t.name === 'consultar_precio');
         expect(tool).toBeDefined();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((tool as any)?.parameters?.properties).toHaveProperty('producto_id');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((tool as any)?.parameters?.required).toContain('producto_id');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((tool as any)?.parameters?.required).not.toContain('moneda');
     });
 
@@ -419,8 +425,8 @@ describe('buildRetellTools — custom tools con parámetros', () => {
             ...base,
             enableCustomTools: true,
             customTools: [
-                { name: '', url: 'https://api.ejemplo.com', description: '', method: 'GET' },
-                { name: 'valida', url: '', description: '', method: 'GET' },
+                { name: '', url: 'https://api.ejemplo.com', description: '', speakDuring: false, speakAfter: false, parameters: [] },
+                { name: 'valida', url: '', description: '', speakDuring: false, speakAfter: false, parameters: [] },
             ],
         });
         expect(tools).toHaveLength(0);
