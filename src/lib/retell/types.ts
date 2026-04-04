@@ -104,6 +104,7 @@ export interface AgentPayload {
     ambientSoundVolume?: number;
     normalizeForSpeech?: boolean;
     voiceId?: string;
+    voiceName?: string;
     workspace_id?: string;
 
     // Company Info (for prompt generation)

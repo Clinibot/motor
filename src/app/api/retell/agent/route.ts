@@ -9,6 +9,28 @@ import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
 
+// When voiceId is a placeholder like 'custom-carolina', resolve the real
+// workspace-scoped ID from Retell's voice list by matching the voice name.
+async function resolveCustomVoiceId(retellClient: Retell, voiceId: string, voiceName?: string): Promise<string> {
+    if (!voiceId.startsWith('custom-')) return voiceId;
+    try {
+        const voices = await retellClient.voice.list();
+        const nameToMatch = voiceName || voiceId.replace('custom-', '');
+        const match = voices.find(v =>
+            v.voice_name?.toLowerCase().includes(nameToMatch.toLowerCase())
+        );
+        if (match?.voice_id) {
+            console.log(`[resolveCustomVoiceId] ${voiceId} → ${match.voice_id} (${match.voice_name})`);
+            return match.voice_id;
+        }
+        console.warn(`[resolveCustomVoiceId] No match for "${nameToMatch}" in workspace voices — using fallback`);
+        return '11labs-Adrian';
+    } catch (err) {
+        console.warn('[resolveCustomVoiceId] Failed to fetch voice list:', err);
+        return voiceId;
+    }
+}
+
 function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -147,8 +169,12 @@ export async function POST(request: Request) {
 
         const llmResponse = await retellClient.llm.create(llmCreateParams);
 
-        // 6.5 Resolve voice ID (normalises unimported ElevenLabs provider IDs to a safe fallback)
-        const finalVoiceId = resolveVoiceId(payload.voiceId);
+        // 6.5 Resolve voice ID: custom-* placeholders are looked up by name in the workspace voice list
+        const finalVoiceId = await resolveCustomVoiceId(
+            retellClient,
+            resolveVoiceId(payload.voiceId),
+            payload.voiceName
+        );
 
         // 7. Create the Voice Agent in Retell
         const protocol = request.headers.get('x-forwarded-proto') || 'https';
@@ -348,7 +374,11 @@ export async function PATCH(request: Request) {
             llmId = createdLlm.llm_id;
         }
 
-        const cleanVoiceId = resolveVoiceId(payload.voiceId || currentAgent?.configuration?.voiceId);
+        const cleanVoiceId = await resolveCustomVoiceId(
+            retellClient,
+            resolveVoiceId(payload.voiceId || currentAgent?.configuration?.voiceId),
+            payload.voiceName || currentAgent?.configuration?.voiceName
+        );
 
         const retellAgentId = currentAgent.retell_agent_id;
         const protocol = request.headers.get('x-forwarded-proto') || 'https';
