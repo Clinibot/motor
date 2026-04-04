@@ -155,10 +155,10 @@ export async function POST(request: Request) {
         const host = request.headers.get('host');
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://lafabrica.netelip.com');
 
-        const agentResponse = await retellClient.agent.create({
-            response_engine: { type: "retell-llm", llm_id: llmResponse.llm_id },
+        const buildAgentParams = (voiceId: string) => ({
+            response_engine: { type: "retell-llm" as const, llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
-            voice_id: finalVoiceId,
+            voice_id: voiceId,
             language: (payload.language || "es-ES") as "es-ES",
             responsiveness: payload.responsiveness || 1,
             interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
@@ -180,6 +180,19 @@ export async function POST(request: Request) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             guardrail_config: { output_topics: ["harassment", "self_harm", "violence"], input_topics: ["platform_integrity_jailbreaking"] } as any
         });
+
+        let agentResponse;
+        try {
+            agentResponse = await retellClient.agent.create(buildAgentParams(finalVoiceId));
+        } catch (voiceError: unknown) {
+            const voiceMsg = voiceError instanceof Error ? voiceError.message : String(voiceError);
+            if (voiceMsg.includes('not found from voice')) {
+                console.warn(`[agent/POST] Voice ${finalVoiceId} not found in workspace — retrying with fallback 11labs-Adrian`);
+                agentResponse = await retellClient.agent.create(buildAgentParams('11labs-Adrian'));
+            } else {
+                throw voiceError;
+            }
+        }
 
         // 8. Store the new agent in Supabase (including tools config)
         const { error: insertError } = await supabaseAdmin
