@@ -356,10 +356,10 @@ export async function PATCH(request: Request) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://lafabrica.netelip.com');
 
         if (retellAgentId) {
-            await retellClient.agent.update(retellAgentId, {
-                response_engine: { type: "retell-llm", llm_id: llmId },
+            const buildUpdateParams = (voiceId: string) => ({
+                response_engine: { type: "retell-llm" as const, llm_id: llmId },
                 agent_name: payload.agentName || "Updated Agent",
-                voice_id: cleanVoiceId,
+                voice_id: voiceId,
                 language: (payload.language || "es-ES") as "es-ES",
                 responsiveness: payload.responsiveness || 1,
                 interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
@@ -381,6 +381,18 @@ export async function PATCH(request: Request) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 guardrail_config: { output_topics: ["harassment", "self_harm", "violence"], input_topics: ["platform_integrity_jailbreaking"] } as any
             });
+
+            try {
+                await retellClient.agent.update(retellAgentId, buildUpdateParams(cleanVoiceId));
+            } catch (voiceError: unknown) {
+                const voiceMsg = voiceError instanceof Error ? voiceError.message : String(voiceError);
+                if (voiceMsg.includes('not found from voice')) {
+                    console.warn(`[agent/PATCH] Voice ${cleanVoiceId} not found in workspace — retrying with fallback 11labs-Adrian`);
+                    await retellClient.agent.update(retellAgentId, buildUpdateParams('11labs-Adrian'));
+                } else {
+                    throw voiceError;
+                }
+            }
         }
 
         // Update Supabase
