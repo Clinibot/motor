@@ -65,6 +65,11 @@ type RetellTool = Record<string, unknown>;
 // Helper to handle both boolean true and string "true" from Supabase JSON
 const parseBool = (val: unknown): boolean => val === true || val === 'true';
 
+// Builds a valid Retell tool name from a transfer destination name.
+// Retell requirement: only a-z, A-Z, 0-9, underscores and dashes, max 64 chars.
+const toTransferToolName = (destName: string): string =>
+    `transfer_to_${destName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`.slice(0, 64);
+
 /**
  * Builds the `tools` array for the Retell LLM create/update call.
  */
@@ -182,8 +187,7 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
             if (dest.destination_type === 'number' && !dest.number) return;
             if (dest.destination_type === 'agent' && !dest.agentId) return;
             // Use a clean, unique name for the tool
-            const cleanName = dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'agent';
-            const toolName = `transfer_to_${cleanName}`;
+            const toolName = toTransferToolName(dest.name);
 
             if (dest.destination_type === 'agent') {
                 // INTERNAL AGENT TRANSFER (Agent Swap)
@@ -410,7 +414,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             else if (q.failAction === 'transfer') {
                 const dest = validDests[q.failTransferIdx ?? 0];
                 const tName = dest
-                    ? `transfer_to_${dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
+                    ? toTransferToolName(dest.name)
                     : 'transferencia';
                 onFail = `transfiere con \`${tName}\``;
             }
@@ -431,7 +435,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
 
     // Main action
     if (hasCal && hasTransfer) {
-        const tNames = validDests.map(d => `\`transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}\``).join(' o ');
+        const tNames = validDests.map(d => `\`${toTransferToolName(d.name)}\``).join(' o ');
         scriptSteps.push(
             `**PASO ${paso} — Acción principal**\n` +
             `Según la necesidad del contacto:\n` +
@@ -447,7 +451,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         paso++;
     } else if (hasTransfer) {
         const tLines = validDests.map(d => {
-            const tName = `transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+            const tName = toTransferToolName(d.name);
             return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
         }).join('\n');
         scriptSteps.push(`**PASO ${paso} — Transferencia**\n${tLines}`);
@@ -532,7 +536,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // Transfers
     if (hasTransfer) {
         const tLines = validDests.map(d => {
-            const tName = `transfer_to_${d.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+            const tName = toTransferToolName(d.name);
             return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
         }).join('\n');
         toolDetails.push(`### Transferencias\n${tLines}`);
