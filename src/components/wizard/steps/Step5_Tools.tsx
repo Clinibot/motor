@@ -241,6 +241,12 @@ export const Step5_Tools: React.FC = () => {
                                                 onChange={e => { const d = [...transferDestinations]; d[idx].name = e.target.value; updateField('transferDestinations', d); }}
                                             />
                                             <div className="hint">Nombre interno, no se dice en voz alta</div>
+                                            {dest.name && `transfer_to_${dest.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`.length > 64 && (
+                                                <div className="hint" style={{ color: 'var(--error)', marginTop: '4px' }}>
+                                                    <i className="bi bi-exclamation-triangle" style={{ marginRight: '4px' }}></i>
+                                                    Nombre demasiado largo — usa algo más corto (ej: &quot;Doctor Pedro&quot;).
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="fg">
                                             <label className="lbl">Instrucción para el agente <span style={{ color: 'var(--error)' }}>*</span></label>
