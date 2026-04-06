@@ -126,16 +126,30 @@ export async function POST(request: NextRequest) {
                     .single();
 
                 if (agent && agent.configuration && agent.retell_llm_id) {
-                    const payload = { ...agent.configuration };
-                    // Enriquecemos PASANDO el ID del agente para que encuentre el número recién asignado
-                    await enrichSipCredentials(payload, supabaseAdmin, localAgentId);
-                    const updatedTools = buildRetellTools(payload);
+                    const agentCfg = agent.configuration;
 
-                    await retellClient.llm.update(agent.retell_llm_id, {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        general_tools: updatedTools as any
-                    });
-                    console.log("Herramientas del agente actualizadas con éxito tras asignación.");
+                    // Only run if the agent actually has transfer enabled (that's the only reason to re-enrich tools here)
+                    if (!parseBool(agentCfg.enableTransfer)) {
+                        console.log(`[assign] Agent ${localAgentId} has no transfer enabled — skipping tool refresh to avoid overwriting Retell tools.`);
+                    } else {
+                        const toolPayload = { ...agentCfg };
+                        // Enriquecemos PASANDO el ID del agente para que encuentre el número recién asignado
+                        await enrichSipCredentials(toolPayload, supabaseAdmin, localAgentId);
+                        const updatedTools = buildRetellTools(toolPayload);
+
+                        const hadCal = parseBool(agentCfg.enableCalBooking) && !!agentCfg.calApiKey && !!agentCfg.calEventId;
+                        const builtCal = updatedTools.some((t: { name?: string }) => t.name === 'book_appointment' || t.name === 'check_appointment' || t.name === 'cancel_appointment');
+
+                        if (hadCal && !builtCal) {
+                            console.error(`[assign] ABORTED tool refresh: agent had Cal.com but rebuilt tools are missing it. Config: enableCalBooking=${agentCfg.enableCalBooking} calApiKey=${!!agentCfg.calApiKey} calEventId=${agentCfg.calEventId}`);
+                        } else {
+                            await retellClient.llm.update(agent.retell_llm_id, {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                general_tools: updatedTools as any
+                            });
+                            console.log(`[assign] Tools refreshed for agent ${localAgentId}. hadCal=${hadCal} builtCal=${builtCal}`);
+                        }
+                    }
                 }
             } catch (updateErr) {
                 console.warn("No se pudieron actualizar las herramientas del agente tras la asignación, pero el número se vinculó:", updateErr);

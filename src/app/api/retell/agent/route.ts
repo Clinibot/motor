@@ -451,7 +451,8 @@ export async function PATCH(request: Request) {
                 .eq('assigned_inbound_agent_id', payload.id);
 
             if (assignedNumbers && assignedNumbers.length > 0) {
-                const needsWebhook = Boolean(payload.enableCalBooking && payload.calApiKey);
+                const parseBool = (v: unknown) => v === true || v === 'true';
+                const needsWebhook = parseBool(payload.enableCalBooking) && !!payload.calApiKey && !!payload.calEventId;
                 const webhookUrl = needsWebhook
                     ? `${siteUrl}/api/retell/webhook/inbound`
                     : null;
