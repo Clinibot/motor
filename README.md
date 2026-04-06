@@ -268,6 +268,15 @@ Los tests están en `src/lib/retell/__tests__/` y cubren las funciones más crí
 - Que no se añade si falta la `calApiKey`
 - Que las transferencias se generan con el nombre correcto
 - Que acepta `"true"` como string (así llegan los booleanos desde Supabase JSON)
+- **Cal.com edge cases**: `"false"` string no activa Cal.com, `calApiKey` vacío tampoco
+
+**`parseBool`** — helper que normaliza booleanos de Supabase JSON:
+- `true` (boolean) y `"true"` (string) → `true`
+- `false`, `"false"`, `undefined`, `null`, `1` → `false`
+
+**`detectCalToolLoss`** — detecta si un rebuild de tools borraría Cal.com accidentalmente:
+- Detecta pérdida cuando la config tiene Cal.com pero los tools reconstruidos no la incluyen
+- No genera falsos positivos cuando Cal.com no estaba configurada
 
 **`buildPostCallAnalysis`** — la función que genera las variables de análisis post-llamada:
 - Que siempre incluye las 3 variables predefinidas del sistema (`resumen_llamada`, `llamada_exitosa`, `sentimiento_usuario`)
@@ -308,11 +317,11 @@ Los umbrales están configurados por fichero crítico (no por media global):
 
 ```
 Test Files  2 passed (2)
-     Tests  54 passed (54)
-  Duration  ~250ms
+     Tests  71 passed (71)
+  Duration  ~225ms
 
-toolMapper.ts    | 97.2% lines | 100% funcs | 77.9% branches
-webhookAuth.ts   |      100%   |     100%   |         100%
+toolMapper.ts    | 95.94% lines | 100% funcs | 76.19% branches
+webhookAuth.ts   |       100%   |      100%  |          100%
 ```
 
 ---
