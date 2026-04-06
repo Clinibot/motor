@@ -47,6 +47,10 @@ Tres endpoints custom en Retell (no el `book_appointment_cal` nativo de Retell):
 
 Los parámetros de herramientas custom de Retell llegan en `body.args`, no en `body` directamente.
 
+**Versiones de la API Cal.com v2** (crítico — versión incorrecta devuelve 404):
+- Slots disponibles: `GET /v2/slots?eventTypeId=...` con `cal-api-version: 2024-09-04`
+- Bookings (crear/consultar/cancelar): `cal-api-version: 2026-02-25`
+
 ## Webhook Inbound
 
 `/api/retell/webhook/inbound` inyecta variables dinámicas antes de que el agente conteste:
@@ -54,7 +58,13 @@ Los parámetros de herramientas custom de Retell llegan en `body.args`, no en `b
 - `consultar_disponibilidad` — instrucción condicional
 
 **Requiere `OPENAI_API_KEY`** en Vercel. Sin ella, devuelve `_debug: missing_openai_key`.
-Se activa automáticamente al asignar un número con Cal.com habilitado.
+Se activa automáticamente al asignar un número con Cal.com habilitado (`enableCalBooking=true` + `calApiKey` + `calEventId`).
+
+Valores `_debug` en Retell logs para diagnosticar:
+- `cal_not_configured:enabled=...,key=...,event=...` — falta algún campo en la config del agente
+- `calcom_error:404 eventId:X — ...` — el eventId no existe en esa cuenta Cal.com
+- `missing_openai_key` — falta `OPENAI_API_KEY` en Vercel
+- `agent_not_found` — el `retell_agent_id` no está en la tabla `agents` de Supabase
 
 ## Variables de entorno críticas
 
@@ -86,4 +96,5 @@ Antes de tocar `toolMapper.ts`, ejecutar `npm test` para no romper cobertura.
 - `AgentPayload` extiende `ToolsPayload` — se pasa directamente a `injectToolInstructions`
 - `voice_speed` y `voice_temperature` solo se envían a Retell si difieren de `1.0` (OpenAI voices no los admiten)
 - Al crear un agente, hay un fallback: si `voiceId` es vacío o `11labs-UOIqAnmS11Reiei1Ytkc` (Carolina no importada), se usa `11labs-Adrian`
-- `parseBool()` en toolMapper maneja tanto `boolean true` como `string "true"` de Supabase JSON
+- `parseBool()` en toolMapper maneja tanto `boolean true` como `string "true"` de Supabase JSON — usarlo siempre al leer booleanos de `agents.configuration`, nunca comparar con `=== true` directamente
+- El assign route (`/api/retell/phone-number/assign`) solo refresca tools en Retell si el agente tiene `enableTransfer=true`. Si lo hace, usa `detectCalToolLoss()` para abortar si el rebuild perdería Cal.com. No modificar esta lógica sin entender el riesgo de borrar Cal.com del agente en Retell.
