@@ -532,7 +532,6 @@ export const Step5_Tools: React.FC = () => {
                             <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, background: 'white', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', boxShadow: '0 8px 24px rgba(0,0,0,.12)', zIndex: 100, minWidth: '180px', overflow: 'hidden' }}>
                                 {[
                                     { value: 'texto', icon: 'bi-list-ul', label: 'Texto' },
-                                    { value: 'selector', icon: 'bi-menu-button-wide', label: 'Selector' },
                                     { value: 'booleano', icon: 'bi-slash-circle', label: 'Booleano' },
                                     { value: 'numero', icon: 'bi-hash', label: 'Número' },
                                 ].map(t => (
@@ -585,20 +584,28 @@ export const Step5_Tools: React.FC = () => {
                         <div style={{ padding: '24px 28px', maxHeight: '65vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div className="cw" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                                 <div style={{ fontWeight: 700, fontSize: '13px' }}><i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '6px' }}></i>Antes de empezar necesitas:</div>
-                                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: '1.8' }}>
-                                    <li>Una cuenta en Cal.com (cal.com)</li>
-                                    <li>Un Event Type creado en tu cuenta</li>
-                                    <li>Tu API Key desde Configuración → Developer</li>
-                                </ul>
-                                <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '4px' }}>Cal.com se integra con: Google Calendar, HubSpot, Outlook, Salesforce, Zoom, Notion</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
+                                    {['Una cuenta en Cal.com (cal.com)', 'Un Event Type creado en tu cuenta', 'Tu API Key desde Configuración → Developer'].map(item => (
+                                        <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <i className="bi bi-check-circle-fill" style={{ color: '#d97706', fontSize: '14px', flexShrink: 0 }}></i>
+                                            <span>{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '4px', color: '#b45309' }}>Cal.com se integra con:</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                    {['Google Calendar', 'HubSpot', 'Outlook', 'Salesforce', 'Zoom', 'Notion'].map(int => (
+                                        <span key={int} style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '20px', border: '1px solid #d97706', color: '#92400e', background: '#fffbeb', fontWeight: 500 }}>{int}</span>
+                                    ))}
+                                </div>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 {[
-                                    { step: 1, title: 'Crea una cuenta en Cal.com', desc: 'Visita cal.com y crea tu cuenta si no tienes una.' },
-                                    { step: 2, title: 'Configura un tipo de evento', desc: 'En tu panel de Cal.com: Tipos de evento → Nuevo → Configura duración, disponibilidad, nombre → Guardar.' },
+                                    { step: 1, title: 'Crea una cuenta en Cal.com', desc: <>Visita <strong>cal.com</strong> y crea tu cuenta si no tienes una.</> },
+                                    { step: 2, title: 'Configura un tipo de evento', desc: <>En tu panel de Cal.com: <strong>Tipos de evento</strong> → <strong>Nuevo</strong> → Configura duración, disponibilidad, nombre → <strong>Guardar</strong>.</> },
                                     { step: 3, title: 'Obtén el Event Type ID', desc: 'Abre el tipo de evento y mira la URL del navegador. El ID es el número al final:', code: 'https://app.cal.com/usuario/evento/1427703' },
-                                    { step: 4, title: 'Obtén tu API Key', desc: 'En Cal.com: Configuración → Developer → API Keys → copia tu clave.' },
+                                    { step: 4, title: 'Obtén tu API Key', desc: <>En Cal.com: <strong>Configuración</strong> → <strong>Developer</strong> → <strong>API Keys</strong> → copia tu clave.</> },
                                     { step: 5, title: 'Pega los datos en la Fábrica', desc: 'Introduce la API Key, el Event Type ID y la zona horaria. El agente podrá consultar disponibilidad y reservar citas automáticamente durante las llamadas.' },
                                 ].map(s => (
                                     <div key={s.step} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
