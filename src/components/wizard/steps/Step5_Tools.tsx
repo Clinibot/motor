@@ -20,7 +20,7 @@ const Toggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void }> = (
 export const Step5_Tools: React.FC = () => {
     const {
         enableCalBooking, calApiKey, calEventId, calTimezone, calUrl, calSearchDays, enableCalCancellation,
-        enableTransfer, transferWhen, transferDestinations,
+        enableTransfer, transferDestinations,
         leadQuestions,
         extractionVariables,
         updateField, prevStep, nextStep
@@ -219,15 +219,6 @@ export const Step5_Tools: React.FC = () => {
                     <div>
                         <hr className="divider" style={{ margin: 0 }} />
                         <div style={{ padding: '20px' }}>
-                            <div className="fg">
-                                <label className="lbl">¿Cuándo debe transferir el agente? <span style={{ color: 'var(--error)' }}>*</span></label>
-                                <textarea className="inp" rows={3} style={{ resize: 'vertical' }}
-                                    placeholder="Ej: Cuando el usuario pide hablar con una persona, cuando el problema es demasiado complejo, cuando el usuario solicita un responsable..."
-                                    value={transferWhen}
-                                    onChange={e => updateField('transferWhen', e.target.value)}
-                                />
-                                <div className="hint">Describe las condiciones que deben activar la transferencia de llamada.</div>
-                            </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {transferDestinations.map((dest, idx) => (
                                     <div key={idx} style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-lg)', padding: '16px' }}>

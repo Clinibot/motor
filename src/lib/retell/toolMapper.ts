@@ -441,12 +441,11 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // Main action
     if (hasCal && hasTransfer) {
         const tNames = validDests.map(d => `\`${toTransferToolName(d.name)}\``).join(' o ');
-        const whenClause = p.transferWhen?.trim() ? ` (${p.transferWhen.trim()})` : '';
         scriptSteps.push(
             `**PASO ${paso} — Acción principal**\n` +
             `Según la necesidad del contacto:\n` +
             `- Quiere agendar una cita → sigue el apartado *Agendamiento* más abajo.\n` +
-            `- Prefiere hablar con alguien${whenClause} → usa ${tNames}.`
+            `- Prefiere hablar con alguien → usa ${tNames}.`
         );
         paso++;
     } else if (hasCal) {
@@ -460,8 +459,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             const tName = toTransferToolName(d.name);
             return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
         }).join('\n');
-        const whenLine = p.transferWhen?.trim() ? `Cuándo transferir: ${p.transferWhen.trim()}\n\n` : '';
-        scriptSteps.push(`**PASO ${paso} — Transferencia**\n${whenLine}${tLines}`);
+        scriptSteps.push(`**PASO ${paso} — Transferencia**\n${tLines}`);
         paso++;
     }
 
