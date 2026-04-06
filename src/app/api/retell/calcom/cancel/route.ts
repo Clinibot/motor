@@ -82,6 +82,8 @@ export async function POST(request: NextRequest) {
         }
 
         // 3. Cancel the booking
+        const cancelBody = { cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: true };
+        console.log(`[calcom/cancel] Cancelling booking uid=${bookingUid}`, JSON.stringify(cancelBody));
         const cancelRes = await fetch(
             `https://api.cal.com/v2/bookings/${bookingUid}/cancel`,
             {
@@ -91,13 +93,13 @@ export async function POST(request: NextRequest) {
                     'Authorization': `Bearer ${calApiKey}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: true }),
+                body: JSON.stringify(cancelBody),
             }
         );
 
         if (!cancelRes.ok) {
             const errText = await cancelRes.text();
-            console.error('[calcom/cancel] Cal.com cancel failed:', cancelRes.status, errText);
+            console.error(`[calcom/cancel] Cal.com ${cancelRes.status} for uid=${bookingUid}:`, errText);
             return NextResponse.json(
                 { success: false, error: `No se pudo cancelar la cita (Cal.com ${cancelRes.status}): ${errText.slice(0, 200)}` },
                 { status: 502 }
