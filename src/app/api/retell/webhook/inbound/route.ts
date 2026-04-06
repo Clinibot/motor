@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         console.log(`Fetching Cal.com slots for Event ${calEventId} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
         const calTimezone = config.calTimezone || 'Europe/Madrid';
-        const calResponse = await fetch(`https://api.cal.com/v2/slots?eventTypeId=${calEventId}&start=${startIso}&end=${endIso}&timeZone=${encodeURIComponent(calTimezone)}`, {
+        const calResponse = await fetch(`https://api.cal.com/v2/slots/available?eventTypeId=${calEventId}&start=${startIso}&end=${endIso}&timeZone=${encodeURIComponent(calTimezone)}`, {
             headers: {
                 'cal-api-version': '2026-02-25',
                 'Authorization': `Bearer ${calApiKey}`
