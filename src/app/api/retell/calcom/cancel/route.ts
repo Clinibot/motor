@@ -101,15 +101,26 @@ export async function POST(request: NextRequest) {
             const errText = await cancelRes.text();
             console.error(`[calcom/cancel] Cal.com ${cancelRes.status} for uid=${bookingUid}:`, errText);
 
-            // Cal.com returns 400 "Can't cancel booking" when the booking is already cancelled.
-            // This happens when the agent calls cancel_appointment twice (Retell retry behaviour).
-            // Treat it as success to avoid confusing the agent.
-            if (cancelRes.status === 400 && errText.includes("Can't cancel booking")) {
-                console.warn(`[calcom/cancel] Booking ${bookingUid} already cancelled — returning success`);
-                return NextResponse.json({
-                    success: true,
-                    message: 'La cita ya había sido cancelada anteriormente. No hay ninguna cita activa pendiente.',
-                });
+            // Cal.com returns 400 "Can't cancel booking" sometimes when the booking is already cancelled
+            // (e.g. Retell double-executes the tool). Verify the actual booking status before failing.
+            if (cancelRes.status === 400) {
+                const verifyRes = await fetch(
+                    `https://api.cal.com/v2/bookings/${bookingUid}`,
+                    { headers: { 'cal-api-version': '2026-02-25', 'Authorization': `Bearer ${calApiKey}` } }
+                );
+                if (verifyRes.ok) {
+                    const verifyData = await verifyRes.json();
+                    const status = (verifyData?.data?.status || verifyData?.status || '').toLowerCase();
+                    if (status === 'cancelled' || status === 'canceled') {
+                        console.warn(`[calcom/cancel] Booking ${bookingUid} is already cancelled — returning success`);
+                        return NextResponse.json({
+                            success: true,
+                            message: 'La cita ya había sido cancelada anteriormente. No hay ninguna cita activa pendiente.',
+                        });
+                    }
+                }
+                // Booking exists and is NOT cancelled — this is a real error
+                console.error(`[calcom/cancel] Real 400 error for uid=${bookingUid}:`, errText);
             }
 
             return NextResponse.json(
