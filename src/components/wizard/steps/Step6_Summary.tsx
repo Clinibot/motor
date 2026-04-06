@@ -102,7 +102,6 @@ export const Step6_Summary: React.FC = () => {
     const getUpdatedPrompt = useCallback(() => {
         const name = agentName || 'Asistente';
         const company = companyName || 'netelip';
-        const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const personalityStr = personality.length > 0
             ? `Tu personalidad es: ${personality.join(', ')}.`
             : 'Tienes una personalidad profesional, empática y atenta.';
@@ -114,7 +113,6 @@ Rol: Eres ${name}, el agente virtual que trabaja para la empresa ${company}.
 # Estilo y Comportamiento
 - Personalidad: ${personalityStr}
 - Tono: ${tone}
-- Fecha Actual: ${today}
 `.trim();
     }, [agentName, companyName, personality, tone]);
 

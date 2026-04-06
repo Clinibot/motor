@@ -143,14 +143,15 @@ describe('injectToolInstructions', () => {
     });
 
     describe('transferencias', () => {
-        it('incluye instrucciones de transferencia cuando hay destinos', () => {
+        it('incluye instrucciones de transferencia en el guión cuando hay destinos', () => {
             const result = injectToolInstructions('Prompt.', {
                 enableTransfer: true,
                 transferDestinations: [
                     { name: 'Soporte', destination_type: 'number', number: '+34900000000' },
                 ],
             });
-            expect(result).toContain('Transferencias');
+            // Las instrucciones de transferencia están en el guión (PASO X), no duplicadas en sección aparte
+            expect(result).toContain('transfer_to_soporte');
             expect(result).toContain('Soporte');
         });
     });

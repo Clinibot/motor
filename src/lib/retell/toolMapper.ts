@@ -533,15 +533,6 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         toolDetails.push(calDetail);
     }
 
-    // Transfers
-    if (hasTransfer) {
-        const tLines = validDests.map(d => {
-            const tName = toTransferToolName(d.name);
-            return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
-        }).join('\n');
-        toolDetails.push(`### Transferencias\n${tLines}`);
-    }
-
     // Custom tools
     if (hasCustomTools) {
         const ctLines = (p.customTools || [])
