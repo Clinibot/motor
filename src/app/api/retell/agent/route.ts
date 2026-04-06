@@ -183,7 +183,8 @@ export async function POST(request: Request) {
             response_engine: { type: "retell-llm" as const, llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
             voice_id: voiceId,
-            language: (payload.language || "es-ES") as string,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            language: (payload.language || "es-ES") as any,
             responsiveness: payload.responsiveness || 1,
             interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
             enable_backchannel: payload.enableBackchannel || false,
@@ -387,7 +388,8 @@ export async function PATCH(request: Request) {
                 response_engine: { type: "retell-llm" as const, llm_id: llmId },
                 agent_name: payload.agentName || "Updated Agent",
                 voice_id: voiceId,
-                language: (payload.language || "es-ES") as string,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                language: (payload.language || "es-ES") as any,
                 responsiveness: payload.responsiveness || 1,
                 interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
                 enable_backchannel: payload.enableBackchannel || false,
