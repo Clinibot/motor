@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 /**
  * Verifies the x-retell-signature header sent by Retell on every webhook.
@@ -8,6 +8,8 @@ import { createHmac } from 'crypto';
  * To enable strict verification:
  * 1. Set RETELL_WEBHOOK_SECRET in your environment variables.
  * 2. Configure the same secret in the Retell dashboard under Webhooks.
+ *
+ * Uses timingSafeEqual to prevent timing-based side-channel attacks.
  */
 export async function verifyRetellWebhook(
     rawBody: string,
@@ -23,5 +25,11 @@ export async function verifyRetellWebhook(
         return false;
     }
     const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
-    return expected === signature;
+    const expectedBuf = Buffer.from(expected, 'hex');
+    const signatureBuf = Buffer.from(signature, 'hex');
+    // Buffers must be same length for timingSafeEqual; reject mismatches immediately
+    if (expectedBuf.length !== signatureBuf.length || expectedBuf.length === 0) {
+        return false;
+    }
+    return timingSafeEqual(expectedBuf, signatureBuf);
 }

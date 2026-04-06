@@ -3,8 +3,16 @@
 import React from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 
+const AGENT_TYPE_OPTIONS = [
+    { value: 'cualificacion', label: 'Cualificación de leads' },
+    { value: 'agendamiento', label: 'Agendamiento de citas' },
+    { value: 'atencion_cliente', label: 'Atención al cliente' },
+    { value: 'ventas', label: 'Ventas y captación' },
+    { value: 'informacion', label: 'Información y consultas' },
+];
+
 export const Step1_BasicInfo: React.FC = () => {
-    const { agentName, companyName, companyDescription, updateField, nextStep } = useWizardStore();
+    const { agentName, companyName, companyDescription, agentType, updateField, nextStep } = useWizardStore();
 
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,6 +68,23 @@ export const Step1_BasicInfo: React.FC = () => {
                         onChange={(e) => updateField('companyDescription', e.target.value)}
                     />
                     <div className="hint">1–2 frases. El agente la usará para contextualizar la empresa en conversaciones.</div>
+                </div>
+
+                <div className="fg">
+                    <label className="lbl" htmlFor="sel-agent-type">
+                        Tipo de agente <span style={{ color: 'var(--error)' }}>*</span>
+                    </label>
+                    <select
+                        className="inp sel"
+                        id="sel-agent-type"
+                        value={agentType}
+                        onChange={(e) => updateField('agentType', e.target.value)}
+                    >
+                        {AGENT_TYPE_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                    <div className="hint">Define el objetivo principal del agente. Esto configura el flujo de la llamada.</div>
                 </div>
 
                 <div className="wiz-footer">

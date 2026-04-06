@@ -34,7 +34,7 @@ export const Step5_Tools: React.FC = () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-            const { data: profile } = await supabase.from('profiles').select('workspace_id').eq('id', user.id).single();
+            const { data: profile } = await supabase.from('users').select('workspace_id').eq('id', user.id).single();
             if (!profile?.workspace_id) return;
             const { data } = await supabase.from('agents').select('id, name, retell_agent_id').eq('workspace_id', profile.workspace_id);
             setAvailableAgents(data ?? []);
@@ -155,7 +155,7 @@ export const Step5_Tools: React.FC = () => {
                                                     <option value="" disabled>¿Qué hace el agente?</option>
                                                     <option value="end_call">Terminar la llamada</option>
                                                     <option value="transfer">Ejecutar transferencia</option>
-                                                    <option value="booking">Agendar cita</option>
+                                                    <option value="booking" disabled={!enableCalBooking}>Agendar cita{!enableCalBooking ? ' (activa Cal.com primero)' : ''}</option>
                                                     <option value="continue">Continuar sin cualificar</option>
                                                 </select>
                                             </div>
@@ -296,7 +296,17 @@ export const Step5_Tools: React.FC = () => {
                                         </div>
                                         <button
                                             type="button"
-                                            onClick={() => updateField('transferDestinations', transferDestinations.filter((_, i) => i !== idx))}
+                                            onClick={() => {
+                                                const newDests = transferDestinations.filter((_, i) => i !== idx);
+                                                const newLeadQ = leadQuestions.map(q => {
+                                                    if (q.failTransferIdx === undefined) return q;
+                                                    if (q.failTransferIdx === idx) return { ...q, failTransferIdx: undefined, failAction: 'end_call' as const };
+                                                    if (q.failTransferIdx > idx) return { ...q, failTransferIdx: q.failTransferIdx - 1 };
+                                                    return q;
+                                                });
+                                                updateField('transferDestinations', newDests);
+                                                updateField('leadQuestions', newLeadQ);
+                                            }}
                                             style={{ marginTop: '12px', background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, padding: 0, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}
                                         >
                                             <i className="bi bi-trash"></i> Eliminar destino

@@ -33,9 +33,9 @@ async function resolveCustomVoiceId(retellClient: Retell, voiceId: string, voice
 
 function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase environment variables are not configured.');
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY is required — do not fall back to anon key for admin operations.');
     }
     return createClient(supabaseUrl, supabaseServiceKey);
 }
@@ -156,9 +156,7 @@ export async function POST(request: Request) {
             start_speaker: payload.whoFirst || 'agent',
         };
 
-        if (retellTools.length > 0) {
-            llmCreateParams.general_tools = retellTools;
-        }
+        llmCreateParams.general_tools = retellTools.length > 0 ? retellTools : [];
 
         if (payload.kbFiles && payload.kbFiles.length > 0) {
             const kbIds = payload.kbFiles.map((f: { id?: string }) => f.id).filter(Boolean);
@@ -185,7 +183,7 @@ export async function POST(request: Request) {
             response_engine: { type: "retell-llm" as const, llm_id: llmResponse.llm_id },
             agent_name: payload.agentName || "New Agent",
             voice_id: voiceId,
-            language: (payload.language || "es-ES") as "es-ES",
+            language: (payload.language || "es-ES") as string,
             responsiveness: payload.responsiveness || 1,
             interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
             enable_backchannel: payload.enableBackchannel || false,
@@ -231,8 +229,7 @@ export async function POST(request: Request) {
                 type: payload.agentType || "Desconocido",
                 configuration: {
                     ...payload,
-                    // Strip sensitive fields — these are looked up from DB at runtime, not stored
-                    calApiKey: undefined,
+                    // Strip SIP passwords (looked up securely at runtime via enrichSipCredentials)
                     transferDestinations: payload.transferDestinations?.map(d =>
                         Object.fromEntries(Object.entries(d as unknown as Record<string, unknown>).filter(([k]) => k !== 'sip_password'))
                     ),
@@ -390,7 +387,7 @@ export async function PATCH(request: Request) {
                 response_engine: { type: "retell-llm" as const, llm_id: llmId },
                 agent_name: payload.agentName || "Updated Agent",
                 voice_id: voiceId,
-                language: (payload.language || "es-ES") as "es-ES",
+                language: (payload.language || "es-ES") as string,
                 responsiveness: payload.responsiveness || 1,
                 interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
                 enable_backchannel: payload.enableBackchannel || false,
@@ -401,8 +398,8 @@ export async function PATCH(request: Request) {
                 begin_message_delay_ms: payload.beginMessageDelayMs || 200,
                 end_call_after_silence_ms: payload.endCallAfterSilenceMs || 59000,
                 ring_duration_ms: payload.ringDurationMs || 30000,
-                voice_speed: payload.voiceSpeed,
-                voice_temperature: payload.voiceTemperature,
+                voice_speed: payload.voiceSpeed !== 1.0 ? payload.voiceSpeed : undefined,
+                voice_temperature: payload.voiceTemperature !== 1.0 ? payload.voiceTemperature : undefined,
                 volume: payload.volume,
                 ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined) as "call-center",
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
@@ -434,8 +431,7 @@ export async function PATCH(request: Request) {
                 retell_llm_id: llmId,
                 configuration: {
                     ...payload,
-                    // Strip sensitive fields — these are looked up from DB at runtime, not stored
-                    calApiKey: undefined,
+                    // Strip SIP passwords (looked up securely at runtime via enrichSipCredentials)
                     transferDestinations: (payload.transferDestinations as TransferDestination[] | undefined)?.map(d =>
                         Object.fromEntries(Object.entries(d as unknown as Record<string, unknown>).filter(([k]) => k !== 'sip_password'))
                     ),

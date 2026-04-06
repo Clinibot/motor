@@ -23,6 +23,7 @@ export interface ToolsPayload {
     enableCalAvailability?: boolean;
     calAvailabilityDays?: number;
     enableTransfer: boolean;
+    transferWhen?: string;
     transferDestinations: TransferDestination[];
     enableCustomTools?: boolean;
     customTools?: CustomTool[];
@@ -366,9 +367,11 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // NOTE: no 'm' flag — without it, '$' matches end-of-string so the full section is consumed
     cleanPrompt = cleanPrompt.replace(/\n?# Base de Conocimiento[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Notas Adicionales[\s\S]*?(?=\n#|$)/, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Notas Específicas[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Estilo de Pronunciación[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Idioma[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Language[\s\S]*?(?=\n#|$)/, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Horario de atención[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.trim();
 
     // ── 2. FLAGS ──────────────────────────────────────────────────────────────
@@ -436,11 +439,12 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // Main action
     if (hasCal && hasTransfer) {
         const tNames = validDests.map(d => `\`${toTransferToolName(d.name)}\``).join(' o ');
+        const whenClause = p.transferWhen?.trim() ? ` (${p.transferWhen.trim()})` : '';
         scriptSteps.push(
             `**PASO ${paso} — Acción principal**\n` +
             `Según la necesidad del contacto:\n` +
             `- Quiere agendar una cita → sigue el apartado *Agendamiento* más abajo.\n` +
-            `- Prefiere hablar con alguien → usa ${tNames}.`
+            `- Prefiere hablar con alguien${whenClause} → usa ${tNames}.`
         );
         paso++;
     } else if (hasCal) {
@@ -454,7 +458,8 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             const tName = toTransferToolName(d.name);
             return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
         }).join('\n');
-        scriptSteps.push(`**PASO ${paso} — Transferencia**\n${tLines}`);
+        const whenLine = p.transferWhen?.trim() ? `Cuándo transferir: ${p.transferWhen.trim()}\n\n` : '';
+        scriptSteps.push(`**PASO ${paso} — Transferencia**\n${whenLine}${tLines}`);
         paso++;
     }
 
@@ -569,6 +574,16 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         finalPrompt += `\n\n---\n\n## Instrucciones de Herramientas\n\n${toolDetails.join('\n\n')}`;
     }
 
+    // Business hours — inject if at least one day is open
+    const openDays = (p.businessHours || []).filter(d => !d.closed);
+    if (openDays.length > 0) {
+        const allDays = p.businessHours!;
+        const hoursLines = allDays.map(d =>
+            d.closed ? `${d.day}: Cerrado` : `${d.day}: ${d.open}–${d.close}`
+        ).join(' | ');
+        finalPrompt += `\n\n# Horario de atención\n${hoursLines}`;
+    }
+
     // KB — clean, single occurrence
     if (hasKB) {
         const kbNames = p.kbFiles!.map(f => `- ${f.name || f.id}`).join('\n');
@@ -578,6 +593,9 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             `${kbNames}\n\n` +
             `Si la información no está en estos documentos ni en el prompt, díselo amablemente ` +
             `y ofrécete a consultarlo con el equipo: "No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar."`;
+        if (p.kbUsageInstructions?.trim()) {
+            finalPrompt += `\n\n**Instrucciones de uso:**\n${p.kbUsageInstructions.trim()}`;
+        }
     }
 
     // Notes — clean, single occurrence

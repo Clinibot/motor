@@ -6,9 +6,10 @@ export const dynamic = 'force-dynamic';
 
 function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('[inbound-webhook] SUPABASE_SERVICE_ROLE_KEY is not set — cannot access agent configuration');
         return null;
     }
     return createClient(supabaseUrl, supabaseServiceKey);
@@ -95,9 +96,10 @@ export async function POST(request: NextRequest) {
 
         console.log(`Fetching Cal.com slots for Event ${calEventId} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
-        const calResponse = await fetch(`https://api.cal.com/v2/slots?eventTypeId=${calEventId}&start=${startIso}&end=${endIso}&timeZone=Europe/Madrid`, {
+        const calTimezone = config.calTimezone || 'Europe/Madrid';
+        const calResponse = await fetch(`https://api.cal.com/v2/slots?eventTypeId=${calEventId}&start=${startIso}&end=${endIso}&timeZone=${encodeURIComponent(calTimezone)}`, {
             headers: {
-                'cal-api-version': '2024-09-04',
+                'cal-api-version': '2026-02-25',
                 'Authorization': `Bearer ${calApiKey}`
             }
         });
@@ -263,32 +265,43 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'missing_openai_key' } } });
         }
 
-        const [earliestResponse, fullResponse] = await Promise.all([
-            fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${openAiKey}`
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o-mini', // Fallback to mini for performance/latency or user specified 4o
-                    messages: [{ role: 'user', content: earliestPrompt }],
-                    temperature: 0.1
+        const openAiController = new AbortController();
+        const openAiTimeout = setTimeout(() => openAiController.abort(), 8000);
+
+        let earliestResponse: Response;
+        let fullResponse: Response;
+        try {
+            [earliestResponse, fullResponse] = await Promise.all([
+                fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${openAiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [{ role: 'user', content: earliestPrompt }],
+                        temperature: 0.1
+                    }),
+                    signal: openAiController.signal
+                }),
+                fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${openAiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [{ role: 'user', content: fullAvailabilityPrompt }],
+                        temperature: 0.1
+                    }),
+                    signal: openAiController.signal
                 })
-            }),
-            fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${openAiKey}`
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o-mini',
-                    messages: [{ role: 'user', content: fullAvailabilityPrompt }],
-                    temperature: 0.1
-                })
-            })
-        ]);
+            ]);
+        } finally {
+            clearTimeout(openAiTimeout);
+        }
 
         let req1Text = "";
         let req2Text = "";

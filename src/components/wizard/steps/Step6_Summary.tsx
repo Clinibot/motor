@@ -106,15 +106,16 @@ export const Step6_Summary: React.FC = () => {
             ? `Tu personalidad es: ${personality.join(', ')}.`
             : 'Tienes una personalidad profesional, empática y atenta.';
 
-        return `
-# Perfil y Misión
-Rol: Eres ${name}, el agente virtual que trabaja para la empresa ${company}.
+        let prompt = `# Perfil y Misión\nRol: Eres ${name}, el agente virtual que trabaja para la empresa ${company}.`;
 
-# Estilo y Comportamiento
-- Personalidad: ${personalityStr}
-- Tono: ${tone}
-`.trim();
-    }, [agentName, companyName, personality, tone]);
+        if (companyDescription?.trim()) {
+            prompt += `\nDescripción: ${companyDescription.trim()}`;
+        }
+
+        prompt += `\n\n# Estilo y Comportamiento\n- Personalidad: ${personalityStr}\n- Tono: ${tone}`;
+
+        return prompt.trim();
+    }, [agentName, companyName, companyDescription, personality, tone]);
 
     const handleCreateAgent = async () => {
         const finalPrompt = getUpdatedPrompt();
@@ -261,8 +262,8 @@ Rol: Eres ${name}, el agente virtual que trabaja para la empresa ${company}.
                                 <label className="lbl">Modelo IA</label>
                                 <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <i className="bi bi-stars" style={{ color: 'var(--azul)' }}></i>
-                                    {model === 'gemini-3.1-flash' ? 'Gemini 3.0 Flash' : 'GPT-4.1'}
-                                    {model === 'gemini-3.1-flash' && <span style={{ fontSize: '10px', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', marginLeft: 'auto' }}>Recomendado</span>}
+                                    {model === 'gemini-3.0-flash' ? 'Gemini 3.0 Flash' : 'GPT-4.1'}
+                                    {model === 'gemini-3.0-flash' && <span style={{ fontSize: '10px', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', marginLeft: 'auto' }}>Recomendado</span>}
                                 </div>
                             </div>
                             <div className="fg" style={{ marginBottom: 0 }}>

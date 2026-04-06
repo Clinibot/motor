@@ -74,7 +74,7 @@ export const Step2_LLM: React.FC = () => {
                         <div className="rcard-label">El agente habla primero</div>
                     </div>
                     <div
-                        className="rcard"
+                        className={`rcard${whoFirst === 'user' ? ' on' : ''}`}
                         style={{ padding: '12px' }}
                         onClick={() => updateField('whoFirst', 'user')}
                     >
