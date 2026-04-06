@@ -463,8 +463,8 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         scriptSteps.push(
             `**PASO ${paso} — Cierre**\n` +
             `Pregunta: "¿Hay algo más en lo que pueda ayudarte?" y espera la respuesta.\n` +
-            `- Si dice que no → despídete usando \`{{user_name}}\`, menciona la cita si se agendó, ` +
-            `desea un buen día y ejecuta \`end_call\` DESPUÉS de terminar la despedida.`
+            `- Si dice que no → despídete usando el nombre que capturaste al inicio de la conversación` +
+            `${hasCal ? ', menciona la cita si se agendó,' : ','} desea un buen día y ejecuta \`end_call\` DESPUÉS de terminar la despedida.`
         );
     }
 
