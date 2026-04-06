@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import Retell from 'retell-sdk';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
-import { buildRetellTools } from '@/lib/retell/toolMapper';
+import { buildRetellTools, detectCalToolLoss, parseBool as parseBoolTool } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 
 export const dynamic = 'force-dynamic';
@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
         }
 
         // Fetch agent configuration to check if Cal.com webhook is needed
-        const parseBool = (val: unknown) => val === true || val === 'true';
         let needsInboundWebhook = false;
         if (localAgentId) {
             const { data: agentConfig } = await supabaseAdmin
@@ -66,7 +65,7 @@ export async function POST(request: NextRequest) {
                 .single();
 
             const cfg = agentConfig?.configuration;
-            needsInboundWebhook = parseBool(cfg?.enableCalBooking) && !!cfg?.calApiKey && !!cfg?.calEventId;
+            needsInboundWebhook = parseBoolTool(cfg?.enableCalBooking) && !!cfg?.calApiKey && !!cfg?.calEventId;
             console.log(`[assign] needsInboundWebhook=${needsInboundWebhook} — enableCalBooking=${cfg?.enableCalBooking} calApiKey=${!!cfg?.calApiKey} calEventId=${cfg?.calEventId}`);
         }
 
@@ -129,7 +128,7 @@ export async function POST(request: NextRequest) {
                     const agentCfg = agent.configuration;
 
                     // Only run if the agent actually has transfer enabled (that's the only reason to re-enrich tools here)
-                    if (!parseBool(agentCfg.enableTransfer)) {
+                    if (!parseBoolTool(agentCfg.enableTransfer)) {
                         console.log(`[assign] Agent ${localAgentId} has no transfer enabled — skipping tool refresh to avoid overwriting Retell tools.`);
                     } else {
                         const toolPayload = { ...agentCfg };
@@ -137,17 +136,14 @@ export async function POST(request: NextRequest) {
                         await enrichSipCredentials(toolPayload, supabaseAdmin, localAgentId);
                         const updatedTools = buildRetellTools(toolPayload);
 
-                        const hadCal = parseBool(agentCfg.enableCalBooking) && !!agentCfg.calApiKey && !!agentCfg.calEventId;
-                        const builtCal = updatedTools.some((t: { name?: string }) => t.name === 'book_appointment' || t.name === 'check_appointment' || t.name === 'cancel_appointment');
-
-                        if (hadCal && !builtCal) {
+                        if (detectCalToolLoss(agentCfg, updatedTools)) {
                             console.error(`[assign] ABORTED tool refresh: agent had Cal.com but rebuilt tools are missing it. Config: enableCalBooking=${agentCfg.enableCalBooking} calApiKey=${!!agentCfg.calApiKey} calEventId=${agentCfg.calEventId}`);
                         } else {
                             await retellClient.llm.update(agent.retell_llm_id, {
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 general_tools: updatedTools as any
                             });
-                            console.log(`[assign] Tools refreshed for agent ${localAgentId}. hadCal=${hadCal} builtCal=${builtCal}`);
+                            console.log(`[assign] Tools refreshed for agent ${localAgentId}.`);
                         }
                     }
                 }

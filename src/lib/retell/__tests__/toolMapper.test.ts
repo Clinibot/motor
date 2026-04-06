@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { injectToolInstructions, buildRetellTools, buildPostCallAnalysis, ToolsPayload } from '../toolMapper';
+import { injectToolInstructions, buildRetellTools, buildPostCallAnalysis, parseBool, detectCalToolLoss, ToolsPayload } from '../toolMapper';
 import { resolveVoiceId } from '../types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -431,6 +431,102 @@ describe('buildRetellTools — custom tools con parámetros', () => {
             ],
         });
         expect(tools).toHaveLength(0);
+    });
+});
+
+// ─── parseBool ────────────────────────────────────────────────────────────────
+
+describe('parseBool', () => {
+    it('true (boolean) → true', () => expect(parseBool(true)).toBe(true));
+    it('"true" (string) → true', () => expect(parseBool('true')).toBe(true));
+    it('false (boolean) → false', () => expect(parseBool(false)).toBe(false));
+    it('"false" (string) → false', () => expect(parseBool('false')).toBe(false));
+    it('undefined → false', () => expect(parseBool(undefined)).toBe(false));
+    it('null → false', () => expect(parseBool(null)).toBe(false));
+    it('1 (number) → false — no acepta números', () => expect(parseBool(1)).toBe(false));
+    it('"1" (string) → false', () => expect(parseBool('1')).toBe(false));
+});
+
+// ─── detectCalToolLoss ────────────────────────────────────────────────────────
+
+describe('detectCalToolLoss', () => {
+    const calConfig: ToolsPayload = {
+        ...base,
+        enableCalBooking: true,
+        calApiKey: 'cal_xxx',
+        calEventId: '42',
+    };
+
+    it('detecta pérdida cuando config tiene Cal.com pero tools no la incluyen', () => {
+        const tools = buildRetellTools(base); // no Cal.com
+        expect(detectCalToolLoss(calConfig, tools)).toBe(true);
+    });
+
+    it('no detecta pérdida cuando tools sí incluyen Cal.com', () => {
+        const tools = buildRetellTools({ ...calConfig, siteUrl: 'https://test.example.com' });
+        expect(detectCalToolLoss(calConfig, tools)).toBe(false);
+    });
+
+    it('no detecta pérdida si el agente no tenía Cal.com', () => {
+        const tools = buildRetellTools(base);
+        expect(detectCalToolLoss(base, tools)).toBe(false);
+    });
+
+    it('detecta pérdida con enableCalBooking como string "true"', () => {
+        const cfgStringTrue = { ...calConfig, enableCalBooking: 'true' as unknown as boolean };
+        const tools = buildRetellTools(base);
+        expect(detectCalToolLoss(cfgStringTrue, tools)).toBe(true);
+    });
+
+    it('no detecta pérdida si calApiKey está vacío (Cal nunca estuvo configurada)', () => {
+        const cfgNoKey = { ...calConfig, calApiKey: '' };
+        const tools = buildRetellTools(base);
+        expect(detectCalToolLoss(cfgNoKey, tools)).toBe(false);
+    });
+});
+
+// ─── buildRetellTools — Cal.com edge cases ────────────────────────────────────
+
+describe('buildRetellTools — Cal.com edge cases', () => {
+    it('enableCalBooking como string "true" incluye book_appointment', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableCalBooking: 'true' as unknown as boolean,
+            calApiKey: 'cal_xxx',
+            calEventId: '42',
+            siteUrl: 'https://test.example.com',
+        });
+        expect(tools.some(t => t.name === 'book_appointment')).toBe(true);
+    });
+
+    it('enableCalBooking false (boolean) no incluye Cal.com tools', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableCalBooking: false,
+            calApiKey: 'cal_xxx',
+            calEventId: '42',
+        });
+        expect(tools.some(t => t.name === 'book_appointment')).toBe(false);
+    });
+
+    it('enableCalBooking "false" (string) no incluye Cal.com tools', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableCalBooking: 'false' as unknown as boolean,
+            calApiKey: 'cal_xxx',
+            calEventId: '42',
+        });
+        expect(tools.some(t => t.name === 'book_appointment')).toBe(false);
+    });
+
+    it('calApiKey vacío no incluye Cal.com tools aunque enableCalBooking sea true', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableCalBooking: true,
+            calApiKey: '',
+            calEventId: '42',
+        });
+        expect(tools.some(t => t.name === 'book_appointment')).toBe(false);
     });
 });
 

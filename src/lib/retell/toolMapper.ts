@@ -63,7 +63,19 @@ export interface ToolsPayload {
 type RetellTool = Record<string, unknown>;
 
 // Helper to handle both boolean true and string "true" from Supabase JSON
-const parseBool = (val: unknown): boolean => val === true || val === 'true';
+export const parseBool = (val: unknown): boolean => val === true || val === 'true';
+
+/**
+ * Returns true if the config had Cal.com enabled but the rebuilt tools are missing it.
+ * Used in the assign route to abort a tool refresh that would silently wipe Cal.com.
+ */
+export function detectCalToolLoss(config: ToolsPayload, builtTools: RetellTool[]): boolean {
+    const hadCal = parseBool(config.enableCalBooking) && !!config.calApiKey && !!config.calEventId;
+    const builtCal = builtTools.some(
+        t => t.name === 'book_appointment' || t.name === 'check_appointment' || t.name === 'cancel_appointment'
+    );
+    return hadCal && !builtCal;
+}
 
 // Builds a valid Retell tool name from a transfer destination name.
 // Retell requirement: only a-z, A-Z, 0-9, underscores and dashes, max 64 chars.
