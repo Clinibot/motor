@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useWizardStore } from '../../../store/wizardStore';
 
 const PERSONALITIES = ['Profesional', 'Empático', 'Amigable', 'Proactivo', 'Directo'];
@@ -8,6 +8,7 @@ const TONES = ['Formal', 'Semiformal', 'Casual'];
 
 export const Step2_LLM: React.FC = () => {
     const { beginMessage, personality, tone, model, whoFirst, updateField, nextStep, prevStep } = useWizardStore();
+    const [validationError, setValidationError] = useState('');
 
     const togglePersonality = (trait: string) => {
         const next = [...personality];
@@ -15,6 +16,15 @@ export const Step2_LLM: React.FC = () => {
         if (idx > -1) next.splice(idx, 1);
         else next.push(trait);
         updateField('personality', next);
+    };
+
+    const handleNext = () => {
+        if (whoFirst === 'agent' && !beginMessage.trim()) {
+            setValidationError('El mensaje de inicio es obligatorio cuando el agente habla primero (RGPD).');
+            return;
+        }
+        setValidationError('');
+        nextStep();
     };
 
     return (
@@ -135,11 +145,17 @@ export const Step2_LLM: React.FC = () => {
                 <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Formal: usted, sin contracciones. Semiformal: equilibrio entre cercanía y respeto. Casual: tú, lenguaje coloquial.</div>
             </div>
 
+            {validationError && (
+                <div className="cw" style={{ marginBottom: '8px' }}>
+                    <i className="bi bi-exclamation-triangle-fill" style={{ flexShrink: 0 }}></i>
+                    {validationError}
+                </div>
+            )}
             <div className="wiz-footer">
                 <button type="button" className="btn-s" onClick={prevStep}>
                     <i className="bi bi-arrow-left"></i> Anterior
                 </button>
-                <button type="button" className="btn-p" onClick={nextStep}>
+                <button type="button" className="btn-p" onClick={handleNext}>
                     Siguiente <i className="bi bi-arrow-right"></i>
                 </button>
             </div>

@@ -10,6 +10,13 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
     try {
         const { searchParams } = request.nextUrl;
+
+        // Endpoint secret guard — if FACTORY_CALCOM_SECRET is set, every request must supply it
+        const factorySecret = process.env.FACTORY_CALCOM_SECRET;
+        if (factorySecret && searchParams.get('fs') !== factorySecret) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const calApiKey = searchParams.get('cal_api_key');
         const eventTypeId = searchParams.get('event_type_id');
 

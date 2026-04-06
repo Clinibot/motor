@@ -28,6 +28,7 @@ export const Step5_Tools: React.FC = () => {
 
     const [showVarDropdown, setShowVarDropdown] = useState(false);
     const [availableAgents, setAvailableAgents] = useState<AgentOption[]>([]);
+    const [validationError, setValidationError] = useState('');
 
     useEffect(() => {
         const fetchAgents = async () => {
@@ -63,10 +64,11 @@ export const Step5_Tools: React.FC = () => {
         updateField('extractionVariables', [...extractionVariables, { name: '', type, description: '' }]);
     };
 
-    const validate = () => {
-        if (enableCalBooking && (!calApiKey || !calEventId)) return false;
-        if (enableTransfer && transferDestinations.length === 0) return false;
-        return true;
+    const getValidationError = () => {
+        if (enableCalBooking && !calApiKey) return 'La Cal.com API Key es obligatoria para activar la reserva de citas.';
+        if (enableCalBooking && !calEventId) return 'El Event Type ID es obligatorio para activar la reserva de citas.';
+        if (enableTransfer && transferDestinations.length === 0) return 'Añade al menos un destino de transferencia o desactiva la transferencia.';
+        return '';
     };
 
     return (
@@ -532,11 +534,22 @@ export const Step5_Tools: React.FC = () => {
                 </div>
             </div>
 
+            {validationError && (
+                <div className="cw" style={{ marginBottom: '8px' }}>
+                    <i className="bi bi-exclamation-triangle-fill" style={{ flexShrink: 0 }}></i>
+                    {validationError}
+                </div>
+            )}
             <div className="wiz-footer">
                 <button type="button" className="btn-s" onClick={prevStep}>
                     <i className="bi bi-arrow-left"></i> Anterior
                 </button>
-                <button type="button" className="btn-p" onClick={() => validate() && nextStep()}>
+                <button type="button" className="btn-p" onClick={() => {
+                    const err = getValidationError();
+                    if (err) { setValidationError(err); return; }
+                    setValidationError('');
+                    nextStep();
+                }}>
                     Siguiente <i className="bi bi-arrow-right"></i>
                 </button>
             </div>

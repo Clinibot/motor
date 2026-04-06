@@ -8,7 +8,15 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
     try {
-        const calApiKey = request.nextUrl.searchParams.get('cal_api_key');
+        const { searchParams } = request.nextUrl;
+
+        // Endpoint secret guard — if FACTORY_CALCOM_SECRET is set, every request must supply it
+        const factorySecret = process.env.FACTORY_CALCOM_SECRET;
+        if (factorySecret && searchParams.get('fs') !== factorySecret) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const calApiKey = searchParams.get('cal_api_key');
         if (!calApiKey) {
             return NextResponse.json({ success: false, error: 'Missing cal_api_key' }, { status: 400 });
         }
@@ -54,7 +62,7 @@ export async function POST(request: NextRequest) {
             const attendees: { phoneNumber?: string; phone?: string }[] = b.attendees || [];
             return attendees.some((a) => {
                 const ap = (a.phoneNumber || a.phone || '').replace(/[\s\-().]/g, '');
-                return ap && (ap.endsWith(normalizedPhone) || normalizedPhone.endsWith(ap));
+                return ap && ap === normalizedPhone;
             });
         });
 
