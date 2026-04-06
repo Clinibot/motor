@@ -374,7 +374,6 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     cleanPrompt = cleanPrompt.replace(/\n?# Estilo de Pronunciación[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Idioma[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Language[\s\S]*?(?=\n#|$)/, '').trim();
-    cleanPrompt = cleanPrompt.replace(/\n?# Horario de atención[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.trim();
 
     // ── 2. FLAGS ──────────────────────────────────────────────────────────────
@@ -575,16 +574,6 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
 
     if (toolDetails.length > 0) {
         finalPrompt += `\n\n---\n\n## Instrucciones de Herramientas\n\n${toolDetails.join('\n\n')}`;
-    }
-
-    // Business hours — inject if at least one day is open
-    const openDays = (p.businessHours || []).filter(d => !d.closed);
-    if (openDays.length > 0) {
-        const allDays = p.businessHours!;
-        const hoursLines = allDays.map(d =>
-            d.closed ? `${d.day}: Cerrado` : `${d.day}: ${d.open}–${d.close}`
-        ).join(' | ');
-        finalPrompt += `\n\n# Horario de atención\n${hoursLines}`;
     }
 
     // KB — clean, single occurrence
