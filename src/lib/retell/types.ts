@@ -44,7 +44,11 @@ export interface TransferDestination {
  * stores the ElevenLabs provider_voice_id instead of the Retell workspace voice_id.
  * This function normalises it to a safe fallback so agent creation never fails.
  */
-const UNIMPORTED_VOICE_IDS = ['11labs-UOIqAnmS11Reiei1Ytkc'];
+const UNIMPORTED_VOICE_IDS = [
+    '11labs-UOIqAnmS11Reiei1Ytkc', // Carolina (pre-import)
+    '11labs-YDDaC9XKjODs7hY78qEW', // MariCarmen (pre-import)
+    '11labs-gD1IexrzCvsXPHUuT0s3', // Sara Martin (pre-import)
+];
 const FALLBACK_VOICE_ID = '11labs-Adrian';
 export function resolveVoiceId(voiceId?: string): string {
     if (!voiceId || UNIMPORTED_VOICE_IDS.includes(voiceId)) return FALLBACK_VOICE_ID;
