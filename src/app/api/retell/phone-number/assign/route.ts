@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Fetch agent configuration to check if Cal.com webhook is needed
+        const parseBool = (val: unknown) => val === true || val === 'true';
         let needsInboundWebhook = false;
         if (localAgentId) {
             const { data: agentConfig } = await supabaseAdmin
@@ -63,10 +64,10 @@ export async function POST(request: NextRequest) {
                 .select('configuration')
                 .eq('id', localAgentId)
                 .single();
-            
-            if (agentConfig?.configuration?.enableCalBooking && agentConfig?.configuration?.calApiKey) {
-                needsInboundWebhook = true;
-            }
+
+            const cfg = agentConfig?.configuration;
+            needsInboundWebhook = parseBool(cfg?.enableCalBooking) && !!cfg?.calApiKey && !!cfg?.calEventId;
+            console.log(`[assign] needsInboundWebhook=${needsInboundWebhook} — enableCalBooking=${cfg?.enableCalBooking} calApiKey=${!!cfg?.calApiKey} calEventId=${cfg?.calEventId}`);
         }
 
         // 2. Obtener API Key de Retell del workspace

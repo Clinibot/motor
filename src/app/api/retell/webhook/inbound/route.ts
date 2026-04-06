@@ -106,8 +106,9 @@ export async function POST(request: NextRequest) {
 
         if (!calResponse.ok) {
             const calErr = await calResponse.text();
-            console.error(`[inbound-webhook] Cal.com slots fetch failed: ${calResponse.status}`, calErr);
-            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: `calcom_error:${calResponse.status}` } } });
+            console.error(`[inbound-webhook] Cal.com slots fetch failed: ${calResponse.status} — eventId:${calEventId}`, calErr);
+            const shortErr = calErr.slice(0, 120).replace(/\n/g, ' ');
+            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: `calcom_error:${calResponse.status} eventId:${calEventId} — ${shortErr}` } } });
         }
 
         const calData = await calResponse.json();
