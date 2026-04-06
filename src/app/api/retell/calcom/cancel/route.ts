@@ -100,6 +100,18 @@ export async function POST(request: NextRequest) {
         if (!cancelRes.ok) {
             const errText = await cancelRes.text();
             console.error(`[calcom/cancel] Cal.com ${cancelRes.status} for uid=${bookingUid}:`, errText);
+
+            // Cal.com returns 400 "Can't cancel booking" when the booking is already cancelled.
+            // This happens when the agent calls cancel_appointment twice (Retell retry behaviour).
+            // Treat it as success to avoid confusing the agent.
+            if (cancelRes.status === 400 && errText.includes("Can't cancel booking")) {
+                console.warn(`[calcom/cancel] Booking ${bookingUid} already cancelled — returning success`);
+                return NextResponse.json({
+                    success: true,
+                    message: 'La cita ya había sido cancelada anteriormente. No hay ninguna cita activa pendiente.',
+                });
+            }
+
             return NextResponse.json(
                 { success: false, error: `No se pudo cancelar la cita (Cal.com ${cancelRes.status}): ${errText.slice(0, 200)}` },
                 { status: 502 }
