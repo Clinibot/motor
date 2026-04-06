@@ -41,6 +41,7 @@ export default function NumbersPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [savingNumberId, setSavingNumberId] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
@@ -202,6 +203,7 @@ export default function NumbersPage() {
     };
 
     const handleAgentChange = async (numberId: string, phoneNumber: string, agentId: string) => {
+        setSavingNumberId(numberId);
         try {
             const response = await fetch('/api/retell/phone-number/assign', {
                 method: 'POST',
@@ -230,6 +232,8 @@ export default function NumbersPage() {
                 message: `Error: ${(error as Error).message || "No se pudo asignar el agente."}`,
                 type: 'error'
             });
+        } finally {
+            setSavingNumberId(null);
         }
     };
 
@@ -311,17 +315,26 @@ export default function NumbersPage() {
                                                 <span style={{ background: '#dcfce7', color: '#16a34a', padding: '4px 10px', borderRadius: '10px', fontSize: '12px', fontWeight: 700 }}>✓ Conectado</span>
                                             </td>
                                             <td style={{ padding: '12px 16px' }}>
-                                                <select
-                                                    className="inp sel"
-                                                    style={{ width: '220px', fontSize: '13px', padding: '7px 36px 7px 12px' }}
-                                                    value={num.agent_id || 'none'}
-                                                    onChange={(e) => handleAgentChange(num.id, num.phone_number, e.target.value)}
-                                                >
-                                                    <option value="none">Sin agente (Desactivado)</option>
-                                                    {agents.map(agent => (
-                                                        <option key={agent.id} value={agent.id}>{agent.name}</option>
-                                                    ))}
-                                                </select>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <select
+                                                        className="inp sel"
+                                                        style={{ width: '220px', fontSize: '13px', padding: '7px 36px 7px 12px', opacity: savingNumberId === num.id ? 0.5 : 1 }}
+                                                        value={num.agent_id || 'none'}
+                                                        disabled={savingNumberId === num.id}
+                                                        onChange={(e) => handleAgentChange(num.id, num.phone_number, e.target.value)}
+                                                    >
+                                                        <option value="none">Sin agente (Desactivado)</option>
+                                                        {agents.map(agent => (
+                                                            <option key={agent.id} value={agent.id}>{agent.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    {savingNumberId === num.id && (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--azul)', whiteSpace: 'nowrap' }}>
+                                                            <i className="bi bi-telephone-fill" style={{ animation: 'pulse 1s ease-in-out infinite' }}></i>
+                                                            Asignando…
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td style={{ padding: '12px 16px', display: 'flex', gap: '6px' }}>
                                                 <button className="btn-s" onClick={() => setShowAddModal(true)} style={{ padding: '6px 10px' }} title="Editar número">
