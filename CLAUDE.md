@@ -64,6 +64,22 @@ Ver `.env.example`. Las más importantes:
 - `NEXT_PUBLIC_SITE_URL` — para construir URLs de webhook en Retell
 - `CRON_SECRET` — protege endpoints de cron de alertas
 
+## Tests y salud del proyecto
+
+Framework: **Vitest** — `npm test` (sin API keys ni conexión externa).
+
+- **71 tests** en `src/lib/retell/__tests__/` — todos pasan
+- Cobertura `toolMapper.ts`: 95.94% líneas · 100% funciones · 76.19% ramas
+- Cobertura `webhookAuth.ts`: 100% en todo
+
+Funciones exportadas y testeadas en `toolMapper.ts`:
+- `parseBool(val)` — normaliza `true`/`"true"` → `true`; `false`/`"false"`/`undefined`/números → `false`
+- `detectCalToolLoss(config, builtTools)` — devuelve `true` si config tenía Cal.com pero el rebuild la perdió (usado en assign route para abortar antes de sobrescribir Retell)
+
+**Health check**: `GET /api/health` — verifica env vars críticas + ping a Supabase. Devuelve `200 { status: "ok" }` o `503 { status: "degraded" }`.
+
+Antes de tocar `toolMapper.ts`, ejecutar `npm test` para no romper cobertura.
+
 ## Patrones a respetar
 
 - Los parámetros del wizard llegan al API como `AgentPayload` (`src/lib/retell/types.ts`)
