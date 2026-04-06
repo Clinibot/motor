@@ -29,6 +29,7 @@ export const Step5_Tools: React.FC = () => {
     const [showVarDropdown, setShowVarDropdown] = useState(false);
     const [availableAgents, setAvailableAgents] = useState<AgentOption[]>([]);
     const [validationError, setValidationError] = useState('');
+    const [showCalGuide, setShowCalGuide] = useState(false);
 
     useEffect(() => {
         const fetchAgents = async () => {
@@ -68,6 +69,15 @@ export const Step5_Tools: React.FC = () => {
         if (enableCalBooking && !calApiKey) return 'La Cal.com API Key es obligatoria para activar la reserva de citas.';
         if (enableCalBooking && !calEventId) return 'El Event Type ID es obligatorio para activar la reserva de citas.';
         if (enableTransfer && transferDestinations.length === 0) return 'Añade al menos un destino de transferencia o desactiva la transferencia.';
+        if (enableTransfer) {
+            for (let i = 0; i < transferDestinations.length; i++) {
+                const dest = transferDestinations[i];
+                if (!dest.name?.trim()) return `El destino #${i + 1} necesita un nombre.`;
+                if (!dest.description?.trim()) return `El destino #${i + 1} necesita una instrucción para el agente (campo obligatorio).`;
+                if (dest.destination_type !== 'agent' && !dest.number?.trim()) return `El destino #${i + 1} necesita un número de teléfono.`;
+                if (dest.destination_type === 'agent' && !dest.agentId) return `El destino #${i + 1} necesita un agente seleccionado.`;
+            }
+        }
         return '';
     };
 
@@ -247,7 +257,13 @@ export const Step5_Tools: React.FC = () => {
                                                 value={dest.description}
                                                 onChange={e => { const d = [...transferDestinations]; d[idx].description = e.target.value; updateField('transferDestinations', d); }}
                                             />
-                                            <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Describe en lenguaje natural cuándo debe transferir a este destino. Sé específico para evitar transferencias innecesarias.</div>
+                                            {!dest.description?.trim() && (
+                                                <div className="hint" style={{ color: 'var(--error)', marginTop: '4px' }}>
+                                                    <i className="bi bi-exclamation-circle" style={{ marginRight: '4px' }}></i>
+                                                    Campo obligatorio — sin instrucción el agente no sabrá cuándo transferir y la herramienta no se creará.
+                                                </div>
+                                            )}
+                                            {dest.description?.trim() && <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Describe en lenguaje natural cuándo debe transferir a este destino. Sé específico para evitar transferencias innecesarias.</div>}
                                         </div>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                             <div className="fg" style={{ marginBottom: 0 }}>
@@ -283,7 +299,10 @@ export const Step5_Tools: React.FC = () => {
                                                         value={dest.number || ''}
                                                         onChange={e => { const d = [...transferDestinations]; d[idx].number = e.target.value; updateField('transferDestinations', d); }}
                                                     />
-                                                    <div className="hint">Formato E.164 (ej: +34911234567)</div>
+                                                    {!dest.number?.trim()
+                                                        ? <div className="hint" style={{ color: 'var(--error)', marginTop: '4px' }}><i className="bi bi-exclamation-circle" style={{ marginRight: '4px' }}></i>Obligatorio — sin número la transferencia no se creará en Retell.</div>
+                                                        : <div className="hint">Formato E.164 (ej: +34911234567)</div>
+                                                    }
                                                 </div>
                                             )}
                                         </div>
@@ -331,7 +350,13 @@ export const Step5_Tools: React.FC = () => {
                             <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>El agente reserva citas directamente en tu calendario durante la llamada</div>
                         </div>
                     </div>
-                    <Toggle checked={enableCalBooking} onChange={(v) => updateField('enableCalBooking', v)} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <button type="button" onClick={() => setShowCalGuide(true)}
+                            style={{ background: 'none', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '5px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--oscuro)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <i className="bi bi-book"></i> Ver guía
+                        </button>
+                        <Toggle checked={enableCalBooking} onChange={(v) => updateField('enableCalBooking', v)} />
+                    </div>
                 </div>
 
                 {enableCalBooking && (
@@ -544,6 +569,69 @@ export const Step5_Tools: React.FC = () => {
                     Siguiente <i className="bi bi-arrow-right"></i>
                 </button>
             </div>
+            {/* MODAL GUÍA CAL.COM */}
+            {showCalGuide && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }} onClick={() => setShowCalGuide(false)} />
+                    <div style={{ background: 'white', borderRadius: '20px', boxShadow: '0 20px 60px rgba(0,0,0,.2)', width: '100%', maxWidth: '500px', zIndex: 10, overflow: 'hidden', position: 'relative' }}>
+                        <div style={{ padding: '28px 28px 0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                                <i className="bi bi-book" style={{ color: 'var(--azul)', fontSize: '22px' }}></i>
+                                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--oscuro)' }}>Guía de integración Cal.com</div>
+                            </div>
+                            <div style={{ fontSize: '13px', color: 'var(--gris-texto)' }}>Integra la reserva de citas de Cal.com con tu agente de voz.</div>
+                        </div>
+
+                        <div style={{ padding: '24px 28px', maxHeight: '65vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="cw" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                                <div style={{ fontWeight: 700, fontSize: '13px' }}><i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '6px' }}></i>Antes de empezar necesitas:</div>
+                                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: '1.8' }}>
+                                    <li>Una cuenta en Cal.com (cal.com)</li>
+                                    <li>Un Event Type creado en tu cuenta</li>
+                                    <li>Tu API Key desde Configuración → Developer</li>
+                                </ul>
+                                <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '4px' }}>Cal.com se integra con: Google Calendar, HubSpot, Outlook, Salesforce, Zoom, Notion</div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {[
+                                    { step: 1, title: 'Crea una cuenta en Cal.com', desc: 'Visita cal.com y crea tu cuenta si no tienes una.' },
+                                    { step: 2, title: 'Configura un tipo de evento', desc: 'En tu panel de Cal.com: Tipos de evento → Nuevo → Configura duración, disponibilidad, nombre → Guardar.' },
+                                    { step: 3, title: 'Obtén el Event Type ID', desc: 'Abre el tipo de evento y mira la URL del navegador. El ID es el número al final:', code: 'https://app.cal.com/usuario/evento/1427703' },
+                                    { step: 4, title: 'Obtén tu API Key', desc: 'En Cal.com: Configuración → Developer → API Keys → copia tu clave.' },
+                                    { step: 5, title: 'Pega los datos en la Fábrica', desc: 'Introduce la API Key, el Event Type ID y la zona horaria. El agente podrá consultar disponibilidad y reservar citas automáticamente durante las llamadas.' },
+                                ].map(s => (
+                                    <div key={s.step} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--azul)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>
+                                            {s.step}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--oscuro)', marginBottom: '3px' }}>{s.title}</div>
+                                            <div style={{ fontSize: '13px', color: 'var(--gris-texto)', lineHeight: '1.5' }}>{s.desc}</div>
+                                            {s.code && (
+                                                <div style={{ marginTop: '8px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '8px 12px', fontFamily: 'monospace', fontSize: '12px', color: 'var(--azul)' }}>
+                                                    {s.code.replace('1427703', '')}<strong>1427703</strong>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="ci">
+                                <i className="bi bi-info-circle-fill" style={{ flexShrink: 0 }}></i>
+                                <div style={{ fontSize: '12px', lineHeight: '1.6' }}>Para más detalles consulta el <strong>Centro de ayuda</strong> de la plataforma → sección Cal.com.</div>
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '0 28px 28px' }}>
+                            <button type="button" className="btn-p" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setShowCalGuide(false)}>
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

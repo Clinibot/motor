@@ -58,7 +58,6 @@ export interface ToolsPayload {
     companyPhone?: string;
     companyWebsite?: string;
     companyDescription?: string;
-    businessHours?: { day: string; open: string; close: string; closed: boolean }[];
 }
 
 type RetellTool = Record<string, unknown>;

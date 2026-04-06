@@ -112,5 +112,4 @@ export interface AgentPayload {
     companyPhone?: string;
     companyWebsite?: string;
     companyDescription?: string;
-    businessHours?: { day: string; open: string; close: string; closed: boolean }[];
 }

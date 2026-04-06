@@ -70,7 +70,6 @@ export interface WizardState {
     companyPhone: string;
     companyWebsite: string;
     companyDescription: string;
-    businessHours: { day: string; open: string; close: string; closed: boolean }[];
 
     // Knowledge Base (Moved to Step 2)
     kbFiles: { id: string; name: string; retell_name?: string; size: string; type: string }[];
@@ -173,15 +172,6 @@ export const useWizardStore = create<WizardState>((set) => ({
     companyPhone: '',
     companyWebsite: '',
     companyDescription: '',
-    businessHours: [
-        { day: 'Lunes', open: '09:00', close: '20:00', closed: false },
-        { day: 'Martes', open: '09:00', close: '20:00', closed: false },
-        { day: 'Miércoles', open: '09:00', close: '20:00', closed: false },
-        { day: 'Jueves', open: '09:00', close: '20:00', closed: false },
-        { day: 'Viernes', open: '09:00', close: '20:00', closed: false },
-        { day: 'Sábado', open: '09:00', close: '14:00', closed: true },
-        { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
-    ],
     kbFiles: [],
     kbUsageInstructions: '',
     kbRetrievalChunks: 3,
@@ -286,15 +276,6 @@ export const useWizardStore = create<WizardState>((set) => ({
         webhookUrl: '',
         customNotes: '',
         companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
-        businessHours: [
-            { day: 'Lunes', open: '09:00', close: '20:00', closed: false },
-            { day: 'Martes', open: '09:00', close: '20:00', closed: false },
-            { day: 'Miércoles', open: '09:00', close: '20:00', closed: false },
-            { day: 'Jueves', open: '09:00', close: '20:00', closed: false },
-            { day: 'Viernes', open: '09:00', close: '20:00', closed: false },
-            { day: 'Sábado', open: '09:00', close: '14:00', closed: true },
-            { day: 'Domingo', open: '09:00', close: '14:00', closed: true },
-        ],
         kbFiles: [], kbUsageInstructions: '', kbRetrievalChunks: 3, kbSimilarityThreshold: 0.7,
         editingAgentId: null,
         currentStep: 1
