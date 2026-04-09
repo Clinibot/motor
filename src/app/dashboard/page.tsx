@@ -385,7 +385,7 @@ export default function DashboardPage() {
             const customVars = (_cv && Object.keys(_cv).length > 0 ? _cv : (call.call_analysis?.custom_analysis_data || {})) as Record<string, unknown>;
             const extractedData = Object.entries(customVars)
                 .map(([k, v]) => `${k}: ${v}`)
-                .join('; ')
+                .join(' | ')
                 .replace(/"/g, '""');
 
             return [
@@ -402,11 +402,11 @@ export default function DashboardPage() {
             ];
         });
 
-        // UTF-8 BOM for Excel compatibility with special characters
+        // UTF-8 BOM + semicolon separator for Spanish Excel (comma is decimal separator in es-ES)
         const BOM = '\uFEFF';
         const csvContent = BOM + [
-            headers.join(','),
-            ...rows.map(r => r.join(','))
+            headers.join(';'),
+            ...rows.map(r => r.join(';'))
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
