@@ -165,6 +165,17 @@ export default function DashboardPage() {
         router.push('/wizard');
     };
 
+    // ---- Filtered calls ----
+    const filteredCalls = calls.filter(call => {
+        const matchesSearch = !searchTerm ||
+            (call.customer_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (call.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesAgent = agentFilter === 'all' || call.retell_agent_id === agentFilter;
+
+        return matchesSearch && matchesAgent;
+    });
+
     // Build charts when both data and Chart.js are ready
     useEffect(() => {
         if (!chartJsReady || isLoading) return;
@@ -178,7 +189,7 @@ export default function DashboardPage() {
 
         // ── 1. Calls timeline (line) ──
         if (callsChartRef.current) {
-            const chartData = getChartDataTimeline(calls);
+            const chartData = getChartDataTimeline(filteredCalls);
             const c = new Chart(callsChartRef.current, {
                 type: 'line',
                 data: {
@@ -202,7 +213,7 @@ export default function DashboardPage() {
 
         // ── 2. Sentiment donut ──
         if (sentimentChartRef.current) {
-            const sentCounts = getSentimentCounts(calls);
+            const sentCounts = getSentimentCounts(filteredCalls);
             const c = new Chart(sentimentChartRef.current, {
                 type: 'doughnut',
                 data: {
@@ -235,7 +246,7 @@ export default function DashboardPage() {
 
         // ── 3. Disconnection reasons bar ──
         if (disconnectChartRef.current) {
-            const reasons = getDisconnectionReasons(calls);
+            const reasons = getDisconnectionReasons(filteredCalls);
             const total = reasons.data.reduce((a, b) => a + b, 0);
             const percentages = reasons.data.map(v => total > 0 ? Math.round((v / total) * 100) : 0);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -285,7 +296,7 @@ export default function DashboardPage() {
 
         // ── 4. Calls per agent donut ──
         if (agentsChartRef.current) {
-            const byAgent = getCallsByAgent(calls, agents);
+            const byAgent = getCallsByAgent(filteredCalls, agents);
             const c = new Chart(agentsChartRef.current, {
                 type: 'doughnut',
                 data: {
@@ -315,15 +326,15 @@ export default function DashboardPage() {
             });
             chartsInstances.current.push(c);
         }
-    }, [chartJsReady, isLoading, calls, agents, customDateRange, timeFilter]);
+    }, [chartJsReady, isLoading, filteredCalls, agents]);
 
     // ---- Stats computed from real data ----
-    const totalCalls = calls.length;
-    const successCalls = calls.filter(c => c.call_analysis?.call_successful).length;
+    const totalCalls = filteredCalls.length;
+    const successCalls = filteredCalls.filter(c => c.call_analysis?.call_successful).length;
     const successRate = totalCalls > 0 ? ((successCalls / totalCalls) * 100).toFixed(1) + '%' : '0%';
-    const avgDurMs = totalCalls > 0 ? calls.reduce((s, c) => s + (c.duration_ms ?? 0), 0) / totalCalls : 0;
+    const avgDurMs = totalCalls > 0 ? filteredCalls.reduce((s, c) => s + (c.duration_ms ?? 0), 0) / totalCalls : 0;
     const avgDur = formatDuration(avgDurMs);
-    const totalCost = calls.reduce((s, c) => s + Number(c.call_cost || 0), 0);
+    const totalCost = filteredCalls.reduce((s, c) => s + Number(c.call_cost || 0), 0);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -338,17 +349,6 @@ export default function DashboardPage() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-
-    // ---- Filtered calls ----
-    const filteredCalls = calls.filter(call => {
-        const matchesSearch = !searchTerm ||
-            (call.customer_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (call.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesAgent = agentFilter === 'all' || call.retell_agent_id === agentFilter;
-
-        return matchesSearch && matchesAgent;
-    });
 
     const handleLogout = async () => {
         const supabase = createClient();
@@ -593,8 +593,8 @@ export default function DashboardPage() {
                                         style={{ width: 'auto', padding: '8px 36px 8px 12px', fontSize: '12px' }}
                                     >
                                         <option value="all">Todos los agentes</option>
-                                        {agents.map(ag => (
-                                            <option key={ag.id} value={ag.retell_agent_id || ''}>
+                                        {agents.filter(ag => ag.retell_agent_id).map(ag => (
+                                            <option key={ag.id} value={ag.retell_agent_id!}>
                                                 {ag.name}
                                             </option>
                                         ))}
