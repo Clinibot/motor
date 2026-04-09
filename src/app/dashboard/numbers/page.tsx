@@ -14,6 +14,8 @@ interface PhoneNumber {
     agent_id: string | null;
     retell_agent_id: string | null; // For info only
     nickname: string | null;
+    sip_username: string | null;
+    sip_password: string | null;
 }
 
 interface Agent {
@@ -45,6 +47,7 @@ export default function NumbersPage() {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+    const [editingNumber, setEditingNumber] = useState<PhoneNumber | null>(null);
     const [newNumber, setNewNumber] = useState({
         phone: '',
         nickname: '',
@@ -101,8 +104,9 @@ export default function NumbersPage() {
             await loadData();
 
             setNewNumber({ phone: '', nickname: '', termination_uri: '', username: '', password: '', transport: 'udp' });
+            setEditingNumber(null);
             setShowAddModal(false);
-            setNotification({ message: "¡Número SIP conectado con éxito!", type: 'success' });
+            setNotification({ message: editingNumber ? "¡Número SIP actualizado con éxito!" : "¡Número SIP conectado con éxito!", type: 'success' });
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado";
             setNotification({ message: `Error: ${errorMessage}`, type: 'error' });
@@ -142,7 +146,7 @@ export default function NumbersPage() {
                 if (clinicIds.length > 0) {
                     const { data: phoneData, error: phoneError } = await supabase
                         .from('phone_numbers')
-                        .select('id, phone_number, nickname, assigned_inbound_agent_id')
+                        .select('id, phone_number, nickname, assigned_inbound_agent_id, sip_username, sip_password')
                         .in('clinic_id', clinicIds);
 
                     if (phoneError) throw phoneError;
@@ -154,7 +158,9 @@ export default function NumbersPage() {
                             phone_number_pretty: n.phone_number,
                             nickname: n.nickname,
                             agent_id: n.assigned_inbound_agent_id,
-                            retell_agent_id: null
+                            retell_agent_id: null,
+                            sip_username: n.sip_username || null,
+                            sip_password: n.sip_password || null,
                         })));
                     }
                 } else {
@@ -167,6 +173,25 @@ export default function NumbersPage() {
     }, [router]);
 
     useEffect(() => { loadData(); }, [loadData]);
+
+    const handleEditClick = (num: PhoneNumber) => {
+        setEditingNumber(num);
+        setNewNumber({
+            phone: num.phone_number,
+            nickname: num.nickname || '',
+            termination_uri: '',
+            username: num.sip_username || '',
+            password: num.sip_password || '',
+            transport: 'udp'
+        });
+        setShowAddModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowAddModal(false);
+        setEditingNumber(null);
+        setNewNumber({ phone: '', nickname: '', termination_uri: '', username: '', password: '', transport: 'udp' });
+    };
 
     const handleDeleteNumber = async (id: string, phone: string) => {
         if (!window.confirm(`¿Estás seguro de que deseas eliminar el número ${phone}? Esta acción es irreversible.`)) return;
@@ -337,7 +362,7 @@ export default function NumbersPage() {
                                                 </div>
                                             </td>
                                             <td style={{ padding: '12px 16px', display: 'flex', gap: '6px' }}>
-                                                <button className="btn-s" onClick={() => setShowAddModal(true)} style={{ padding: '6px 10px' }} title="Editar número">
+                                                <button className="btn-s" onClick={() => handleEditClick(num)} style={{ padding: '6px 10px' }} title="Editar número">
                                                     <i className="bi bi-pencil"></i>
                                                 </button>
                                                 <button className="btn-s" style={{ color: 'var(--error)', borderColor: '#fecaca', padding: '6px 10px' }} onClick={() => handleDeleteNumber(num.id, num.phone_number)} title="Eliminar número">
@@ -398,17 +423,19 @@ export default function NumbersPage() {
 
             {/* MODAL FORMULARIO SIP */}
             {showAddModal && (
-                <div className="modal-overlay" style={{ background: 'rgba(0,0,0,.45)', zIndex: 600 }} onClick={() => setShowAddModal(false)}>
+                <div className="modal-overlay" style={{ background: 'rgba(0,0,0,.45)', zIndex: 600 }} onClick={handleCloseModal}>
                     <div style={{ background: 'white', borderRadius: '16px', padding: '32px', width: '560px', maxWidth: '92vw', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setShowAddModal(false)} style={{ position: 'absolute', top: '16px', right: '20px', border: 'none', background: 'none', fontSize: '22px', color: 'var(--gris-texto)', cursor: 'pointer', lineHeight: 1 }}>×</button>
-                        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>Conectar número vía SIP trunking</h3>
-                        <a href="#" onClick={(e) => { e.preventDefault(); setShowAddModal(false); setShowHelpModal(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--azul)', fontWeight: 600, textDecoration: 'none', marginBottom: '22px' }}>
+                        <button onClick={handleCloseModal} style={{ position: 'absolute', top: '16px', right: '20px', border: 'none', background: 'none', fontSize: '22px', color: 'var(--gris-texto)', cursor: 'pointer', lineHeight: 1 }}>×</button>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>
+                            {editingNumber ? 'Editar número SIP' : 'Conectar número vía SIP trunking'}
+                        </h3>
+                        <a href="#" onClick={(e) => { e.preventDefault(); handleCloseModal(); setShowHelpModal(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--azul)', fontWeight: 600, textDecoration: 'none', marginBottom: '22px' }}>
                             <i className="bi bi-exclamation-triangle" style={{ color: '#d97706' }}></i> Ver manual de configuración de netelip
                         </a>
 
                         <div className="fg">
                             <label className="lbl">Número de Teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" placeholder="Introduce el número de teléfono (E.164)" value={newNumber.phone} onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })} />
+                            <input className="inp" placeholder="Introduce el número de teléfono (E.164)" value={newNumber.phone} onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })} disabled={!!editingNumber} style={editingNumber ? { background: 'var(--gris-bg)', color: 'var(--gris-texto)' } : {}} />
                         </div>
                         <div className="fg">
                             <label className="lbl">URI de Terminación <span style={{ color: 'var(--error)' }}>*</span></label>
@@ -436,9 +463,9 @@ export default function NumbersPage() {
                         </div>
 
                         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                            <button className="btn-s" onClick={() => setShowAddModal(false)} style={{ flex: 1, justifyContent: 'center' }}>Cancelar</button>
+                            <button className="btn-s" onClick={handleCloseModal} style={{ flex: 1, justifyContent: 'center' }}>Cancelar</button>
                             <button className="btn-p" onClick={handleAddNumber} disabled={isSaving} style={{ flex: 2, justifyContent: 'center' }}>
-                                {isSaving ? 'Guardando...' : 'Guardar'}
+                                {isSaving ? 'Guardando...' : (editingNumber ? 'Actualizar' : 'Guardar')}
                             </button>
                         </div>
                     </div>
