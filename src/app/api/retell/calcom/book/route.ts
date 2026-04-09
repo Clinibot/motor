@@ -2,6 +2,22 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Idempotency guard: key = eventTypeId+startTime+email/phone → prevents Retell double-execution
+// from creating the same booking twice. TTL 60 s.
+const recentlyBooked = new Map<string, number>();
+const IDEMPOTENCY_TTL_MS = 60_000;
+
+function bookingKey(eventTypeId: string, startTime: string, identity: string): string {
+    return `${eventTypeId}|${startTime}|${identity}`;
+}
+function wasRecentlyBooked(key: string): boolean {
+    const ts = recentlyBooked.get(key);
+    if (!ts) return false;
+    if (Date.now() - ts > IDEMPOTENCY_TTL_MS) { recentlyBooked.delete(key); return false; }
+    return true;
+}
+function markBooked(key: string) { recentlyBooked.set(key, Date.now()); }
+
 /**
  * POST /api/retell/calcom/book?cal_api_key=...&event_type_id=...
  * Called by the Retell agent's `book_appointment` custom tool.
@@ -69,6 +85,17 @@ export async function POST(request: NextRequest) {
 
         console.log(`[calcom/book] Booking event ${eventTypeId} at ${start_time} for ${name} <${safeEmail}> ${safePhone}`);
 
+        // Idempotency: block duplicate tool executions from Retell within 60 s
+        const iKey = bookingKey(eventTypeId, start_time, safeEmail || safePhone);
+        if (wasRecentlyBooked(iKey)) {
+            console.warn(`[calcom/book] Duplicate call blocked for key=${iKey}`);
+            return NextResponse.json({
+                success: true,
+                message: 'La cita ya fue registrada en esta sesión. Recibirás el correo de confirmación en breve.',
+            });
+        }
+        markBooked(iKey);
+
         const bookingBody: Record<string, unknown> = {
             start: start_time,
             eventTypeId: parseInt(eventTypeId, 10),
@@ -100,6 +127,9 @@ export async function POST(request: NextRequest) {
             const errText = await res.text();
             console.error('[calcom/book] Cal.com API error:', res.status, errText);
             console.error('[calcom/book] Sent body:', JSON.stringify(bookingBody));
+
+            // Release the idempotency lock so the agent can retry on real errors
+            recentlyBooked.delete(iKey);
 
             let userMsg = `Cal.com ${res.status}: ${errText.slice(0, 300)}`;
             if (res.status === 409 || errText.includes('already has booking') || errText.includes('not available')) {
