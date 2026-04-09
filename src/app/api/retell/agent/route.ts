@@ -185,6 +185,7 @@ export async function POST(request: Request) {
             voice_id: voiceId,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             language: (payload.language || "es-ES") as any,
+            timezone: "Europe/Madrid",
             responsiveness: payload.responsiveness || 1,
             interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
             enable_backchannel: payload.enableBackchannel || false,
@@ -390,6 +391,7 @@ export async function PATCH(request: Request) {
                 voice_id: voiceId,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 language: (payload.language || "es-ES") as any,
+                timezone: "Europe/Madrid",
                 responsiveness: payload.responsiveness || 1,
                 interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
                 enable_backchannel: payload.enableBackchannel || false,
