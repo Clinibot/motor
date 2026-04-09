@@ -2,6 +2,19 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Module-level idempotency guard: prevents double-execution by Retell within a short window.
+// Stores uid → timestamp of last successful cancellation (TTL: 30 s).
+const recentlyCancelled = new Map<string, number>();
+const IDEMPOTENCY_TTL_MS = 30_000;
+
+function wasRecentlyCancelled(uid: string): boolean {
+    const ts = recentlyCancelled.get(uid);
+    if (!ts) return false;
+    if (Date.now() - ts > IDEMPOTENCY_TTL_MS) { recentlyCancelled.delete(uid); return false; }
+    return true;
+}
+function markCancelled(uid: string) { recentlyCancelled.set(uid, Date.now()); }
+
 /**
  * POST /api/retell/calcom/cancel?cal_api_key=...
  * Called by the Retell agent's `cancel_appointment` custom tool.
@@ -81,7 +94,7 @@ export async function POST(request: NextRequest) {
             bookingStatus = matched.status || '';
         }
 
-        // If already cancelled, return success immediately
+        // If already cancelled (found via phone search), return success immediately
         if (bookingStatus === 'cancelled' || bookingStatus === 'canceled') {
             return NextResponse.json({
                 success: true,
@@ -89,8 +102,19 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // Idempotency guard: if Retell double-fires the tool, skip the Cal.com call
+        if (wasRecentlyCancelled(bookingUid)) {
+            console.warn(`[calcom/cancel] Duplicate call blocked for uid=${bookingUid}`);
+            return NextResponse.json({
+                success: true,
+                message: 'La cita ya ha sido cancelada en esta sesión.',
+            });
+        }
+
         // 3. Cancel the booking
-        const cancelBody = { cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: true };
+        // cancelSubsequentBookings: false — only cancel THIS booking, not future recurrences,
+        // to avoid sending multiple cancellation emails for recurring events.
+        const cancelBody = { cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: false };
         console.log(`[calcom/cancel] Cancelling booking uid=${bookingUid}`, JSON.stringify(cancelBody));
         const cancelRes = await fetch(
             `https://api.cal.com/v2/bookings/${bookingUid}/cancel`,
@@ -104,6 +128,9 @@ export async function POST(request: NextRequest) {
                 body: JSON.stringify(cancelBody),
             }
         );
+
+        // Mark as cancelled immediately so any concurrent duplicate call is blocked
+        markCancelled(bookingUid);
 
         if (!cancelRes.ok) {
             const errText = await cancelRes.text();
