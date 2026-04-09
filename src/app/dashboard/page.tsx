@@ -381,7 +381,8 @@ export default function DashboardPage() {
             const cost = `€${Number(call.call_cost || 0).toFixed(3)}`;
             const summary = (call.call_analysis?.call_summary || '').replace(/"/g, '""');
             
-            const customVars = (call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data || {}) as Record<string, unknown>;
+            const _cv = call.call_analysis?.custom_variables;
+            const customVars = (_cv && Object.keys(_cv).length > 0 ? _cv : (call.call_analysis?.custom_analysis_data || {})) as Record<string, unknown>;
             const extractedData = Object.entries(customVars)
                 .map(([k, v]) => `${k}: ${v}`)
                 .join('; ')
@@ -716,7 +717,8 @@ export default function DashboardPage() {
                                                                                 <h4 style={{ fontSize: '11px', fontWeight: 800, color: 'var(--slate-400)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '20px' }}>DATOS EXTRAÍDOS</h4>
                                                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                                                                     {(() => {
-                                                                                        const customVars = (call.call_analysis?.custom_variables || call.call_analysis?.custom_analysis_data || {}) as Record<string, unknown>;
+                                                                                        const _cv = call.call_analysis?.custom_variables;
+                                                                                        const customVars = (_cv && Object.keys(_cv).length > 0 ? _cv : (call.call_analysis?.custom_analysis_data || {})) as Record<string, unknown>;
                                                                                         if (Object.keys(customVars).length > 0) {
                                                                                             return Object.entries(customVars).map(([key, value]) => (
                                                                                                 <div key={key} style={{ background: 'var(--azul-light)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(38,122,176,0.1)' }}>

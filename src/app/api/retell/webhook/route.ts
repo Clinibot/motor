@@ -113,21 +113,38 @@ export async function POST(request: NextRequest) {
         }
 
         // Handle analysis data normalization
+        // Use Object.keys check to avoid {} (empty object) being truthy and masking real data
         const analysisData = callData.call_analysis || {};
-        const customVars = { ...(analysisData.custom_variables || analysisData.custom_analysis_data || {}) };
-        
+        const rawCv = analysisData.custom_variables;
+        const rawCad = analysisData.custom_analysis_data;
+        const incomingCustomVars = (rawCv && Object.keys(rawCv).length > 0)
+            ? rawCv
+            : (rawCad || {});
+
+        // Preserve existing custom_variables if this event brings none (guards against
+        // call_ended arriving late after call_analyzed and wiping extraction data)
+        const existingCustomVars = existingCall?.call_analysis?.custom_variables || existingCall?.call_analysis?.custom_analysis_data || {};
+        const customVars: Record<string, unknown> = Object.keys(incomingCustomVars).length > 0
+            ? { ...incomingCustomVars }
+            : { ...existingCustomVars };
+
         // Patch common phone variables if they are missing or invalid (like '0')
         const phoneKeyPatterns = ['telefono', 'phone', 'numero', 'movil', 'cell'];
         Object.keys(customVars).forEach(key => {
             const val = customVars[key];
             const normalizedKey = key.toLowerCase();
             const isPhoneKey = phoneKeyPatterns.some(pattern => normalizedKey.includes(pattern));
-            
+
             if (isPhoneKey && (val === '0' || val === 0 || !val || val === 'unknown')) {
                 customVars[key] = detectedCustomerNumber;
             }
         });
-        
+
+        const existingAnalysis = existingCall?.call_analysis || {};
+        const mergedAnalysis = (callData.call_analysis && Object.keys(callData.call_analysis).length > 0)
+            ? { ...existingAnalysis, ...callData.call_analysis, custom_variables: customVars }
+            : existingAnalysis;
+
         const callRecord = {
             id: existingCall?.id, // Keep same ID if exists
             workspace_id: workspaceId,
@@ -142,9 +159,7 @@ export async function POST(request: NextRequest) {
             duration_ms: durationMs || existingCall?.duration_ms || null,
             call_cost: callData.call_cost?.combined_cost ? (callData.call_cost.combined_cost / 100) : (existingCall?.call_cost || null),
             disconnection_reason: callData.disconnection_reason || existingCall?.disconnection_reason || null,
-            call_analysis: (callData.call_analysis && Object.keys(callData.call_analysis).length > 0)
-                ? { ...callData.call_analysis, custom_variables: customVars } // Ensure custom_variables is present
-                : (existingCall?.call_analysis || {}),
+            call_analysis: mergedAnalysis,
             raw_payload: payload,
             customer_number: detectedCustomerNumber,
             customer_name: customVars.nombre || customVars.name || customVars.nombre_cliente || customVars.cliente_nombre || customVars.NOMBRE || existingCall?.customer_name || null,
