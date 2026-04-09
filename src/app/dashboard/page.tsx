@@ -580,7 +580,7 @@ export default function DashboardPage() {
                                         <input
                                             type="text"
                                             className="inp"
-                                            placeholder="Buscar por número o nombre..."
+                                            placeholder="Buscar por teléfono o nombre de usuario..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             style={{ border: 'none', background: 'none', padding: '8px', fontSize: '13px' }}
