@@ -211,14 +211,16 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                     name: toolName,
                     description: dest.description || `Transfiere la llamada a ${dest.name}.`,
                     agent_id: dest.agentId,
-                    post_call_analysis_setting: 'both_agents'
+                    post_call_analysis_setting: 'both_agents',
+                    speak_during_execution: true,
+                    execution_message_description: 'Di de forma natural: "Dame un segundo que te paso la llamada."',
                 });
             } else {
                 // EXTERNAL NUMBER TRANSFER
-                const transfer_destination: { type: 'predefined'; number?: string; sip_authentication?: { auth_username?: string; auth_password?: string } } = { 
-                    type: 'predefined', 
+                const transfer_destination: { type: 'predefined'; number?: string; sip_authentication?: { auth_username?: string; auth_password?: string } } = {
+                    type: 'predefined',
                     number: dest.number,
-                    sip_authentication: (dest.sip_username || dest.sip_password) 
+                    sip_authentication: (dest.sip_username || dest.sip_password)
                         ? {
                             auth_username: dest.sip_username,
                             auth_password: dest.sip_password
@@ -233,7 +235,9 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
                     transfer_destination,
                     transfer_option: {
                         type: dest.transfer_mode === 'warm' ? 'warm_transfer' : 'cold_transfer',
-                    }
+                    },
+                    speak_during_execution: true,
+                    execution_message_description: 'Di de forma natural: "Dame un segundo que te paso la llamada."',
                 });
             }
         });
