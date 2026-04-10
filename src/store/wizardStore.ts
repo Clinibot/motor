@@ -14,7 +14,6 @@ export interface Voice {
 
 export const CURATED_VOICES_V2: Voice[] = [
     { voice_id: 'custom-carolina', voice_name: 'Carolina', provider: 'premium', gender: 'female', language: 'es', accent: 'Natural, Neutral and Clear' },
-    { voice_id: 'v2-manuel', voice_name: 'Manuel', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/manuel.mp3' },
     { voice_id: '11labs-Santiago', voice_name: 'Santiago', provider: 'premium', gender: 'male', language: 'es', preview_audio_url: 'https://storage.googleapis.com/retell-api/santiago.mp3' },
     { voice_id: 'custom-maricarmen', voice_name: 'MariCarmen', provider: 'premium', gender: 'female', language: 'es', accent: 'Hurried and Intimidating' },
     { voice_id: 'custom-sara', voice_name: 'Sara Martin', provider: 'premium', gender: 'female', language: 'es', accent: 'Young and Reflective' },
