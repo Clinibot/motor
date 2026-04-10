@@ -182,7 +182,7 @@ export default function NumbersPage() {
             phone: num.phone_number,
             nickname: num.nickname || '',
             termination_uri: num.termination_uri || '',
-            username: num.sip_username || '',
+            username: num.sip_username || num.phone_number || '',
             password: num.sip_password || '',
             transport: 'udp'
         });
@@ -437,7 +437,7 @@ export default function NumbersPage() {
 
                         <div className="fg">
                             <label className="lbl">Número de Teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" autoComplete="off" placeholder="Introduce el número de teléfono (E.164)" value={newNumber.phone} onChange={e => setNewNumber({ ...newNumber, phone: e.target.value })} disabled={!!editingNumber} style={editingNumber ? { background: 'var(--gris-bg)', color: 'var(--gris-texto)' } : {}} />
+                            <input className="inp" autoComplete="off" placeholder="Introduce el número de teléfono (E.164)" value={newNumber.phone} onChange={e => setNewNumber({ ...newNumber, phone: e.target.value, username: newNumber.username || e.target.value })} disabled={!!editingNumber} style={editingNumber ? { background: 'var(--gris-bg)', color: 'var(--gris-texto)' } : {}} />
                         </div>
                         <div className="fg">
                             <label className="lbl">URI de Terminación <span style={{ color: 'var(--error)' }}>*</span></label>
