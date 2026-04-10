@@ -167,8 +167,9 @@ export default function DashboardPage() {
 
     // ---- Filtered calls ----
     const filteredCalls = calls.filter(call => {
+        const normalizePhone = (s: string) => s.replace(/^\+34|^0034/, '').replace(/\s+/g, '');
         const matchesSearch = !searchTerm ||
-            (call.customer_number || '').toLowerCase().includes(searchTerm.toLowerCase());
+            normalizePhone(call.customer_number || '').includes(normalizePhone(searchTerm));
 
         const matchesAgent = agentFilter === 'all' || call.retell_agent_id === agentFilter;
 
