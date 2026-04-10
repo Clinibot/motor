@@ -78,8 +78,8 @@ export default function NumbersPage() {
     };
 
     const handleAddNumber = async () => {
-        if (!newNumber.phone || !newNumber.termination_uri || !newNumber.username || !newNumber.password) {
-            alert("Por favor, rellena todos los campos (Teléfono, URI, Usuario y Contraseña). Son necesarios para las transferencias.");
+        if (!newNumber.phone || !newNumber.termination_uri || !newNumber.password) {
+            alert("Por favor, rellena todos los campos (Teléfono, URI y Contraseña). Son necesarios para las transferencias.");
             return;
         }
 
@@ -91,7 +91,7 @@ export default function NumbersPage() {
                 body: JSON.stringify({
                     phone_number: newNumber.phone,
                     termination_uri: newNumber.termination_uri,
-                    sip_trunk_username: newNumber.username,
+                    sip_trunk_username: newNumber.phone,
                     sip_trunk_password: newNumber.password,
                     nickname: newNumber.nickname,
                     outbound_transport: newNumber.transport,
@@ -445,7 +445,7 @@ export default function NumbersPage() {
                         </div>
                         <div className="fg">
                             <label className="lbl">Nombre de Usuario del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="Tu número de netelip" value={newNumber.username} onChange={e => setNewNumber({ ...newNumber, username: e.target.value })} />
+                            <input className="inp" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="Tu número de netelip" value={newNumber.phone || newNumber.username} readOnly style={{ background: 'var(--gris-bg)', color: 'var(--gris-texto)' }} />
                         </div>
                         <div className="fg">
                             <label className="lbl">Contraseña del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>
