@@ -437,19 +437,19 @@ export default function NumbersPage() {
 
                         <div className="fg">
                             <label className="lbl">Número de Teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" autoComplete="off" placeholder="Introduce el número de teléfono (E.164)" value={newNumber.phone} onChange={e => setNewNumber({ ...newNumber, phone: e.target.value, username: newNumber.username || e.target.value })} disabled={!!editingNumber} style={editingNumber ? { background: 'var(--gris-bg)', color: 'var(--gris-texto)' } : {}} />
+                            <input className="inp" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="Introduce el número de teléfono (E.164)" value={newNumber.phone} onChange={e => setNewNumber({ ...newNumber, phone: e.target.value, username: newNumber.username || e.target.value })} disabled={!!editingNumber} style={editingNumber ? { background: 'var(--gris-bg)', color: 'var(--gris-texto)' } : {}} />
                         </div>
                         <div className="fg">
                             <label className="lbl">URI de Terminación <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" autoComplete="off" placeholder="retellai.netelip.com" value={newNumber.termination_uri} onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })} />
+                            <input className="inp" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="retellai.netelip.com" value={newNumber.termination_uri} onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })} />
                         </div>
                         <div className="fg">
                             <label className="lbl">Nombre de Usuario del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" autoComplete="off" placeholder="Tu número de netelip" value={newNumber.username} onChange={e => setNewNumber({ ...newNumber, username: e.target.value })} />
+                            <input className="inp" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="Tu número de netelip" value={newNumber.username} onChange={e => setNewNumber({ ...newNumber, username: e.target.value })} />
                         </div>
                         <div className="fg">
                             <label className="lbl">Contraseña del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" type="password" autoComplete="new-password" placeholder="••••••••••••" value={newNumber.password} onChange={e => setNewNumber({ ...newNumber, password: e.target.value })} />
+                            <input className="inp" type="password" autoComplete="new-password" data-1p-ignore data-lpignore="true" placeholder="••••••••••••" value={newNumber.password} onChange={e => setNewNumber({ ...newNumber, password: e.target.value })} />
                         </div>
                         <div className="fg">
                             <label className="lbl">Apodo / Etiqueta <span style={{ color: 'var(--gris-texto)', fontWeight: 400, fontSize: '12px' }}>(Opcional)</span></label>
