@@ -198,7 +198,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     enableBackchannel: false,
     backchannelFrequency: 0.5,
     backchannelWords: ['Mmm', 'Vale', 'Entiendo', 'Claro', 'Ajá', 'Sí', 'De acuerdo', 'Ya veo'],
-    boostedKeywords: [],
+    boostedKeywords: ['CRMs', 'SIP trunk', 'netelip', 'gmail', 'hotmail', 'outlook', 'yahoo', 'arroba', 'punto com', 'punto es', 'guion', 'guion bajo', '@netelip.com', 'guion medio'],
     normalizeForSpeech: true,
 
     beginMessageDelayMs: 200,
@@ -263,7 +263,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         voiceId: 'custom-carolina', voiceName: 'Carolina', voiceProvider: 'premium', voiceDescription: 'Voz natural y profesional para atención al cliente', voiceSpeed: 1.0, voiceTemperature: 0.9,
         language: 'es-ES', responsiveness: 0.98, interruptionSensitivity: 0.8,
         enableBackchannel: false, backchannelFrequency: 0.5, backchannelWords: ['Mmm', 'Vale', 'Entiendo', 'Claro', 'Ajá', 'Sí', 'De acuerdo', 'Ya veo'],
-        boostedKeywords: [], normalizeForSpeech: true,
+        boostedKeywords: ['CRMs', 'SIP trunk', 'netelip', 'gmail', 'hotmail', 'outlook', 'yahoo', 'arroba', 'punto com', 'punto es', 'guion', 'guion bajo', '@netelip.com', 'guion medio'], normalizeForSpeech: true,
         beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 540000,
         reminderTriggerMs: 30000, reminderMaxCount: 1, ringDurationMs: 30000,
         volume: 1.0, enableAmbientSound: false, ambientSound: 'none', ambientSoundVolume: 0.2,

@@ -203,9 +203,14 @@ export async function POST(request: Request) {
             ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
             normalize_for_speech: payload.normalizeForSpeech,
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined,
+            stt_mode: 'accurate' as const,
+            denoising_mode: 'noise-cancellation' as const,
+            boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
+            fallback_voice_ids: ['cartesia-Nico'],
             enable_llm_turbo_mode: true,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data_storage_setting: "everything_except_pii" as any,
+            data_storage_retention_days: null,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pii_config: { mode: "post_call" } as any,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -414,9 +419,14 @@ export async function PATCH(request: Request) {
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
                 normalize_for_speech: payload.normalizeForSpeech,
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : [],
+                stt_mode: 'accurate' as const,
+                denoising_mode: 'noise-cancellation' as const,
+                boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
+                fallback_voice_ids: ['cartesia-Nico'],
                 enable_llm_turbo_mode: true,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 data_storage_setting: "everything_except_pii" as any,
+                data_storage_retention_days: null,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 pii_config: { mode: "post_call" } as any,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

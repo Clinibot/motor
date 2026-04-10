@@ -107,6 +107,7 @@ export interface AgentPayload {
     ambientSound?: unknown;
     ambientSoundVolume?: number;
     normalizeForSpeech?: boolean;
+    boostedKeywords?: string[];
     voiceId?: string;
     voiceName?: string;
     workspace_id?: string;
