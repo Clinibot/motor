@@ -25,7 +25,7 @@ export const Step6_Summary: React.FC = () => {
         personality, tone, customNotes,
         whoFirst, beginMessage,
         volume, enableAmbientSound, ambientSound,
-        leadQuestions,
+        leadQuestions, extractionVariables,
         setStep, prevStep, updateField, editingAgentId
     } = wizardData;
 
@@ -439,6 +439,21 @@ export const Step6_Summary: React.FC = () => {
                             <span style={{ background: enableTransfer ? '#dcfce7' : 'var(--gris-bg)', color: enableTransfer ? '#166534' : 'var(--gris-texto)', fontSize: '11px', fontWeight: 700, padding: '4px 12px', borderRadius: '12px', border: enableTransfer ? 'none' : '1px solid var(--gris-borde)' }}>
                                 {enableTransfer ? 'Activa' : 'Desactivada'}
                             </span>
+                        </div>
+                        {/* Extracción de datos */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', marginBottom: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: extractionVariables.length > 0 ? 'var(--azul)' : 'var(--gris-borde)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <i className="bi bi-bar-chart-line" style={{ color: extractionVariables.length > 0 ? 'white' : 'var(--gris-texto)', fontSize: '14px' }}></i>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600 }}>Extracción de datos</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--gris-texto)' }}>{extractionVariables.length > 0 ? `${extractionVariables.length} variable${extractionVariables.length !== 1 ? 's' : ''} configurada${extractionVariables.length !== 1 ? 's' : ''}` : 'Sin variables personalizadas'}</div>
+                                </div>
+                            </div>
+                            <button className="btn-s" onClick={() => { setStep(5); setTimeout(() => { document.getElementById('extraction')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150); }} style={{ fontSize: '11px', padding: '4px 10px' }}>
+                                <i className="bi bi-pencil" style={{ fontSize: '11px' }}></i> Configurar
+                            </button>
                         </div>
                         {/* Cal.com */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)' }}>
