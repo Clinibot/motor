@@ -204,6 +204,10 @@ export async function POST(request: Request) {
             normalize_for_speech: payload.normalizeForSpeech,
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data_storage_setting: "everything_except_pii" as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pii_config: { mode: "post_call" } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             guardrail_config: { output_topics: ["harassment", "self_harm", "violence"], input_topics: ["platform_integrity_jailbreaking"] } as any
         });
 
@@ -409,6 +413,10 @@ export async function PATCH(request: Request) {
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
                 normalize_for_speech: payload.normalizeForSpeech,
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : [],
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                data_storage_setting: "everything_except_pii" as any,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                pii_config: { mode: "post_call" } as any,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 guardrail_config: { output_topics: ["harassment", "self_harm", "violence"], input_topics: ["platform_integrity_jailbreaking"] } as any
             });
