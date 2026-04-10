@@ -124,6 +124,7 @@ export async function POST(request: Request) {
                     nickname: nickname || phone_number,
                     country: 'Spain', // Valor requerido por constraint
                     status: 'active',
+                    termination_uri: termination_uri || null,
                     sip_username: sip_trunk_username || null,
                     sip_password: sip_trunk_password || null,
                     updated_at: new Date().toISOString()

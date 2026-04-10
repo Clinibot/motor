@@ -16,6 +16,7 @@ interface PhoneNumber {
     nickname: string | null;
     sip_username: string | null;
     sip_password: string | null;
+    termination_uri: string | null;
 }
 
 interface Agent {
@@ -146,7 +147,7 @@ export default function NumbersPage() {
                 if (clinicIds.length > 0) {
                     const { data: phoneData, error: phoneError } = await supabase
                         .from('phone_numbers')
-                        .select('id, phone_number, nickname, assigned_inbound_agent_id, sip_username, sip_password')
+                        .select('id, phone_number, nickname, assigned_inbound_agent_id, sip_username, sip_password, termination_uri')
                         .in('clinic_id', clinicIds);
 
                     if (phoneError) throw phoneError;
@@ -161,6 +162,7 @@ export default function NumbersPage() {
                             retell_agent_id: null,
                             sip_username: n.sip_username || null,
                             sip_password: n.sip_password || null,
+                            termination_uri: n.termination_uri || null,
                         })));
                     }
                 } else {
@@ -179,7 +181,7 @@ export default function NumbersPage() {
         setNewNumber({
             phone: num.phone_number,
             nickname: num.nickname || '',
-            termination_uri: '',
+            termination_uri: num.termination_uri || '',
             username: num.sip_username || '',
             password: num.sip_password || '',
             transport: 'udp'
@@ -439,11 +441,11 @@ export default function NumbersPage() {
                         </div>
                         <div className="fg">
                             <label className="lbl">URI de Terminación <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" placeholder="Introduce la URI de terminación (NO la URI del servidor SIP de Retell)" value={newNumber.termination_uri} onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })} />
+                            <input className="inp" placeholder="retellai.netelip.com" value={newNumber.termination_uri} onChange={e => setNewNumber({ ...newNumber, termination_uri: e.target.value })} />
                         </div>
                         <div className="fg">
                             <label className="lbl">Nombre de Usuario del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>
-                            <input className="inp" placeholder="netelip@centrodemando.es" value={newNumber.username} onChange={e => setNewNumber({ ...newNumber, username: e.target.value })} />
+                            <input className="inp" placeholder="Tu número de netelip" value={newNumber.username} onChange={e => setNewNumber({ ...newNumber, username: e.target.value })} />
                         </div>
                         <div className="fg">
                             <label className="lbl">Contraseña del Trunk SIP <span style={{ color: 'var(--error)' }}>*</span></label>

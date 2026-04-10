@@ -379,11 +379,13 @@ export default function DashboardPage() {
             const sentiment = sentimentLabel(call.call_analysis?.user_sentiment);
             const status = call.call_analysis?.call_successful ? 'Exitosa' : 'Fallida';
             const cost = `€${Number(call.call_cost || 0).toFixed(3)}`;
-            const summary = (call.call_analysis?.call_summary || '').replace(/"/g, '""');
-            
+
             const _cv = call.call_analysis?.custom_variables;
             const customVars = (_cv && Object.keys(_cv).length > 0 ? _cv : (call.call_analysis?.custom_analysis_data || {})) as Record<string, unknown>;
+            // Use resumen_llamada (always in Spanish) over call_summary (Retell auto-generated, inconsistent language)
+            const summary = String(customVars.resumen_llamada || call.call_analysis?.call_summary || '').replace(/"/g, '""');
             const extractedData = Object.entries(customVars)
+                .filter(([k]) => k !== 'resumen_llamada')
                 .map(([k, v]) => `${k}: ${v}`)
                 .join(' | ')
                 .replace(/"/g, '""');
