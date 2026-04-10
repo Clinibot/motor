@@ -168,8 +168,7 @@ export default function DashboardPage() {
     // ---- Filtered calls ----
     const filteredCalls = calls.filter(call => {
         const matchesSearch = !searchTerm ||
-            (call.customer_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (call.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+            (call.customer_number || '').toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesAgent = agentFilter === 'all' || call.retell_agent_id === agentFilter;
 
@@ -583,7 +582,7 @@ export default function DashboardPage() {
                                         <input
                                             type="text"
                                             className="inp"
-                                            placeholder="Buscar por teléfono o nombre de usuario..."
+                                            placeholder="Buscar por número de teléfono..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             style={{ border: 'none', background: 'none', padding: '8px', fontSize: '13px' }}
