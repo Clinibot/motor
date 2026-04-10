@@ -10,7 +10,7 @@ export const Step4_Audio: React.FC = () => {
     } = useWizardStore();
 
     const volumePct = Math.round(volume * 100);
-    const ambientPct = Math.round(ambientSoundVolume * 200); // 0–0.5 mapped to 0–100
+    const ambientPct = Math.round(ambientSoundVolume * 100); // 0–1 mapped to 0–100%
 
     return (
         <div className="form-card">
@@ -81,7 +81,7 @@ export const Step4_Audio: React.FC = () => {
                         <label className="lbl">Volumen ambiente</label>
                         <div className="slider-row">
                             <input
-                                type="range" min="0" max="0.5" step="0.01"
+                                type="range" min="0" max="1" step="0.01"
                                 value={ambientSoundVolume}
                                 onChange={(e) => updateField('ambientSoundVolume', parseFloat(e.target.value))}
                                 style={{ flex: 1, accentColor: 'var(--azul)', cursor: 'pointer', height: '6px' }}
