@@ -203,6 +203,7 @@ export async function POST(request: Request) {
             ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
             normalize_for_speech: payload.normalizeForSpeech,
             post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined,
+            enable_llm_turbo_mode: true,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data_storage_setting: "everything_except_pii" as any,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -413,6 +414,7 @@ export async function PATCH(request: Request) {
                 ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
                 normalize_for_speech: payload.normalizeForSpeech,
                 post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : [],
+                enable_llm_turbo_mode: true,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 data_storage_setting: "everything_except_pii" as any,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

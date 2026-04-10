@@ -193,7 +193,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     voiceTemperature: 0.9,
 
     language: 'es-ES',
-    responsiveness: 0.8,
+    responsiveness: 0.98,
     interruptionSensitivity: 0.8,
     enableBackchannel: false,
     backchannelFrequency: 0.5,
@@ -261,7 +261,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         model: 'gemini-3.0-flash', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
         personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
         voiceId: 'custom-carolina', voiceName: 'Carolina', voiceProvider: 'premium', voiceDescription: 'Voz natural y profesional para atención al cliente', voiceSpeed: 1.0, voiceTemperature: 0.9,
-        language: 'es-ES', responsiveness: 0.8, interruptionSensitivity: 0.8,
+        language: 'es-ES', responsiveness: 0.98, interruptionSensitivity: 0.8,
         enableBackchannel: false, backchannelFrequency: 0.5, backchannelWords: ['Mmm', 'Vale', 'Entiendo', 'Claro', 'Ajá', 'Sí', 'De acuerdo', 'Ya veo'],
         boostedKeywords: [], normalizeForSpeech: true,
         beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 540000,
