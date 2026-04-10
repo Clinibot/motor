@@ -739,7 +739,7 @@ export default function DashboardPage() {
 
                                                                                 {internalAgentId && (
                                                                                     <div style={{ marginTop: '32px' }}>
-                                                                                        <Link href={`/wizard?editId=${internalAgentId}&step=8#extraction`} style={{ fontSize: '12px', color: 'var(--azul)', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                        <Link href={`/wizard?editId=${internalAgentId}&step=5#extraction`} style={{ fontSize: '12px', color: 'var(--azul)', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                                                             <i className="bi bi-gear-fill"></i>
                                                                                             Configurar extracción de datos
                                                                                         </Link>

@@ -430,7 +430,7 @@ export const Step5_Tools: React.FC = () => {
             </div>
 
             {/* ═══ DATOS A RECOGER AL FINALIZAR ═══ */}
-            <div className="tool-block">
+            <div className="tool-block" id="extraction">
                 <div style={{ padding: '20px 24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                         <i className="bi bi-bar-chart-line" style={{ color: 'var(--azul)', fontSize: '18px' }}></i>

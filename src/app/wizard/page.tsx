@@ -60,17 +60,20 @@ function WizardContent() {
     }, [searchParams, router]);
 
     useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-
-        // Also attempt to scroll the main scrolling container if the layout absorbs the scroll
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            mainContent.scrollTo({ top: 0, behavior: 'instant' });
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            // Si hay anchor, esperar a que renderice el step y hacer scroll
+            setTimeout(() => {
+                const el = document.getElementById(hash);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
+        } else {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) mainContent.scrollTo({ top: 0, behavior: 'instant' });
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
         }
-
-        // As a fallback for deep flex-box layouts
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
     }, [currentStep]);
 
     // Prevent hydration errors — do not render until client-side mounted
