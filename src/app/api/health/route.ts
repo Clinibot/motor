@@ -9,7 +9,7 @@ export async function GET() {
     // ── Env vars ──────────────────────────────────────────────────────────────
     checks.supabase_url    = process.env.NEXT_PUBLIC_SUPABASE_URL    ? 'ok' : 'missing';
     checks.supabase_key    = process.env.SUPABASE_SERVICE_ROLE_KEY   ? 'ok' : 'missing';
-    checks.retell_secret   = process.env.RETELL_WEBHOOK_SECRET       ? 'ok' : 'missing';
+    checks.cron_secret     = process.env.CRON_SECRET                  ? 'ok' : 'missing';
     checks.openai_key      = process.env.OPENAI_API_KEY              ? 'ok' : 'missing';
     checks.site_url        = process.env.NEXT_PUBLIC_SITE_URL        ? 'ok' : 'missing';
 

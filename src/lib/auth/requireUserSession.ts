@@ -24,9 +24,12 @@ export async function requireUserSession(
     supabaseAdmin: SupabaseAdmin,
 ): Promise<{ error: NextResponse } | UserSession> {
     const supabase = await createLocalClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    // getUser() verifies the session token with the Supabase server on every call.
+    // getSession() only reads from the cookie without server-side validation — vulnerable
+    // to replayed or tampered session cookies.
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
         return {
             error: NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 }),
         };
@@ -35,7 +38,7 @@ export async function requireUserSession(
     const { data: profile } = await supabaseAdmin
         .from('users')
         .select('workspace_id')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single();
 
     if (!profile?.workspace_id) {
@@ -44,5 +47,5 @@ export async function requireUserSession(
         };
     }
 
-    return { userId: session.user.id, workspaceId: profile.workspace_id };
+    return { userId: user.id, workspaceId: profile.workspace_id };
 }

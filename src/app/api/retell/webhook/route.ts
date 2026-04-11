@@ -204,7 +204,10 @@ export async function POST(request: NextRequest) {
                 error: JSON.stringify(upsertError),
                 payload: payload,
             }]);
-            return NextResponse.json({ error: 'DB error' }, { status: 500 });
+            // Return 200 so Retell does not retry — the error is already logged and
+            // reportFactoryError has alerted. A 5xx here would cause Retell to re-send
+            // the same event, produce duplicate webhook_logs entries, and consume rate limit.
+            return NextResponse.json({ received: true, warning: 'DB error — call not persisted' });
         }
 
         log.info('Webhook processed', { event_type: eventType, workspace_id: workspaceId, call_id: callData.call_id });

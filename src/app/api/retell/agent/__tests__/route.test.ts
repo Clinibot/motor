@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
     voiceList: vi.fn(),
     phoneNumberUpdate: vi.fn(),
     // Supabase server (session)
-    getSession: vi.fn(),
+    getUser: vi.fn(),
     // Supabase admin (queryable via from())
     fromAdmin: vi.fn(),
     // Supabase admin rpc (used by resolveUserWorkspace and checkRateLimit)
@@ -30,7 +30,7 @@ vi.mock('@/lib/env', () => ({
 
 vi.mock('@/lib/supabase/server', () => ({
     createClient: vi.fn(() =>
-        Promise.resolve({ auth: { getSession: mocks.getSession } })
+        Promise.resolve({ auth: { getUser: mocks.getUser } })
     ),
 }));
 
@@ -107,7 +107,7 @@ function makeRequest(body: unknown, method = 'POST') {
 // ── fixtures ──────────────────────────────────────────────────────────────────
 
 // Must match the shape Supabase returns: { data: { session: { user: { id } } } }
-const SESSION_USER = { session: { user: { id: 'user-123' } } };
+const SESSION_USER = { user: { id: 'user-123' } };
 
 const BASE_POST_PAYLOAD = {
     agentName: 'Agente de Prueba',
@@ -136,7 +136,7 @@ describe('POST /api/retell/agent', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // Default happy-path values; individual tests override with mockResolvedValueOnce
-        mocks.getSession.mockResolvedValue({ data: SESSION_USER });
+        mocks.getUser.mockResolvedValue({ data: SESSION_USER });
         mocks.voiceList.mockResolvedValue([]);
         mocks.llmCreate.mockResolvedValue({ llm_id: 'llm-new-123' });
         mocks.agentCreate.mockResolvedValue({ agent_id: 'agent-new-456' });
@@ -148,7 +148,7 @@ describe('POST /api/retell/agent', () => {
     });
 
     it('devuelve 401 cuando no hay sesión activa', async () => {
-        mocks.getSession.mockResolvedValueOnce({ data: { session: null } });
+        mocks.getUser.mockResolvedValueOnce({ data: { user: null } });
 
         const res = await POST(makeRequest(BASE_POST_PAYLOAD));
         const body = await res.json();
@@ -159,7 +159,7 @@ describe('POST /api/retell/agent', () => {
     });
 
     it('devuelve 400 cuando el workspace no tiene Retell API Key', async () => {
-        mocks.getSession.mockResolvedValueOnce({ data: SESSION_USER });
+        mocks.getUser.mockResolvedValueOnce({ data: SESSION_USER });
         // workspace query returns no api key
         mocks.fromAdmin.mockImplementationOnce(() =>
             makeQuery(null, { message: 'no rows returned' })
@@ -174,7 +174,7 @@ describe('POST /api/retell/agent', () => {
     });
 
     it('devuelve 200 con published:true cuando todo va bien', async () => {
-        mocks.getSession.mockResolvedValueOnce({ data: SESSION_USER });
+        mocks.getUser.mockResolvedValueOnce({ data: SESSION_USER });
         mocks.fromAdmin
             .mockImplementationOnce(() => makeQuery({ retell_api_key: 'retell-key-ok' })) // workspaces
             .mockImplementationOnce(() => makeQuery(null));                                 // agents insert
@@ -191,7 +191,7 @@ describe('POST /api/retell/agent', () => {
     });
 
     it('reintenta con voz de fallback (11labs-Adrian) si Retell devuelve "not found from voice"', async () => {
-        mocks.getSession.mockResolvedValueOnce({ data: SESSION_USER });
+        mocks.getUser.mockResolvedValueOnce({ data: SESSION_USER });
         mocks.fromAdmin
             .mockImplementationOnce(() => makeQuery({ retell_api_key: 'retell-key-ok' }))
             .mockImplementationOnce(() => makeQuery(null));
@@ -212,7 +212,7 @@ describe('POST /api/retell/agent', () => {
     });
 
     it('devuelve published:false con publish_warning si agent.publish falla', async () => {
-        mocks.getSession.mockResolvedValueOnce({ data: SESSION_USER });
+        mocks.getUser.mockResolvedValueOnce({ data: SESSION_USER });
         mocks.fromAdmin
             .mockImplementationOnce(() => makeQuery({ retell_api_key: 'retell-key-ok' }))
             .mockImplementationOnce(() => makeQuery(null));
@@ -235,8 +235,8 @@ describe('PATCH /api/retell/agent', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        // requireUserSession calls createLocalClient → getSession
-        mocks.getSession.mockResolvedValue({ data: SESSION_USER });
+        // requireUserSession calls createLocalClient → getUser
+        mocks.getUser.mockResolvedValue({ data: SESSION_USER });
         mocks.voiceList.mockResolvedValue([]);
         mocks.llmUpdate.mockResolvedValue({ llm_id: 'retell-llm-abc' });
         mocks.agentUpdate.mockResolvedValue(undefined);
@@ -301,7 +301,7 @@ describe('PATCH /api/retell/agent', () => {
     });
 
     it('devuelve 401 cuando no hay sesión activa (PATCH)', async () => {
-        mocks.getSession.mockResolvedValueOnce({ data: { session: null } });
+        mocks.getUser.mockResolvedValueOnce({ data: { user: null } });
 
         const res = await PATCH(makeRequest(PATCH_PAYLOAD, 'PATCH'));
         expect(res.status).toBe(401);
@@ -329,7 +329,7 @@ function makeDeleteRequest(agentId: string) {
 describe('DELETE /api/retell/agent', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mocks.getSession.mockResolvedValue({ data: SESSION_USER });
+        mocks.getUser.mockResolvedValue({ data: SESSION_USER });
         mocks.fromAdmin.mockImplementation(() => makeQuery(null));
         mocks.rpcAdmin.mockResolvedValue({ data: true, error: null });
         mocks.agentDelete.mockResolvedValue(undefined);
@@ -353,7 +353,7 @@ describe('DELETE /api/retell/agent', () => {
     });
 
     it('devuelve 401 cuando no hay sesión activa (DELETE)', async () => {
-        mocks.getSession.mockResolvedValueOnce({ data: { session: null } });
+        mocks.getUser.mockResolvedValueOnce({ data: { user: null } });
 
         const res = await DELETE(makeDeleteRequest('agent-db-id'));
         expect(res.status).toBe(401);

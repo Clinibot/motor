@@ -103,13 +103,13 @@ export async function POST(request: Request) {
         }
 
         const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (!session) {
+        if (!user) {
             return NextResponse.json({ success: false, error: "Unauthorized. Please log in first." }, { status: 401 });
         }
 
-        const userId = session.user.id;
+        const userId = user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
         // 1. Always resolve workspace from DB — never trust payload.workspace_id
