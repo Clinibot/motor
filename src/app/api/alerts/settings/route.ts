@@ -21,11 +21,11 @@ async function getSupabase() {
 export async function GET() {
   try {
     const supabase = await getSupabase();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { data: profile } = await supabase
-      .from('users').select('workspace_id').eq('id', session.user.id).single();
+      .from('users').select('workspace_id').eq('id', user.id).single();
     if (!profile?.workspace_id) return NextResponse.json({ error: 'No workspace' }, { status: 400 });
 
     const { data } = await supabase
@@ -44,11 +44,11 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await getSupabase();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { data: profile } = await supabase
-      .from('users').select('workspace_id').eq('id', session.user.id).single();
+      .from('users').select('workspace_id').eq('id', user.id).single();
     if (!profile?.workspace_id) return NextResponse.json({ error: 'No workspace' }, { status: 400 });
 
     const body = await req.json();

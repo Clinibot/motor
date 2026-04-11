@@ -10,9 +10,9 @@ export const maxDuration = 60; // Voice import involves Retell API calls
 export async function POST(req: Request) {
     try {
         const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (!session) {
+        if (!user) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
         }
 
-        const userId = session.user.id;
+        const userId = user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
         // 1. Obtener el workspace_id del perfil del usuario

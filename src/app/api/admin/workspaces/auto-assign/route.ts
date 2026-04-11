@@ -9,13 +9,13 @@ export const dynamic = 'force-dynamic';
 export async function POST() {
     try {
         const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (!session) {
+        if (!user) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = session.user.id;
+        const userId = user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
         const result = await resolveUserWorkspace(supabaseAdmin, userId);

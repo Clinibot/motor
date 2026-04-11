@@ -13,16 +13,16 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
  */
 export async function requireAdmin(): Promise<NextResponse | null> {
     const supabase = await createLocalClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const { data: profile } = await supabase
         .from('users')
         .select('role')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single();
 
     if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {

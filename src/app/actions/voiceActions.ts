@@ -11,10 +11,10 @@ export async function cloneVoiceAction(formData: FormData) {
 
     try {
         const supabase = await createLocalClient();
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (sessionError || !session) {
-            console.error("[Action] No session found:", sessionError);
+        if (!user) {
+            console.error("[Action] No session found");
             return { success: false, error: "No autorizado o sesión expirada" };
         }
 
@@ -27,7 +27,7 @@ export async function cloneVoiceAction(formData: FormData) {
             return { success: false, error: "Falta el nombre o los archivos de audio" };
         }
 
-        const userId = session.user.id;
+        const userId = user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
         const { data: userProfile, error: profileError } = await supabaseAdmin
@@ -90,14 +90,14 @@ export async function deleteVoiceAction(voiceId: string) {
 
     try {
         const supabase = await createLocalClient();
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (sessionError || !session) {
-            console.error("[Action] No session found:", sessionError);
+        if (!user) {
+            console.error("[Action] No session found");
             return { success: false, error: "No autorizado" };
         }
 
-        const userId = session.user.id;
+        const userId = user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
         // Obtener workspace del usuario

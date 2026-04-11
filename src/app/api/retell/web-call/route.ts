@@ -11,9 +11,9 @@ export async function POST(request: Request) {
     try {
         // 1. Require an authenticated session
         const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (!session) {
+        if (!user) {
             return NextResponse.json({ success: false, error: 'Unauthorized. Please log in first.' }, { status: 401 });
         }
 
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         const { data: userProfile } = await supabaseAdmin
             .from('users')
             .select('workspace_id')
-            .eq('id', session.user.id)
+            .eq('id', user.id)
             .single();
 
         if (!userProfile?.workspace_id) {

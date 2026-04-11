@@ -12,9 +12,9 @@ export const dynamic = 'force-dynamic';
 export async function POST() {
     try {
         const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (!session) {
+        if (!user) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
@@ -22,7 +22,7 @@ export async function POST() {
         const { data: profile } = await supabaseAdmin
             .from('users')
             .select('workspace_id')
-            .eq('id', session.user.id)
+            .eq('id', user.id)
             .single();
 
         if (!profile?.workspace_id) {

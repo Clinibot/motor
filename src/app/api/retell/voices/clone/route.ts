@@ -11,9 +11,9 @@ export async function POST(req: Request) {
     console.log("[Clone] POST request received");
     try {
         const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (!session) {
+        if (!user) {
             console.error("[Clone] Unauthorized: No session found");
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Missing voice name or audio files" }, { status: 400 });
         }
 
-        const userId = session.user.id;
+        const userId = user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
         const { data: userProfile } = await supabaseAdmin
