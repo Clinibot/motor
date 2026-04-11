@@ -234,7 +234,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     extractionVariables: [],
     leadQuestions: [],
     enableAnalysis: false,
-    analysisModel: 'gpt-4.1',
+    analysisModel: 'gemini-3.0-flash',
     webhookUrl: '',
     customNotes: '',
 
@@ -271,7 +271,7 @@ export const useWizardStore = create<WizardState>((set) => ({
         enableEndCall: true, endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
         enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '', calTimezone: 'Europe/Madrid', enableCalCancellation: false, calSearchDays: 7,
         enableTransfer: false, transferWhen: '', transferDestinations: [], enableCustomTools: false, customTools: [],
-        useTemplate: false, extractionVariables: [], leadQuestions: [], enableAnalysis: false, analysisModel: 'gpt-4.1',
+        useTemplate: false, extractionVariables: [], leadQuestions: [], enableAnalysis: false, analysisModel: 'gemini-3.0-flash',
         webhookUrl: '',
         customNotes: '',
         companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
