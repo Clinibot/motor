@@ -63,6 +63,20 @@ export async function verifyRetellWebhook(
                 expected_prefix: expectedDigest.slice(0, 16),
                 computed_prefix: computedDigest.slice(0, 16),
             }));
+
+            // Body byte inspection — detect encoding issues, BOM, unexpected prefix
+            const bodyBytes = enc.encode(rawBody);
+            const hexStart = Array.from(bodyBytes.slice(0, 48))
+                .map(b => b.toString(16).padStart(2, '0')).join(' ');
+            const hexEnd = Array.from(bodyBytes.slice(-16))
+                .map(b => b.toString(16).padStart(2, '0')).join(' ');
+            console.log('[webhookAuth:bodyhex]', JSON.stringify({
+                total_bytes: bodyBytes.length,
+                first_48_bytes: hexStart,
+                last_16_bytes: hexEnd,
+                first_char: rawBody.charCodeAt(0),
+                last_char: rawBody.charCodeAt(rawBody.length - 1),
+            }));
         } catch (e) {
             console.warn('[webhookAuth:digestcmp] crypto error', String(e));
         }
