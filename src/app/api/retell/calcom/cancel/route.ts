@@ -14,11 +14,9 @@ const IDEMPOTENCY_TTL_MS = 30_000;
  */
 export async function POST(request: NextRequest) {
     try {
-        const { searchParams } = request.nextUrl;
-
         // Endpoint secret guard — if FACTORY_CALCOM_SECRET is set, every request must supply it
         const factorySecret = process.env.FACTORY_CALCOM_SECRET;
-        if (factorySecret && searchParams.get('fs') !== factorySecret) {
+        if (factorySecret && request.headers.get('x-factory-secret') !== factorySecret) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
