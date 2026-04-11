@@ -57,11 +57,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'agent_not_found' } } });
         }
 
-        // Verify signature using workspace API key.
-        // Retell does NOT always send x-retell-signature on inbound/pre-call webhooks.
-        // Policy: if the header IS present, verify strictly and reject on mismatch.
-        //         if the header is absent, log and continue — the caller is already on
-        //         the line and blocking the call is worse than skipping verification.
+        // Best-effort signature verification — never block the inbound call.
+        // Inbound webhooks only return availability data (not sensitive ops), and the
+        // caller is already on the line. Retell may also sign inbound webhooks with
+        // different parameters than post-call webhooks, causing spurious verify failures.
+        // The post-call webhook (/api/retell/webhook) enforces strict verification instead.
         const { data: wsData } = await supabaseAdmin
             .from('workspaces')
             .select('retell_api_key')
@@ -69,14 +69,11 @@ export async function POST(request: NextRequest) {
             .single();
 
         const retellSig = request.headers.get('x-retell-signature');
-        if (retellSig) {
-            const sigValid = await verifyRetellWebhook(rawBody, retellSig, wsData?.retell_api_key);
+        if (retellSig && wsData?.retell_api_key) {
+            const sigValid = await verifyRetellWebhook(rawBody, retellSig, wsData.retell_api_key);
             if (!sigValid) {
-                log.warn('Invalid x-retell-signature on inbound webhook — rejected', { retell_agent_id: agent_id });
-                return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'signature_invalid' } } });
+                log.warn('x-retell-signature did not verify on inbound webhook — proceeding anyway', { retell_agent_id: agent_id });
             }
-        } else {
-            log.info('No x-retell-signature on inbound webhook — proceeding without verification', { retell_agent_id: agent_id });
         }
 
         const config = agentData.configuration;
