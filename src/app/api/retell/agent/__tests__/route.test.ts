@@ -5,9 +5,11 @@ const mocks = vi.hoisted(() => ({
     // Retell SDK
     llmCreate: vi.fn(),
     llmUpdate: vi.fn(),
+    llmDelete: vi.fn(),
     agentCreate: vi.fn(),
     agentUpdate: vi.fn(),
     agentPublish: vi.fn(),
+    agentDelete: vi.fn(),
     voiceList: vi.fn(),
     phoneNumberUpdate: vi.fn(),
     // Supabase server (session)
@@ -40,11 +42,12 @@ vi.mock('retell-sdk', () => ({
     // Must use regular function (not arrow) so `new Retell(...)` works in Vitest v4.
     default: vi.fn().mockImplementation(function () {
         return {
-            llm: { create: mocks.llmCreate, update: mocks.llmUpdate },
+            llm: { create: mocks.llmCreate, update: mocks.llmUpdate, delete: mocks.llmDelete },
             agent: {
                 create: mocks.agentCreate,
                 update: mocks.agentUpdate,
                 publish: mocks.agentPublish,
+                delete: mocks.agentDelete,
             },
             voice: { list: mocks.voiceList },
             phoneNumber: { update: mocks.phoneNumberUpdate },
@@ -61,7 +64,7 @@ vi.mock('@/lib/alerts/alertNotifier', () => ({
 }));
 
 // Import handlers AFTER all vi.mock calls
-import { POST, PATCH } from '../route';
+import { POST, PATCH, DELETE } from '../route';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -295,5 +298,88 @@ describe('PATCH /api/retell/agent', () => {
         expect(body.success).toBe(true);
         expect(body.published).toBe(false);
         expect(body.publish_warning).toBe('Version limit exceeded');
+    });
+
+    it('devuelve 401 cuando no hay sesión activa (PATCH)', async () => {
+        mocks.getSession.mockResolvedValueOnce({ data: { session: null } });
+
+        const res = await PATCH(makeRequest(PATCH_PAYLOAD, 'PATCH'));
+        expect(res.status).toBe(401);
+    });
+
+    it('devuelve 403 cuando el agente pertenece a otro workspace (PATCH)', async () => {
+        mocks.fromAdmin
+            .mockImplementationOnce(() => makeQuery({ workspace_id: 'ws-other-456' })) // users → diferente workspace
+            .mockImplementationOnce(() => makeQuery(CURRENT_AGENT_FIXTURE));             // agents (workspace_id: ws-test-123)
+
+        const res = await PATCH(makeRequest(PATCH_PAYLOAD, 'PATCH'));
+        const body = await res.json();
+
+        expect(res.status).toBe(403);
+        expect(body.error).toMatch(/Forbidden/i);
+    });
+});
+
+// ── DELETE tests ──────────────────────────────────────────────────────────────
+
+function makeDeleteRequest(agentId: string) {
+    return new Request(`http://localhost/api/retell/agent?id=${agentId}`, { method: 'DELETE' });
+}
+
+describe('DELETE /api/retell/agent', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mocks.getSession.mockResolvedValue({ data: SESSION_USER });
+        mocks.fromAdmin.mockImplementation(() => makeQuery(null));
+        mocks.rpcAdmin.mockResolvedValue({ data: true, error: null });
+        mocks.agentDelete.mockResolvedValue(undefined);
+        mocks.llmDelete.mockResolvedValue(undefined);
+    });
+
+    it('devuelve 200 cuando el agente se elimina correctamente', async () => {
+        mocks.fromAdmin
+            .mockImplementationOnce(() => makeQuery({ workspace_id: 'ws-test-123' })) // users (requireUserSession)
+            .mockImplementationOnce(() => makeQuery(CURRENT_AGENT_FIXTURE))             // agents select
+            .mockImplementationOnce(() => makeQuery({ retell_api_key: 'key-ok' }))     // workspaces select
+            .mockImplementationOnce(() => makeQuery(null));                             // agents delete
+
+        const res = await DELETE(makeDeleteRequest('agent-db-id'));
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.success).toBe(true);
+        expect(mocks.agentDelete).toHaveBeenCalledWith('retell-agent-xyz');
+        expect(mocks.llmDelete).toHaveBeenCalledWith('retell-llm-abc');
+    });
+
+    it('devuelve 401 cuando no hay sesión activa (DELETE)', async () => {
+        mocks.getSession.mockResolvedValueOnce({ data: { session: null } });
+
+        const res = await DELETE(makeDeleteRequest('agent-db-id'));
+        expect(res.status).toBe(401);
+    });
+
+    it('devuelve 403 cuando el agente pertenece a otro workspace (DELETE)', async () => {
+        mocks.fromAdmin
+            .mockImplementationOnce(() => makeQuery({ workspace_id: 'ws-other-456' })) // users → diferente workspace
+            .mockImplementationOnce(() => makeQuery(CURRENT_AGENT_FIXTURE));             // agents (workspace_id: ws-test-123)
+
+        const res = await DELETE(makeDeleteRequest('agent-db-id'));
+        const body = await res.json();
+
+        expect(res.status).toBe(403);
+        expect(body.error).toMatch(/Forbidden/i);
+    });
+
+    it('devuelve 404 cuando el agente no existe (DELETE)', async () => {
+        mocks.fromAdmin
+            .mockImplementationOnce(() => makeQuery({ workspace_id: 'ws-test-123' })) // users (requireUserSession)
+            .mockImplementationOnce(() => makeQuery(null));                             // agents select → not found
+
+        const res = await DELETE(makeDeleteRequest('agent-db-id'));
+        const body = await res.json();
+
+        expect(res.status).toBe(404);
+        expect(body.error).toMatch(/not found/i);
     });
 });

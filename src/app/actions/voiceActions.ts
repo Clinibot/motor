@@ -1,6 +1,6 @@
 "use server";
 
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 
@@ -52,7 +52,7 @@ export async function cloneVoiceAction(formData: FormData) {
             return { success: false, error: "No se encontró la API Key de Retell" };
         }
 
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
         const voice = await retellClient.voice.clone({
             voice_name,
             files: files,

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
-import Retell from 'retell-sdk';
+import type Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { requireUserSession } from '@/lib/auth/requireUserSession';
 import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
@@ -139,9 +140,7 @@ export async function POST(request: Request) {
         }
 
         // 3. Initialize Retell SDK dynamically with the tenant's API Key
-        const retellClient = new Retell({
-            apiKey: workspace.retell_api_key,
-        });
+        const retellClient = createRetellClient(workspace.retell_api_key);
 
         console.log("Creating agent via Retell AI for:", payload.agentName);
 
@@ -350,7 +349,7 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ success: false, error: "Workspace not found or missing API Key" }, { status: 400 });
         }
 
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
 
         console.log("PATCH Payload received:", JSON.stringify(payload, null, 2));
 
@@ -571,7 +570,7 @@ export async function DELETE(request: Request) {
             .single();
 
         if (workspace?.retell_api_key && agent.retell_agent_id) {
-            const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+            const retellClient = createRetellClient(workspace.retell_api_key);
             try {
                 await retellClient.agent.delete(agent.retell_agent_id);
             } catch (e) {

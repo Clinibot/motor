@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { buildRetellTools, detectCalToolLoss, parseBool as parseBoolTool } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: "Workspace API Key not found" }, { status: 400 });
         }
 
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
 
         // 3. Actualizar en Retell
         console.log(`Updating Retell phone number ${phone_number} with agent ${retellAgentId}`);

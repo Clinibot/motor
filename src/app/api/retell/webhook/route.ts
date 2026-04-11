@@ -3,13 +3,15 @@ import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
 
 export async function POST(request: NextRequest) {
+    const log = createLogger('webhook', getRequestId(request));
     let supabaseAdmin: ReturnType<typeof createSupabaseAdmin> | null = null;
-    try { supabaseAdmin = createSupabaseAdmin(); } catch { console.error('Webhook: Supabase env vars missing'); }
+    try { supabaseAdmin = createSupabaseAdmin(); } catch { log.error('Supabase env vars missing'); }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let payload: Record<string, any> = {};
     try {
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
 
         if (!agentRecord) {
             // Unknown agent — can't verify. Log and return 200 so Retell doesn't retry.
-            console.warn(`Webhook received for unknown retell_agent_id: ${retellAgentId}`);
+            log.warn('Webhook received for unknown agent', { retell_agent_id: retellAgentId });
             await supabaseAdmin.from('webhook_logs').insert([{
                 event_type: 'error_agent_not_found',
                 error: `Agent ${retellAgentId} not found in agents table`,
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
             workspace?.retell_api_key
         );
         if (!valid) {
-            console.warn('[webhook] Invalid signature — request rejected');
+            log.warn('Invalid signature — request rejected', { retell_agent_id: retellAgentId });
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -93,7 +95,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing agent_id in payload' }, { status: 400 });
         }
 
-        console.log(`Webhook triggered for Retell Agent: ${retellAgentId}, Event: ${eventType}`);
+        log.info('Webhook triggered', { retell_agent_id: retellAgentId, event_type: eventType, call_id: callData.call_id });
 
         // agentRecord and workspaceId already resolved above — no second DB lookup needed
         const workspaceId: string = agentRecord.workspace_id;
@@ -190,7 +192,7 @@ export async function POST(request: NextRequest) {
             .upsert(callRecord, { onConflict: 'retell_call_id' });
 
         if (upsertError) {
-            console.error('Error saving call to DB:', upsertError);
+            log.error('Error saving call to DB', { call_id: callData.call_id, db_error: upsertError.message });
 
             await reportFactoryError('Webhook [call_event]',
                 `Error persistiendo llamada ${callData.call_id}: ${upsertError.message}`,
@@ -205,7 +207,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'DB error' }, { status: 500 });
         }
 
-        console.log(`✅ Webhook [${eventType}] saved for workspace ${workspaceId}, call ${callData.call_id}`);
+        log.info('Webhook processed', { event_type: eventType, workspace_id: workspaceId, call_id: callData.call_id });
 
         // Fire threshold alert check after a fully analyzed call (non-blocking)
         if (eventType === 'call_analyzed') {
@@ -217,13 +219,13 @@ export async function POST(request: NextRequest) {
                     ...(process.env.CRON_SECRET ? { 'Authorization': `Bearer ${process.env.CRON_SECRET}` } : {}),
                 },
                 body: JSON.stringify({ workspace_id: workspaceId }),
-            }).catch(err => console.warn('[alerts] Threshold check fire-and-forget error:', err));
+            }).catch(err => log.warn('Threshold check fire-and-forget error', { error: String(err) }));
         }
 
         return NextResponse.json({ received: true });
 
     } catch (error: unknown) {
-        console.error('Webhook error:', error);
+        log.error('Unhandled webhook error', { error: error instanceof Error ? error.message : String(error), event: payload.event, call_id: payload.call?.call_id });
 
         await reportFactoryError('Webhook Catch-All',
             error instanceof Error ? error.message : String(error),

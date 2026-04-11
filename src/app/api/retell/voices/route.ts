@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
@@ -47,7 +47,7 @@ export async function GET() {
         }
 
         // 3. Consultar voces a Retell
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
         const voices = await retellClient.voice.list();
 
         return NextResponse.json({

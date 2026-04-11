@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -21,6 +22,7 @@ function getFormattedNow() {
 }
 
 export async function POST(request: NextRequest) {
+    const log = createLogger('inbound-webhook', getRequestId(request));
     let agent_id: string | undefined;
     try {
         const rawBody = await request.text();
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
         const payload = JSON.parse(rawBody);
         const call_inbound = payload.call_inbound;
 
-        console.log('[inbound-webhook] Called. agent_id:', call_inbound?.agent_id ?? '(missing)');
+        log.info('Called', { agent_id: call_inbound?.agent_id ?? '(missing)' });
 
         if (!call_inbound || !call_inbound.agent_id) {
             return NextResponse.json({ error: 'Missing agent_id in call_inbound payload' }, { status: 400 });
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
         try { supabaseAdmin = createSupabaseAdmin(); } catch { /* handled in the null check below */ }
 
         if (!supabaseAdmin) {
-            console.error('[inbound-webhook] Supabase env vars missing');
+            log.error('Supabase env vars missing');
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'supabase_env_missing' } } });
         }
 
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (error || !agentData || !agentData.configuration) {
-            console.warn(`[inbound-webhook] Agent not found in DB for retell_agent_id: ${agent_id}`, error);
+            log.warn('Agent not found in DB', { retell_agent_id: agent_id, db_error: error?.message });
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'agent_not_found' } } });
         }
 
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
             wsData?.retell_api_key
         );
         if (!sigValid) {
-            console.warn(`[inbound-webhook] Invalid or unverifiable signature for agent ${agent_id} — proceeding without dynamic variables`);
+            log.warn('Invalid or unverifiable signature — proceeding without dynamic variables', { retell_agent_id: agent_id });
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'signature_invalid' } } });
         }
 
@@ -80,7 +82,7 @@ export async function POST(request: NextRequest) {
         const hasApiKey  = !!config.calApiKey;
         const hasEventId = !!config.calEventId;
 
-        console.log(`[inbound-webhook] config check — enableCalBooking:${config.enableCalBooking}(${calEnabled}) calApiKey:${hasApiKey} calEventId:${config.calEventId}(${hasEventId})`);
+        log.info('Cal.com config check', { retell_agent_id: agent_id, calEnabled, hasApiKey, calEventId: config.calEventId, hasEventId });
 
         if (!calEnabled || !hasApiKey || !hasEventId) {
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: `cal_not_configured:enabled=${calEnabled},key=${hasApiKey},event=${hasEventId}` } } });
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
         const startIso = encodeURIComponent(startDate.toISOString());
         const endIso = encodeURIComponent(endDate.toISOString());
 
-        console.log(`Fetching Cal.com slots for Event ${calEventId} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+        log.info('Fetching Cal.com slots', { event_id: calEventId, from: startDate.toISOString(), to: endDate.toISOString() });
 
         const calTimezone = config.calTimezone || 'Europe/Madrid';
         const calResponse = await fetchWithTimeout(`https://api.cal.com/v2/slots?eventTypeId=${calEventId}&start=${startIso}&end=${endIso}&timeZone=${encodeURIComponent(calTimezone)}`, {
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
 
         if (!calResponse.ok) {
             const calErr = await calResponse.text();
-            console.error(`[inbound-webhook] Cal.com slots fetch failed: ${calResponse.status} — eventId:${calEventId}`, calErr);
+            log.error('Cal.com slots fetch failed', { status: calResponse.status, event_id: calEventId, detail: calErr.slice(0, 200) });
             const shortErr = calErr.slice(0, 120).replace(/\n/g, ' ');
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: `calcom_error:${calResponse.status} eventId:${calEventId} — ${shortErr}` } } });
         }
@@ -266,7 +268,7 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
         // Call OpenAI for both prompts in parallel
         const openAiKey = process.env.OPENAI_API_KEY;
         if (!openAiKey) {
-            console.error("[inbound-webhook] Missing OPENAI_API_KEY environment variable");
+            log.error('Missing OPENAI_API_KEY environment variable');
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'missing_openai_key' } } });
         }
 
@@ -315,17 +317,17 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
             const data = await earliestResponse.json();
             req1Text = data.choices[0].message.content.trim();
         } else {
-             console.error("Error from OpenAI 1:", await earliestResponse.text());
+            log.error('OpenAI earliest-slots call failed', { status: earliestResponse.status, body: await earliestResponse.text() });
         }
 
         if (fullResponse.ok) {
             const data = await fullResponse.json();
             req2Text = data.choices[0].message.content.trim();
         } else {
-             console.error("Error from OpenAI 2:", await fullResponse.text());
+            log.error('OpenAI full-availability call failed', { status: fullResponse.status, body: await fullResponse.text() });
         }
 
-        console.log(`[inbound-webhook] Returning variables for agent ${agent_id}. disponibilidad_mas_temprana: "${req1Text.slice(0,80)}..."`);
+        log.info('Returning dynamic variables', { retell_agent_id: agent_id, preview: req1Text.slice(0, 80) });
 
         // Return the dynamic variables injected payload
         return NextResponse.json({
@@ -339,7 +341,7 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
         });
 
     } catch (err: unknown) {
-        console.error("[inbound-webhook] Unhandled error:", err);
+        log.error('Unhandled error', { error: err instanceof Error ? err.message : String(err), retell_agent_id: agent_id });
         // Return 200 with empty variables so Retell doesn't retry and the agent still starts
         if (agent_id) {
             return NextResponse.json({

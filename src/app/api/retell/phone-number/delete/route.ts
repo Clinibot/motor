@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "Workspace API Key not found" }, { status: 400 });
         }
 
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
 
         // 2. Intentar eliminar en Retell
         console.log(`Deleting phone number ${phone_number} from Retell`);

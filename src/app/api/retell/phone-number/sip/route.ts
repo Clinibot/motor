@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { buildRetellTools } from '@/lib/retell/toolMapper';
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "Workspace API Key not found" }, { status: 400 });
         }
 
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
 
         // 2. Registrar número SIP en Retell
         // Para números SIP (SIP Trunking), se usa .import() con la configuración del trunk

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
         }
 
         // 5. Register the web call to get an access token
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
         const callResponse = await retellClient.call.createWebCall({ agent_id });
 
         return NextResponse.json({

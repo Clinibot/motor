@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         }
 
         // 3. Registrar voz en Retell
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
 
         const voice = await retellClient.voice.addResource({
             voice_name,

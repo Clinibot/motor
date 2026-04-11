@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
-import Retell from 'retell-sdk';
+import { createRetellClient } from '@/lib/retell/client';
 import { buildRetellTools, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
@@ -44,7 +44,7 @@ export async function POST() {
             return NextResponse.json({ success: false, error: "Missing Retell API Key" }, { status: 400 });
         }
 
-        const retellClient = new Retell({ apiKey: workspace.retell_api_key });
+        const retellClient = createRetellClient(workspace.retell_api_key);
         const { data: agents } = await supabaseAdmin
             .from('agents')
             .select('*')
