@@ -168,7 +168,13 @@ Protege reservas y cancelaciones Cal.com de doble-ejecución por parte de Retell
 
 ### RLS activado en tablas de datos
 
-`agents`, `calls`, `phone_numbers`, `alert_settings`, `alert_notifications` tienen RLS habilitado. El rol `anon` no tiene políticas → acceso denegado por defecto. El `service_role` (usado por toda la app) bypasa RLS automáticamente — **no hay ningún impacto en el funcionamiento**.
+`agents`, `calls`, `phone_numbers`, `alert_settings`, `alert_notifications` tienen RLS habilitado con dos capas de políticas:
+
+- **`service_role`** (rutas API, webhooks — `createSupabaseAdmin()`): bypasa RLS automáticamente. Sin impacto.
+- **`authenticated`** (dashboard, páginas UI — `createClient()` del navegador): tiene política `authenticated_workspace_select` que permite SELECT solo sobre filas del propio workspace.
+- **`anon`**: sin políticas → acceso denegado por defecto.
+
+**IMPORTANTE**: el dashboard y varias páginas UI usan `createClient()` (rol `authenticated`), NO el admin client. Si se añaden tablas nuevas con RLS hay que crear también la política SELECT para `authenticated`, o el dashboard no mostrará datos.
 
 ## Migraciones SQL (ejecutar en Supabase Dashboard → SQL Editor)
 
@@ -178,6 +184,7 @@ Protege reservas y cancelaciones Cal.com de doble-ejecución por parte de Retell
 | `20260411_idempotency_keys.sql` | ✅ Ejecutado | Tabla idempotency_keys |
 | `20260411_rate_limit.sql` | ✅ Ejecutado | Tabla rate_limit_windows + RPC |
 | `20260411_rls_data_tables.sql` | ✅ Ejecutado | Activar RLS en tablas de datos |
+| `20260411_rls_authenticated_select_policies.sql` | ⚠️ Pendiente | Políticas SELECT para rol authenticated (dashboard) |
 | `20260411_cleanup_function.sql` | ✅ Ejecutado | Función cleanup_expired_records() |
 | `20260411_webhook_logs_index_and_cleanup.sql` | ✅ Ejecutado | Índice en webhook_logs + incluir en cleanup (30 días) |
 
