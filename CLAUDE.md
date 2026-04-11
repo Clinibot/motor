@@ -8,6 +8,8 @@ Este fichero es leído automáticamente por Claude Code al inicio de cada sesió
 
 Plataforma SaaS multi-tenant para crear agentes de voz IA con Retell AI. Clientes de Netelip crean agentes de voz a través de un wizard de 6 pasos. El proyecto está en Next.js 14 (App Router), Supabase y Vercel Pro.
 
+**Arquitectura de tenancy**: cada usuario tiene su propio workspace (`1 usuario = 1 workspace`). Cada workspace tiene su propia Retell API Key en `workspaces.retell_api_key`. No hay usuarios compartiendo workspace.
+
 ## Fichero más crítico
 
 `src/lib/retell/toolMapper.ts` — construye el prompt final, las herramientas y el análisis post-llamada. Cualquier cambio en el comportamiento del agente pasa por aquí. Contiene:
@@ -60,6 +62,8 @@ En `injectToolInstructions()`, si `language` empieza por `ca` → norma de habla
 
 Cada workspace tiene su propia **Retell API Key** almacenada en `supabase: workspaces.retell_api_key`. Las rutas API siempre obtienen la API Key del workspace del usuario autenticado, no de variables de entorno.
 
+La asignación de workspace es atómica via RPC `assign_free_workspace` (FOR UPDATE SKIP LOCKED). Ver `src/lib/supabase/workspace.ts`.
+
 ## Números de teléfono
 
 `phone_numbers` se asocia directamente a `workspaces` mediante `workspace_id` (no a través de la tabla `clinics`, que es legacy y ya no se usa en el código). Las credenciales SIP (`sip_password`) se almacenan en texto plano — son necesarias en runtime para `enrichSipCredentials`.
@@ -72,7 +76,7 @@ Las voces Carolina, MariCarmen y Sara Martin deben **importarse** a cada workspa
 1. Llama a `POST /search-community-voice` en Retell para obtener `public_user_id`
 2. Llama a `POST /add-community-voice` con `voice_provider: elevenlabs`
 
-La ruta `/api/retell/voices/import-defaults` tiene `maxDuration = 60` (requiere Vercel Pro).
+Las rutas de voces lentas tienen `maxDuration = 60` (requiere Vercel Pro).
 
 ## Cal.com
 
@@ -82,6 +86,12 @@ Tres endpoints custom en Retell (no el `book_appointment_cal` nativo de Retell):
 - `/api/retell/calcom/cancel` — cancela por `booking_uid` (preferido) o teléfono
 
 Los parámetros de herramientas custom de Retell llegan en `body.args`, no en `body` directamente.
+
+**Cal.com API key y secret van SIEMPRE en headers**, nunca en la URL:
+- `x-cal-api-key` — la API key de Cal.com del workspace
+- `x-factory-secret` — el secret de la fábrica (si `FACTORY_CALCOM_SECRET` está configurado)
+
+Esto se construye en `src/lib/retell/toolMapper.ts` al generar las herramientas del agente.
 
 **Versiones de la API Cal.com v2** (crítico — versión incorrecta devuelve 404):
 - Slots disponibles: `GET /v2/slots?eventTypeId=...` con `cal-api-version: 2024-09-04`
@@ -105,10 +115,65 @@ Valores `_debug` en Retell logs para diagnosticar:
 ## Variables de entorno críticas
 
 Ver `.env.example`. Las más importantes:
-- `SUPABASE_SERVICE_ROLE_KEY` — acceso admin a Supabase (server-side only)
-- `OPENAI_API_KEY` — webhook inbound
-- `NEXT_PUBLIC_SITE_URL` — para construir URLs de webhook en Retell
-- `CRON_SECRET` — protege endpoints de cron de alertas
+
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Sí | URL del proyecto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Sí | Clave pública Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Sí | Clave admin Supabase (solo server-side) |
+| `NEXT_PUBLIC_SITE_URL` | ⚠️ Producción | URL de la app desplegada. Sin ella los webhooks registrados en Retell quedan sin dominio y las llamadas no funcionan. Ej: `https://tu-app.vercel.app` |
+| `OPENAI_API_KEY` | ⚠️ Cal.com | Webhook inbound para disponibilidad natural |
+| `RETELL_WEBHOOK_SECRET` | ⚠️ Producción | Verifica firma del webhook de Retell |
+| `CRON_SECRET` | ⚠️ Producción | Protege `/api/cron/cleanup` y `/api/alerts/check-thresholds` |
+| `FACTORY_CALCOM_SECRET` | Opcional | Guard extra en endpoints Cal.com |
+| `RESEND_API_KEY` | Opcional | Envío de emails de alerta |
+
+**Nota importante sobre `NEXT_PUBLIC_SITE_URL`**: si no está configurada, `env.ts` loga un warning pero NO lanza excepción. La app arranca, pero los webhooks que Retell intenta llamar no tendrán dominio correcto.
+
+## Seguridad y rate limiting
+
+### Rate limiting (via RPC `increment_rate_limit` en Supabase)
+
+Todos los endpoints sensibles tienen rate limiting. La tabla `rate_limit_windows` se limpia automáticamente cada hora via cron.
+
+| Endpoint | Límite | Ventana | Clave |
+|---|---|---|---|
+| `POST /api/retell/agent` | 20 req | 1 hora | `agent:create:{workspaceId}` |
+| `PATCH /api/retell/agent` | 20 req | 1 hora | `agent:update:{workspaceId}` |
+| `POST /api/retell/calcom/book` | 30 req | 1 min | `calcom:book:{apiKey[0:16]}` |
+| `POST /api/retell/calcom/check` | 60 req | 1 min | `calcom:check:{apiKey[0:16]}` |
+| `POST /api/retell/calcom/cancel` | 20 req | 1 min | `calcom:cancel:{apiKey[0:16]}` |
+| `POST /api/retell/phone-number/assign` | 30 req | 1 hora | `phone:assign:{workspaceId}` |
+| `POST /api/retell/phone-number/delete` | 10 req | 1 hora | `phone:delete:{workspaceId}` |
+| `GET /api/retell/voices` | 60 req | 1 min | `voices:list:{workspaceId}` |
+| `POST /api/retell/knowledge-base` | 10 req | 1 hora | `kb:upload:{workspaceId}` |
+| `POST /api/retell/web-call` | 30 req | 1 min | `webcall:{workspaceId}` |
+
+### Idempotencia distribuida (tabla `idempotency_keys`)
+
+Protege reservas y cancelaciones Cal.com de doble-ejecución por parte de Retell. La clave es única por combinación evento+hora+identidad. La tabla se limpia cada hora via cron.
+
+### RLS activado en tablas de datos
+
+`agents`, `calls`, `phone_numbers`, `alert_settings`, `alert_notifications` tienen RLS habilitado. El rol `anon` no tiene políticas → acceso denegado por defecto. El `service_role` (usado por toda la app) bypasa RLS automáticamente — **no hay ningún impacto en el funcionamiento**.
+
+## Migraciones SQL (ejecutar en Supabase Dashboard → SQL Editor)
+
+| Fichero | Estado | Descripción |
+|---|---|---|
+| `20260411_assign_free_workspace_rpc.sql` | ✅ Ejecutado | RPC atómica para asignar workspace |
+| `20260411_idempotency_keys.sql` | ✅ Ejecutado | Tabla idempotency_keys |
+| `20260411_rate_limit.sql` | ✅ Ejecutado | Tabla rate_limit_windows + RPC |
+| `20260411_rls_data_tables.sql` | ⚠️ Pendiente | Activar RLS en tablas de datos |
+| `20260411_cleanup_function.sql` | ⚠️ Pendiente | Función cleanup_expired_records() |
+
+## Cron jobs (Vercel — `vercel.json`)
+
+| Endpoint | Frecuencia | Descripción |
+|---|---|---|
+| `GET /api/cron/cleanup` | Cada hora | Limpia filas expiradas de rate_limit_windows e idempotency_keys |
+
+El cron envía automáticamente `Authorization: Bearer <CRON_SECRET>`. Requiere `CRON_SECRET` configurado en Vercel.
 
 ## Tests y salud del proyecto
 
@@ -136,3 +201,11 @@ Antes de tocar `toolMapper.ts`, ejecutar `npm test` para no romper cobertura.
 - `parseBool()` en toolMapper maneja tanto `boolean true` como `string "true"` de Supabase JSON — usarlo siempre al leer booleanos de `agents.configuration`, nunca comparar con `=== true` directamente
 - El assign route (`/api/retell/phone-number/assign`) solo refresca tools en Retell si el agente tiene `enableTransfer=true`. Si lo hace, usa `detectCalToolLoss()` para abortar si el rebuild perdería Cal.com. No modificar esta lógica sin entender el riesgo de borrar Cal.com del agente en Retell.
 - Las transferencias son siempre a número de teléfono humano (`destination_type: 'number'`). La opción de transferir entre agentes fue eliminada del wizard.
+- **Nunca usar `=== true` directamente** al leer campos booleanos de `agents.configuration` — usar siempre `parseBool()` porque Supabase devuelve `"true"` como string en campos JSON.
+- **`service_role` bypasa RLS** — toda la lógica de datos usa `createSupabaseAdmin()`. Si alguna vez se añade una query usando el cliente de sesión de usuario (`createLocalClient()`), verificar que la tabla tiene la política RLS adecuada para el rol `authenticated`.
+
+## Notas de arquitectura importantes (aprendidas en producción)
+
+- **`env.ts` no lanza excepción en build phase** (`NEXT_PHASE === 'phase-production-build'`): Next.js importa todos los módulos de rutas durante el build para leer exports estáticos. Si `env.ts` lanzara aquí, el build fallaría aunque las vars estén correctas en Vercel runtime.
+- **Todas las rutas API necesitan `export const dynamic = 'force-dynamic'`**: sin esto Next.js intenta pre-renderizar estáticamente la ruta durante el build, lo que falla para rutas con auth.
+- **`NEXT_PUBLIC_SITE_URL` es crítica para que funcionen las llamadas**: si no está configurada, los webhooks se registran en Retell sin dominio y las llamadas no disparan eventos. Configurarla en Vercel → Settings → Environment Variables.
