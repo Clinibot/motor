@@ -28,5 +28,21 @@ export async function verifyRetellWebhook(
         console.warn('[webhookAuth] No API key available for signature verification');
         return false;
     }
+
+    // Temporary diagnostics — remove after root cause is confirmed
+    const sigMatch = /v=(\d+),d=(.*)/.exec(signature);
+    const now = Date.now();
+    console.log('[webhookAuth:diag]', JSON.stringify({
+        key_len: apiKey.length,
+        key_prefix: apiKey.slice(0, 8),
+        key_first_cc: apiKey.charCodeAt(0),
+        key_last_cc:  apiKey.charCodeAt(apiKey.length - 1),
+        body_len: rawBody.length,
+        sig_regex_ok: !!sigMatch,
+        sig_ts: sigMatch ? Number(sigMatch[1]) : null,
+        sig_age_ms: sigMatch ? Math.abs(now - Number(sigMatch[1])) : null,
+        now_ms: now,
+    }));
+
     return Retell.verify(rawBody, apiKey, signature);
 }
