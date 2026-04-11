@@ -54,7 +54,9 @@ export const env = {
     // by Vercel on every deployment). If neither is set (local dev without .env.local),
     // defaults to empty string — agent creation still works but registered webhook
     // URLs will be wrong until the var is configured.
+    // Trailing slash is stripped to prevent double-slash in constructed webhook URLs
+    // (e.g. NEXT_PUBLIC_SITE_URL=https://domain.com/ → https://domain.com//api/...)
     NEXT_PUBLIC_SITE_URL:
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ''),
+        (process.env.NEXT_PUBLIC_SITE_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')).replace(/\/$/, ''),
 } as const;
