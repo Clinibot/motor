@@ -118,7 +118,7 @@ Valores `_debug` en Retell logs para diagnosticar:
 
 **Regla fija**: el webhook inbound **nunca bloquea** por fallo de firma. Si el header llega, se intenta verificar y se loguea el resultado, pero la llamada **siempre continúa** hacia Cal.com y OpenAI. Sin esto, `disponibilidad_mas_temprana` y `consultar_disponibilidad` nunca se inyectan y el agente trabaja sin información de disponibilidad.
 
-El post-call webhook (`/api/retell/webhook`) sí verifica y bloquea con 401 si la firma es inválida — eso es correcto y no debe cambiarse.
+El post-call webhook (`/api/retell/webhook`) también usa verificación best-effort: loguea el fallo pero nunca devuelve 401 (igual que el inbound). Ver sección "Notas de arquitectura" para el contexto completo.
 
 Ver [src/app/api/retell/webhook/inbound/route.ts](src/app/api/retell/webhook/inbound/route.ts) — comentario `Best-effort signature verification`.
 
@@ -205,7 +205,7 @@ Framework: **Vitest** — `npm test` (sin API keys ni conexión externa).
 - **14 tests** en `src/app/api/retell/webhook/__tests__/route.test.ts` — todos pasan
 - **Tests de Cal.com** en `src/app/api/retell/calcom/__tests__/` — book y cancel cubiertos
 - **17 tests** en `src/app/api/retell/webhook/inbound/__tests__/route.test.ts` — todos pasan
-- **Total: 139 tests en 7 ficheros** — todos pasan
+- **Total: 140 tests en 7 ficheros** — todos pasan
 - Cobertura `toolMapper.ts`: 95.94% líneas · 100% funciones · 76.19% ramas
 - Cobertura `webhookAuth.ts`: 100% en todo
 
