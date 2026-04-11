@@ -44,5 +44,29 @@ export async function verifyRetellWebhook(
         now_ms: now,
     }));
 
+    // Deep diagnostic: compute the HMAC ourselves and compare digests.
+    // If digest_match=false → key or body is wrong; if true → SDK verify has a bug.
+    if (sigMatch) {
+        try {
+            const poststamp = Number(sigMatch[1]);
+            const expectedDigest = sigMatch[2];
+            const enc = new TextEncoder();
+            const cryptoKey = await globalThis.crypto.subtle.importKey(
+                'raw', enc.encode(apiKey),
+                { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+            );
+            const sigBuf = await globalThis.crypto.subtle.sign('HMAC', cryptoKey, enc.encode(rawBody + poststamp));
+            const computedDigest = Array.from(new Uint8Array(sigBuf))
+                .map(b => b.toString(16).padStart(2, '0')).join('');
+            console.log('[webhookAuth:digestcmp]', JSON.stringify({
+                digest_match: computedDigest === expectedDigest,
+                expected_prefix: expectedDigest.slice(0, 16),
+                computed_prefix: computedDigest.slice(0, 16),
+            }));
+        } catch (e) {
+            console.warn('[webhookAuth:digestcmp] crypto error', String(e));
+        }
+    }
+
     return Retell.verify(rawBody, apiKey, signature);
 }
