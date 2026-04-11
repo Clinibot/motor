@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 async function requireAdmin(): Promise<NextResponse | null> {
     const supabase = await createLocalClient();
     const { data: { session } } = await supabase.auth.getSession();
