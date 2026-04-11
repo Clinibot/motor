@@ -112,6 +112,16 @@ Valores `_debug` en Retell logs para diagnosticar:
 - `missing_openai_key` — falta `OPENAI_API_KEY` en Vercel
 - `agent_not_found` — el `retell_agent_id` no está en la tabla `agents` de Supabase
 
+### Verificación de firma en el webhook inbound — NO TOCAR
+
+**Retell NO envía `x-retell-signature` en webhooks pre-call (inbound) de la misma forma que en post-call.** La verificación con `Retell.verify()` siempre falla en este endpoint aunque la API key sea correcta.
+
+**Regla fija**: el webhook inbound **nunca bloquea** por fallo de firma. Si el header llega, se intenta verificar y se loguea el resultado, pero la llamada **siempre continúa** hacia Cal.com y OpenAI. Sin esto, `disponibilidad_mas_temprana` y `consultar_disponibilidad` nunca se inyectan y el agente trabaja sin información de disponibilidad.
+
+El post-call webhook (`/api/retell/webhook`) sí verifica y bloquea con 401 si la firma es inválida — eso es correcto y no debe cambiarse.
+
+Ver [src/app/api/retell/webhook/inbound/route.ts](src/app/api/retell/webhook/inbound/route.ts) — comentario `Best-effort signature verification`.
+
 ## Variables de entorno críticas
 
 Ver `.env.example`. Las más importantes:
