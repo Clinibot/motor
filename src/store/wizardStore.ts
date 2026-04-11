@@ -159,7 +159,7 @@ export interface WizardState {
     toggleSidebar: () => void;
 }
 
-export const useWizardStore = create<WizardState>((set) => ({
+const INITIAL_STATE = {
     agentName: '',
     companyName: '',
     agentType: 'cualificacion',
@@ -168,7 +168,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     companyPhone: '',
     companyWebsite: '',
     companyDescription: '',
-    kbFiles: [],
+    kbFiles: [] as { id: string; name: string; retell_name?: string; size: string; type: string }[],
     kbUsageInstructions: '',
     kbRetrievalChunks: 3,
     kbSimilarityThreshold: 0.7,
@@ -176,7 +176,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     model: 'gemini-3.0-flash',
     temperature: 0,
     highPriority: false,
-    whoFirst: 'agent',
+    whoFirst: 'agent' as const,
     beginMessage: '',
     personality: ['Profesional'],
     tone: 'Semiformal',
@@ -209,6 +209,7 @@ export const useWizardStore = create<WizardState>((set) => ({
     enableAmbientSound: false,
     ambientSound: 'none',
     ambientSoundVolume: 0.2,
+
     enableEndCall: true,
     endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
     enableCalBooking: false,
@@ -220,23 +221,25 @@ export const useWizardStore = create<WizardState>((set) => ({
     calSearchDays: 7,
     enableTransfer: false,
     transferWhen: '',
-    transferDestinations: [],
+    transferDestinations: [] as TransferDestination[],
     enableCustomTools: false,
-    customTools: [],
+    customTools: [] as CustomTool[],
 
     useTemplate: false,
-    extractionVariables: [],
-    leadQuestions: [],
+    extractionVariables: [] as ExtractionVariable[],
+    leadQuestions: [] as { question: string; key: string; failAction?: 'end_call' | 'transfer' | 'booking' | 'continue'; failTransferIdx?: number }[],
     enableAnalysis: false,
     analysisModel: 'gemini-3.0-flash',
     webhookUrl: '',
     customNotes: '',
 
-    // Edit Mode
-    editingAgentId: null,
-
+    editingAgentId: null as string | null,
     currentStep: 1,
     isSidebarOpen: false,
+};
+
+export const useWizardStore = create<WizardState>((set) => ({
+    ...INITIAL_STATE,
 
     updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
     nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6), isSidebarOpen: false })),
@@ -250,26 +253,5 @@ export const useWizardStore = create<WizardState>((set) => ({
         isSidebarOpen: false
     })),
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
-    resetWizard: () => set({
-        agentName: '', companyName: '', agentType: 'cualificacion',
-        model: 'gemini-3.0-flash', temperature: 0, highPriority: false, whoFirst: 'agent', beginMessage: '',
-        personality: ['Profesional'], tone: 'Semiformal', prompt: 'Eres un asistente útil.',
-        voiceId: 'custom-carolina', voiceName: 'Carolina', voiceProvider: 'premium', voiceDescription: 'Voz natural y profesional para atención al cliente', voiceSpeed: 1.0, voiceTemperature: 0.8,
-        language: 'es-ES', responsiveness: 0.98, interruptionSensitivity: 0.8,
-        enableBackchannel: false, backchannelFrequency: 0.5, backchannelWords: ['Mmm', 'Vale', 'Entiendo', 'Claro', 'Ajá', 'Sí', 'De acuerdo', 'Ya veo'],
-        boostedKeywords: ['CRMs', 'SIP trunk', 'netelip', 'gmail', 'hotmail', 'outlook', 'yahoo', 'arroba', 'punto com', 'punto es', 'guion', 'guion bajo', '@netelip.com', 'guion medio'], normalizeForSpeech: true,
-        beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 540000,
-        reminderTriggerMs: 30000, reminderMaxCount: 1, ringDurationMs: 30000,
-        volume: 1.0, enableAmbientSound: false, ambientSound: 'none', ambientSoundVolume: 0.2,
-        enableEndCall: true, endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
-        enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '', calTimezone: 'Europe/Madrid', enableCalCancellation: false, calSearchDays: 7,
-        enableTransfer: false, transferWhen: '', transferDestinations: [], enableCustomTools: false, customTools: [],
-        useTemplate: false, extractionVariables: [], leadQuestions: [], enableAnalysis: false, analysisModel: 'gemini-3.0-flash',
-        webhookUrl: '',
-        customNotes: '',
-        companyAddress: '', companyPhone: '', companyWebsite: '', companyDescription: '',
-        kbFiles: [], kbUsageInstructions: '', kbRetrievalChunks: 3, kbSimilarityThreshold: 0.7,
-        editingAgentId: null,
-        currentStep: 1
-    })
+    resetWizard: () => set({ ...INITIAL_STATE }),
 }));
