@@ -169,7 +169,7 @@ Protege reservas y cancelaciones Cal.com de doble-ejecución por parte de Retell
 | `20260411_rate_limit.sql` | ✅ Ejecutado | Tabla rate_limit_windows + RPC |
 | `20260411_rls_data_tables.sql` | ✅ Ejecutado | Activar RLS en tablas de datos |
 | `20260411_cleanup_function.sql` | ✅ Ejecutado | Función cleanup_expired_records() |
-| `20260411_webhook_logs_index_and_cleanup.sql` | ⚠️ Pendiente | Índice en webhook_logs + incluir en cleanup (30 días) |
+| `20260411_webhook_logs_index_and_cleanup.sql` | ✅ Ejecutado | Índice en webhook_logs + incluir en cleanup (30 días) |
 
 ## Cron jobs (Vercel — `vercel.json`)
 
@@ -185,6 +185,10 @@ Framework: **Vitest** — `npm test` (sin API keys ni conexión externa).
 
 - **71 tests** en `src/lib/retell/__tests__/` — todos pasan
 - **8 tests** en `src/app/api/retell/agent/__tests__/route.test.ts` — todos pasan (POST/PATCH del fichero más crítico)
+- **14 tests** en `src/app/api/retell/webhook/__tests__/route.test.ts` — todos pasan
+- **Tests de Cal.com** en `src/app/api/retell/calcom/__tests__/` — book y cancel cubiertos
+- **17 tests** en `src/app/api/retell/webhook/inbound/__tests__/route.test.ts` — todos pasan
+- **Total: 139 tests en 7 ficheros** — todos pasan
 - Cobertura `toolMapper.ts`: 95.94% líneas · 100% funciones · 76.19% ramas
 - Cobertura `webhookAuth.ts`: 100% en todo
 
