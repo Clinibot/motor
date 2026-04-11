@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRetellClient } from '@/lib/retell/client';
-import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUserSession } from '@/lib/auth/requireUserSession';
 import { buildRetellTools } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 
@@ -17,26 +17,24 @@ export async function POST(request: Request) {
             sip_trunk_username,
             sip_trunk_password,
             nickname,
-            workspace_id
         } = payload;
 
         if (!phone_number || !termination_uri) {
             return NextResponse.json({ success: false, error: "Phone number and Termination URI are required." }, { status: 400 });
         }
 
-        const supabase = await createLocalClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-        }
-
         const supabaseAdmin = createSupabaseAdmin();
+
+        // Auth: workspace_id siempre desde la sesión, nunca desde el payload del cliente
+        const auth = await requireUserSession(supabaseAdmin);
+        if ('error' in auth) return auth.error;
+        const { workspaceId } = auth;
 
         // 1. Obtener API Key de Retell del workspace
         const { data: workspace, error: wsError } = await supabaseAdmin
             .from('workspaces')
             .select('retell_api_key')
-            .eq('id', workspace_id)
+            .eq('id', workspaceId)
             .single();
 
         if (wsError || !workspace?.retell_api_key) {
@@ -81,7 +79,7 @@ export async function POST(request: Request) {
             const { error: dbError } = await supabaseAdmin
                 .from('phone_numbers')
                 .upsert({
-                    workspace_id: workspace_id,
+                    workspace_id: workspaceId,
                     phone_number: retellResponse.phone_number,
                     nickname: nickname || phone_number,
                     country: 'Spain',

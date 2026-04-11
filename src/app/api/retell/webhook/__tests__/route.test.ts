@@ -104,8 +104,8 @@ function makeRequest(body: unknown, signature = 'valid-sig') {
  * 4. calls select (existing), 5. calls upsert
  */
 function setupHappyPath({
-    existingCall = null,
-    upsertError = null,
+    existingCall = null as unknown,
+    upsertError = null as unknown,
 } = {}) {
     mocks.fromAdmin
         .mockImplementationOnce(() => makeQuery(AGENT_RECORD))           // 1. agents

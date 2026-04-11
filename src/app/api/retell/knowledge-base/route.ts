@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
-import { createClient as createLocalClient } from '@/lib/supabase/server';
-import { resolveUserWorkspace } from '@/lib/supabase/workspace';
+import { requireUserSession } from '@/lib/auth/requireUserSession';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +11,6 @@ export async function POST(request: Request) {
     try {
         const formData = await request.formData();
         const file = formData.get('file') as File | null;
-        let workspaceId = formData.get('workspace_id') as string | null;
 
         if (!file) {
             return NextResponse.json({ success: false, error: "No file uploaded" }, { status: 400 });
@@ -27,23 +25,12 @@ export async function POST(request: Request) {
             );
         }
 
-        const supabase = await createLocalClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ success: false, error: "Unauthorized. Please log in first." }, { status: 401 });
-        }
-
-        const userId = user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
-        if (!workspaceId) {
-            const wsResult = await resolveUserWorkspace(supabaseAdmin, userId);
-            if ('error' in wsResult) {
-                return NextResponse.json({ success: false, error: wsResult.error }, { status: wsResult.status });
-            }
-            workspaceId = wsResult.workspaceId;
-        }
+        // Auth: workspace_id siempre desde la sesión, nunca desde el payload del cliente
+        const auth = await requireUserSession(supabaseAdmin);
+        if ('error' in auth) return auth.error;
+        const { workspaceId } = auth;
 
         // Rate limit: 10 KB uploads per hour per workspace
         const rlKb = await checkRateLimit(supabaseAdmin, `kb:upload:${workspaceId}`, 10, 3600,

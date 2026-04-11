@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRetellClient } from '@/lib/retell/client';
-import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireUserSession } from '@/lib/auth/requireUserSession';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
@@ -16,23 +16,21 @@ export async function POST(request: Request) {
         const {
             number_id, // UUID en nuestra DB
             phone_number, // E.164
-            workspace_id
         } = payload;
 
-        if (!phone_number || !number_id || !workspace_id) {
+        if (!phone_number || !number_id) {
             return NextResponse.json({ success: false, error: "Missing required parameters" }, { status: 400 });
-        }
-
-        const supabase = await createLocalClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const supabaseAdmin = createSupabaseAdmin();
 
+        // Auth: workspace_id siempre desde la sesión, nunca desde el payload del cliente
+        const auth = await requireUserSession(supabaseAdmin);
+        if ('error' in auth) return auth.error;
+        const { workspaceId } = auth;
+
         // Rate limit: 10 deletions per hour per workspace
-        const rlDelete = await checkRateLimit(supabaseAdmin, `phone:delete:${workspace_id}`, 10, 3600,
+        const rlDelete = await checkRateLimit(supabaseAdmin, `phone:delete:${workspaceId}`, 10, 3600,
             'Demasiados borrados de número en poco tiempo. Por favor espera un momento.');
         if (rlDelete) return rlDelete;
 
@@ -40,7 +38,7 @@ export async function POST(request: Request) {
         const { data: workspace, error: wsError } = await supabaseAdmin
             .from('workspaces')
             .select('retell_api_key')
-            .eq('id', workspace_id)
+            .eq('id', workspaceId)
             .single();
 
         if (wsError || !workspace?.retell_api_key) {
@@ -60,10 +58,13 @@ export async function POST(request: Request) {
 
         // 3. Eliminar de nuestra base de datos
         console.log(`Deleting phone number ${number_id} from local database`);
+        // Filtramos también por workspace_id para que un number_id de otro workspace
+        // no pueda eliminarse aunque se pase intencionadamente en el payload.
         const { error: dbError } = await supabaseAdmin
             .from('phone_numbers')
             .delete()
-            .eq('id', number_id);
+            .eq('id', number_id)
+            .eq('workspace_id', workspaceId);
 
         if (dbError) {
             console.error("Error deleting from DB:", dbError);
