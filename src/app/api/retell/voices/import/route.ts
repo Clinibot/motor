@@ -4,6 +4,7 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Voice import involves Retell API calls
 
 
 export async function POST(req: Request) {

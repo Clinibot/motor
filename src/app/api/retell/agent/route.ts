@@ -11,6 +11,7 @@ import { checkRateLimit } from '@/lib/supabase/rateLimit';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Agent create/update involves multiple Retell API calls
 
 // When voiceId is a placeholder like 'custom-carolina', resolve the real
 // workspace-scoped ID from Retell's voice list by matching the voice name.

@@ -5,6 +5,7 @@ import { resolveUserWorkspace } from '@/lib/supabase/workspace';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // File upload to Retell KB can take time
 
 
 export async function POST(request: Request) {
