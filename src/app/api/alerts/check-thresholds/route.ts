@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { sendThresholdAlertEmail } from '@/lib/resend';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 // Called internally from the Retell webhook after each call is stored.
-// Checks thresholds and sends alerts if exceeded.
+// Protected by CRON_SECRET — only the server itself should call this.
 export async function POST(req: NextRequest) {
   try {
+    // Require the shared server secret so this endpoint is not publicly accessible
+    const authHeader = req.headers.get('authorization');
+    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { workspace_id } = await req.json();
     if (!workspace_id) return NextResponse.json({ error: 'workspace_id required' }, { status: 400 });
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = createSupabaseAdmin();
 
     // Get alert settings for this workspace
     const { data: settings } = await supabase

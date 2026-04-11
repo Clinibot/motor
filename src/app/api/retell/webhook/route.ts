@@ -191,7 +191,10 @@ export async function POST(request: NextRequest) {
             const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
             fetch(`${baseUrl}/api/alerts/check-thresholds`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(process.env.CRON_SECRET ? { 'Authorization': `Bearer ${process.env.CRON_SECRET}` } : {}),
+                },
                 body: JSON.stringify({ workspace_id: workspaceId }),
             }).catch(err => console.warn('[alerts] Threshold check fire-and-forget error:', err));
         }

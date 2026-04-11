@@ -16,6 +16,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "No file uploaded" }, { status: 400 });
         }
 
+        // 20 MB limit — Retell's own KB API rejects larger files anyway
+        const MAX_FILE_SIZE = 20 * 1024 * 1024;
+        if (file.size > MAX_FILE_SIZE) {
+            return NextResponse.json(
+                { success: false, error: `El fichero supera el límite de 20 MB (${(file.size / 1024 / 1024).toFixed(1)} MB).` },
+                { status: 400 }
+            );
+        }
+
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
 

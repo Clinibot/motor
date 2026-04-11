@@ -7,6 +7,7 @@ import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { AgentPayload, resolveVoiceId } from '@/lib/retell/types';
 import { resolveUserWorkspace } from '@/lib/supabase/workspace';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
+import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,10 +91,8 @@ export async function POST(request: Request) {
     try {
         const payload: AgentPayload = await request.json();
         // Resolve absolute site URL early so buildRetellTools can use it for webhook URLs
-        const _protocol = request.headers.get('x-forwarded-proto') || 'https';
-        const _host = request.headers.get('host');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (payload as any).siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (_host ? `${_protocol}://${_host}` : 'https://lafabrica.netelip.com');
+        (payload as any).siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
@@ -182,9 +181,7 @@ export async function POST(request: Request) {
         );
 
         // 7. Create the Voice Agent in Retell
-        const protocol = request.headers.get('x-forwarded-proto') || 'https';
-        const host = request.headers.get('host');
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://lafabrica.netelip.com');
+        const siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
         const buildAgentParams = (voiceId: string) => buildRetellAgentParams(
             voiceId,
@@ -243,6 +240,14 @@ export async function POST(request: Request) {
 
         if (insertError) {
             console.error("Error saving agent to DB:", insertError);
+            // Rollback: delete the Retell resources so state stays consistent
+            console.warn(`[agent/POST] Rolling back Retell agent ${agentResponse.agent_id} and LLM ${llmResponse.llm_id}`);
+            try { await retellClient.agent.delete(agentResponse.agent_id); } catch (e) { console.error('[agent/POST] Rollback agent.delete failed:', e); }
+            try { await retellClient.llm.delete(llmResponse.llm_id); } catch (e) { console.error('[agent/POST] Rollback llm.delete failed:', e); }
+            return NextResponse.json(
+                { success: false, error: `Agent created in Retell but could not be saved to database: ${insertError.message}. Changes have been rolled back.` },
+                { status: 500 }
+            );
         }
 
         return NextResponse.json({
@@ -292,9 +297,7 @@ export async function PATCH(request: Request) {
         const supabaseAdmin = createSupabaseAdmin();
         payload = (await request.json()) as AgentPayload;
         // Resolve absolute site URL early so buildRetellTools can use it for webhook URLs
-        const _pProtocol = request.headers.get('x-forwarded-proto') || 'https';
-        const _pHost = request.headers.get('host');
-        payload.siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (_pHost ? `${_pProtocol}://${_pHost}` : 'https://lafabrica.netelip.com');
+        payload.siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
         if (!payload.id) {
             return NextResponse.json({ success: false, error: "Entity ID is required for PATCH." }, { status: 400 });
@@ -382,9 +385,7 @@ export async function PATCH(request: Request) {
         );
 
         const retellAgentId = currentAgent.retell_agent_id;
-        const protocol = request.headers.get('x-forwarded-proto') || 'https';
-        const host = request.headers.get('host');
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://lafabrica.netelip.com');
+        const siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
         if (retellAgentId) {
             const buildUpdateParams = (voiceId: string) => buildRetellAgentParams(

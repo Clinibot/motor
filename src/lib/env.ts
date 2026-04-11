@@ -11,14 +11,14 @@ const REQUIRED = [
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'SUPABASE_SERVICE_ROLE_KEY',
+    'NEXT_PUBLIC_SITE_URL',
 ] as const;
 
 const RECOMMENDED: Array<{ key: string; feature: string }> = [
-    { key: 'NEXT_PUBLIC_SITE_URL',    feature: 'webhook URLs in Retell agents' },
     { key: 'RETELL_WEBHOOK_SECRET',   feature: 'Retell webhook signature verification' },
     { key: 'OPENAI_API_KEY',          feature: 'inbound webhook natural language availability' },
     { key: 'RESEND_API_KEY',          feature: 'email alert notifications' },
-    { key: 'CRON_SECRET',             feature: 'cron endpoint protection' },
+    { key: 'CRON_SECRET',             feature: 'cron endpoint and internal alert protection' },
 ];
 
 const missing = REQUIRED.filter(key => !process.env[key]);
@@ -35,10 +35,10 @@ for (const { key, feature } of RECOMMENDED) {
     }
 }
 
-// Typed exports for the 3 critical vars — use these instead of process.env.X!
-// to avoid the non-null assertion operator scattered across the codebase.
+// Typed exports — use these instead of process.env.X! to avoid scattered non-null assertions.
 export const env = {
-    NEXT_PUBLIC_SUPABASE_URL:   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    NEXT_PUBLIC_SUPABASE_URL:      process.env.NEXT_PUBLIC_SUPABASE_URL!,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    SUPABASE_SERVICE_ROLE_KEY:  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    SUPABASE_SERVICE_ROLE_KEY:     process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    NEXT_PUBLIC_SITE_URL:          process.env.NEXT_PUBLIC_SITE_URL!,
 } as const;
