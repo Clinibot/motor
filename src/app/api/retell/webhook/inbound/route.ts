@@ -58,22 +58,25 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify signature using workspace API key.
-        // On failure: log warning and continue — the caller is already on the line
-        // and breaking the call is worse than proceeding without dynamic variables.
+        // Retell does NOT always send x-retell-signature on inbound/pre-call webhooks.
+        // Policy: if the header IS present, verify strictly and reject on mismatch.
+        //         if the header is absent, log and continue — the caller is already on
+        //         the line and blocking the call is worse than skipping verification.
         const { data: wsData } = await supabaseAdmin
             .from('workspaces')
             .select('retell_api_key')
             .eq('id', agentData.workspace_id)
             .single();
 
-        const sigValid = await verifyRetellWebhook(
-            rawBody,
-            request.headers.get('x-retell-signature'),
-            wsData?.retell_api_key
-        );
-        if (!sigValid) {
-            log.warn('Invalid or unverifiable signature — proceeding without dynamic variables', { retell_agent_id: agent_id });
-            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'signature_invalid' } } });
+        const retellSig = request.headers.get('x-retell-signature');
+        if (retellSig) {
+            const sigValid = await verifyRetellWebhook(rawBody, retellSig, wsData?.retell_api_key);
+            if (!sigValid) {
+                log.warn('Invalid x-retell-signature on inbound webhook — rejected', { retell_agent_id: agent_id });
+                return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'signature_invalid' } } });
+            }
+        } else {
+            log.info('No x-retell-signature on inbound webhook — proceeding without verification', { retell_agent_id: agent_id });
         }
 
         const config = agentData.configuration;

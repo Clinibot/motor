@@ -204,7 +204,7 @@ describe('POST /api/retell/webhook/inbound', () => {
 
     // ── Signature verification ────────────────────────────────────────────────
 
-    it('devuelve 200 con _debug: signature_invalid si la firma es inválida', async () => {
+    it('devuelve _debug: signature_invalid si el header está presente pero la firma es incorrecta', async () => {
         setupDbLookups();
         mocks.verifyRetellWebhook.mockResolvedValueOnce(false);
 
@@ -214,6 +214,25 @@ describe('POST /api/retell/webhook/inbound', () => {
         expect(res.status).toBe(200);
         expect(body.call_inbound.dynamic_variables._debug).toBe('signature_invalid');
         expect(body.call_inbound.override_agent_id).toBe('retell-agent-xyz');
+    });
+
+    it('procede sin verificar firma si no hay header x-retell-signature (Retell no lo envía en inbound)', async () => {
+        // Retell does not always send x-retell-signature on pre-call webhooks.
+        // When absent: skip verification and proceed to inject variables.
+        setupDbLookups();
+        const req = new NextRequest('http://localhost/api/retell/webhook/inbound', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' }, // sin x-retell-signature
+            body: JSON.stringify(makePayload()),
+        });
+
+        const res = await POST(req);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.call_inbound.dynamic_variables._debug).toBeUndefined();
+        expect(body.call_inbound.dynamic_variables).toHaveProperty('disponibilidad_mas_temprana');
+        expect(mocks.verifyRetellWebhook).not.toHaveBeenCalled();
     });
 
     // ── Cal.com configuration check ───────────────────────────────────────────
