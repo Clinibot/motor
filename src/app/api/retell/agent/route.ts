@@ -40,7 +40,58 @@ function getSupabaseAdmin() {
     return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-
+// Shared builder for both create (POST) and update (PATCH) Retell agent params.
+// Only three things differ between the two: llmId, agentName fallback, and the
+// empty fallback for post_call_analysis_data (undefined vs []).
+function buildRetellAgentParams(
+    voiceId: string,
+    llmId: string,
+    agentName: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: AgentPayload & Record<string, any>,
+    postCallAnalysis: ReturnType<typeof buildPostCallAnalysis>,
+    siteUrl: string,
+    emptyAnalysisFallback: undefined | [] = undefined,
+) {
+    return {
+        response_engine: { type: 'retell-llm' as const, llm_id: llmId },
+        agent_name: agentName,
+        voice_id: voiceId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        language: (payload.language || 'es-ES') as any,
+        timezone: 'Europe/Madrid',
+        responsiveness: payload.responsiveness || 1,
+        interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
+        enable_backchannel: payload.enableBackchannel || false,
+        backchannel_frequency: payload.backchannelFrequency,
+        backchannel_words: payload.backchannelWords?.length ? payload.backchannelWords : undefined,
+        webhook_url: `${siteUrl}/api/retell/webhook`,
+        max_call_duration_ms: payload.maxCallDurationMs || 600000,
+        begin_message_delay_ms: payload.beginMessageDelayMs || 200,
+        end_call_after_silence_ms: payload.endCallAfterSilenceMs || 59000,
+        ring_duration_ms: payload.ringDurationMs || 30000,
+        voice_speed: !voiceId.startsWith('openai-') ? payload.voiceSpeed : undefined,
+        voice_temperature: !voiceId.startsWith('openai-') ? payload.voiceTemperature : undefined,
+        volume: payload.volume,
+        ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined) as 'call-center',
+        ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
+        normalize_for_speech: payload.normalizeForSpeech,
+        post_call_analysis_data: postCallAnalysis.length > 0 ? postCallAnalysis : emptyAnalysisFallback,
+        post_call_analysis_model: 'gemini-3.0-flash' as const,
+        stt_mode: 'accurate' as const,
+        denoising_mode: 'noise-cancellation' as const,
+        boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
+        fallback_voice_ids: ['cartesia-Nico'],
+        enable_llm_turbo_mode: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data_storage_setting: 'everything_except_pii' as any,
+        data_storage_retention_days: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        pii_config: { mode: 'post_call' } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        guardrail_config: { output_topics: ['harassment', 'self_harm', 'violence'], input_topics: ['platform_integrity_jailbreaking'] } as any,
+    };
+}
 
 export async function POST(request: Request) {
     try {
@@ -179,44 +230,15 @@ export async function POST(request: Request) {
         const host = request.headers.get('host');
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://lafabrica.netelip.com');
 
-        const buildAgentParams = (voiceId: string) => ({
-            response_engine: { type: "retell-llm" as const, llm_id: llmResponse.llm_id },
-            agent_name: payload.agentName || "New Agent",
-            voice_id: voiceId,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            language: (payload.language || "es-ES") as any,
-            timezone: "Europe/Madrid",
-            responsiveness: payload.responsiveness || 1,
-            interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
-            enable_backchannel: payload.enableBackchannel || false,
-            backchannel_frequency: payload.backchannelFrequency,
-            backchannel_words: payload.backchannelWords?.length ? payload.backchannelWords : undefined,
-            webhook_url: `${siteUrl}/api/retell/webhook`,
-            max_call_duration_ms: payload.maxCallDurationMs || 600000,
-            begin_message_delay_ms: payload.beginMessageDelayMs || 200,
-            end_call_after_silence_ms: payload.endCallAfterSilenceMs || 59000,
-            ring_duration_ms: payload.ringDurationMs || 30000,
-            voice_speed: !voiceId.startsWith('openai-') ? payload.voiceSpeed : undefined,
-            voice_temperature: !voiceId.startsWith('openai-') ? payload.voiceTemperature : undefined,
-            volume: payload.volume,
-            ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined) as "call-center",
-            ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
-            normalize_for_speech: payload.normalizeForSpeech,
-            post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : undefined,
-            post_call_analysis_model: 'gemini-3.0-flash' as const,
-            stt_mode: 'accurate' as const,
-            denoising_mode: 'noise-cancellation' as const,
-            boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
-            fallback_voice_ids: ['cartesia-Nico'],
-            enable_llm_turbo_mode: true,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            data_storage_setting: "everything_except_pii" as any,
-            data_storage_retention_days: null,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            pii_config: { mode: "post_call" } as any,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            guardrail_config: { output_topics: ["harassment", "self_harm", "violence"], input_topics: ["platform_integrity_jailbreaking"] } as any
-        });
+        const buildAgentParams = (voiceId: string) => buildRetellAgentParams(
+            voiceId,
+            llmResponse.llm_id,
+            payload.agentName || 'New Agent',
+            payload,
+            postCallAnalysis,
+            siteUrl,
+            undefined,
+        );
 
         let agentResponse;
         try {
@@ -396,44 +418,15 @@ export async function PATCH(request: Request) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `${protocol}://${host}` : 'https://lafabrica.netelip.com');
 
         if (retellAgentId) {
-            const buildUpdateParams = (voiceId: string) => ({
-                response_engine: { type: "retell-llm" as const, llm_id: llmId },
-                agent_name: payload.agentName || "Updated Agent",
-                voice_id: voiceId,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                language: (payload.language || "es-ES") as any,
-                timezone: "Europe/Madrid",
-                responsiveness: payload.responsiveness || 1,
-                interruption_sensitivity: payload.interruptionSensitivity !== undefined ? payload.interruptionSensitivity : 1,
-                enable_backchannel: payload.enableBackchannel || false,
-                backchannel_frequency: payload.backchannelFrequency,
-                backchannel_words: payload.backchannelWords?.length ? payload.backchannelWords : undefined,
-                webhook_url: `${siteUrl}/api/retell/webhook`,
-                max_call_duration_ms: payload.maxCallDurationMs || 600000,
-                begin_message_delay_ms: payload.beginMessageDelayMs || 200,
-                end_call_after_silence_ms: payload.endCallAfterSilenceMs || 59000,
-                ring_duration_ms: payload.ringDurationMs || 30000,
-                voice_speed: !voiceId.startsWith('openai-') ? payload.voiceSpeed : undefined,
-                voice_temperature: !voiceId.startsWith('openai-') ? payload.voiceTemperature : undefined,
-                volume: payload.volume,
-                ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined) as "call-center",
-                ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSoundVolume : undefined,
-                normalize_for_speech: payload.normalizeForSpeech,
-                post_call_analysis_data: postCallAnalysis && postCallAnalysis.length > 0 ? postCallAnalysis : [],
-                post_call_analysis_model: 'gemini-3.0-flash' as const,
-                stt_mode: 'accurate' as const,
-                denoising_mode: 'noise-cancellation' as const,
-                boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
-                fallback_voice_ids: ['cartesia-Nico'],
-                enable_llm_turbo_mode: true,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                data_storage_setting: "everything_except_pii" as any,
-                data_storage_retention_days: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                pii_config: { mode: "post_call" } as any,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                guardrail_config: { output_topics: ["harassment", "self_harm", "violence"], input_topics: ["platform_integrity_jailbreaking"] } as any
-            });
+            const buildUpdateParams = (voiceId: string) => buildRetellAgentParams(
+                voiceId,
+                llmId,
+                payload.agentName || 'Updated Agent',
+                payload,
+                postCallAnalysis,
+                siteUrl,
+                [],
+            );
 
             try {
                 await retellClient.agent.update(retellAgentId, buildUpdateParams(cleanVoiceId));
