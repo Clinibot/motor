@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,11 @@ export async function POST(request: Request) {
         }
 
         const workspaceId = userProfile.workspace_id as string;
+
+        // Rate limit: 30 web calls per minute per workspace
+        const rl = await checkRateLimit(supabaseAdmin, `webcall:${workspaceId}`, 30, 60,
+            'Demasiadas llamadas en poco tiempo. Por favor espera un momento.');
+        if (rl) return rl;
 
         // 3. Verify the requested agent belongs to the caller's workspace
         //    (prevents cross-tenant call creation)

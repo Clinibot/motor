@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { claimIdempotencyKey, releaseIdempotencyKey } from '@/lib/supabase/idempotency';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,13 @@ export async function POST(request: NextRequest) {
         if (!calApiKey || !eventTypeId) {
             return NextResponse.json({ success: false, error: 'Missing cal_api_key or event_type_id' }, { status: 400 });
         }
+
+        // Rate limit: 30 bookings per minute per workspace (identified by first 16 chars of API key)
+        const supabaseAdmin = createSupabaseAdmin();
+        const rateLimitKey = `calcom:book:${calApiKey.slice(0, 16)}`;
+        const rateLimited = await checkRateLimit(supabaseAdmin, rateLimitKey, 30, 60,
+            'Demasiadas reservas en poco tiempo. Por favor espera un momento antes de intentarlo de nuevo.');
+        if (rateLimited) return rateLimited;
 
         const rawText = await request.text();
         console.log('[calcom/book] Raw body:', rawText);
@@ -80,7 +88,6 @@ export async function POST(request: NextRequest) {
 
         // Idempotency: block duplicate tool executions from Retell within 60 s.
         // Uses Supabase (not in-memory) so it works across all serverless instances.
-        const supabaseAdmin = createSupabaseAdmin();
         const iKey = bookingKey(eventTypeId, start_time, safeEmail || safePhone);
         const idempotencyResult = await claimIdempotencyKey(supabaseAdmin, iKey, IDEMPOTENCY_TTL_MS);
 

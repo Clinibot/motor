@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
     getSession: vi.fn(),
     // Supabase admin (queryable via from())
     fromAdmin: vi.fn(),
+    // Supabase admin rpc (used by resolveUserWorkspace and checkRateLimit)
+    rpcAdmin: vi.fn(),
 }));
 
 vi.mock('@/lib/env', () => ({
@@ -31,7 +33,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 vi.mock('@/lib/supabase/admin', () => ({
-    createSupabaseAdmin: vi.fn(() => ({ from: mocks.fromAdmin })),
+    createSupabaseAdmin: vi.fn(() => ({ from: mocks.fromAdmin, rpc: mocks.rpcAdmin })),
 }));
 
 vi.mock('retell-sdk', () => ({
@@ -138,6 +140,8 @@ describe('POST /api/retell/agent', () => {
         mocks.agentPublish.mockResolvedValue(undefined);
         // Default: any from() call returns empty/null (safe fallback)
         mocks.fromAdmin.mockImplementation(() => makeQuery(null));
+        // Default: rpc calls return "allowed" (true) so rate limiting passes
+        mocks.rpcAdmin.mockResolvedValue({ data: true, error: null });
     });
 
     it('devuelve 401 cuando no hay sesión activa', async () => {
@@ -234,6 +238,8 @@ describe('PATCH /api/retell/agent', () => {
         mocks.agentPublish.mockResolvedValue(undefined);
         mocks.phoneNumberUpdate.mockResolvedValue(undefined);
         mocks.fromAdmin.mockImplementation(() => makeQuery(null));
+        // Default: rpc calls return "allowed" (true) so rate limiting passes
+        mocks.rpcAdmin.mockResolvedValue({ data: true, error: null });
     });
 
     it('devuelve 404 cuando el agente no existe en Supabase', async () => {

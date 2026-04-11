@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { resolveUserWorkspace } from '@/lib/supabase/workspace';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +43,11 @@ export async function POST(request: Request) {
             }
             workspaceId = wsResult.workspaceId;
         }
+
+        // Rate limit: 10 KB uploads per hour per workspace
+        const rlKb = await checkRateLimit(supabaseAdmin, `kb:upload:${workspaceId}`, 10, 3600,
+            'Límite de subidas de base de conocimiento alcanzado. Espera un momento.');
+        if (rlKb) return rlKb;
 
         const { data: workspace, error: wsError } = await supabaseAdmin
             .from('workspaces')

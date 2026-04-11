@@ -7,6 +7,7 @@ import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { AgentPayload, resolveVoiceId } from '@/lib/retell/types';
 import { resolveUserWorkspace } from '@/lib/supabase/workspace';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
@@ -113,6 +114,11 @@ export async function POST(request: Request) {
             }
             workspaceId = wsResult.workspaceId;
         }
+
+        // Rate limit: 20 agent creations per hour per workspace
+        const rlCreate = await checkRateLimit(supabaseAdmin, `agent:create:${workspaceId}`, 20, 3600,
+            'Límite de creación de agentes alcanzado. Espera un momento antes de continuar.');
+        if (rlCreate) return rlCreate;
 
         // 2. Fetch the Retell API Key for this workspace
         const { data: workspace, error: wsError } = await supabaseAdmin
@@ -315,6 +321,11 @@ export async function PATCH(request: Request) {
         }
 
         const workspaceId = currentAgent.workspace_id;
+
+        // Rate limit: 20 agent updates per hour per workspace
+        const rlUpdate = await checkRateLimit(supabaseAdmin, `agent:update:${workspaceId}`, 20, 3600,
+            'Límite de actualizaciones de agente alcanzado. Espera un momento antes de continuar.');
+        if (rlUpdate) return rlUpdate;
 
         const { data: workspace } = await supabaseAdmin
             .from('workspaces')
