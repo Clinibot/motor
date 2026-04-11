@@ -149,6 +149,8 @@ Todos los endpoints sensibles tienen rate limiting. La tabla `rate_limit_windows
 | `POST /api/retell/knowledge-base` | 10 req | 1 hora | `kb:upload:{workspaceId}` |
 | `POST /api/retell/web-call` | 30 req | 1 min | `webcall:{workspaceId}` |
 | `POST /api/retell/webhook` | 300 req | 1 min | `webhook:{workspaceId}` |
+| `POST /api/retell/sync-agents` | 5 req | 1 hora | `sync:agents:{workspaceId}` |
+| `POST /api/retell/voices/clone` | 5 req | 1 hora | `voice:clone:{workspaceId}` |
 
 ### Idempotencia distribuida (tabla `idempotency_keys`)
 
@@ -165,8 +167,8 @@ Protege reservas y cancelaciones Cal.com de doble-ejecución por parte de Retell
 | `20260411_assign_free_workspace_rpc.sql` | ✅ Ejecutado | RPC atómica para asignar workspace |
 | `20260411_idempotency_keys.sql` | ✅ Ejecutado | Tabla idempotency_keys |
 | `20260411_rate_limit.sql` | ✅ Ejecutado | Tabla rate_limit_windows + RPC |
-| `20260411_rls_data_tables.sql` | ⚠️ Pendiente | Activar RLS en tablas de datos |
-| `20260411_cleanup_function.sql` | ⚠️ Pendiente | Función cleanup_expired_records() |
+| `20260411_rls_data_tables.sql` | ✅ Ejecutado | Activar RLS en tablas de datos |
+| `20260411_cleanup_function.sql` | ✅ Ejecutado | Función cleanup_expired_records() |
 
 ## Cron jobs (Vercel — `vercel.json`)
 

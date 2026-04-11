@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60 seconds for voice cloning
@@ -39,6 +40,11 @@ export async function POST(req: Request) {
         if (!userProfile?.workspace_id) {
             return NextResponse.json({ success: false, error: "No workspace assigned" }, { status: 400 });
         }
+
+        // Rate limit: 5 voice clones per hour per workspace
+        const rl = await checkRateLimit(supabaseAdmin, `voice:clone:${userProfile.workspace_id}`, 5, 3600,
+            'Límite de clonaciones de voz alcanzado. Por favor espera una hora.');
+        if (rl) return rl;
 
         const { data: workspace } = await supabaseAdmin
             .from('workspaces')

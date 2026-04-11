@@ -4,6 +4,7 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,11 @@ export async function POST() {
         if (!profile?.workspace_id) {
             return NextResponse.json({ success: false, error: "No workspace found" }, { status: 400 });
         }
+
+        // Rate limit: 5 syncs per hour per workspace (operation calls Retell API for every agent)
+        const rl = await checkRateLimit(supabaseAdmin, `sync:agents:${profile.workspace_id}`, 5, 3600,
+            'Demasiadas sincronizaciones en poco tiempo. Por favor espera unos minutos.');
+        if (rl) return rl;
 
         const { data: workspace } = await supabaseAdmin
             .from('workspaces')

@@ -3,6 +3,7 @@ import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 
 // Format the date for the prompts e.g. "lunes 20 de mayo de 2024"

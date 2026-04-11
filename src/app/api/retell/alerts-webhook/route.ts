@@ -1,20 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
-import crypto from 'crypto';
 import { sendElioAlertEmail } from '@/lib/alerts/alertNotifier';
+import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 
 export const dynamic = 'force-dynamic';
-
-
-function verifySignature(payload: string, apiKey: string, signature: string | null): boolean {
-    if (!signature) return false;
-    try {
-        const expectedSignature = crypto.createHmac('sha256', apiKey).update(payload).digest('hex');
-        return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
-    } catch {
-        return false;
-    }
-}
 
 export async function POST(request: NextRequest) {
     let supabaseAdmin: ReturnType<typeof createSupabaseAdmin> | null = null;
@@ -43,8 +32,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Workspace not found or API key missing' }, { status: 404 });
         }
 
-        // 2. Verify Payload Signature
-        const isValid = verifySignature(rawBody, workspace.retell_api_key, signature);
+        // 2. Verify Payload Signature using the SDK (v={timestamp},d={hex} format)
+        const isValid = await verifyRetellWebhook(rawBody, signature, workspace.retell_api_key);
         if (!isValid) {
             return NextResponse.json({ error: 'Invalid Retell signature' }, { status: 401 });
         }
