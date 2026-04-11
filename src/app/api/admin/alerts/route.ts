@@ -1,25 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { createClient as createLocalClient } from '@/lib/supabase/server';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 export const dynamic = 'force-dynamic';
-
-async function requireAdmin(): Promise<NextResponse | null> {
-    const supabase = await createLocalClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    const { data: profile } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-    if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
-        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
-    return null;
-}
 
 // GET: Fetch Admin Alert Settings
 export async function GET() {
@@ -27,10 +10,7 @@ export async function GET() {
   if (authError) return authError;
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = createSupabaseAdmin();
 
     // We fetch the first row since there is only one Super Admin logical configuration.
     // In multi-admin setups, it would be tied to `admin_id`.
@@ -72,11 +52,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const payload = await req.json();
-    
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = createSupabaseAdmin();
 
     // Validate emails array to only have valid strings
     const validEmails = (payload.emails || []).filter((e: string) => e && e.includes('@'));

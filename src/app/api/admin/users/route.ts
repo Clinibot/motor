@@ -1,25 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
-import { createClient as createLocalClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 export const dynamic = 'force-dynamic';
-
-async function requireAdmin(): Promise<NextResponse | null> {
-    const supabase = await createLocalClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    const { data: profile } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-    if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
-        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
-    return null;
-}
 
 
 export async function GET() {
