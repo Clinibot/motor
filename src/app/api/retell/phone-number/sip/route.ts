@@ -85,52 +85,21 @@ export async function POST(request: Request) {
         }
 
         // 3. Persistir en nuestra base de datos (Supabase)
-        // Buscamos o creamos una clínica para este workspace si no existe
-        let clinicId = null;
-
-        // Intentar obtener una clínica existente para este usuario
-        const { data: existingClinic } = await supabaseAdmin
-            .from('clinics')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .limit(1)
-            .maybeSingle();
-
-        if (existingClinic) {
-            clinicId = existingClinic.id;
-        } else {
-            // Crear una clínica básica si no existe
-            const { data: newClinic, error: clinicError } = await supabaseAdmin
-                .from('clinics')
-                .insert({
-                    user_id: session.user.id,
-                    name: nickname || 'Mi Clínica',
-                })
-                .select('id')
-                .single();
-
-            if (clinicError) {
-                console.error("Error creating clinic:", clinicError);
-            } else {
-                clinicId = newClinic.id;
-            }
-        }
-
-        if (clinicId) {
+        {
             const { error: dbError } = await supabaseAdmin
                 .from('phone_numbers')
                 .upsert({
-                    clinic_id: clinicId,
+                    workspace_id: workspace_id,
                     phone_number: retellResponse.phone_number,
                     nickname: nickname || phone_number,
-                    country: 'Spain', // Valor requerido por constraint
+                    country: 'Spain',
                     status: 'active',
                     termination_uri: termination_uri || null,
                     sip_username: sip_trunk_username || null,
                     sip_password: sip_trunk_password || null,
                     updated_at: new Date().toISOString()
-                }, { 
-                    onConflict: 'phone_number' 
+                }, {
+                    onConflict: 'phone_number'
                 });
 
             if (dbError) {
@@ -169,8 +138,6 @@ export async function POST(request: Request) {
                     console.warn("Fallo al refrescar herramientas del agente vinculado tras cambio de SIP:", updateErr);
                 }
             }
-        } else {
-            throw new Error("No se pudo asociar a una clínica (clinic_id is null)");
         }
 
         return NextResponse.json({

@@ -40,23 +40,14 @@ export async function GET() {
 
         if (callError) throw callError;
 
-        // 3. Fetch phone numbers via clinics
+        // 3. Fetch phone numbers via workspace
         const { data: phoneNumbersData, error: phoneError } = await supabaseAdmin
             .from('phone_numbers')
-            .select(`
-                phone_number,
-                clinics (
-                    user_id
-                )
-            `);
+            .select('phone_number, workspace_id');
 
         if (phoneError) throw phoneError;
 
-        // Process data
-        interface ClinicRow { user_id: string }
-
         const enhancedUsers = users?.map(user => {
-            const userId = user.id;
             const workspaceId = user.workspace_id;
 
             // Calculate total minutes for this workspace
@@ -64,15 +55,10 @@ export async function GET() {
             const totalMs = workspaceCalls.reduce((acc, call) => acc + (call.duration_ms || 0), 0);
             const totalMinutes = Math.floor(totalMs / 60000);
 
-            // Extract phone numbers for this user via clinic association
+            // Extract phone numbers for this workspace
             const userPhoneNumbers = Array.from(new Set(
                 phoneNumbersData
-                    ?.filter(p => {
-                        const clinic = p.clinics as unknown as ClinicRow | ClinicRow[];
-                        return Array.isArray(clinic)
-                            ? clinic.some(c => c.user_id === userId)
-                            : clinic?.user_id === userId;
-                    })
+                    ?.filter(p => p.workspace_id === workspaceId)
                     .map(p => p.phone_number)
                     .filter(Boolean)
             ));
@@ -84,7 +70,7 @@ export async function GET() {
                 : (workspaceData?.name || 'Sin Workspace');
 
             return {
-                id: userId,
+                id: user.id,
                 full_name: user.full_name,
                 email: user.email,
                 workspace_name: workspaceName,

@@ -137,37 +137,24 @@ export default function NumbersPage() {
                     .eq('workspace_id', currentWorkspaceId);
                 setAgents(agentList ?? []);
 
-                const { data: clinicData } = await supabase
-                    .from('clinics')
-                    .select('id')
-                    .eq('user_id', session.user.id);
+                const { data: phoneData, error: phoneError } = await supabase
+                    .from('phone_numbers')
+                    .select('id, phone_number, nickname, assigned_inbound_agent_id, sip_username, sip_password, termination_uri')
+                    .eq('workspace_id', currentWorkspaceId);
 
-                const clinicIds = clinicData?.map(c => c.id) || [];
+                if (phoneError) throw phoneError;
 
-                if (clinicIds.length > 0) {
-                    const { data: phoneData, error: phoneError } = await supabase
-                        .from('phone_numbers')
-                        .select('id, phone_number, nickname, assigned_inbound_agent_id, sip_username, sip_password, termination_uri')
-                        .in('clinic_id', clinicIds);
-
-                    if (phoneError) throw phoneError;
-
-                    if (phoneData) {
-                        setNumbers(phoneData.map(n => ({
-                            id: n.id,
-                            phone_number: n.phone_number,
-                            phone_number_pretty: n.phone_number,
-                            nickname: n.nickname,
-                            agent_id: n.assigned_inbound_agent_id,
-                            retell_agent_id: null,
-                            sip_username: n.sip_username || null,
-                            sip_password: n.sip_password || null,
-                            termination_uri: n.termination_uri || null,
-                        })));
-                    }
-                } else {
-                    setNumbers([]);
-                }
+                setNumbers((phoneData ?? []).map(n => ({
+                    id: n.id,
+                    phone_number: n.phone_number,
+                    phone_number_pretty: n.phone_number,
+                    nickname: n.nickname,
+                    agent_id: n.assigned_inbound_agent_id,
+                    retell_agent_id: null,
+                    sip_username: n.sip_username || null,
+                    sip_password: n.sip_password || null,
+                    termination_uri: n.termination_uri || null,
+                })));
             }
         } finally {
             setIsLoading(false);
