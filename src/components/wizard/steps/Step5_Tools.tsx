@@ -74,8 +74,7 @@ export const Step5_Tools: React.FC = () => {
                 const dest = transferDestinations[i];
                 if (!dest.name?.trim()) return `El destino #${i + 1} necesita un nombre.`;
                 if (!dest.description?.trim()) return `El destino #${i + 1} necesita una instrucción para el agente (campo obligatorio).`;
-                if (dest.destination_type !== 'agent' && !dest.number?.trim()) return `El destino #${i + 1} necesita un número de teléfono.`;
-                if (dest.destination_type === 'agent' && !dest.agentId) return `El destino #${i + 1} necesita un agente seleccionado.`;
+                if (!dest.number?.trim()) return `El destino #${i + 1} necesita un número de teléfono.`;
             }
         }
         return '';
@@ -265,46 +264,16 @@ export const Step5_Tools: React.FC = () => {
                                             )}
                                             {dest.description?.trim() && <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Describe en lenguaje natural cuándo debe transferir a este destino. Sé específico para evitar transferencias innecesarias.</div>}
                                         </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                            <div className="fg" style={{ marginBottom: 0 }}>
-                                                <label className="lbl">Tipo de destino</label>
-                                                <select className="inp sel"
-                                                    value={dest.destination_type || 'number'}
-                                                    onChange={e => { const d = [...transferDestinations]; d[idx].destination_type = e.target.value as 'number' | 'agent'; updateField('transferDestinations', d); }}
-                                                >
-                                                    <option value="number">Humano (Número)</option>
-                                                    <option value="agent">Otro agente IA</option>
-                                                </select>
-                                            </div>
-                                            {dest.destination_type === 'agent' ? (
-                                                <div className="fg" style={{ marginBottom: 0 }}>
-                                                    <label className="lbl">Agente destino <span style={{ color: 'var(--error)' }}>*</span></label>
-                                                    <select className="inp sel"
-                                                        value={dest.agentId || ''}
-                                                        onChange={e => { const d = [...transferDestinations]; d[idx].agentId = e.target.value; updateField('transferDestinations', d); }}
-                                                    >
-                                                        <option value="" disabled>Selecciona un agente</option>
-                                                        {availableAgents.filter(a => a.retell_agent_id).map(a => (
-                                                            <option key={a.id} value={a.retell_agent_id!}>{a.name}</option>
-                                                        ))}
-                                                    </select>
-                                                    {availableAgents.filter(a => a.retell_agent_id).length === 0 && (
-                                                        <div className="hint">No hay otros agentes disponibles en tu workspace.</div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="fg" style={{ marginBottom: 0 }}>
-                                                    <label className="lbl">Número de teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
-                                                    <input type="text" className="inp" placeholder="+34911234567"
-                                                        value={dest.number || ''}
-                                                        onChange={e => { const d = [...transferDestinations]; d[idx].number = e.target.value; updateField('transferDestinations', d); }}
-                                                    />
-                                                    {!dest.number?.trim()
-                                                        ? <div className="hint" style={{ color: 'var(--error)', marginTop: '4px' }}><i className="bi bi-exclamation-circle" style={{ marginRight: '4px' }}></i>Obligatorio — sin número la transferencia no se creará en Retell.</div>
-                                                        : <div className="hint">Formato E.164 (ej: +34911234567)</div>
-                                                    }
-                                                </div>
-                                            )}
+                                        <div className="fg" style={{ marginBottom: 0 }}>
+                                            <label className="lbl">Número de teléfono <span style={{ color: 'var(--error)' }}>*</span></label>
+                                            <input type="text" className="inp" placeholder="+34911234567"
+                                                value={dest.number || ''}
+                                                onChange={e => { const d = [...transferDestinations]; d[idx].number = e.target.value; updateField('transferDestinations', d); }}
+                                            />
+                                            {!dest.number?.trim()
+                                                ? <div className="hint" style={{ color: 'var(--error)', marginTop: '4px' }}><i className="bi bi-exclamation-circle" style={{ marginRight: '4px' }}></i>Obligatorio — sin número la transferencia no se creará en Retell.</div>
+                                                : <div className="hint">Formato E.164 (ej: +34911234567)</div>
+                                            }
                                         </div>
                                         <button
                                             type="button"
