@@ -61,22 +61,23 @@ export async function POST(request: Request) {
             phone_number: phone_number,
             termination_uri: termination_uri,
             nickname: nickname || phone_number,
-            sip_outbound_trunk_config: {
-                termination_uri: termination_uri,
-                auth_username: sip_trunk_username || undefined,
-                auth_password: sip_trunk_password || undefined,
-                transport: 'UDP' // Forzado a UDP por requerimiento técnico (Netelip)
-            }
+            sip_trunk_auth_username: sip_trunk_username || undefined,
+            sip_trunk_auth_password: sip_trunk_password || undefined,
+            transport: 'UDP' // Forzado a UDP por requerimiento técnico (Netelip)
         };
 
         let retellResponse;
         try {
             retellResponse = await retellClient.phoneNumber.import(importPayload);
         } catch (error: unknown) {
-            // Si el número ya está importado en Retell (Error 409 o similar), intentamos recuperarlo
+            // Si el número ya está importado en Retell (Error 409 o similar), actualizamos y recuperamos
             const retellError = error as { status?: number; message?: string };
             if (retellError.status === 409 || (retellError.message && retellError.message.includes("already exists"))) {
-                console.log("Number already exists in Retell, fetching existing one:", phone_number);
+                console.log("Number already exists in Retell, updating transport to UDP:", phone_number);
+                await retellClient.phoneNumber.update(phone_number, {
+                    transport: 'UDP',
+                    nickname: nickname || phone_number,
+                });
                 retellResponse = await retellClient.phoneNumber.retrieve(phone_number);
             } else {
                 throw error;
