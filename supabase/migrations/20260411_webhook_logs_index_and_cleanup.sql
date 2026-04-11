@@ -6,7 +6,10 @@
 -- CONCURRENTLY means no table lock during index creation — safe on live DB.
 -- ─────────────────────────────────────────────────────────────────────────────
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS webhook_logs_created_at_idx
+-- Note: CONCURRENTLY is omitted so this runs inside Supabase's transaction block.
+-- On a table with millions of rows and heavy write traffic, prefer running
+-- CREATE INDEX CONCURRENTLY via a direct psql connection outside a transaction.
+CREATE INDEX IF NOT EXISTS webhook_logs_created_at_idx
     ON webhook_logs (created_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────────────────
