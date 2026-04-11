@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Retell from 'retell-sdk';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,11 @@ export async function GET() {
         if (!userProfile || !userProfile.workspace_id) {
             return NextResponse.json({ success: false, error: "No workspace assigned to user" }, { status: 400 });
         }
+
+        // Rate limit: 60 voice list requests per minute per workspace
+        const rlVoices = await checkRateLimit(supabaseAdmin, `voices:list:${userProfile.workspace_id}`, 60, 60,
+            'Demasiadas consultas de voces. Por favor espera un momento.');
+        if (rlVoices) return rlVoices;
 
         // 2. Obtener la Retell API Key de ese workspace
         const { data: workspace, error: wsError } = await supabaseAdmin

@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +21,12 @@ export async function POST(request: NextRequest) {
         if (!calApiKey) {
             return NextResponse.json({ success: false, error: 'Missing cal_api_key' }, { status: 400 });
         }
+
+        // Rate limit: 60 checks per minute per workspace (keyed by first 16 chars of API key)
+        const supabaseAdmin = createSupabaseAdmin();
+        const rl = await checkRateLimit(supabaseAdmin, `calcom:check:${calApiKey.slice(0, 16)}`, 60, 60,
+            'Demasiadas consultas en poco tiempo. Por favor espera un momento.');
+        if (rl) return rl;
 
         const body = await request.json();
         const args = (body.args as Record<string, unknown>) || body;

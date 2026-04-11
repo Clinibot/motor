@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Retell from 'retell-sdk';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,11 @@ export async function POST(request: Request) {
         }
 
         const supabaseAdmin = createSupabaseAdmin();
+
+        // Rate limit: 10 deletions per hour per workspace
+        const rlDelete = await checkRateLimit(supabaseAdmin, `phone:delete:${workspace_id}`, 10, 3600,
+            'Demasiados borrados de número en poco tiempo. Por favor espera un momento.');
+        if (rlDelete) return rlDelete;
 
         // 1. Obtener API Key de Retell del workspace
         const { data: workspace, error: wsError } = await supabaseAdmin

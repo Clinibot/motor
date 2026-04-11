@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { claimIdempotencyKey } from '@/lib/supabase/idempotency';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,12 @@ export async function POST(request: NextRequest) {
         if (!calApiKey) {
             return NextResponse.json({ success: false, error: 'Missing cal_api_key' }, { status: 400 });
         }
+
+        // Rate limit: 20 cancellations per minute per workspace
+        const supabaseAdminRl = createSupabaseAdmin();
+        const rl = await checkRateLimit(supabaseAdminRl, `calcom:cancel:${calApiKey.slice(0, 16)}`, 20, 60,
+            'Demasiadas cancelaciones en poco tiempo. Por favor espera un momento.');
+        if (rl) return rl;
 
         const body = await request.json();
         // Retell wraps custom tool parameters inside body.args
@@ -94,9 +101,9 @@ export async function POST(request: NextRequest) {
 
         // Idempotency guard: if Retell double-fires the tool, skip the Cal.com call.
         // Uses Supabase (not in-memory) so it works across all serverless instances.
-        const supabaseAdmin = createSupabaseAdmin();
+        // Reuses the same admin client created for rate limiting above.
         const iKey = `calcom:cancel:${bookingUid}`;
-        const idempotencyResult = await claimIdempotencyKey(supabaseAdmin, iKey, IDEMPOTENCY_TTL_MS);
+        const idempotencyResult = await claimIdempotencyKey(supabaseAdminRl, iKey, IDEMPOTENCY_TTL_MS);
 
         if (idempotencyResult === 'duplicate') {
             console.warn(`[calcom/cancel] Duplicate call blocked for uid=${bookingUid}`);

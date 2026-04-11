@@ -4,6 +4,7 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { buildRetellTools, detectCalToolLoss, parseBool as parseBoolTool } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,11 @@ export async function POST(request: NextRequest) {
         }
 
         const supabaseAdmin = createSupabaseAdmin();
+
+        // Rate limit: 30 assignments per hour per workspace
+        const rlAssign = await checkRateLimit(supabaseAdmin, `phone:assign:${workspace_id}`, 30, 3600,
+            'Demasiadas asignaciones de número en poco tiempo. Por favor espera un momento.');
+        if (rlAssign) return rlAssign;
 
         // 1. Resolver retell_agent_id (String) a partir del agent_id (UUID)
         let retellAgentId = null;
