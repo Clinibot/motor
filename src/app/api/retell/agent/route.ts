@@ -223,8 +223,13 @@ export async function POST(request: Request) {
             published = true;
             console.log(`[agent/POST] Agent ${agentResponse.agent_id} published successfully.`);
         } catch (publishError) {
-            publishWarning = publishError instanceof Error ? publishError.message : String(publishError);
-            console.warn(`[agent/POST] Failed to publish agent ${agentResponse.agent_id}:`, publishError);
+            if (publishError instanceof SyntaxError) {
+                published = true;
+                console.log(`[agent/POST] Agent ${agentResponse.agent_id} published (empty response body — ok).`);
+            } else {
+                publishWarning = publishError instanceof Error ? publishError.message : String(publishError);
+                console.warn(`[agent/POST] Failed to publish agent ${agentResponse.agent_id}:`, publishError);
+            }
         }
 
         // 9. Store the new agent in Supabase (including tools config)
@@ -443,8 +448,16 @@ export async function PATCH(request: Request) {
                 published = true;
                 console.log(`[agent/PATCH] Agent ${retellAgentId} published after update.`);
             } catch (publishError) {
-                publishWarning = publishError instanceof Error ? publishError.message : String(publishError);
-                console.warn(`[agent/PATCH] Failed to publish agent ${retellAgentId}:`, publishError);
+                // The Retell SDK throws SyntaxError when the publish endpoint returns an
+                // empty body (204 No Content). The publish succeeded — the SDK just can't
+                // parse the empty response. Treat it as success and don't log a warning.
+                if (publishError instanceof SyntaxError) {
+                    published = true;
+                    console.log(`[agent/PATCH] Agent ${retellAgentId} published (empty response body — ok).`);
+                } else {
+                    publishWarning = publishError instanceof Error ? publishError.message : String(publishError);
+                    console.warn(`[agent/PATCH] Failed to publish agent ${retellAgentId}:`, publishError);
+                }
             }
         }
 
