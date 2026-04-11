@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
-import { claimIdempotencyKey } from '@/lib/supabase/idempotency';
+import { claimIdempotencyKey, releaseIdempotencyKey } from '@/lib/supabase/idempotency';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
@@ -156,6 +156,10 @@ export async function POST(request: NextRequest) {
                 // Booking exists and is NOT cancelled — this is a real error
                 console.error(`[calcom/cancel] Real 400 error for uid=${bookingUid}:`, errText);
             }
+
+            // Release the idempotency key so Retell can retry this operation
+            // (the cancel didn't actually happen — blocking retries would be wrong)
+            await releaseIdempotencyKey(supabaseAdminRl, iKey);
 
             return NextResponse.json(
                 { success: false, error: `No se pudo cancelar la cita (Cal.com ${cancelRes.status}): ${errText.slice(0, 200)}` },

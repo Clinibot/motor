@@ -121,14 +121,14 @@ Ver `.env.example`. Las más importantes:
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ Sí | URL del proyecto Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Sí | Clave pública Supabase |
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ Sí | Clave admin Supabase (solo server-side) |
-| `NEXT_PUBLIC_SITE_URL` | ⚠️ Producción | URL de la app desplegada. Sin ella los webhooks registrados en Retell quedan sin dominio y las llamadas no funcionan. Ej: `https://tu-app.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | ⚠️ Recomendada | URL canónica de la app. Si no se configura, `env.ts` usa `VERCEL_URL` como fallback automático (Vercel lo inyecta en cada deploy). Solo necesaria si quieres URL personalizada o en local. |
 | `OPENAI_API_KEY` | ⚠️ Cal.com | Webhook inbound para disponibilidad natural |
 | `RETELL_WEBHOOK_SECRET` | ⚠️ Producción | Verifica firma del webhook de Retell |
 | `CRON_SECRET` | ⚠️ Producción | Protege `/api/cron/cleanup` y `/api/alerts/check-thresholds` |
 | `FACTORY_CALCOM_SECRET` | Opcional | Guard extra en endpoints Cal.com |
 | `RESEND_API_KEY` | Opcional | Envío de emails de alerta |
 
-**Nota importante sobre `NEXT_PUBLIC_SITE_URL`**: si no está configurada, `env.ts` loga un warning pero NO lanza excepción. La app arranca, pero los webhooks que Retell intenta llamar no tendrán dominio correcto.
+**`NEXT_PUBLIC_SITE_URL` y fallback automático**: `env.ts` usa `VERCEL_URL` (inyectada automáticamente por Vercel en cada deploy) si `NEXT_PUBLIC_SITE_URL` no está configurada. En local sin `.env.local`, cae a string vacío — los webhooks no tendrán URL válida, pero la app arranca.
 
 ## Seguridad y rate limiting
 
@@ -148,6 +148,7 @@ Todos los endpoints sensibles tienen rate limiting. La tabla `rate_limit_windows
 | `GET /api/retell/voices` | 60 req | 1 min | `voices:list:{workspaceId}` |
 | `POST /api/retell/knowledge-base` | 10 req | 1 hora | `kb:upload:{workspaceId}` |
 | `POST /api/retell/web-call` | 30 req | 1 min | `webcall:{workspaceId}` |
+| `POST /api/retell/webhook` | 300 req | 1 min | `webhook:{workspaceId}` |
 
 ### Idempotencia distribuida (tabla `idempotency_keys`)
 
@@ -208,4 +209,5 @@ Antes de tocar `toolMapper.ts`, ejecutar `npm test` para no romper cobertura.
 
 - **`env.ts` no lanza excepción en build phase** (`NEXT_PHASE === 'phase-production-build'`): Next.js importa todos los módulos de rutas durante el build para leer exports estáticos. Si `env.ts` lanzara aquí, el build fallaría aunque las vars estén correctas en Vercel runtime.
 - **Todas las rutas API necesitan `export const dynamic = 'force-dynamic'`**: sin esto Next.js intenta pre-renderizar estáticamente la ruta durante el build, lo que falla para rutas con auth.
-- **`NEXT_PUBLIC_SITE_URL` es crítica para que funcionen las llamadas**: si no está configurada, los webhooks se registran en Retell sin dominio y las llamadas no disparan eventos. Configurarla en Vercel → Settings → Environment Variables.
+- **`NEXT_PUBLIC_SITE_URL` tiene fallback automático via `VERCEL_URL`**: `env.ts` calcula `NEXT_PUBLIC_SITE_URL` como `process.env.NEXT_PUBLIC_SITE_URL || (VERCEL_URL ? \`https://${VERCEL_URL}\` : '')`. En Vercel sin configuración manual, los webhooks siempre tendrán URL correcta.
+- **Idempotencia en cancelaciones**: si Cal.com devuelve error real en `/api/retell/calcom/cancel`, la clave de idempotencia se libera (`releaseIdempotencyKey`) para que Retell pueda reintentar. Si el booking ya estaba cancelado, la clave NO se libera (la respuesta de "ya cancelado" es correcta).

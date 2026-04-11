@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +69,10 @@ export async function POST(request: NextRequest) {
             console.warn('[webhook] Invalid signature — request rejected');
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+
+        // ── Step 4: rate limit — 300 events/min per workspace (≈5 concurrent calls) ─
+        const rl = await checkRateLimit(supabaseAdmin, `webhook:${agentRecord.workspace_id}`, 300, 60);
+        if (rl) return rl;
 
         payload = prelimPayload;
 

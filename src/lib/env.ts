@@ -14,7 +14,6 @@ const REQUIRED = [
 ] as const;
 
 const RECOMMENDED: Array<{ key: string; feature: string }> = [
-    { key: 'NEXT_PUBLIC_SITE_URL',    feature: 'Retell webhook URL registration (required for agents to work correctly in production)' },
     { key: 'OPENAI_API_KEY',          feature: 'inbound webhook natural language availability' },
     { key: 'RESEND_API_KEY',          feature: 'email alert notifications' },
     { key: 'CRON_SECRET',             feature: 'cron endpoint and internal alert protection' },
@@ -51,7 +50,11 @@ export const env = {
     NEXT_PUBLIC_SUPABASE_URL:      process.env.NEXT_PUBLIC_SUPABASE_URL!,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     SUPABASE_SERVICE_ROLE_KEY:     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    // Falls back to '' if not set — agent creation still works but webhook URLs
-    // registered in Retell will be wrong. Set this in Vercel for production.
-    NEXT_PUBLIC_SITE_URL:          process.env.NEXT_PUBLIC_SITE_URL ?? '',
+    // Prefer explicit NEXT_PUBLIC_SITE_URL; fall back to VERCEL_URL (auto-injected
+    // by Vercel on every deployment). If neither is set (local dev without .env.local),
+    // defaults to empty string — agent creation still works but registered webhook
+    // URLs will be wrong until the var is configured.
+    NEXT_PUBLIC_SITE_URL:
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ''),
 } as const;
