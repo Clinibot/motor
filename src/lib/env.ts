@@ -11,10 +11,10 @@ const REQUIRED = [
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'SUPABASE_SERVICE_ROLE_KEY',
-    'NEXT_PUBLIC_SITE_URL',
 ] as const;
 
 const RECOMMENDED: Array<{ key: string; feature: string }> = [
+    { key: 'NEXT_PUBLIC_SITE_URL',    feature: 'Retell webhook URL registration (required for agents to work correctly in production)' },
     { key: 'RETELL_WEBHOOK_SECRET',   feature: 'Retell webhook signature verification' },
     { key: 'OPENAI_API_KEY',          feature: 'inbound webhook natural language availability' },
     { key: 'RESEND_API_KEY',          feature: 'email alert notifications' },
@@ -52,5 +52,7 @@ export const env = {
     NEXT_PUBLIC_SUPABASE_URL:      process.env.NEXT_PUBLIC_SUPABASE_URL!,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     SUPABASE_SERVICE_ROLE_KEY:     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    NEXT_PUBLIC_SITE_URL:          process.env.NEXT_PUBLIC_SITE_URL!,
+    // Falls back to '' if not set — agent creation still works but webhook URLs
+    // registered in Retell will be wrong. Set this in Vercel for production.
+    NEXT_PUBLIC_SITE_URL:          process.env.NEXT_PUBLIC_SITE_URL ?? '',
 } as const;
