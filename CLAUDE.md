@@ -133,7 +133,7 @@ Ver `.env.example`. Las más importantes:
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ Sí | Clave admin Supabase (solo server-side) |
 | `NEXT_PUBLIC_SITE_URL` | ⚠️ Recomendada | URL canónica de la app. Si no se configura, `env.ts` usa `VERCEL_URL` como fallback automático (Vercel lo inyecta en cada deploy). Solo necesaria si quieres URL personalizada o en local. |
 | `OPENAI_API_KEY` | ⚠️ Cal.com | Webhook inbound para disponibilidad natural |
-| `CRON_SECRET` | ⚠️ Producción | Protege `/api/cron/cleanup` y `/api/alerts/check-thresholds` |
+| `CRON_SECRET` | ✅ Configurado | Protege `/api/cron/cleanup` y `/api/alerts/check-thresholds` |
 | `FACTORY_CALCOM_SECRET` | Opcional | Guard extra en endpoints Cal.com |
 | `RESEND_API_KEY` | Opcional | Envío de emails de alerta |
 
