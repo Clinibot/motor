@@ -117,9 +117,6 @@ export interface WizardState {
     enableAmbientSound: boolean;
     ambientSound: string;
     ambientSoundVolume: number;
-    sttMode: string;
-    enableTranscriptionFormatting: boolean;
-
     // Step 8: Tools
     enableEndCall: boolean;
     endCallDescription: string;
@@ -212,9 +209,6 @@ export const useWizardStore = create<WizardState>((set) => ({
     enableAmbientSound: false,
     ambientSound: 'none',
     ambientSoundVolume: 0.2,
-    sttMode: 'accurate',
-    enableTranscriptionFormatting: true,
-
     enableEndCall: true,
     endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
     enableCalBooking: false,
@@ -267,7 +261,6 @@ export const useWizardStore = create<WizardState>((set) => ({
         beginMessageDelayMs: 200, endCallAfterSilenceMs: 59000, maxCallDurationMs: 540000,
         reminderTriggerMs: 30000, reminderMaxCount: 1, ringDurationMs: 30000,
         volume: 1.0, enableAmbientSound: false, ambientSound: 'none', ambientSoundVolume: 0.2,
-        sttMode: 'accurate', enableTranscriptionFormatting: true,
         enableEndCall: true, endCallDescription: 'Finaliza la llamada de forma cordial después de confirmar que el usuario no necesita nada más.',
         enableCalBooking: false, calUrl: '', calApiKey: '', calEventId: '', calTimezone: 'Europe/Madrid', enableCalCancellation: false, calSearchDays: 7,
         enableTransfer: false, transferWhen: '', transferDestinations: [], enableCustomTools: false, customTools: [],
