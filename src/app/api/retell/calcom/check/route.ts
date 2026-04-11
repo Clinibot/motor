@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
         const normalizedPhone = rawPhone.replace(/[\s\-().]/g, '');
 
-        const bookingsRes = await fetch(
+        const bookingsRes = await fetchWithTimeout(
             'https://api.cal.com/v2/bookings?status=upcoming&limit=50',
             {
                 headers: {

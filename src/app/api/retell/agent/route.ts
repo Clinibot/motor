@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
+import { requireUserSession } from '@/lib/auth/requireUserSession';
 import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { AgentPayload, resolveVoiceId } from '@/lib/retell/types';
@@ -106,15 +107,13 @@ export async function POST(request: Request) {
         const userId = session.user.id;
         const supabaseAdmin = createSupabaseAdmin();
 
-        // 1. Get the workspace ID from the user's profile (auto-assign if missing)
-        let workspaceId = payload.workspace_id;
-        if (!workspaceId) {
-            const wsResult = await resolveUserWorkspace(supabaseAdmin, userId);
-            if ('error' in wsResult) {
-                return NextResponse.json({ success: false, error: wsResult.error }, { status: wsResult.status });
-            }
-            workspaceId = wsResult.workspaceId;
+        // 1. Always resolve workspace from DB — never trust payload.workspace_id
+        //    (prevents a user from passing another workspace's ID in the request body)
+        const wsResult = await resolveUserWorkspace(supabaseAdmin, userId);
+        if ('error' in wsResult) {
+            return NextResponse.json({ success: false, error: wsResult.error }, { status: wsResult.status });
         }
+        const workspaceId = wsResult.workspaceId;
 
         // Rate limit: 20 agent creations per hour per workspace
         const rlCreate = await checkRateLimit(supabaseAdmin, `agent:create:${workspaceId}`, 20, 3600,
@@ -310,6 +309,10 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ success: false, error: "Entity ID is required for PATCH." }, { status: 400 });
         }
 
+        // Auth: verify session and get the authenticated user's workspace
+        const auth = await requireUserSession(supabaseAdmin);
+        if ('error' in auth) return auth.error;
+
         // Get existing agent
         const { data: currentAgent, error: fetchError } = await supabaseAdmin
             .from('agents')
@@ -319,6 +322,11 @@ export async function PATCH(request: Request) {
 
         if (fetchError || !currentAgent) {
             return NextResponse.json({ success: false, error: "Agent not found" }, { status: 404 });
+        }
+
+        // Workspace isolation: prevent a user from modifying another tenant's agent
+        if (currentAgent.workspace_id !== auth.workspaceId) {
+            return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
         }
 
         const workspaceId = currentAgent.workspace_id;
@@ -532,6 +540,10 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ success: false, error: "Agent ID required" }, { status: 400 });
         }
 
+        // Auth: verify session and get the authenticated user's workspace
+        const auth = await requireUserSession(supabaseAdmin);
+        if ('error' in auth) return auth.error;
+
         // Get agent to find retell_agent_id
         const { data: agent } = await supabaseAdmin
             .from('agents')
@@ -541,6 +553,11 @@ export async function DELETE(request: Request) {
 
         if (!agent) {
             return NextResponse.json({ success: false, error: "Agent not found" }, { status: 404 });
+        }
+
+        // Workspace isolation: prevent a user from deleting another tenant's agent
+        if (agent.workspace_id !== auth.workspaceId) {
+            return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
         }
 
         const { data: workspace } = await supabaseAdmin

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { claimIdempotencyKey, releaseIdempotencyKey } from '@/lib/supabase/idempotency';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 
 export const dynamic = 'force-dynamic';
 
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
             },
         };
 
-        const res = await fetch('https://api.cal.com/v2/bookings', {
+        const res = await fetchWithTimeout('https://api.cal.com/v2/bookings', {
             method: 'POST',
             headers: {
                 'cal-api-version': '2026-02-25',

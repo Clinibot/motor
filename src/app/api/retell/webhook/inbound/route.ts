@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -100,12 +101,12 @@ export async function POST(request: NextRequest) {
         console.log(`Fetching Cal.com slots for Event ${calEventId} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
         const calTimezone = config.calTimezone || 'Europe/Madrid';
-        const calResponse = await fetch(`https://api.cal.com/v2/slots?eventTypeId=${calEventId}&start=${startIso}&end=${endIso}&timeZone=${encodeURIComponent(calTimezone)}`, {
+        const calResponse = await fetchWithTimeout(`https://api.cal.com/v2/slots?eventTypeId=${calEventId}&start=${startIso}&end=${endIso}&timeZone=${encodeURIComponent(calTimezone)}`, {
             headers: {
                 'cal-api-version': '2024-09-04',
                 'Authorization': `Bearer ${calApiKey}`
             }
-        });
+        }, 8_000); // 8s — keeps total inbound webhook response within Retell's timeout window
 
         if (!calResponse.ok) {
             const calErr = await calResponse.text();

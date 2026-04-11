@@ -232,6 +232,8 @@ describe('PATCH /api/retell/agent', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        // requireUserSession calls createLocalClient → getSession
+        mocks.getSession.mockResolvedValue({ data: SESSION_USER });
         mocks.voiceList.mockResolvedValue([]);
         mocks.llmUpdate.mockResolvedValue({ llm_id: 'retell-llm-abc' });
         mocks.agentUpdate.mockResolvedValue(undefined);
@@ -243,9 +245,11 @@ describe('PATCH /api/retell/agent', () => {
     });
 
     it('devuelve 404 cuando el agente no existe en Supabase', async () => {
-        mocks.fromAdmin.mockImplementationOnce(() =>
-            makeQuery(null, { message: 'Row not found' }) // agents select → not found
-        );
+        mocks.fromAdmin
+            .mockImplementationOnce(() => makeQuery({ workspace_id: 'ws-test-123' })) // users (requireUserSession)
+            .mockImplementationOnce(() =>
+                makeQuery(null, { message: 'Row not found' })                          // agents select → not found
+            );
 
         const res = await PATCH(makeRequest(PATCH_PAYLOAD, 'PATCH'));
         const body = await res.json();
@@ -257,7 +261,8 @@ describe('PATCH /api/retell/agent', () => {
 
     it('devuelve 200 con published:true cuando la actualización tiene éxito', async () => {
         mocks.fromAdmin
-            .mockImplementationOnce(() => makeQuery(CURRENT_AGENT_FIXTURE))           // agents select
+            .mockImplementationOnce(() => makeQuery({ workspace_id: 'ws-test-123' })) // users (requireUserSession)
+            .mockImplementationOnce(() => makeQuery(CURRENT_AGENT_FIXTURE))            // agents select
             .mockImplementationOnce(() => makeQuery({ retell_api_key: 'key-ok' }))    // workspaces select
             .mockImplementationOnce(() => makeQuery(null))                             // agents update
             .mockImplementationOnce(() => makeQuery([]));                              // phone_numbers select
@@ -276,6 +281,7 @@ describe('PATCH /api/retell/agent', () => {
 
     it('devuelve published:false con publish_warning si publish falla en PATCH', async () => {
         mocks.fromAdmin
+            .mockImplementationOnce(() => makeQuery({ workspace_id: 'ws-test-123' })) // users (requireUserSession)
             .mockImplementationOnce(() => makeQuery(CURRENT_AGENT_FIXTURE))
             .mockImplementationOnce(() => makeQuery({ retell_api_key: 'key-ok' }))
             .mockImplementationOnce(() => makeQuery(null))

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { claimIdempotencyKey, releaseIdempotencyKey } from '@/lib/supabase/idempotency';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ success: false, error: 'Se requiere phone_number o booking_uid.' }, { status: 400 });
             }
 
-            const bookingsRes = await fetch(
+            const bookingsRes = await fetchWithTimeout(
                 'https://api.cal.com/v2/bookings?limit=50',
                 { headers: { 'cal-api-version': '2026-02-25', 'Authorization': `Bearer ${calApiKey}` } }
             );
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
         // to avoid sending multiple cancellation emails for recurring events.
         const cancelBody = { cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: false };
         console.log(`[calcom/cancel] Cancelling booking uid=${bookingUid}`, JSON.stringify(cancelBody));
-        const cancelRes = await fetch(
+        const cancelRes = await fetchWithTimeout(
             `https://api.cal.com/v2/bookings/${bookingUid}/cancel`,
             {
                 method: 'POST',
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
             // Cal.com returns 400 "Can't cancel booking" sometimes when the booking is already cancelled
             // (e.g. Retell double-executes the tool). Verify the actual booking status before failing.
             if (cancelRes.status === 400) {
-                const verifyRes = await fetch(
+                const verifyRes = await fetchWithTimeout(
                     `https://api.cal.com/v2/bookings/${bookingUid}`,
                     { headers: { 'cal-api-version': '2026-02-25', 'Authorization': `Bearer ${calApiKey}` } }
                 );

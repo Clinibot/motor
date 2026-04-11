@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import Retell from 'retell-sdk';
-import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { buildRetellTools, detectCalToolLoss, parseBool as parseBoolTool } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
+import { requireUserSession } from '@/lib/auth/requireUserSession';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,20 +16,18 @@ export async function POST(request: NextRequest) {
             number_id, // UUID in our DB
             phone_number, // E.164 number
             agent_id, // UUID in our DB or 'none'
-            workspace_id
         } = payload;
 
-        if (!phone_number || !number_id || !workspace_id) {
+        if (!phone_number || !number_id) {
             return NextResponse.json({ success: false, error: "Missing required parameters" }, { status: 400 });
         }
 
-        const supabase = await createLocalClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-        }
-
         const supabaseAdmin = createSupabaseAdmin();
+
+        // Auth: verify session and get workspace_id from DB — never from the client payload
+        const auth = await requireUserSession(supabaseAdmin);
+        if ('error' in auth) return auth.error;
+        const workspace_id = auth.workspaceId;
 
         // Rate limit: 30 assignments per hour per workspace
         const rlAssign = await checkRateLimit(supabaseAdmin, `phone:assign:${workspace_id}`, 30, 3600,
