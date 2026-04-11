@@ -3,6 +3,7 @@ import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { claimIdempotencyKey, releaseIdempotencyKey } from '@/lib/supabase/idempotency';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,7 @@ function bookingKey(calApiKeyPrefix: string, eventTypeId: string, startTime: str
  * The Cal.com API key is passed in the x-cal-api-key header (not the URL).
  */
 export async function POST(request: NextRequest) {
+    const log = createLogger('calcom/book', getRequestId(request));
     try {
         const { searchParams } = request.nextUrl;
 
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
         if (rateLimited) return rateLimited;
 
         const rawText = await request.text();
-        console.log('[calcom/book] Raw body:', rawText);
+        log.info('Request received', { body_preview: rawText.slice(0, 120) });
 
         let body: Record<string, unknown> = {};
         try {
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: `Body is not valid JSON: ${rawText.slice(0, 200)}` }, { status: 400 });
         }
 
-        console.log('[calcom/book] Parsed body keys:', Object.keys(body));
+        log.info('Body parsed', { keys: Object.keys(body) });
 
         // Retell wraps custom tool parameters inside body.args
         const args = (body.args as Record<string, unknown>) || body;
@@ -88,7 +90,7 @@ export async function POST(request: NextRequest) {
             safePhone = '+34' + safePhone;
         }
 
-        console.log(`[calcom/book] Booking event ${eventTypeId} at ${start_time} for ${name} <${safeEmail}> ${safePhone}`);
+        log.info('Booking', { event_type_id: eventTypeId, start_time, name, has_phone: !!safePhone });
 
         // Idempotency: block duplicate tool executions from Retell within 60 s.
         // Uses Supabase (not in-memory) so it works across all serverless instances.
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest) {
         const idempotencyResult = await claimIdempotencyKey(supabaseAdmin, iKey, IDEMPOTENCY_TTL_MS);
 
         if (idempotencyResult === 'duplicate') {
-            console.warn(`[calcom/book] Duplicate call blocked for key=${iKey}`);
+            log.warn('Duplicate call blocked', { key: iKey });
             return NextResponse.json({
                 success: true,
                 message: 'La cita ya fue registrada en esta sesión. Recibirás el correo de confirmación en breve.',
@@ -132,8 +134,7 @@ export async function POST(request: NextRequest) {
 
         if (!res.ok) {
             const errText = await res.text();
-            console.error('[calcom/book] Cal.com API error:', res.status, errText);
-            console.error('[calcom/book] Sent body:', JSON.stringify(bookingBody));
+            log.error('Cal.com API error', { status: res.status, detail: errText.slice(0, 300), event_type_id: eventTypeId });
 
             // Release the idempotency lock so the agent can retry on real errors
             await releaseIdempotencyKey(supabaseAdmin, iKey);
@@ -168,7 +169,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (err: unknown) {
-        console.error('[calcom/book] Internal error:', err);
+        log.error('Unhandled error', { error: err instanceof Error ? err.message : String(err) });
         return NextResponse.json({ success: false, error: 'Error interno al procesar la reserva.' }, { status: 500 });
     }
 }

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,7 @@ export const dynamic = 'force-dynamic';
  * The Cal.com API key is passed in the x-cal-api-key header (not the URL).
  */
 export async function POST(request: NextRequest) {
+    const log = createLogger('calcom/check', getRequestId(request));
     try {
         // Endpoint secret guard — if FACTORY_CALCOM_SECRET is set, every request must supply it
         const factorySecret = process.env.FACTORY_CALCOM_SECRET;
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
 
         if (!bookingsRes.ok) {
             const errText = await bookingsRes.text();
-            console.error('[calcom/check] fetch failed:', bookingsRes.status, errText);
+            log.error('Bookings fetch failed', { status: bookingsRes.status, detail: errText.slice(0, 200) });
             return NextResponse.json({ success: false, error: 'No se pudo consultar las citas.' }, { status: 502 });
         }
 
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (err: unknown) {
-        console.error('[calcom/check] Internal error:', err);
+        log.error('Unhandled error', { error: err instanceof Error ? err.message : String(err) });
         return NextResponse.json({ success: false, error: 'Error interno al consultar la cita.' }, { status: 500 });
     }
 }

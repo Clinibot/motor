@@ -1,5 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { AgentPayload } from './types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('sip-enrichment');
 
 export async function enrichSipCredentials(payload: AgentPayload, supabaseAdmin: SupabaseClient, agentId?: string) {
     if (!payload.enableTransfer || !payload.transferDestinations || !Array.isArray(payload.transferDestinations)) return;
@@ -9,7 +12,6 @@ export async function enrichSipCredentials(payload: AgentPayload, supabaseAdmin:
 
     // 1. Intentar buscar por el ID del agente (si ya existe)
     if (agentId) {
-        console.log(`Searching for SIP credentials associated with agent UUID: ${agentId}...`);
         const { data: assignedNumber, error: fetchErr } = await supabaseAdmin
             .from('phone_numbers')
             .select('sip_username, sip_password, phone_number')
@@ -17,15 +19,18 @@ export async function enrichSipCredentials(payload: AgentPayload, supabaseAdmin:
             .maybeSingle();
 
         if (fetchErr) {
-            console.error(`Error fetching phone number for agent ${agentId}:`, fetchErr);
+            log.error('Error fetching phone number for agent', { agent_id: agentId, db_error: fetchErr.message });
         }
 
         if (assignedNumber) {
-            console.log(`Found assigned number ${assignedNumber.phone_number} for agent. Using its SIP credentials. Has user: ${!!assignedNumber.sip_username}, Has pass: ${!!assignedNumber.sip_password}`);
+            log.info('Found assigned number — using its SIP credentials', {
+                agent_id: agentId,
+                phone: assignedNumber.phone_number,
+                has_user: !!assignedNumber.sip_username,
+                has_pass: !!assignedNumber.sip_password,
+            });
             workspaceSipUser = assignedNumber.sip_username;
             workspaceSipPass = assignedNumber.sip_password;
-        } else {
-            console.log(`No number found in phone_numbers table assigned to agent ${agentId}.`);
         }
     }
 
@@ -34,13 +39,12 @@ export async function enrichSipCredentials(payload: AgentPayload, supabaseAdmin:
         if (dest.destination_type === 'number' && dest.number) {
             // Prioridad 1: Credenciales del agente asociado
             if (workspaceSipUser && workspaceSipPass) {
-                console.log(`Enriching transfer to ${dest.number} with agent's SIP credentials (${workspaceSipUser}).`);
+                log.info('Enriching transfer with agent SIP credentials', { destination: dest.number });
                 dest.sip_username = workspaceSipUser;
                 dest.sip_password = workspaceSipPass;
                 continue;
             }
 
-            console.log(`Priority 2: Searching credentials for destination number ${dest.number}...`);
             // Fallback: Buscar credenciales del número de destino
             const baseNumber = dest.number.replace(/\s+/g, '');
             const variations = [baseNumber];
@@ -59,7 +63,7 @@ export async function enrichSipCredentials(payload: AgentPayload, supabaseAdmin:
                 .maybeSingle();
 
             if (phoneData) {
-                console.log(`Using destination-based SIP credentials for ${dest.number}.`);
+                log.info('Enriching transfer with destination-based SIP credentials', { destination: dest.number });
                 dest.sip_username = phoneData.sip_username;
                 dest.sip_password = phoneData.sip_password;
             }

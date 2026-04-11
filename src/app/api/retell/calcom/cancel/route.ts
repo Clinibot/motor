@@ -3,6 +3,7 @@ import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { claimIdempotencyKey, releaseIdempotencyKey } from '@/lib/supabase/idempotency';
 import { checkRateLimit } from '@/lib/supabase/rateLimit';
 import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,7 @@ const IDEMPOTENCY_TTL_MS = 30_000;
  * The Cal.com API key is passed in the x-cal-api-key header (not the URL).
  */
 export async function POST(request: NextRequest) {
+    const log = createLogger('calcom/cancel', getRequestId(request));
     try {
         // Endpoint secret guard — if FACTORY_CALCOM_SECRET is set, every request must supply it
         const factorySecret = process.env.FACTORY_CALCOM_SECRET;
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
 
             if (!bookingsRes.ok) {
                 const errText = await bookingsRes.text();
-                console.error('[calcom/cancel] fetch failed:', bookingsRes.status, errText);
+                log.error('Bookings list fetch failed', { status: bookingsRes.status, detail: errText.slice(0, 200) });
                 return NextResponse.json({ success: false, error: 'No se pudo consultar las citas en Cal.com.' }, { status: 502 });
             }
 
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
         const idempotencyResult = await claimIdempotencyKey(supabaseAdminRl, iKey, IDEMPOTENCY_TTL_MS);
 
         if (idempotencyResult === 'duplicate') {
-            console.warn(`[calcom/cancel] Duplicate call blocked for uid=${bookingUid}`);
+            log.warn('Duplicate cancel blocked', { booking_uid: bookingUid });
             return NextResponse.json({
                 success: true,
                 message: 'La cita ya ha sido cancelada en esta sesión.',
@@ -118,7 +120,7 @@ export async function POST(request: NextRequest) {
         // cancelSubsequentBookings: false — only cancel THIS booking, not future recurrences,
         // to avoid sending multiple cancellation emails for recurring events.
         const cancelBody = { cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: false };
-        console.log(`[calcom/cancel] Cancelling booking uid=${bookingUid}`, JSON.stringify(cancelBody));
+        log.info('Cancelling booking', { booking_uid: bookingUid });
         const cancelRes = await fetchWithTimeout(
             `https://api.cal.com/v2/bookings/${bookingUid}/cancel`,
             {
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
 
         if (!cancelRes.ok) {
             const errText = await cancelRes.text();
-            console.error(`[calcom/cancel] Cal.com ${cancelRes.status} for uid=${bookingUid}:`, errText);
+            log.error('Cal.com cancel failed', { status: cancelRes.status, booking_uid: bookingUid, detail: errText.slice(0, 200) });
 
             // Cal.com returns 400 "Can't cancel booking" sometimes when the booking is already cancelled
             // (e.g. Retell double-executes the tool). Verify the actual booking status before failing.
@@ -147,7 +149,7 @@ export async function POST(request: NextRequest) {
                     const verifyData = await verifyRes.json();
                     const status = (verifyData?.data?.status || verifyData?.status || '').toLowerCase();
                     if (status === 'cancelled' || status === 'canceled') {
-                        console.warn(`[calcom/cancel] Booking ${bookingUid} is already cancelled — returning success`);
+                        log.warn('Booking already cancelled — returning success', { booking_uid: bookingUid });
                         return NextResponse.json({
                             success: true,
                             message: 'La cita ya había sido cancelada anteriormente. No hay ninguna cita activa pendiente.',
@@ -155,7 +157,7 @@ export async function POST(request: NextRequest) {
                     }
                 }
                 // Booking exists and is NOT cancelled — this is a real error
-                console.error(`[calcom/cancel] Real 400 error for uid=${bookingUid}:`, errText);
+                log.error('Real 400 error from Cal.com cancel', { booking_uid: bookingUid, detail: errText.slice(0, 200) });
             }
 
             // Release the idempotency key so Retell can retry this operation
@@ -190,7 +192,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (err: unknown) {
-        console.error('Error in calcom cancel route:', err);
+        log.error('Unhandled error', { error: err instanceof Error ? err.message : String(err) });
         return NextResponse.json(
             { success: false, error: 'Error interno al procesar la cancelación.' },
             { status: 500 }
