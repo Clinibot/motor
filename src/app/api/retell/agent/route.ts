@@ -4,7 +4,7 @@ import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
-import { AgentPayload, TransferDestination, resolveVoiceId } from '@/lib/retell/types';
+import { AgentPayload, resolveVoiceId } from '@/lib/retell/types';
 import { resolveUserWorkspace } from '@/lib/supabase/workspace';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
