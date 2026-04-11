@@ -1,27 +1,20 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { claimIdempotencyKey, releaseIdempotencyKey } from '@/lib/supabase/idempotency';
 
 export const dynamic = 'force-dynamic';
 
-// Idempotency guard: key = eventTypeId+startTime+email/phone → prevents Retell double-execution
-// from creating the same booking twice. TTL 60 s.
-const recentlyBooked = new Map<string, number>();
 const IDEMPOTENCY_TTL_MS = 60_000;
 
 function bookingKey(eventTypeId: string, startTime: string, identity: string): string {
-    return `${eventTypeId}|${startTime}|${identity}`;
+    return `calcom:book:${eventTypeId}|${startTime}|${identity}`;
 }
-function wasRecentlyBooked(key: string): boolean {
-    const ts = recentlyBooked.get(key);
-    if (!ts) return false;
-    if (Date.now() - ts > IDEMPOTENCY_TTL_MS) { recentlyBooked.delete(key); return false; }
-    return true;
-}
-function markBooked(key: string) { recentlyBooked.set(key, Date.now()); }
 
 /**
- * POST /api/retell/calcom/book?cal_api_key=...&event_type_id=...
+ * POST /api/retell/calcom/book?event_type_id=...
  * Called by the Retell agent's `book_appointment` custom tool.
  * Accepts the exact ISO slot string from Cal.com availability and creates the booking.
+ * The Cal.com API key is passed in the x-cal-api-key header (not the URL).
  */
 export async function POST(request: NextRequest) {
     try {
@@ -33,7 +26,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const calApiKey = searchParams.get('cal_api_key');
+        const calApiKey = request.headers.get('x-cal-api-key');
         const eventTypeId = searchParams.get('event_type_id');
 
         if (!calApiKey || !eventTypeId) {
@@ -85,16 +78,19 @@ export async function POST(request: NextRequest) {
 
         console.log(`[calcom/book] Booking event ${eventTypeId} at ${start_time} for ${name} <${safeEmail}> ${safePhone}`);
 
-        // Idempotency: block duplicate tool executions from Retell within 60 s
+        // Idempotency: block duplicate tool executions from Retell within 60 s.
+        // Uses Supabase (not in-memory) so it works across all serverless instances.
+        const supabaseAdmin = createSupabaseAdmin();
         const iKey = bookingKey(eventTypeId, start_time, safeEmail || safePhone);
-        if (wasRecentlyBooked(iKey)) {
+        const idempotencyResult = await claimIdempotencyKey(supabaseAdmin, iKey, IDEMPOTENCY_TTL_MS);
+
+        if (idempotencyResult === 'duplicate') {
             console.warn(`[calcom/book] Duplicate call blocked for key=${iKey}`);
             return NextResponse.json({
                 success: true,
                 message: 'La cita ya fue registrada en esta sesión. Recibirás el correo de confirmación en breve.',
             });
         }
-        markBooked(iKey);
 
         const bookingBody: Record<string, unknown> = {
             start: start_time,
@@ -129,7 +125,7 @@ export async function POST(request: NextRequest) {
             console.error('[calcom/book] Sent body:', JSON.stringify(bookingBody));
 
             // Release the idempotency lock so the agent can retry on real errors
-            recentlyBooked.delete(iKey);
+            await releaseIdempotencyKey(supabaseAdmin, iKey);
 
             let userMsg = `Cal.com ${res.status}: ${errText.slice(0, 300)}`;
             if (res.status === 409 || errText.includes('already has booking') || errText.includes('not available')) {

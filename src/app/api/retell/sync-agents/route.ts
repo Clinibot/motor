@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, injectToolInstructions } from '@/lib/retell/toolMapper';
@@ -7,14 +7,6 @@ import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase environment variables are not configured.');
-    }
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 export async function POST() {
     try {
@@ -25,7 +17,7 @@ export async function POST() {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
         const { data: profile } = await supabaseAdmin
             .from('users')
             .select('workspace_id')

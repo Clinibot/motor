@@ -1,24 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { claimIdempotencyKey } from '@/lib/supabase/idempotency';
 
 export const dynamic = 'force-dynamic';
 
-// Module-level idempotency guard: prevents double-execution by Retell within a short window.
-// Stores uid → timestamp of last successful cancellation (TTL: 30 s).
-const recentlyCancelled = new Map<string, number>();
 const IDEMPOTENCY_TTL_MS = 30_000;
 
-function wasRecentlyCancelled(uid: string): boolean {
-    const ts = recentlyCancelled.get(uid);
-    if (!ts) return false;
-    if (Date.now() - ts > IDEMPOTENCY_TTL_MS) { recentlyCancelled.delete(uid); return false; }
-    return true;
-}
-function markCancelled(uid: string) { recentlyCancelled.set(uid, Date.now()); }
-
 /**
- * POST /api/retell/calcom/cancel?cal_api_key=...
+ * POST /api/retell/calcom/cancel
  * Called by the Retell agent's `cancel_appointment` custom tool.
  * Searches Cal.com for an upcoming booking by the caller's phone number and cancels it.
+ * The Cal.com API key is passed in the x-cal-api-key header (not the URL).
  */
 export async function POST(request: NextRequest) {
     try {
@@ -30,7 +22,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const calApiKey = searchParams.get('cal_api_key');
+        const calApiKey = request.headers.get('x-cal-api-key');
         if (!calApiKey) {
             return NextResponse.json({ success: false, error: 'Missing cal_api_key' }, { status: 400 });
         }
@@ -102,8 +94,13 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Idempotency guard: if Retell double-fires the tool, skip the Cal.com call
-        if (wasRecentlyCancelled(bookingUid)) {
+        // Idempotency guard: if Retell double-fires the tool, skip the Cal.com call.
+        // Uses Supabase (not in-memory) so it works across all serverless instances.
+        const supabaseAdmin = createSupabaseAdmin();
+        const iKey = `calcom:cancel:${bookingUid}`;
+        const idempotencyResult = await claimIdempotencyKey(supabaseAdmin, iKey, IDEMPOTENCY_TTL_MS);
+
+        if (idempotencyResult === 'duplicate') {
             console.warn(`[calcom/cancel] Duplicate call blocked for uid=${bookingUid}`);
             return NextResponse.json({
                 success: true,
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // 3. Cancel the booking
+        // Cancel the booking.
         // cancelSubsequentBookings: false — only cancel THIS booking, not future recurrences,
         // to avoid sending multiple cancellation emails for recurring events.
         const cancelBody = { cancellationReason: 'Cancelado por el usuario a través del asistente virtual.', cancelSubsequentBookings: false };
@@ -128,9 +125,6 @@ export async function POST(request: NextRequest) {
                 body: JSON.stringify(cancelBody),
             }
         );
-
-        // Mark as cancelled immediately so any concurrent duplicate call is blocked
-        markCancelled(bookingUid);
 
         if (!cancelRes.ok) {
             const errText = await cancelRes.text();

@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
+import { resolveUserWorkspace } from '@/lib/supabase/workspace';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase environment variables are not configured.');
-    }
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 export async function POST(request: Request) {
     try {
@@ -31,49 +24,14 @@ export async function POST(request: Request) {
         }
 
         const userId = session.user.id;
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
 
         if (!workspaceId) {
-            const { data: userProfile } = await supabaseAdmin
-                .from('users')
-                .select('workspace_id')
-                .eq('id', userId)
-                .single();
-
-            if (!userProfile || !userProfile.workspace_id) {
-                const { data: usersWithWorkspaces } = await supabaseAdmin
-                    .from('users')
-                    .select('workspace_id')
-                    .not('workspace_id', 'is', null);
-
-                const assignedIds = (usersWithWorkspaces || []).map((u: { workspace_id: string }) => u.workspace_id);
-
-                let freeWorkspaceQuery = supabaseAdmin
-                    .from('workspaces')
-                    .select('id')
-                    .order('created_at', { ascending: true })
-                    .limit(1);
-
-                if (assignedIds.length > 0) {
-                    freeWorkspaceQuery = freeWorkspaceQuery.not('id', 'in', `(${assignedIds.join(',')})`);
-                }
-
-                const { data: freeWorkspaces } = await freeWorkspaceQuery;
-
-                if (!freeWorkspaces || freeWorkspaces.length === 0) {
-                    return NextResponse.json({ success: false, error: "No hay workspaces disponibles." }, { status: 400 });
-                }
-
-                const newWorkspaceId = freeWorkspaces[0].id;
-                await supabaseAdmin
-                    .from('users')
-                    .update({ workspace_id: newWorkspaceId })
-                    .eq('id', userId);
-
-                workspaceId = newWorkspaceId;
-            } else {
-                workspaceId = userProfile.workspace_id;
+            const wsResult = await resolveUserWorkspace(supabaseAdmin, userId);
+            if ('error' in wsResult) {
+                return NextResponse.json({ success: false, error: wsResult.error }, { status: wsResult.status });
             }
+            workspaceId = wsResult.workspaceId;
         }
 
         const { data: workspace, error: wsError } = await supabaseAdmin

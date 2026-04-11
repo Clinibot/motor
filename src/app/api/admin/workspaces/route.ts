@@ -1,21 +1,34 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { createClient as createLocalClient } from '@/lib/supabase/server';
 import { importDefaultVoices } from '@/lib/retell/importDefaultVoices';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase environment variables are not configured.');
+async function requireAdmin(): Promise<NextResponse | null> {
+    const supabase = await createLocalClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
-    return createClient(supabaseUrl, supabaseServiceKey);
+    const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+    if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+    return null;
 }
 
+
 export async function GET() {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     try {
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
         const [{ data: workspaces, error }, { data: users, error: userError }] = await Promise.all([
             supabaseAdmin.from('workspaces').select('*').order('created_at', { ascending: false }),
             supabaseAdmin.from('users').select('id, workspace_id').not('workspace_id', 'is', null)
@@ -45,8 +58,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     try {
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
         const body = await req.json();
         const { name, retell_api_key } = body;
 
@@ -78,8 +94,11 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     try {
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
 
@@ -105,8 +124,11 @@ export async function DELETE(req: Request) {
 }
 
 export async function PATCH(req: Request) {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     try {
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
         const { searchParams } = new URL(req.url);
         const queryId = searchParams.get('id');
         

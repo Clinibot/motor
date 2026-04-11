@@ -1,23 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-        console.error('Webhook ERROR: Supabase environment variables are missing');
-        return null;
-    }
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 export async function POST(request: NextRequest) {
-    const supabaseAdmin = getSupabaseAdmin();
+    let supabaseAdmin: ReturnType<typeof createSupabaseAdmin> | null = null;
+    try { supabaseAdmin = createSupabaseAdmin(); } catch { console.error('Webhook: Supabase env vars missing'); }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let payload: Record<string, any> = {};
     try {

@@ -1,18 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60 seconds for voice cloning
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase environment variables are not configured.');
-    }
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 export async function POST(req: Request) {
     console.log("[Clone] POST request received");
@@ -36,7 +28,7 @@ export async function POST(req: Request) {
         }
 
         const userId = session.user.id;
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
 
         const { data: userProfile } = await supabaseAdmin
             .from('users')

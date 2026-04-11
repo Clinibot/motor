@@ -1,17 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import Retell from 'retell-sdk';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase environment variables are not configured.');
-    }
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 export async function POST(request: Request) {
     try {
@@ -22,7 +14,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "Missing agent_id or workspace_id" }, { status: 400 });
         }
 
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
 
         // 1. Fetch the Retell API Key for this workspace
         const { data: workspace, error: wsError } = await supabaseAdmin

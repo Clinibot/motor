@@ -1,17 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import crypto from 'crypto';
 import { sendElioAlertEmail } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) return null;
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 function verifySignature(payload: string, apiKey: string, signature: string | null): boolean {
     if (!signature) return false;
@@ -24,7 +17,8 @@ function verifySignature(payload: string, apiKey: string, signature: string | nu
 }
 
 export async function POST(request: NextRequest) {
-    const supabaseAdmin = getSupabaseAdmin();
+    let supabaseAdmin: ReturnType<typeof createSupabaseAdmin> | null = null;
+    try { supabaseAdmin = createSupabaseAdmin(); } catch { /* handled in the null check below */ }
     if (!supabaseAdmin) {
         return NextResponse.json({ error: 'Supabase config missing' }, { status: 500 });
     }

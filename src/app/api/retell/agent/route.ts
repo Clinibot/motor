@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
 import Retell from 'retell-sdk';
 import { buildRetellTools, buildPostCallAnalysis, injectToolInstructions } from '@/lib/retell/toolMapper';
 import { enrichSipCredentials } from '@/lib/retell/sip-enrichment';
 import { AgentPayload, TransferDestination, resolveVoiceId } from '@/lib/retell/types';
+import { resolveUserWorkspace } from '@/lib/supabase/workspace';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
 
 export const dynamic = 'force-dynamic';
@@ -31,14 +32,6 @@ async function resolveCustomVoiceId(retellClient: Retell, voiceId: string, voice
     }
 }
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('SUPABASE_SERVICE_ROLE_KEY is required — do not fall back to anon key for admin operations.');
-    }
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 // Shared builder for both create (POST) and update (PATCH) Retell agent params.
 // Only three things differ between the two: llmId, agentName fallback, and the
@@ -110,53 +103,16 @@ export async function POST(request: Request) {
         }
 
         const userId = session.user.id;
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
 
-        // 1. Get the workspace ID from the user's profile
+        // 1. Get the workspace ID from the user's profile (auto-assign if missing)
         let workspaceId = payload.workspace_id;
-
         if (!workspaceId) {
-            const { data: userProfile } = await supabaseAdmin
-                .from('users')
-                .select('workspace_id')
-                .eq('id', userId)
-                .single();
-
-            if (!userProfile || !userProfile.workspace_id) {
-                // Intentar auto-asignar un workspace libre
-                const { data: usersWithWorkspaces } = await supabaseAdmin
-                    .from('users')
-                    .select('workspace_id')
-                    .not('workspace_id', 'is', null);
-
-                const assignedIds = (usersWithWorkspaces || []).map((u: { workspace_id: string | null }) => u.workspace_id).filter((id): id is string => id !== null);
-
-                let freeWorkspaceQuery = supabaseAdmin
-                    .from('workspaces')
-                    .select('id')
-                    .order('created_at', { ascending: true })
-                    .limit(1);
-
-                if (assignedIds.length > 0) {
-                    freeWorkspaceQuery = freeWorkspaceQuery.not('id', 'in', assignedIds);
-                }
-
-                const { data: freeWorkspaces } = await freeWorkspaceQuery;
-
-                if (!freeWorkspaces || freeWorkspaces.length === 0) {
-                    return NextResponse.json({ success: false, error: "No hay workspaces disponibles. Contacta con el administrador." }, { status: 400 });
-                }
-
-                const newWorkspaceId = freeWorkspaces[0].id;
-                await supabaseAdmin
-                    .from('users')
-                    .update({ workspace_id: newWorkspaceId })
-                    .eq('id', userId);
-
-                workspaceId = newWorkspaceId;
-            } else {
-                workspaceId = userProfile.workspace_id;
+            const wsResult = await resolveUserWorkspace(supabaseAdmin, userId);
+            if ('error' in wsResult) {
+                return NextResponse.json({ success: false, error: wsResult.error }, { status: wsResult.status });
             }
+            workspaceId = wsResult.workspaceId;
         }
 
         // 2. Fetch the Retell API Key for this workspace
@@ -210,7 +166,7 @@ export async function POST(request: Request) {
         llmCreateParams.general_tools = retellTools.length > 0 ? retellTools : [];
 
         if (payload.kbFiles && payload.kbFiles.length > 0) {
-            const kbIds = payload.kbFiles.map((f: { id?: string }) => f.id).filter(Boolean);
+            const kbIds = payload.kbFiles.map((f) => f.id).filter(Boolean);
             if (kbIds.length > 0) {
                 llmCreateParams.knowledge_base_ids = kbIds;
             }
@@ -253,7 +209,19 @@ export async function POST(request: Request) {
             }
         }
 
-        // 8. Store the new agent in Supabase (including tools config)
+        // 8. Publish the agent so the initial version is available
+        let published = false;
+        let publishWarning: string | undefined;
+        try {
+            await retellClient.agent.publish(agentResponse.agent_id);
+            published = true;
+            console.log(`[agent/POST] Agent ${agentResponse.agent_id} published successfully.`);
+        } catch (publishError) {
+            publishWarning = publishError instanceof Error ? publishError.message : String(publishError);
+            console.warn(`[agent/POST] Failed to publish agent ${agentResponse.agent_id}:`, publishError);
+        }
+
+        // 9. Store the new agent in Supabase (including tools config)
         const { error: insertError } = await supabaseAdmin
             .from('agents')
             .insert([{
@@ -282,6 +250,8 @@ export async function POST(request: Request) {
             agent_id: agentResponse.agent_id,
             llm_id: llmResponse.llm_id,
             tools_count: retellTools.length,
+            published,
+            ...(publishWarning && { publish_warning: publishWarning }),
             message: `Agent created successfully with ${retellTools.length} tool(s).`
         });
 
@@ -317,11 +287,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let payload: any = null;
+    let payload: AgentPayload | null = null;
     try {
-        const supabaseAdmin = getSupabaseAdmin();
-        payload = await request.json();
+        const supabaseAdmin = createSupabaseAdmin();
+        payload = (await request.json()) as AgentPayload;
         // Resolve absolute site URL early so buildRetellTools can use it for webhook URLs
         const _pProtocol = request.headers.get('x-forwarded-proto') || 'https';
         const _pHost = request.headers.get('host');
@@ -387,7 +356,7 @@ export async function PATCH(request: Request) {
         }
 
         if (payload.kbFiles && payload.kbFiles.length > 0) {
-            const kbIds = payload.kbFiles.map((f: { id?: string }) => f.id).filter(Boolean);
+            const kbIds = payload.kbFiles.map((f) => f.id).filter(Boolean);
             if (kbIds.length > 0) {
                 llmUpdateParams.knowledge_base_ids = kbIds;
             }
@@ -421,8 +390,8 @@ export async function PATCH(request: Request) {
             const buildUpdateParams = (voiceId: string) => buildRetellAgentParams(
                 voiceId,
                 llmId,
-                payload.agentName || 'Updated Agent',
-                payload,
+                payload!.agentName || 'Updated Agent',
+                payload!,
                 postCallAnalysis,
                 siteUrl,
                 [],
@@ -441,6 +410,20 @@ export async function PATCH(request: Request) {
             }
         }
 
+        // Publish the updated agent so the new version is available
+        let published = false;
+        let publishWarning: string | undefined;
+        if (retellAgentId) {
+            try {
+                await retellClient.agent.publish(retellAgentId);
+                published = true;
+                console.log(`[agent/PATCH] Agent ${retellAgentId} published after update.`);
+            } catch (publishError) {
+                publishWarning = publishError instanceof Error ? publishError.message : String(publishError);
+                console.warn(`[agent/PATCH] Failed to publish agent ${retellAgentId}:`, publishError);
+            }
+        }
+
         // Update Supabase
         await supabaseAdmin
             .from('agents')
@@ -451,7 +434,7 @@ export async function PATCH(request: Request) {
                 configuration: {
                     ...payload,
                     // Strip SIP passwords (looked up securely at runtime via enrichSipCredentials)
-                    transferDestinations: (payload.transferDestinations as TransferDestination[] | undefined)?.map(d =>
+                    transferDestinations: payload.transferDestinations?.map(d =>
                         Object.fromEntries(Object.entries(d as unknown as Record<string, unknown>).filter(([k]) => k !== 'sip_password'))
                     ),
                     _toolsMapped: retellTools.map(t => t.name || t.type),
@@ -488,7 +471,13 @@ export async function PATCH(request: Request) {
             console.warn("Could not sync inbound webhook on phone numbers:", webhookSyncErr);
         }
 
-        return NextResponse.json({ success: true, agent_id: retellAgentId, llm_id: llmId });
+        return NextResponse.json({
+            success: true,
+            agent_id: retellAgentId,
+            llm_id: llmId,
+            published,
+            ...(publishWarning && { publish_warning: publishWarning }),
+        });
     } catch (error: unknown) {
         console.error("Error updating agent:", error);
 
@@ -522,7 +511,7 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
     try {
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
         const { searchParams } = new URL(request.url);
         const agentId = searchParams.get('id');
 

@@ -115,6 +115,7 @@ Ver `.env.example`. Las más importantes:
 Framework: **Vitest** — `npm test` (sin API keys ni conexión externa).
 
 - **71 tests** en `src/lib/retell/__tests__/` — todos pasan
+- **8 tests** en `src/app/api/retell/agent/__tests__/route.test.ts` — todos pasan (POST/PATCH del fichero más crítico)
 - Cobertura `toolMapper.ts`: 95.94% líneas · 100% funciones · 76.19% ramas
 - Cobertura `webhookAuth.ts`: 100% en todo
 

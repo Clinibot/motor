@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 /**
- * POST /api/retell/calcom/check?cal_api_key=...
+ * POST /api/retell/calcom/check
  * Finds the next active (non-cancelled) booking for a given phone number.
+ * The Cal.com API key is passed in the x-cal-api-key header (not the URL).
  */
 export async function POST(request: NextRequest) {
     try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const calApiKey = searchParams.get('cal_api_key');
+        const calApiKey = request.headers.get('x-cal-api-key');
         if (!calApiKey) {
             return NextResponse.json({ success: false, error: 'Missing cal_api_key' }, { status: 400 });
         }

@@ -1,19 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { verifyRetellWebhook } from '@/lib/retell/webhookAuth';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-        console.error('[inbound-webhook] SUPABASE_SERVICE_ROLE_KEY is not set — cannot access agent configuration');
-        return null;
-    }
-    return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 // Format the date for the prompts e.g. "lunes 20 de mayo de 2024"
 function getFormattedNow() {
@@ -51,7 +41,8 @@ export async function POST(request: NextRequest) {
         }
 
         agent_id = call_inbound.agent_id;
-        const supabaseAdmin = getSupabaseAdmin();
+        let supabaseAdmin: ReturnType<typeof createSupabaseAdmin> | null = null;
+        try { supabaseAdmin = createSupabaseAdmin(); } catch { /* handled in the null check below */ }
 
         if (!supabaseAdmin) {
             console.error('[inbound-webhook] Supabase env vars missing');

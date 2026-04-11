@@ -12,6 +12,7 @@ import { Step3_Voice } from '../../components/wizard/steps/Step3_Voice';
 import { Step4_Audio } from '../../components/wizard/steps/Step4_Audio';
 import { Step5_Tools } from '../../components/wizard/steps/Step5_Tools';
 import { Step6_Summary } from '../../components/wizard/steps/Step6_Summary';
+import { StepErrorBoundary } from '../../components/wizard/StepErrorBoundary';
 
 function WizardContent() {
     const currentStep = useWizardStore((state) => state.currentStep);
@@ -23,11 +24,12 @@ function WizardContent() {
 
     useEffect(() => {
         setMounted(true);
+        let isMounted = true;
         const loadEditData = async () => {
             const editId = searchParams.get('editId');
             const targetStep = searchParams.get('step');
             if (editId) {
-                setIsLoadingEdit(true);
+                if (isMounted) setIsLoadingEdit(true);
                 try {
                     const supabase = createClient();
                     const { data: agent, error } = await supabase
@@ -36,6 +38,7 @@ function WizardContent() {
                         .eq('id', editId)
                         .single();
 
+                    if (!isMounted) return;
                     if (!error && agent?.configuration) {
                         setEditingAgent(editId, agent.configuration);
                         if (targetStep) {
@@ -51,11 +54,12 @@ function WizardContent() {
                 } catch (err) {
                     console.error("Failed to load edit config:", err);
                 } finally {
-                    setIsLoadingEdit(false);
+                    if (isMounted) setIsLoadingEdit(false);
                 }
             }
         };
         loadEditData();
+        return () => { isMounted = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams, router]);
 
@@ -109,7 +113,9 @@ function WizardContent() {
             <main className="wiz-main">
                 <Topbar />
                 <div className="wiz-content">
-                    {renderStep()}
+                    <StepErrorBoundary stepName={`Step ${currentStep}`} key={currentStep}>
+                        {renderStep()}
+                    </StepErrorBoundary>
                 </div>
             </main>
         </div>

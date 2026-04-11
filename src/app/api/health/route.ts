@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,15 +15,9 @@ export async function GET() {
 
     // ── Supabase connectivity ─────────────────────────────────────────────────
     try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (supabaseUrl && serviceKey) {
-            const admin = createClient(supabaseUrl, serviceKey);
-            const { error } = await admin.from('workspaces').select('id').limit(1);
-            checks.supabase_ping = error ? 'error' : 'ok';
-        } else {
-            checks.supabase_ping = 'missing';
-        }
+        const admin = createSupabaseAdmin();
+        const { error } = await admin.from('workspaces').select('id').limit(1);
+        checks.supabase_ping = error ? 'error' : 'ok';
     } catch {
         checks.supabase_ping = 'error';
     }

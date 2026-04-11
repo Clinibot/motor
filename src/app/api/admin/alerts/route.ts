@@ -1,17 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createLocalClient } from '@/lib/supabase/server';
+
+async function requireAdmin(): Promise<NextResponse | null> {
+    const supabase = await createLocalClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+    if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+    return null;
+}
 
 // GET: Fetch Admin Alert Settings
 export async function GET() {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    
-    // Auth validation handled in middleware or frontend for now, assuming the caller is an admin
-    // In a real prod environment we should verify the JWT and admin role.
-    
+
     // We fetch the first row since there is only one Super Admin logical configuration.
     // In multi-admin setups, it would be tied to `admin_id`.
     const { data, error } = await supabase
@@ -47,6 +65,9 @@ export async function GET() {
 
 // POST: Save Admin Alert Settings
 export async function POST(req: NextRequest) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const payload = await req.json();
     

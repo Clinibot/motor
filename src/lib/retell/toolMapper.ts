@@ -104,13 +104,13 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
         const siteUrl = p.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
 
         if (!isNaN(eventId) && siteUrl) {
-            const encodedKey = encodeURIComponent(p.calApiKey);
             const fsSuffix = process.env.FACTORY_CALCOM_SECRET ? `&fs=${encodeURIComponent(process.env.FACTORY_CALCOM_SECRET)}` : '';
             tools.push({
                 type: 'custom',
                 name: 'book_appointment',
                 description: 'Reserva una cita en el calendario. Úsala una vez el usuario ha confirmado el horario exacto.',
-                url: `${siteUrl}/api/retell/calcom/book?cal_api_key=${encodedKey}&event_type_id=${eventId}${fsSuffix}`,
+                url: `${siteUrl}/api/retell/calcom/book?event_type_id=${eventId}${fsSuffix}`,
+                headers: { 'x-cal-api-key': p.calApiKey },
                 speak_during_execution: true,
                 speak_after_execution: true,
                 execution_message_description: 'Indica al usuario que estás confirmando la cita, que espere un momento.',
@@ -143,13 +143,13 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     // 3. Cal.com Cancellation (custom webhook tool)
     if (parseBool(p.enableCalBooking) && parseBool(p.enableCalCancellation) && p.calApiKey) {
         const siteUrl = p.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
-        const encodedKey = encodeURIComponent(p.calApiKey);
-        const fsSuffix3 = process.env.FACTORY_CALCOM_SECRET ? `&fs=${encodeURIComponent(process.env.FACTORY_CALCOM_SECRET)}` : '';
+        const fsSuffix3 = process.env.FACTORY_CALCOM_SECRET ? `?fs=${encodeURIComponent(process.env.FACTORY_CALCOM_SECRET)}` : '';
         tools.push({
             type: 'custom',
             name: 'cancel_appointment',
             description: 'Cancela una cita existente en el calendario buscándola por el número de teléfono del llamante. Usa esta herramienta cuando el usuario quiera cancelar su cita.',
-            url: `${siteUrl}/api/retell/calcom/cancel?cal_api_key=${encodedKey}${fsSuffix3}`,
+            url: `${siteUrl}/api/retell/calcom/cancel${fsSuffix3}`,
+            headers: { 'x-cal-api-key': p.calApiKey },
             speak_during_execution: true,
             speak_after_execution: true,
             execution_message_description: 'Informa al usuario que estás buscando su cita para cancelarla.',
@@ -173,13 +173,13 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
     // 3b. Cal.com Check appointment (always added when Cal.com is enabled)
     if (parseBool(p.enableCalBooking) && p.calApiKey) {
         const siteUrl = p.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || '';
-        const encodedKey = encodeURIComponent(p.calApiKey);
-        const fsSuffix3b = process.env.FACTORY_CALCOM_SECRET ? `&fs=${encodeURIComponent(process.env.FACTORY_CALCOM_SECRET)}` : '';
+        const fsSuffix3b = process.env.FACTORY_CALCOM_SECRET ? `?fs=${encodeURIComponent(process.env.FACTORY_CALCOM_SECRET)}` : '';
         tools.push({
             type: 'custom',
             name: 'check_appointment',
             description: 'Consulta si el usuario tiene una cita activa buscando por su número de teléfono. Úsala cuando el usuario pregunte por su cita, quiera saber cuándo la tiene, o antes de cancelar.',
-            url: `${siteUrl}/api/retell/calcom/check?cal_api_key=${encodedKey}${fsSuffix3b}`,
+            url: `${siteUrl}/api/retell/calcom/check${fsSuffix3b}`,
+            headers: { 'x-cal-api-key': p.calApiKey },
             speak_during_execution: true,
             speak_after_execution: true,
             execution_message_description: 'Informa al usuario que estás buscando su cita.',

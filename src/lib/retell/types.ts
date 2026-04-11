@@ -112,6 +112,9 @@ export interface AgentPayload {
     voiceName?: string;
     workspace_id?: string;
 
+    // Set by the route handler before calling buildRetellTools (matches ToolsPayload.siteUrl)
+    siteUrl?: string;
+
     // Company Info (for prompt generation)
     companyAddress?: string;
     companyPhone?: string;

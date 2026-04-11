@@ -1,67 +1,78 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
+import { createClient as createLocalClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseAdmin() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('Supabase environment variables are not configured.');
+async function requireAdmin(): Promise<NextResponse | null> {
+    const supabase = await createLocalClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
-    return createClient(supabaseUrl, supabaseServiceKey);
+    const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+    if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+    return null;
 }
 
-export async function GET() {
-    try {
-        const supabaseAdmin = getSupabaseAdmin();
 
-        // 1. Fetch all users with their workspace info
-        const { data: users, error: userError } = await supabaseAdmin
-            .from('users')
-            .select(`
-                id,
-                full_name,
-                email,
-                workspace_id,
-                workspaces (
-                    id,
-                    name
-                )
-            `)
-            .order('created_at', { ascending: false });
+export async function GET() {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
+    try {
+        const supabaseAdmin = createSupabaseAdmin();
+
+        // Run all 3 independent queries in parallel
+        const [
+            { data: users, error: userError },
+            { data: calls, error: callError },
+            { data: phoneNumbersData, error: phoneError },
+        ] = await Promise.all([
+            supabaseAdmin
+                .from('users')
+                .select('id, full_name, email, workspace_id, workspaces(id, name)')
+                .order('created_at', { ascending: false }),
+            supabaseAdmin
+                .from('calls')
+                .select('workspace_id, duration_ms'),
+            supabaseAdmin
+                .from('phone_numbers')
+                .select('phone_number, workspace_id'),
+        ]);
 
         if (userError) throw userError;
-
-        // 2. Fetch all calls to calculate duration
-        const { data: calls, error: callError } = await supabaseAdmin
-            .from('calls')
-            .select('workspace_id, duration_ms');
-
         if (callError) throw callError;
-
-        // 3. Fetch phone numbers via workspace
-        const { data: phoneNumbersData, error: phoneError } = await supabaseAdmin
-            .from('phone_numbers')
-            .select('phone_number, workspace_id');
-
         if (phoneError) throw phoneError;
+
+        // Build lookup Maps once — O(n) — so each per-user lookup is O(1)
+        const callStatsByWorkspace = new Map<string, { totalMs: number; count: number }>();
+        for (const call of calls ?? []) {
+            if (!call.workspace_id) continue;
+            const existing = callStatsByWorkspace.get(call.workspace_id) ?? { totalMs: 0, count: 0 };
+            callStatsByWorkspace.set(call.workspace_id, {
+                totalMs: existing.totalMs + (call.duration_ms ?? 0),
+                count: existing.count + 1,
+            });
+        }
+
+        const phonesByWorkspace = new Map<string, Set<string>>();
+        for (const p of phoneNumbersData ?? []) {
+            if (!p.workspace_id || !p.phone_number) continue;
+            const existing = phonesByWorkspace.get(p.workspace_id) ?? new Set<string>();
+            existing.add(p.phone_number);
+            phonesByWorkspace.set(p.workspace_id, existing);
+        }
 
         const enhancedUsers = users?.map(user => {
             const workspaceId = user.workspace_id;
-
-            // Calculate total minutes for this workspace
-            const workspaceCalls = calls?.filter(c => c.workspace_id === workspaceId) || [];
-            const totalMs = workspaceCalls.reduce((acc, call) => acc + (call.duration_ms || 0), 0);
-            const totalMinutes = Math.floor(totalMs / 60000);
-
-            // Extract phone numbers for this workspace
-            const userPhoneNumbers = Array.from(new Set(
-                phoneNumbersData
-                    ?.filter(p => p.workspace_id === workspaceId)
-                    .map(p => p.phone_number)
-                    .filter(Boolean)
-            ));
+            const stats = callStatsByWorkspace.get(workspaceId) ?? { totalMs: 0, count: 0 };
 
             // Handle workspaces being an object or an array depending on Supabase version/types
             const workspaceData = (user.workspaces as unknown as { name: string } | { name: string }[]) || null;
@@ -75,9 +86,9 @@ export async function GET() {
                 email: user.email,
                 workspace_name: workspaceName,
                 workspace_id: workspaceId,
-                phone_numbers: userPhoneNumbers,
-                total_minutes: totalMinutes,
-                calls_count: workspaceCalls.length
+                phone_numbers: Array.from(phonesByWorkspace.get(workspaceId) ?? []),
+                total_minutes: Math.floor(stats.totalMs / 60000),
+                calls_count: stats.count,
             };
         });
 
@@ -92,6 +103,9 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
@@ -100,7 +114,7 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ success: false, error: "User ID is required" }, { status: 400 });
         }
 
-        const supabaseAdmin = getSupabaseAdmin();
+        const supabaseAdmin = createSupabaseAdmin();
 
         // 1. Delete user from public.users (cascading might handle related tables depending on schema, 
         // but we ensure auth deletion specifically)
