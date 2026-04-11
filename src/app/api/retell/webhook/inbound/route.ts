@@ -22,15 +22,7 @@ export async function POST(request: NextRequest) {
     let agent_id: string | undefined;
     try {
         const rawBody = await request.text();
-        const valid = await verifyRetellWebhook(
-            rawBody,
-            request.headers.get('x-retell-signature'),
-            process.env.RETELL_WEBHOOK_SECRET
-        );
-        if (!valid) {
-            console.warn('[inbound-webhook] Invalid signature — request rejected');
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+
         const payload = JSON.parse(rawBody);
         const call_inbound = payload.call_inbound;
 
@@ -49,16 +41,35 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'supabase_env_missing' } } });
         }
 
-        // Get internal agent details
+        // Get internal agent details + workspace API key for signature verification
         const { data: agentData, error } = await supabaseAdmin
             .from('agents')
-            .select('id, configuration')
+            .select('id, configuration, workspace_id')
             .eq('retell_agent_id', agent_id)
             .single();
 
         if (error || !agentData || !agentData.configuration) {
             console.warn(`[inbound-webhook] Agent not found in DB for retell_agent_id: ${agent_id}`, error);
             return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'agent_not_found' } } });
+        }
+
+        // Verify signature using workspace API key.
+        // On failure: log warning and continue — the caller is already on the line
+        // and breaking the call is worse than proceeding without dynamic variables.
+        const { data: wsData } = await supabaseAdmin
+            .from('workspaces')
+            .select('retell_api_key')
+            .eq('id', agentData.workspace_id)
+            .single();
+
+        const sigValid = await verifyRetellWebhook(
+            rawBody,
+            request.headers.get('x-retell-signature'),
+            wsData?.retell_api_key
+        );
+        if (!sigValid) {
+            console.warn(`[inbound-webhook] Invalid or unverifiable signature for agent ${agent_id} — proceeding without dynamic variables`);
+            return NextResponse.json({ call_inbound: { override_agent_id: agent_id, dynamic_variables: { _debug: 'signature_invalid' } } });
         }
 
         const config = agentData.configuration;

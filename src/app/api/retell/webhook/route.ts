@@ -12,30 +12,73 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let payload: Record<string, any> = {};
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Supabase configuration error' }, { status: 500 });
+        }
+
         const rawBody = await request.text();
+
+        // ── Step 1: early parse to extract agent_id (needed before verification) ──
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let prelimPayload: Record<string, any> = {};
+        try {
+            prelimPayload = JSON.parse(rawBody);
+        } catch {
+            return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+        }
+
+        const earlyCallData = prelimPayload.call;
+        if (!earlyCallData?.agent_id) {
+            return NextResponse.json({ error: 'Missing agent_id in payload' }, { status: 400 });
+        }
+
+        const retellAgentId: string = earlyCallData.agent_id;
+
+        // ── Step 2: look up agent + workspace API key for signature verification ──
+        const { data: agentRecord } = await supabaseAdmin
+            .from('agents')
+            .select('id, workspace_id')
+            .eq('retell_agent_id', retellAgentId)
+            .single();
+
+        if (!agentRecord) {
+            // Unknown agent — can't verify. Log and return 200 so Retell doesn't retry.
+            console.warn(`Webhook received for unknown retell_agent_id: ${retellAgentId}`);
+            await supabaseAdmin.from('webhook_logs').insert([{
+                event_type: 'error_agent_not_found',
+                error: `Agent ${retellAgentId} not found in agents table`,
+                payload: prelimPayload,
+            }]);
+            return NextResponse.json({ received: true, warning: 'Agent not found in DB' });
+        }
+
+        const { data: workspace } = await supabaseAdmin
+            .from('workspaces')
+            .select('retell_api_key')
+            .eq('id', agentRecord.workspace_id)
+            .single();
+
+        // ── Step 3: verify signature using workspace's Retell API key ─────────
         const valid = await verifyRetellWebhook(
             rawBody,
             request.headers.get('x-retell-signature'),
-            process.env.RETELL_WEBHOOK_SECRET
+            workspace?.retell_api_key
         );
         if (!valid) {
             console.warn('[webhook] Invalid signature — request rejected');
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-        payload = JSON.parse(rawBody);
 
-        // --- LOGGING PARA DEPURACIÓN ---
-        if (supabaseAdmin) {
-            const headers: Record<string, string> = {};
-            request.headers.forEach((value, key) => { headers[key] = value; });
+        payload = prelimPayload;
 
-            await supabaseAdmin.from('webhook_logs').insert([{
-                event_type: payload.event || 'untyped',
-                payload: payload,
-                headers: headers
-            }]);
-        }
-        // -------------------------------
+        // ── Logging ───────────────────────────────────────────────────────────
+        const headers: Record<string, string> = {};
+        request.headers.forEach((value, key) => { headers[key] = value; });
+        await supabaseAdmin.from('webhook_logs').insert([{
+            event_type: payload.event || 'untyped',
+            payload: payload,
+            headers: headers,
+        }]);
 
         // Retell sends different event types. We care about 'call_ended' and 'call_analyzed'
         const eventType: string = payload.event;
@@ -45,33 +88,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing agent_id in payload' }, { status: 400 });
         }
 
-        const retellAgentId: string = callData.agent_id;
         console.log(`Webhook triggered for Retell Agent: ${retellAgentId}, Event: ${eventType}`);
 
-        if (!supabaseAdmin) {
-            return NextResponse.json({ error: 'Supabase configuration error' }, { status: 500 });
-        }
-
-        // Find the workspace and our internal agent record from the Retell agent ID
-        const { data: agentRecord } = await supabaseAdmin
-            .from('agents')
-            .select('id, workspace_id')
-            .eq('retell_agent_id', retellAgentId)
-            .single();
-
-        if (!agentRecord) {
-            // Agent not found in our system — log it but return 200 so Retell doesn't retry
-            console.warn(`Webhook received for unknown retell_agent_id: ${retellAgentId}`);
-            if (supabaseAdmin) {
-                await supabaseAdmin.from('webhook_logs').insert([{
-                    event_type: 'error_agent_not_found',
-                    error: `Agent ${retellAgentId} not found in agents table`,
-                    payload: payload
-                }]);
-            }
-            return NextResponse.json({ received: true, warning: 'Agent not found in DB' });
-        }
-
+        // agentRecord and workspaceId already resolved above — no second DB lookup needed
         const workspaceId: string = agentRecord.workspace_id;
         const internalAgentId: string = agentRecord.id;
 
@@ -91,7 +110,7 @@ export async function POST(request: NextRequest) {
         const direction = callData.direction;
         const fromNumber = callData.from_number;
         const toNumber = callData.to_number;
-        
+
         let detectedCustomerNumber = existingCall?.customer_number;
         if (callData.call_type === 'web_call') {
             detectedCustomerNumber = 'Web Call';
@@ -137,7 +156,7 @@ export async function POST(request: NextRequest) {
             : existingAnalysis;
 
         const callRecord = {
-            id: existingCall?.id, // Keep same ID if exists
+            id: existingCall?.id,
             workspace_id: workspaceId,
             agent_id: internalAgentId,
             retell_agent_id: retellAgentId,
@@ -167,20 +186,17 @@ export async function POST(request: NextRequest) {
 
         if (upsertError) {
             console.error('Error saving call to DB:', upsertError);
-            
-            // Factory Error Alert
-            await reportFactoryError('Webhook [call_event]', 
-                `Error persistiendo llamada ${callData.call_id}: ${upsertError.message}`, 
+
+            await reportFactoryError('Webhook [call_event]',
+                `Error persistiendo llamada ${callData.call_id}: ${upsertError.message}`,
                 { workspace_id: workspaceId, event: eventType }
             );
 
-            if (supabaseAdmin) {
-                await supabaseAdmin.from('webhook_logs').insert([{
-                    event_type: 'error_db_upsert',
-                    error: JSON.stringify(upsertError),
-                    payload: payload
-                }]);
-            }
+            await supabaseAdmin.from('webhook_logs').insert([{
+                event_type: 'error_db_upsert',
+                error: JSON.stringify(upsertError),
+                payload: payload,
+            }]);
             return NextResponse.json({ error: 'DB error' }, { status: 500 });
         }
 
@@ -203,9 +219,8 @@ export async function POST(request: NextRequest) {
 
     } catch (error: unknown) {
         console.error('Webhook error:', error);
-        
-        // Factory Error Alert
-        await reportFactoryError('Webhook Catch-All', 
+
+        await reportFactoryError('Webhook Catch-All',
             error instanceof Error ? error.message : String(error),
             { event: payload.event, call_id: payload.call?.call_id }
         );
@@ -214,7 +229,7 @@ export async function POST(request: NextRequest) {
             await supabaseAdmin.from('webhook_logs').insert([{
                 event_type: 'error_catch',
                 error: error instanceof Error ? error.message : 'Unknown error',
-                payload: payload
+                payload: payload,
             }]);
         }
         return NextResponse.json(

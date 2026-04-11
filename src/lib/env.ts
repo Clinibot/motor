@@ -15,7 +15,6 @@ const REQUIRED = [
 
 const RECOMMENDED: Array<{ key: string; feature: string }> = [
     { key: 'NEXT_PUBLIC_SITE_URL',    feature: 'Retell webhook URL registration (required for agents to work correctly in production)' },
-    { key: 'RETELL_WEBHOOK_SECRET',   feature: 'Retell webhook signature verification' },
     { key: 'OPENAI_API_KEY',          feature: 'inbound webhook natural language availability' },
     { key: 'RESEND_API_KEY',          feature: 'email alert notifications' },
     { key: 'CRON_SECRET',             feature: 'cron endpoint and internal alert protection' },
