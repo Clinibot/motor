@@ -15,12 +15,42 @@ Plataforma SaaS multi-tenant para crear agentes de voz IA con Retell AI. Cliente
 - `buildPostCallAnalysis()` — variables post-llamada
 - `injectToolInstructions()` — ensambla el prompt final con guión, idioma, pronunciación, herramientas, KB y notas. **Siempre limpia secciones antiguas antes de regenerar.**
 
+## Arquitectura de la API de agentes
+
+`src/app/api/retell/agent/route.ts` — crea (POST) y actualiza (PATCH) agentes en Retell.
+
+**Función compartida `buildRetellAgentParams`** (nivel módulo) — construye los parámetros Retell para ambos handlers. Solo difieren tres cosas entre POST y PATCH:
+- `llmId`: `llmResponse.llm_id` (POST) vs `llmId` (PATCH)
+- `agentName` fallback: `"New Agent"` vs `"Updated Agent"`
+- `emptyAnalysisFallback`: `undefined` (POST) vs `[]` (PATCH)
+
+**Al añadir un nuevo parámetro por defecto a todos los agentes, solo hay que tocarlo en `buildRetellAgentParams`.** No hay dos builders separados.
+
+### Parámetros fijos aplicados a todos los agentes (crear y actualizar)
+
+| Parámetro | Valor |
+|---|---|
+| `stt_mode` | `'accurate'` |
+| `denoising_mode` | `'noise-cancellation'` |
+| `post_call_analysis_model` | `'gemini-3.0-flash'` |
+| `fallback_voice_ids` | `['cartesia-Nico']` |
+| `enable_llm_turbo_mode` | `true` |
+| `data_storage_setting` | `'everything_except_pii'` |
+| `data_storage_retention_days` | `null` (keep forever) |
+| `pii_config` | `{ mode: 'post_call' }` |
+| `guardrail_config` | harassment / self_harm / violence / jailbreaking |
+| `voice_temperature` | `payload.voiceTemperature` (default `0.8`), nunca para voces `openai-*` |
+| `voice_speed` | `payload.voiceSpeed`, nunca para voces `openai-*` |
+| `boosted_keywords` | Lista netelip/SIP/email del store |
+
 ## Estado del wizard
 
 `src/store/wizardStore.ts` — Zustand store. Contiene:
 - `CURATED_VOICES_V2` — lista de voces disponibles con `voice_id`, `language`, `gender`, `provider`
 - `resetWizard()` — debe llamarse antes de navegar al wizard para crear un agente nuevo
 - Al seleccionar una voz, `selectVoice()` en Step3_Voice.tsx auto-asigna `language` (es-ES, en-US, ca-ES)
+
+**Nota deuda técnica**: `resetWizard()` duplica manualmente el estado inicial. Si se añade un campo nuevo al store, hay que añadirlo también en `resetWizard()` o no se limpiará al crear un agente nuevo.
 
 ## Reglas de idioma en el prompt
 
@@ -29,6 +59,12 @@ En `injectToolInstructions()`, si `language` empieza por `ca` → norma de habla
 ## Multi-tenancy
 
 Cada workspace tiene su propia **Retell API Key** almacenada en `supabase: workspaces.retell_api_key`. Las rutas API siempre obtienen la API Key del workspace del usuario autenticado, no de variables de entorno.
+
+## Números de teléfono
+
+`phone_numbers` se asocia directamente a `workspaces` mediante `workspace_id` (no a través de la tabla `clinics`, que es legacy y ya no se usa en el código). Las credenciales SIP (`sip_password`) se almacenan en texto plano — son necesarias en runtime para `enrichSipCredentials`.
+
+Los números SIP se registran en Retell con `transport: 'UDP'` forzado (requerimiento Netelip). El parámetro va en el **nivel raíz** del payload de import (`transport: 'UDP'`), no dentro de `sip_outbound_trunk_config` (que el SDK ignora).
 
 ## Voces ElevenLabs (importante)
 
@@ -94,7 +130,8 @@ Antes de tocar `toolMapper.ts`, ejecutar `npm test` para no romper cobertura.
 
 - Los parámetros del wizard llegan al API como `AgentPayload` (`src/lib/retell/types.ts`)
 - `AgentPayload` extiende `ToolsPayload` — se pasa directamente a `injectToolInstructions`
-- `voice_speed` y `voice_temperature` solo se envían a Retell si difieren de `1.0` (OpenAI voices no los admiten)
-- Al crear un agente, hay un fallback: si `voiceId` es vacío o `11labs-UOIqAnmS11Reiei1Ytkc` (Carolina no importada), se usa `11labs-Adrian`
+- `voice_speed` y `voice_temperature` se envían siempre para voces no-OpenAI (prefijo `openai-`). Las voces OpenAI no admiten estos parámetros.
+- Al crear un agente, hay un fallback de voz: si `voiceId` no se encuentra en el workspace, se reintenta con `11labs-Adrian`
 - `parseBool()` en toolMapper maneja tanto `boolean true` como `string "true"` de Supabase JSON — usarlo siempre al leer booleanos de `agents.configuration`, nunca comparar con `=== true` directamente
 - El assign route (`/api/retell/phone-number/assign`) solo refresca tools en Retell si el agente tiene `enableTransfer=true`. Si lo hace, usa `detectCalToolLoss()` para abortar si el rebuild perdería Cal.com. No modificar esta lógica sin entender el riesgo de borrar Cal.com del agente en Retell.
+- Las transferencias son siempre a número de teléfono humano (`destination_type: 'number'`). La opción de transferir entre agentes fue eliminada del wizard.
