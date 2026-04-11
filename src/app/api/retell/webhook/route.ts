@@ -55,17 +55,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ received: true, warning: 'Agent not found in DB' });
         }
 
-        const { data: workspace } = await supabaseAdmin
+        const { data: workspace, error: wsError } = await supabaseAdmin
             .from('workspaces')
             .select('retell_api_key')
             .eq('id', agentRecord.workspace_id)
             .single();
 
         // ── Step 3: verify signature using workspace's Retell API key ─────────
+        if (wsError || !workspace) {
+            log.error('Workspace lookup failed — cannot verify signature', {
+                retell_agent_id: retellAgentId,
+                workspace_id: agentRecord.workspace_id,
+                db_error: wsError?.message,
+            });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        if (!workspace.retell_api_key) {
+            log.error('Workspace has no retell_api_key — cannot verify signature', {
+                retell_agent_id: retellAgentId,
+                workspace_id: agentRecord.workspace_id,
+            });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         const valid = await verifyRetellWebhook(
             rawBody,
             request.headers.get('x-retell-signature'),
-            workspace?.retell_api_key
+            workspace.retell_api_key
         );
         if (!valid) {
             log.warn('Invalid signature — request rejected', { retell_agent_id: retellAgentId });

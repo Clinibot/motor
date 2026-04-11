@@ -184,7 +184,7 @@ Protege reservas y cancelaciones Cal.com de doble-ejecución por parte de Retell
 | `20260411_idempotency_keys.sql` | ✅ Ejecutado | Tabla idempotency_keys |
 | `20260411_rate_limit.sql` | ✅ Ejecutado | Tabla rate_limit_windows + RPC |
 | `20260411_rls_data_tables.sql` | ✅ Ejecutado | Activar RLS en tablas de datos |
-| `20260411_rls_authenticated_select_policies.sql` | ⚠️ Pendiente | Políticas SELECT para rol authenticated (dashboard) |
+| `20260411_rls_authenticated_select_policies.sql` | ✅ Ejecutado | Políticas SELECT para rol authenticated (dashboard) |
 | `20260411_cleanup_function.sql` | ✅ Ejecutado | Función cleanup_expired_records() |
 | `20260411_webhook_logs_index_and_cleanup.sql` | ✅ Ejecutado | Índice en webhook_logs + incluir en cleanup (30 días) |
 
