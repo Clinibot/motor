@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { sendThresholdAlertEmail } from '@/lib/resend';
 import { reportFactoryError } from '@/lib/alerts/alertNotifier';
+import { checkRateLimit } from '@/lib/supabase/rateLimit';
 
 // Called internally from the Retell webhook after each call is stored.
 // Protected by CRON_SECRET — only the server itself should call this.
@@ -19,6 +20,12 @@ export async function POST(req: NextRequest) {
     if (!workspace_id) return NextResponse.json({ error: 'workspace_id required' }, { status: 400 });
 
     const supabase = createSupabaseAdmin();
+
+    // Rate limit: 1 threshold check per minute per workspace.
+    // Prevents email storms when many calls finish simultaneously (e.g. outbound campaign).
+    // Fire-and-forget callers (webhook/route.ts) silently absorb the 429.
+    const rl = await checkRateLimit(supabase, `alert:check:${workspace_id}`, 1, 60);
+    if (rl) return rl;
 
     // Get alert settings for this workspace
     const { data: settings } = await supabase

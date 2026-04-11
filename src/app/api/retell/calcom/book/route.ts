@@ -8,8 +8,11 @@ export const dynamic = 'force-dynamic';
 
 const IDEMPOTENCY_TTL_MS = 60_000;
 
-function bookingKey(eventTypeId: string, startTime: string, identity: string): string {
-    return `calcom:book:${eventTypeId}|${startTime}|${identity}`;
+// Key is scoped to API key prefix (workspace) + slot — NOT to the attendee identity.
+// Including email/phone caused duplicate bookings when Retell retried with different
+// attendee data: same slot, new key → Cal.com created a second booking.
+function bookingKey(calApiKeyPrefix: string, eventTypeId: string, startTime: string): string {
+    return `calcom:book:${calApiKeyPrefix}|${eventTypeId}|${startTime}`;
 }
 
 /**
@@ -89,7 +92,7 @@ export async function POST(request: NextRequest) {
 
         // Idempotency: block duplicate tool executions from Retell within 60 s.
         // Uses Supabase (not in-memory) so it works across all serverless instances.
-        const iKey = bookingKey(eventTypeId, start_time, safeEmail || safePhone);
+        const iKey = bookingKey(calApiKey.slice(0, 16), eventTypeId, start_time);
         const idempotencyResult = await claimIdempotencyKey(supabaseAdmin, iKey, IDEMPOTENCY_TTL_MS);
 
         if (idempotencyResult === 'duplicate') {

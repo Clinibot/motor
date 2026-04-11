@@ -97,6 +97,10 @@ export async function POST(request: Request) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload as any).siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
+        if (!payload.agentName?.trim()) {
+            return NextResponse.json({ success: false, error: "Agent name is required." }, { status: 400 });
+        }
+
         const supabase = await createLocalClient();
         const { data: { session } } = await supabase.auth.getSession();
 
