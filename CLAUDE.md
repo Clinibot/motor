@@ -205,7 +205,7 @@ Framework: **Vitest** — `npm test` (sin API keys ni conexión externa).
 - **14 tests** en `src/app/api/retell/webhook/__tests__/route.test.ts` — todos pasan
 - **Tests de Cal.com** en `src/app/api/retell/calcom/__tests__/` — book y cancel cubiertos
 - **17 tests** en `src/app/api/retell/webhook/inbound/__tests__/route.test.ts` — todos pasan
-- **Total: 140 tests en 7 ficheros** — todos pasan
+- **Total: 143 tests en 7 ficheros** — todos pasan
 - Cobertura `toolMapper.ts`: 95.94% líneas · 100% funciones · 76.19% ramas
 - Cobertura `webhookAuth.ts`: 100% en todo
 

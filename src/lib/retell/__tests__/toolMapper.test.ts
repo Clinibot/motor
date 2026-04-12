@@ -530,6 +530,57 @@ describe('buildRetellTools — Cal.com edge cases', () => {
     });
 });
 
+// ─── buildRetellTools — deduplicación de nombres de herramientas transfer ────
+
+describe('buildRetellTools — deduplicación de nombres de transfer', () => {
+    it('renombra destinos con el mismo nombre sanitizado añadiendo sufijo _2', () => {
+        // "ventas web" and "ventas-web" both sanitize to transfer_to_ventas_web
+        const tools = buildRetellTools({
+            ...base,
+            enableTransfer: true,
+            transferDestinations: [
+                { name: 'ventas web', destination_type: 'number', number: '+34600000001' },
+                { name: 'ventas-web', destination_type: 'number', number: '+34600000002' },
+            ],
+        });
+        const names = tools.map(t => t.name as string);
+        expect(new Set(names).size).toBe(names.length);
+        expect(names[0]).toBe('transfer_to_ventas_web');
+        expect(names[1]).toBe('transfer_to_ventas_web_2');
+    });
+
+    it('no modifica el nombre si no hay colisión', () => {
+        const tools = buildRetellTools({
+            ...base,
+            enableTransfer: true,
+            transferDestinations: [
+                { name: 'Ventas', destination_type: 'number', number: '+34600000001' },
+                { name: 'Soporte', destination_type: 'number', number: '+34600000002' },
+            ],
+        });
+        const names = tools.map(t => t.name as string);
+        expect(names).toEqual(['transfer_to_ventas', 'transfer_to_soporte']);
+    });
+
+    it('asigna sufijos incrementales para más de dos colisiones', () => {
+        // Three destinations that all sanitize to transfer_to_soporte_tecnico
+        const tools = buildRetellTools({
+            ...base,
+            enableTransfer: true,
+            transferDestinations: [
+                { name: 'soporte tecnico', destination_type: 'number', number: '+34600000001' },
+                { name: 'soporte-tecnico', destination_type: 'number', number: '+34600000002' },
+                { name: 'soporte_tecnico', destination_type: 'number', number: '+34600000003' },
+            ],
+        });
+        const names = tools.map(t => t.name as string);
+        expect(new Set(names).size).toBe(3);
+        expect(names[0]).toBe('transfer_to_soporte_tecnico');
+        expect(names[1]).toBe('transfer_to_soporte_tecnico_2');
+        expect(names[2]).toBe('transfer_to_soporte_tecnico_3');
+    });
+});
+
 // ─── resolveVoiceId ───────────────────────────────────────────────────────────
 
 describe('resolveVoiceId', () => {

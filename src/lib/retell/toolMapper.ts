@@ -201,11 +201,22 @@ export function buildRetellTools(p: ToolsPayload): RetellTool[] {
 
     // 4. Call Transfer
     if (parseBool(p.enableTransfer) && p.transferDestinations.length > 0) {
+        const seenTransferNames = new Set<string>();
         p.transferDestinations.forEach((dest) => {
             if (dest.destination_type === 'number' && !dest.number) return;
             if (dest.destination_type === 'agent' && !dest.agentId) return;
-            // Use a clean, unique name for the tool
-            const toolName = toTransferToolName(dest.name);
+            // Use a clean, unique name for the tool — deduplicate with suffix if collision
+            let toolName = toTransferToolName(dest.name);
+            if (seenTransferNames.has(toolName)) {
+                let suffix = 2;
+                let candidate = `${toolName}_${suffix}`.slice(0, 64);
+                while (seenTransferNames.has(candidate)) {
+                    suffix++;
+                    candidate = `${toolName}_${suffix}`.slice(0, 64);
+                }
+                toolName = candidate;
+            }
+            seenTransferNames.add(toolName);
 
             if (dest.destination_type === 'agent') {
                 // INTERNAL AGENT TRANSFER (Agent Swap)
