@@ -83,7 +83,8 @@ function buildRetellAgentParams(
         stt_mode: 'accurate' as const,
         denoising_mode: 'noise-cancellation' as const,
         boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
-        fallback_voice_ids: ['cartesia-Nico'],
+        // OpenAI voices (e.g. Catalan) don't support cartesia-Nico as fallback → omit it
+        fallback_voice_ids: !voiceId.startsWith('openai-') ? ['cartesia-Nico'] : undefined,
         enable_llm_turbo_mode: true,
         enable_keypad_input: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
