@@ -681,15 +681,14 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             `"No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar." ` +
             `No des ninguna información que no aparezca explícitamente en tu base de conocimiento.`;
 
-        finalPrompt += `\n\n# Base de Conocimiento\n`;
+        finalPrompt += `\n\n# Base de Conocimiento\n${kbNames}\n`;
 
         if (p.kbUsageInstructions?.trim()) {
-            // User-provided instructions come first; they already name the KB correctly
             finalPrompt += `\n${p.kbUsageInstructions.trim()}\n\n${kbFallback}`;
         } else {
             finalPrompt +=
-                `\nConsulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa:\n` +
-                `${kbNames}\n\n${kbFallback}`;
+                `\nConsulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa.\n\n` +
+                `${kbFallback}`;
         }
     }
 
