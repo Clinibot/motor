@@ -572,6 +572,15 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         instrSections.push(`### Herramientas\n\n${toolLines.join('\n\n')}`);
     }
 
+    if (!hasCal) {
+        instrSections.push(
+            `### Calendario\n\n` +
+            `No tienes habilitadas las funciones de calendario. ` +
+            `No puedes agendar, consultar ni cancelar citas. ` +
+            `Si el usuario pide cita, indícale amablemente que no dispones de esa función por el momento.`
+        );
+    }
+
     // ### Preguntas de cualificación (dynamic)
     if (hasQualification) {
         const totalQ = p.leadQuestions!.length;
