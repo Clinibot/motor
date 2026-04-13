@@ -8,7 +8,7 @@ Sigue los pasos **en este orden exacto**. Si te saltas alguno o lo haces en otro
 
 - Cuenta en [GitHub](https://github.com) con acceso al repositorio
 - Cuenta en [Supabase](https://supabase.com) (plan Free o superior)
-- Cuenta en [Vercel](https://vercel.com) conectada a tu GitHub (plan Pro recomendado — las rutas de voces tienen `maxDuration = 60s`)
+- Cuenta en [Vercel](https://vercel.com) conectada a tu GitHub — **plan Pro obligatorio** (ver sección Vercel Functions más abajo)
 - Cuenta en [OpenAI](https://platform.openai.com) para la API Key (necesaria para el webhook inbound de disponibilidad)
 
 ---
@@ -108,6 +108,27 @@ El cron de limpieza (`GET /api/cron/cleanup`) se configura automáticamente en V
 - **No cambies `NEXT_PUBLIC_SITE_URL` después de crear agentes** — las URLs de webhook almacenadas en Retell quedarán obsoletas. Si la cambias, tendrás que re-guardar todos los agentes desde el wizard para que se actualicen.
 - **No borres las tablas de Supabase** manualmente — usa siempre las migraciones para cambios de esquema.
 - **No modifiques `vercel.json`** sin entender el impacto — el cron job de limpieza necesita ese fichero exactamente como está.
+
+---
+
+## Vercel Functions — por qué se necesita plan Pro
+
+Las rutas `/api/...` de Next.js se despliegan automáticamente como **Vercel Serverless Functions** — no hay nada que configurar manualmente. Sin embargo, hay 6 rutas críticas que declaran `maxDuration = 60`:
+
+| Ruta | Por qué necesita 60s |
+|---|---|
+| `POST /api/retell/agent` | Crea agente + LLM + sincroniza teléfonos en Retell |
+| `PATCH /api/retell/agent` | Actualiza agente + LLM + sincroniza teléfonos en Retell |
+| `POST /api/retell/webhook/inbound` | Llama a Cal.com + 2 llamadas paralelas a OpenAI |
+| `POST /api/retell/knowledge-base` | Upload de fichero a Retell KB |
+| `POST /api/retell/voices/import` | Importa voces ElevenLabs a Retell |
+| `POST /api/retell/voices/import-defaults` | Importa voces por defecto al workspace |
+
+**En el plan Hobby de Vercel el límite es 10 segundos.** Estas rutas superan ese límite con frecuencia y devolverían un error 504 (Gateway Timeout) al cliente. El plan Pro eleva el límite a 60 segundos, que es lo que estas rutas declaran.
+
+El **cron job** (`/api/cron/cleanup`) también requiere plan Pro o superior en Vercel para estar disponible.
+
+> Resumen: con plan Hobby el proyecto arranca pero falla al crear/actualizar agentes, subir KB e importar voces. **Plan Pro es obligatorio para uso en producción.**
 
 ---
 
