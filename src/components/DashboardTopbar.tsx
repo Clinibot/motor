@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import NotificationsPanel from './NotificationsPanel';
 
 interface UserProfile {
     full_name?: string | null;
@@ -27,13 +26,10 @@ export default function DashboardTopbar({
     title,
     user,
     totalCost = 0,
-    isAlertPanelOpen = false,
-    setIsAlertPanelOpen = () => {},
     isDropdownOpen,
     setIsDropdownOpen,
     handleCreateAgent,
     handleLogout,
-    alertPanelRef,
     dropdownRef,
 }: TopbarProps) {
     const userInitial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U');
@@ -59,26 +55,6 @@ export default function DashboardTopbar({
                 }}>
                     <span style={{ color: 'var(--gris-texto)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>Balance</span>
                     <span style={{ color: 'var(--azul)', fontWeight: 800, fontSize: '14px' }}>€{totalCost.toFixed(3)}</span>
-                </div>
-
-                <div style={{ position: 'relative' }} ref={alertPanelRef}>
-                    <button
-                        className="btn-s"
-                        onClick={() => setIsAlertPanelOpen(!isAlertPanelOpen)}
-                        style={{ width: '36px', height: '36px', padding: 0, borderRadius: 'var(--r-md)', justifyContent: 'center', border: '1px solid var(--gris-borde)', background: 'white' }}
-                    >
-                        <i className={`bi bi-bell${isAlertPanelOpen ? '-fill' : ''}`} style={{ fontSize: '16px', color: 'var(--gris-texto)' }}></i>
-                    </button>
-                    {isAlertPanelOpen && (
-                        <div style={{
-                            position: 'absolute', top: 'calc(100% + 12px)', right: 0,
-                            width: 380, background: '#fff', borderRadius: '24px',
-                            border: '1px solid var(--slate-100)', boxShadow: '0 20px 40px -8px rgba(0,0,0,0.12)',
-                            zIndex: 1000, overflow: 'hidden'
-                        }}>
-                            <NotificationsPanel workspaceId={user?.workspace_id || undefined} />
-                        </div>
-                    )}
                 </div>
 
                 <div style={{ position: 'relative' }} ref={dropdownRef}>
