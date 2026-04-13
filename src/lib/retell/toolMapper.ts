@@ -692,15 +692,15 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             `"No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar." ` +
             `No des ninguna información que no aparezca explícitamente en tu base de conocimiento.`;
 
-        finalPrompt += `\n\n# Base de Conocimiento\n${kbNames}\n`;
-
         if (p.kbUsageInstructions?.trim()) {
-            // Append "consulta siempre [name]" so Retell knows which document to look up
+            // Name appears inline within the instruction — no need for a separate bullet list
             const instruction = p.kbUsageInstructions.trim().replace(/[.,;:]+$/, '');
-            finalPrompt += `\n${instruction} consulta siempre ${kbNamesInline}\n\n${kbFallback}`;
+            finalPrompt += `\n\n# Base de Conocimiento\n\n${instruction} consulta siempre ${kbNamesInline}\n\n${kbFallback}`;
         } else {
+            // No custom instructions: show file name as bullet so Retell can resolve the document
             finalPrompt +=
-                `\nConsulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa.\n\n` +
+                `\n\n# Base de Conocimiento\n${kbNames}\n\n` +
+                `Consulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa.\n\n` +
                 `${kbFallback}`;
         }
     }
