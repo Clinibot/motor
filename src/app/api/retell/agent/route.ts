@@ -67,6 +67,7 @@ function buildRetellAgentParams(
         max_call_duration_ms: payload.maxCallDurationMs || 600000,
         begin_message_delay_ms: payload.beginMessageDelayMs || 200,
         end_call_after_silence_ms: payload.endCallAfterSilenceMs || 59000,
+        reminder_trigger_ms: payload.reminderTriggerMs || 30000,
         ring_duration_ms: payload.ringDurationMs || 30000,
         voice_speed: !voiceId.startsWith('openai-') ? payload.voiceSpeed : undefined,
         voice_temperature: !voiceId.startsWith('openai-') ? payload.voiceTemperature : undefined,
