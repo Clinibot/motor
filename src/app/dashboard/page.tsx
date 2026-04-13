@@ -359,6 +359,16 @@ export default function DashboardPage() {
     const handleExportCSV = () => {
         if (filteredCalls.length === 0) return;
 
+        // Collect all unique extracted variable keys across all calls (excluding resumen_llamada which has its own column)
+        const extraKeys = Array.from(
+            filteredCalls.reduce((acc, call) => {
+                const _cv = call.call_analysis?.custom_variables;
+                const cv = (_cv && Object.keys(_cv).length > 0 ? _cv : (call.call_analysis?.custom_analysis_data || {})) as Record<string, unknown>;
+                Object.keys(cv).filter(k => k !== 'resumen_llamada').forEach(k => acc.add(k));
+                return acc;
+            }, new Set<string>())
+        );
+
         const headers = [
             'Fecha',
             'Nombre Cliente',
@@ -369,7 +379,7 @@ export default function DashboardPage() {
             'Estado',
             'Coste',
             'Resumen',
-            'Datos Extraídos'
+            ...extraKeys
         ];
 
         const rows = filteredCalls.map(call => {
@@ -384,11 +394,6 @@ export default function DashboardPage() {
             const customVars = (_cv && Object.keys(_cv).length > 0 ? _cv : (call.call_analysis?.custom_analysis_data || {})) as Record<string, unknown>;
             // Use resumen_llamada (always in Spanish) over call_summary (Retell auto-generated, inconsistent language)
             const summary = String(customVars.resumen_llamada || call.call_analysis?.call_summary || '').replace(/"/g, '""');
-            const extractedData = Object.entries(customVars)
-                .filter(([k]) => k !== 'resumen_llamada')
-                .map(([k, v]) => `${k}: ${v}`)
-                .join(' | ')
-                .replace(/"/g, '""');
 
             return [
                 `"${date}"`,
@@ -400,7 +405,7 @@ export default function DashboardPage() {
                 `"${status}"`,
                 `"${cost}"`,
                 `"${summary}"`,
-                `"${extractedData}"`
+                ...extraKeys.map(k => `"${String(customVars[k] ?? '').replace(/"/g, '""')}"`)
             ];
         });
 
