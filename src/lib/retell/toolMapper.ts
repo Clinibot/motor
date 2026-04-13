@@ -670,15 +670,26 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
 
     // KB — clean, single occurrence
     if (hasKB) {
-        const kbNames = p.kbFiles!.map(f => `- ${f.name || f.id}`).join('\n');
-        finalPrompt +=
-            `\n\n# Base de Conocimiento\n` +
-            `Consulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa:\n` +
-            `${kbNames}\n\n` +
-            `Si la información no está en estos documentos ni en el prompt, díselo amablemente ` +
-            `y ofrécete a consultarlo con el equipo: "No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar."`;
+        // Strip common file extensions so the name matches the Retell KB identifier exactly
+        const kbNames = p.kbFiles!.map(f => {
+            const raw = f.name || f.id;
+            return `- ${raw.replace(/\.(pdf|docx?|txt|md)$/i, '')}`;
+        }).join('\n');
+
+        const kbFallback =
+            `Si la información no está en la base de conocimiento, díselo amablemente y ofrécete a consultarlo con el equipo: ` +
+            `"No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar." ` +
+            `No des ninguna información que no aparezca explícitamente en tu base de conocimiento.`;
+
+        finalPrompt += `\n\n# Base de Conocimiento\n`;
+
         if (p.kbUsageInstructions?.trim()) {
-            finalPrompt += `\n\nInstrucciones de uso:\n${p.kbUsageInstructions.trim()}`;
+            // User-provided instructions come first; they already name the KB correctly
+            finalPrompt += `\n${p.kbUsageInstructions.trim()}\n\n${kbFallback}`;
+        } else {
+            finalPrompt +=
+                `\nConsulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa:\n` +
+                `${kbNames}\n\n${kbFallback}`;
         }
     }
 

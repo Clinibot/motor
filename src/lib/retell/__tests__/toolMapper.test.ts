@@ -157,13 +157,14 @@ describe('injectToolInstructions', () => {
     });
 
     describe('base de conocimiento', () => {
-        it('incluye sección de KB si hay archivos', () => {
+        it('incluye sección de KB si hay archivos y elimina la extensión .pdf del nombre', () => {
             const result = injectToolInstructions('Prompt.', {
                 ...base,
                 kbFiles: [{ id: 'kb-123', name: 'Servicios.pdf' }],
             });
             expect(result).toContain('# Base de Conocimiento');
-            expect(result).toContain('Servicios.pdf');
+            expect(result).toContain('Servicios');
+            expect(result).not.toContain('Servicios.pdf');
         });
 
         it('no duplica la sección KB al regenerar', () => {
