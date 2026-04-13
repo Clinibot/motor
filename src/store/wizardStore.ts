@@ -195,7 +195,7 @@ const INITIAL_STATE = {
     enableBackchannel: false,
     backchannelFrequency: 0.5,
     backchannelWords: ['Mmm', 'Vale', 'Entiendo', 'Claro', 'Ajá', 'Sí', 'De acuerdo', 'Ya veo'],
-    boostedKeywords: ['CRMs', 'SIP trunk', 'netelip', 'gmail', 'hotmail', 'outlook', 'yahoo', 'arroba', 'punto com', 'punto es', 'guion', 'guion bajo', '@netelip.com', 'guion medio'],
+    boostedKeywords: ['CRMs', 'SIP trunk', 'gmail', 'hotmail', 'outlook', 'yahoo', 'arroba', 'punto com', 'punto es', 'guion', 'guion bajo', 'guion medio'],
     normalizeForSpeech: true,
 
     beginMessageDelayMs: 200,
