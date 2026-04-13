@@ -266,12 +266,6 @@ export const Step6_Summary: React.FC = () => {
                                     {model === 'gemini-3.0-flash' && <span style={{ fontSize: '10px', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', marginLeft: 'auto' }}>Recomendado</span>}
                                 </div>
                             </div>
-                            <div className="fg" style={{ marginBottom: 0 }}>
-                                <label className="lbl">Quién habla primero</label>
-                                <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600 }}>
-                                    {whoFirst === 'agent' ? 'El agente habla primero' : 'El usuario habla primero'}
-                                </div>
-                            </div>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                             <div className="fg" style={{ marginBottom: 0 }}>
