@@ -23,7 +23,7 @@ export const Step6_Summary: React.FC = () => {
         enableTransfer, transferDestinations,
         enableCalBooking,
         personality, tone, customNotes,
-        whoFirst, beginMessage,
+        beginMessage,
         volume, enableAmbientSound, ambientSound,
         leadQuestions, extractionVariables,
         setStep, prevStep, updateField, editingAgentId
