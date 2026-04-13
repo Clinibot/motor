@@ -16,6 +16,9 @@ Plataforma SaaS multi-tenant para crear agentes de voz IA con Retell AI. Cliente
 - `buildRetellTools()` — herramientas Retell (endcall, transfer, Cal.com, extracciones)
 - `buildPostCallAnalysis()` — variables post-llamada
 - `injectToolInstructions()` — ensambla el prompt final en el formato del cliente: `# Idioma` + `## Instrucciones` (estilos, entonación, reglas, pronunciación, herramientas, cualificación) + `## Etapas` (saludo, cualificación, acción, cierre) + KB + notas. Sin bold, sin emojis, sin backticks en prosa. Siempre limpia secciones antiguas antes de regenerar (cut markers: `## Instrucciones`, `## Etapas`, y marcadores legacy).
+  - **`### Herramientas`** incluye instrucciones detalladas para `book_appointment` (con `{{slots_iso}}` como fuente autoritativa de horarios), `check_appointment`, `cancel_appointment`, transferencias y herramientas custom.
+  - **`### Calendario`** se inyecta automáticamente cuando Cal.com está desactivado (`!hasCal`), advirtiendo al agente de que no puede gestionar citas. Desaparece al activar Cal.com (la sección entera se regenera en cada PATCH/POST).
+  - **`# Base de Conocimiento`**: siempre muestra el nombre del archivo KB (sin extensión) como bullet list, incluso cuando hay `kbUsageInstructions`. Si hay instrucciones custom, se les añade al final "consulta siempre [nombre]" para que Retell sepa qué documento resolver.
 
 ## Arquitectura de la API de agentes
 
@@ -70,6 +73,8 @@ La asignación de workspace es atómica via RPC `assign_free_workspace` (FOR UPD
 
 Los números SIP se registran en Retell con `transport: 'UDP'` forzado (requerimiento Netelip). El parámetro va en el **nivel raíz** del payload de import (`transport: 'UDP'`), no dentro de `sip_outbound_trunk_config` (que el SDK ignora).
 
+**Versión del agente en el número (importante)**: Retell crea una nueva versión del agente en cada PATCH. El número de teléfono queda pinado a la versión en que se asignó, y no sigue automáticamente a la última versión. Para forzar el pin a la versión más reciente, el bloque de sincronización de teléfonos en PATCH envía **siempre** `inbound_agent_id: retellAgentId` junto con `inbound_webhook_url`. Sin esto el número se queda en V1 aunque el agente esté en V3.
+
 ## Voces ElevenLabs (importante)
 
 Las voces Carolina, MariCarmen y Sara Martin deben **importarse** a cada workspace de Retell antes de poder usarse. Usar el botón de onda (importar voces) en el panel Admin → Workspaces. Internamente llama a `src/lib/retell/importDefaultVoices.ts` que:
@@ -100,8 +105,9 @@ Esto se construye en `src/lib/retell/toolMapper.ts` al generar las herramientas 
 ## Webhook Inbound
 
 `/api/retell/webhook/inbound` inyecta variables dinámicas antes de que el agente conteste:
-- `disponibilidad_mas_temprana` — próximo hueco Cal.com en lenguaje natural
-- `consultar_disponibilidad` — instrucción condicional
+- `disponibilidad_mas_temprana` — próximo hueco Cal.com en lenguaje natural (generado por OpenAI)
+- `consultar_disponibilidad` — descripción de todos los rangos disponibles (generado por OpenAI)
+- `slots_iso` — strings ISO exactos de todos los slots disponibles, agrupados por fecha (`"2026-04-15: 2026-04-15T09:30:00.000+02:00, 2026-04-15T10:00:00.000+02:00"`). El agente **extrae** de aquí el `start_time` al reservar — nunca lo calcula. Esto evita que Cal.com devuelva 400 por horarios inventados.
 
 **Requiere `OPENAI_API_KEY`** en Vercel. Sin ella, devuelve `_debug: missing_openai_key`.
 Se activa automáticamente al asignar un número con Cal.com habilitado (`enableCalBooking=true` + `calApiKey` + `calEventId`).
@@ -200,11 +206,11 @@ El cron envía automáticamente `Authorization: Bearer <CRON_SECRET>`. Requiere 
 
 Framework: **Vitest** — `npm test` (sin API keys ni conexión externa).
 
-- **71 tests** en `src/lib/retell/__tests__/` — todos pasan
+- **71 tests** en `src/lib/retell/__tests__/` — todos pasan (incluye `toolMapper.ts`, `parseBool`, `detectCalToolLoss`, KB, prompt structure)
 - **8 tests** en `src/app/api/retell/agent/__tests__/route.test.ts` — todos pasan (POST/PATCH del fichero más crítico)
 - **14 tests** en `src/app/api/retell/webhook/__tests__/route.test.ts` — todos pasan
 - **Tests de Cal.com** en `src/app/api/retell/calcom/__tests__/` — book y cancel cubiertos
-- **17 tests** en `src/app/api/retell/webhook/inbound/__tests__/route.test.ts` — todos pasan
+- **17 tests** en `src/app/api/retell/webhook/inbound/__tests__/route.test.ts` — todos pasan (incluye `slots_iso`, OpenAI failure, sig best-effort)
 - **Total: 142 tests en 7 ficheros** — todos pasan
 - Cobertura `toolMapper.ts`: 95.94% líneas · 100% funciones · 76.19% ramas
 - Cobertura `webhookAuth.ts`: 100% en todo
@@ -236,3 +242,6 @@ Antes de tocar `toolMapper.ts`, ejecutar `npm test` para no romper cobertura.
 - **No existe `RETELL_WEBHOOK_SECRET`**: Retell no tiene un "webhook secret" separado. La firma `x-retell-signature` se verifica con la **API Key del workspace** via `Retell.verify(rawBody, workspace.retell_api_key, signature)`. **La verificación es best-effort** — si falla (mismatch de HMAC, replay window, header ausente) se loguea un warning pero el webhook sigue procesándose. Un 401 haría que Retell reintente indefinidamente sin resolver nada. No añadir esta variable a `.env` ni al health check.
 - **`NEXT_PUBLIC_SITE_URL` tiene fallback automático via `VERCEL_URL`**: `env.ts` calcula `NEXT_PUBLIC_SITE_URL` como `process.env.NEXT_PUBLIC_SITE_URL || (VERCEL_URL ? \`https://${VERCEL_URL}\` : '')`. En Vercel sin configuración manual, los webhooks siempre tendrán URL correcta.
 - **Idempotencia en cancelaciones**: si Cal.com devuelve error real en `/api/retell/calcom/cancel`, la clave de idempotencia se libera (`releaseIdempotencyKey`) para que Retell pueda reintentar. Si el booking ya estaba cancelado, la clave NO se libera (la respuesta de "ya cancelado" es correcta).
+- **Cal.com 400 por horario inventado**: el agente infería el `start_time` de la descripción en lenguaje natural (ej. "09:00" cuando el slot real era "09:30"), lo que causaba 400 en Cal.com. Solución: variable `{{slots_iso}}` con los strings ISO exactos del webhook inbound. El prompt prohíbe explícitamente calcular o deducir el datetime — solo puede extraerlo de `{{slots_iso}}`.
+- **Componentes eliminados**: `NotificationsPanel.tsx` y `AlertSettings.tsx` fueron eliminados. `DashboardTopbar.tsx` ya no tiene el botón de campana. Si en el futuro se reimplementan notificaciones, partir de cero sin esos ficheros.
+- **KB — nombres de archivo**: Retell resuelve el documento KB por nombre exacto (sin extensión). El nombre se obtiene como `f.name || f.id` y se le aplica `.replace(/\.(pdf|docx?|txt|md)$/i, '')`. Nunca mostrar la extensión en el prompt.
