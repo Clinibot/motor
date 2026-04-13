@@ -362,15 +362,20 @@ export function buildPostCallAnalysis(p: ToolsPayload) {
 }
 
 /**
- * Injects a structured call script + tool instructions into the system prompt.
+ * Injects a structured prompt (## Instrucciones + ## Etapas) into the system prompt.
  * Produces a single, clean, non-repetitive block. Called server-side on every
  * POST/PATCH so the LLM always gets an up-to-date version.
+ *
+ * Format mirrors the customer's production prompt: no **bold**, no backtick tool refs,
+ * no emojis, no → arrows — clean section headers and plain bullet lists only.
  */
 export function injectToolInstructions(basePrompt: string, p: ToolsPayload): string {
     let cleanPrompt = basePrompt;
 
     // ── 1. STRIP OLD INJECTED SECTIONS ───────────────────────────────────────
     const cutMarkers = [
+        '## Instrucciones',
+        '## Etapas',
         '# Guión de la Llamada',
         '# Uso de herramientas',
         '# Instrucciones de Herramientas',
@@ -419,160 +424,33 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         d => (d.destination_type === 'number' && d.number) || (d.destination_type === 'agent' && d.agentId)
     );
 
-    // ── 3. CALL SCRIPT ────────────────────────────────────────────────────────
-    const scriptSteps: string[] = [];
-    let paso = 1;
-
-    // Greeting (inbound — the beginMessage has already been sent)
-    scriptSteps.push(
-        `**PASO ${paso} — Inicio**\n` +
-        `Ya enviaste el saludo de bienvenida. Ahora:\n` +
-        `- Si no sabes el nombre del usuario, pregunta: "¿Con quién tengo el gusto de hablar?"\n` +
-        `- Identifica el motivo de la llamada: "¿En qué puedo ayudarte hoy?"`
-    );
-    paso++;
-
-    // Qualification
-    if (hasQualification) {
-        const totalQ = p.leadQuestions!.length;
-        const qLines = p.leadQuestions!.map((q, i) => {
-            // Success condition
-            const onPass = q.key?.trim()
-                ? `la respuesta cumple: "${q.key.trim()}"`
-                : 'la respuesta es satisfactoria';
-
-            // Fail action
-            let onFail = 'continúa con la siguiente pregunta';
-            if (q.failAction === 'end_call')  onFail = 'finaliza la llamada con `end_call`';
-            else if (q.failAction === 'booking') onFail = 'ofrece agendar una cita (ve al apartado Agendamiento)';
-            else if (q.failAction === 'transfer') {
-                const dest = validDests[q.failTransferIdx ?? 0];
-                const tName = dest
-                    ? toTransferToolName(dest.name)
-                    : 'transferencia';
-                onFail = `transfiere con \`${tName}\``;
-            }
-
-            const passLine = i === totalQ - 1
-                ? `→ Si cualifica (${onPass}): continúa al flujo principal.`
-                : `→ Si cualifica (${onPass}): pasa a la pregunta ${i + 2}.`;
-
-            return `   ${i + 1}. "${q.question}"\n      ${passLine}\n      → Si NO cualifica: ${onFail}.`;
-        });
-        scriptSteps.push(
-            `**PASO ${paso} — Cualificación**\n` +
-            `Haz estas preguntas de una en una. Aplica la acción indicada según la respuesta:\n` +
-            qLines.join('\n')
-        );
-        paso++;
-    }
-
-    // Main action
-    if (hasCal && hasTransfer) {
-        const tNames = validDests.map(d => `\`${toTransferToolName(d.name)}\``).join(' o ');
-        scriptSteps.push(
-            `**PASO ${paso} — Acción principal**\n` +
-            `Según la necesidad del contacto:\n` +
-            `- Quiere agendar una cita → sigue el apartado *Agendamiento* más abajo.\n` +
-            `- Prefiere hablar con alguien → usa ${tNames}.`
-        );
-        paso++;
-    } else if (hasCal) {
-        scriptSteps.push(
-            `**PASO ${paso} — Agendamiento**\n` +
-            `Ofrece una cita y sigue el apartado *Agendamiento* más abajo.`
-        );
-        paso++;
-    } else if (hasTransfer) {
-        const tLines = validDests.map(d => {
-            const tName = toTransferToolName(d.name);
-            return `- **${d.name}**${d.description ? ': ' + d.description : ''} → \`${tName}\``;
-        }).join('\n');
-        scriptSteps.push(`**PASO ${paso} — Transferencia**\n${tLines}`);
-        paso++;
-    }
-
-    // Closing
-    if (hasEndCall) {
-        scriptSteps.push(
-            `**PASO ${paso} — Cierre**\n` +
-            `Pregunta: "¿Hay algo más en lo que pueda ayudarte?" y espera la respuesta.\n` +
-            `- Si dice que no → despídete usando el nombre que capturaste al inicio de la conversación` +
-            `${hasCal ? ', menciona la cita si se agendó,' : ','} desea un buen día y ejecuta \`end_call\` DESPUÉS de terminar la despedida.`
-        );
-    }
-
-    const callScript = `# Guión de la Llamada\n\nSigue este flujo en orden:\n\n${scriptSteps.join('\n\n')}`;
-
-    // ── 4. TOOL DETAILS ───────────────────────────────────────────────────────
-    const toolDetails: string[] = [];
-
-    // Cal.com booking
-    if (hasCal) {
-        let calDetail =
-            `### Agendamiento\n` +
-            `**Disponibilidad:**\n` +
-            `- \`{{disponibilidad_mas_temprana}}\` → los 2 huecos más próximos (usa este primero).\n` +
-            `- \`{{consultar_disponibilidad}}\` → disponibilidad completa de los próximos días.\n` +
-            `- Si las variables están vacías (llamada saliente) → pregunta qué día prefiere.\n\n` +
-            `**Proceso (en este orden exacto):**\n` +
-            `1. Di: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"\n` +
-            `2. Si pide más opciones o ninguna le va → muestra \`{{consultar_disponibilidad}}\`.\n` +
-            `3. **Validación CRÍTICA**: el horario que el usuario elija DEBE existir exactamente en las variables de disponibilidad. ` +
-            `Nunca inventes ni calcules un horario distinto. Si el usuario pide uno que no está en las variables, ` +
-            `dile: "Lo siento, ese horario no está disponible. Los que tenemos son..." y repite las opciones reales.\n` +
-            `4. Di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"\n` +
-            `5. Di: "Perfecto, anotado queda. Ahora, ¿cuál es tu correo electrónico?"\n` +
-            `6. Di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."\n` +
-            `7. Escucha el deletreo. Convierte MENTALMENTE a email estándar (NO lo digas en voz alta):\n` +
-            `   "punto"→. | "arroba"→@ | "guion"→- | "guion bajo"→_. Letras en minúsculas, sin espacios.\n` +
-            `8. Di: "Perfecto, déjame confirmar tu cita, un momento por favor..." ` +
-            `y ejecuta \`book_appointment\` con los parámetros del slot elegido.\n` +
-            `   ⚠️ El campo \`start_time\` DEBE ser la cadena ISO del slot TAL CUAL aparece en los datos de disponibilidad, ` +
-            `incluyendo el offset de zona horaria completo. Formato obligatorio: "YYYY-MM-DDTHH:mm:ss.sss+HH:MM". ` +
-            `Ejemplo válido: "2026-04-02T10:00:00.000+02:00". ` +
-            `NUNCA envíes el datetime sin offset (ej: "2026-04-01T09:00:00" es INCORRECTO y causará un error).\n` +
-            `9. Si \`book_appointment\` tiene éxito → Di: "Listo. Tu cita está confirmada para el [repite fecha/hora], ` +
-            `hora de Madrid. Recibirás un correo de confirmación en unos minutos."\n` +
-            `10. Si \`book_appointment\` falla → Di: "Vaya, parece que ese hueco acaba de ocuparse. ` +
-            `Déjame ofrecerte otra opción." y vuelve al paso 1 con los slots restantes.\n\n` +
-            `**Fechas coloquiales:** "mañana"→el día siguiente | "pasado mañana"→+2 días | ` +
-            `"el lunes"→próximo lunes | "la próxima semana"→lunes siguiente. Zona horaria: Europe/Madrid.`;
-
-        calDetail +=
-            `\n\n**Consultar cita:**\n` +
-            `Cuando el usuario pregunte por su cita o quiera saber cuándo la tiene:\n` +
-            `1. Ejecuta \`check_appointment\` con \`phone_number: {{user_number}}\`.\n` +
-            `2. Si la encuentra → comunica la fecha y hora al usuario.\n` +
-            `3. Si no la encuentra → pregunta: "¿Con qué teléfono hiciste la reserva?" y reintenta con ese número.`;
-
-        if (hasCancel) {
-            calDetail +=
-                `\n\n**Cancelaciones:**\n` +
-                `1. Ejecuta \`check_appointment\` con \`phone_number: {{user_number}}\`.\n` +
-                `2. Si lo encuentra → di: "Tengo tu cita del [fecha]. ¿Confirmas que quieres cancelarla?"\n` +
-                `3. Si confirma → ejecuta \`cancel_appointment\` pasando el \`booking_uid\` que devolvió \`check_appointment\`. ` +
-                `NO uses phone_number para cancelar si ya tienes el uid.\n` +
-                `4. Si \`check_appointment\` no encuentra → pregunta: "¿Con qué teléfono hiciste la reserva?" ` +
-                `y reintenta con ese número. Si sigue sin encontrar → ofrece transferir con una persona.`;
+    // Deduplicate transfer tool names (mirrors buildRetellTools)
+    const seenNames = new Set<string>();
+    const dedupedDests = validDests.map(dest => {
+        let toolName = toTransferToolName(dest.name);
+        if (seenNames.has(toolName)) {
+            let suffix = 2;
+            let candidate = `${toolName}_${suffix}`.slice(0, 64);
+            while (seenNames.has(candidate)) { suffix++; candidate = `${toolName}_${suffix}`.slice(0, 64); }
+            toolName = candidate;
         }
+        seenNames.add(toolName);
+        return { ...dest, toolName };
+    });
 
-        toolDetails.push(calDetail);
-    }
+    // ── 3. LANGUAGE RULE ──────────────────────────────────────────────────────
+    const langCode = p.language?.split('-')[0];
+    const langSection = langCode === 'ca'
+        ? `# Idioma\n\nNORMA ABSOLUTA: Habla SIEMPRE en catalán, sin excepción. Aunque el usuario te hable en castellano, inglés o cualquier otro idioma, debes responder siempre en catalán. No existe ninguna circunstancia que justifique cambiar de idioma.`
+        : langCode === 'en'
+        ? `# Language\n\nABSOLUTE RULE: Always speak in English without exception. Even if the user addresses you in another language, always respond in English.`
+        : `# Idioma\n\nNORMA ABSOLUTA: Habla SIEMPRE en español, sin excepción. Aunque el usuario te hable en otro idioma, debes responder siempre en español. No existe ninguna circunstancia que justifique cambiar de idioma.`;
 
-    // Custom tools
-    if (hasCustomTools) {
-        const ctLines = (p.customTools || [])
-            .filter(t => t.name && t.url)
-            .map(t => `- **${t.name}**: ${t.description}`)
-            .join('\n');
-        if (ctLines) toolDetails.push(`### Herramientas personalizadas\n${ctLines}`);
-    }
+    // ── 4. ## Instrucciones ───────────────────────────────────────────────────
+    const instrSections: string[] = [];
 
-    // ── 5. ASSEMBLE ───────────────────────────────────────────────────────────
-    const pronunciationSection =
-        `# Estilo de Comunicación\n\n` +
-        `## Instrucciones a seguir\n` +
+    instrSections.push(
+        `### Estilos de comunicación\n` +
         `- Haz solo una pregunta a la vez y espera respuesta (no digas "¿Cuál es tu nombre y en qué puedo ayudarte?"; en su lugar pregunta "¿Cuál es tu nombre?", espera la respuesta, y luego pregunta "¿En qué puedo ayudarte?")\n` +
         `- Mantén las interacciones breves con oraciones cortas\n` +
         `- Esta es una conversación de voz con potencial retraso (2 mensajes cortados seguidos) y errores de transcripción (palabras equivocadas), así que adáptate en consecuencia. Considera el contexto para aclarar información ambigua o mal transcrita\n` +
@@ -584,15 +462,21 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         `- Varía las respuestas entusiastas ("Genial", "Perfecto", "Estupendo") — evita repeticiones\n` +
         `- Maneja preguntas sobre IA con humor y transparencia: si preguntan "¿Eres un robot?" o "¿Eres real?", responde "No soy un robot, soy un agente de voz creado con inteligencia artificial" y luego redirige al objetivo principal de la llamada\n` +
         `- Considera la knowledge base proporcionada para aclarar cualquier información ambigua o confusa sobre los servicios o productos\n` +
-        `- Usa palabras de relleno naturales ("umm", "entonces") de forma muy limitada — máximo una cada 4 interacciones\n\n` +
+        `- Usa palabras de relleno naturales ("umm", "entonces") de forma muy limitada — máximo una cada 4 interacciones`
+    );
+
+    instrSections.push(
         `### Control de Entonación y Puntuación (IMPORTANTE)\n` +
         `- Mantén un tono profesional y estable en todo momento\n` +
         `- Evita el uso excesivo de signos de exclamación (máximo uno cada 3 frases)\n` +
         `- NO uses puntos suspensivos innecesarios\n` +
         `- Cuando expreses entusiasmo, usa palabras precisas pero mantén el mismo nivel de energía vocal\n` +
         `- Las variaciones de confirmación ("Perfecto", "Genial", "Estupendo") deben sonar naturales, no forzadas\n` +
-        `- No subas ni bajes bruscamente el tono al cambiar de tema\n\n` +
-        `## Reglas de comunicación\n` +
+        `- No subas ni bajes bruscamente el tono al cambiar de tema`
+    );
+
+    instrSections.push(
+        `### Reglas de comunicación\n` +
         `- Máximo 30 segundos por respuesta\n` +
         `- Usa el {{user_name}} frecuentemente una vez lo tengas capturado\n` +
         `- Lee las fechas de forma natural y con palabras completas: "lunes quince de abril a las seis y media de la tarde" no "15/04 a las 18:30"\n\n` +
@@ -600,32 +484,179 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         `Nunca repitas el teléfono del usuario; solo pregunta si es el número desde el que llama. ` +
         `Cuando debas dar un número al usuario, sigue esta regla exacta — nunca te la saltes:\n` +
         `Pronuncia los 2 primeros dígitos, pausa breve, los 3 siguientes, los 2 siguientes y los 2 últimos.\n` +
-        `Ejemplo: 666 522 22 22 → "seis seis - cinco dos dos - dos dos - dos dos"\n\n` +
+        `Ejemplo: 666 522 22 22 — "seis seis - cinco dos dos - dos dos - dos dos"\n\n` +
         `### Cómo pronunciar los emails\n` +
         `Cuando tengas que dar o confirmar un email, di primero: "Esta parte me cuesta un poco, así que lo haré poco a poco." ` +
         `Luego pronuncia lo que va antes de la arroba, di "arroba" y después lo que va después.\n` +
-        `Ejemplo: pepe@pepe.com → "pepe - arroba - pepe punto com"\n\n` +
+        `Ejemplo: pepe@pepe.com — "pepe - arroba - pepe punto com"\n\n` +
         `### Cómo pronunciar las fechas y horas\n` +
         `- Día con número: "martes dieciocho", "jueves primero".\n` +
         `- Horas siempre con palabras: "diez de la mañana", "cuatro de la tarde". Nunca formato 24h.\n` +
-        `- Para la 1:00 → "la una" (nunca "un").\n` +
-        `- Para los 30 minutos → "y media": "diez y media de la mañana".`;
+        `- Para la 1:00 — "la una" (nunca "un").\n` +
+        `- Para los 30 minutos — "y media": "diez y media de la mañana".`
+    );
 
-    // Language rule — injected only when a non-Spanish language is set
-    const langCode = p.language?.split('-')[0];
-    const langRule = langCode === 'ca'
-        ? `# Idioma\n\n**NORMA ABSOLUTA: Habla SIEMPRE en catalán, sin excepción.** Aunque el usuario te hable en castellano, inglés o cualquier otro idioma, debes responder siempre en catalán. No existe ninguna circunstancia que justifique cambiar de idioma.`
-        : langCode === 'en'
-        ? `# Language\n\n**ABSOLUTE RULE: Always speak in English without exception.** Even if the user addresses you in another language, always respond in English.`
-        : `# Idioma\n\n**NORMA ABSOLUTA: Habla SIEMPRE en español, sin excepción.** Aunque el usuario te hable en otro idioma, debes responder siempre en español. No existe ninguna circunstancia que justifique cambiar de idioma.`;
+    // ### Herramientas (dynamic)
+    const toolLines: string[] = [];
 
-    let finalPrompt = cleanPrompt + '\n\n' + pronunciationSection;
-    if (langRule) finalPrompt += '\n\n' + langRule;
-    finalPrompt += '\n\n' + callScript;
-
-    if (toolDetails.length > 0) {
-        finalPrompt += `\n\n---\n\n## Instrucciones de Herramientas\n\n${toolDetails.join('\n\n')}`;
+    if (hasEndCall) {
+        toolLines.push(
+            `end_call\n` +
+            `- Cuando el usuario exprese que no necesita más ayuda, se despida o cierre la conversación.\n` +
+            `- Ejecútala después de terminar la despedida completa, nunca antes.`
+        );
     }
+
+    if (hasTransfer && dedupedDests.length > 0) {
+        dedupedDests.forEach(dest => {
+            const desc = dest.description?.trim();
+            toolLines.push(
+                `${dest.toolName}\n` +
+                `- ${desc || `Cuando el usuario deba ser transferido a ${dest.name}.`}`
+            );
+        });
+    }
+
+    if (hasCal) {
+        toolLines.push(
+            `book_appointment\n` +
+            `- Usa esta herramienta para reservar una cita cuando el usuario quiera agendar.\n` +
+            `- Disponibilidad: {{disponibilidad_mas_temprana}} contiene los 2 huecos más próximos. {{consultar_disponibilidad}} contiene disponibilidad completa de los próximos días.\n` +
+            `- Si las variables están vacías (llamada saliente), pregunta qué día prefiere el usuario.\n` +
+            `- Ofrece siempre los huecos disponibles antes de pedir datos personales.\n` +
+            `- El horario que el usuario elija debe existir exactamente en las variables de disponibilidad. Nunca inventes ni calcules un horario distinto. Si el usuario pide uno que no está, di: "Lo siento, ese horario no está disponible. Los que tenemos son..." y repite las opciones reales.\n` +
+            `- Antes de ejecutar, recoge el teléfono y el email del usuario. Pide que lo deletree letra por letra para confirmar.\n` +
+            `- El campo start_time debe ser la cadena ISO del slot tal como aparece en los datos de disponibilidad, incluyendo el offset de zona horaria completo. Formato: "YYYY-MM-DDTHH:mm:ss.sss+HH:MM". Nunca envíes el datetime sin offset.\n` +
+            `- Si la reserva tiene éxito, confirma la fecha y hora al usuario e indica que recibirá un correo de confirmación.\n` +
+            `- Si la reserva falla, indica que ese hueco acaba de ocuparse y ofrece otra opción.\n` +
+            `- Fechas coloquiales: "mañana" es el día siguiente, "pasado mañana" es +2 días, "el lunes" es el próximo lunes. Zona horaria: Europe/Madrid.`
+        );
+
+        toolLines.push(
+            `check_appointment\n` +
+            `- Usa esta herramienta para consultar la cita de un usuario cuando pregunte por ella.\n` +
+            `- Llámala con phone_number igual a {{user_number}}.\n` +
+            `- Si la encuentra, comunica la fecha y hora.\n` +
+            `- Si no la encuentra, pregunta: "¿Con qué teléfono hiciste la reserva?" y reintenta con ese número.`
+        );
+
+        if (hasCancel) {
+            toolLines.push(
+                `cancel_appointment\n` +
+                `- Usa esta herramienta para cancelar la cita de un usuario cuando lo solicite.\n` +
+                `- Primero ejecuta check_appointment con phone_number igual a {{user_number}} para obtener el booking_uid.\n` +
+                `- Si encuentra la cita, confirma con el usuario: "Tengo tu cita del [fecha]. ¿Confirmas que quieres cancelarla?"\n` +
+                `- Si confirma, ejecuta cancel_appointment pasando el booking_uid.\n` +
+                `- Si check_appointment no encuentra la cita, pregunta: "¿Con qué teléfono hiciste la reserva?" y reintenta. Si sigue sin encontrar, ofrece transferir con una persona.`
+            );
+        }
+    }
+
+    if (hasCustomTools) {
+        (p.customTools || [])
+            .filter(t => t.name && t.url)
+            .forEach(t => {
+                toolLines.push(
+                    `${t.name}\n` +
+                    `- ${t.description || 'Herramienta personalizada.'}`
+                );
+            });
+    }
+
+    if (toolLines.length > 0) {
+        instrSections.push(`### Herramientas\n\n${toolLines.join('\n\n')}`);
+    }
+
+    // ### Preguntas de cualificación (dynamic)
+    if (hasQualification) {
+        const totalQ = p.leadQuestions!.length;
+        const qLines = p.leadQuestions!.map((q, i) => {
+            const onPass = q.key?.trim()
+                ? `la respuesta cumple: "${q.key.trim()}"`
+                : 'la respuesta es satisfactoria';
+
+            let onFail = 'continúa con la siguiente pregunta';
+            if (q.failAction === 'end_call')  onFail = 'finaliza la llamada con end_call';
+            else if (q.failAction === 'booking') onFail = 'ofrece agendar una cita';
+            else if (q.failAction === 'transfer') {
+                const dest = dedupedDests[q.failTransferIdx ?? 0];
+                onFail = dest ? `transfiere con ${dest.toolName}` : 'transfiere la llamada';
+            }
+
+            const passLine = i === totalQ - 1
+                ? `Si cualifica (${onPass}): continúa al flujo principal.`
+                : `Si cualifica (${onPass}): pasa a la pregunta ${i + 2}.`;
+
+            return `${i + 1}. "${q.question}"\n   - ${passLine}\n   - Si NO cualifica: ${onFail}.`;
+        });
+
+        instrSections.push(
+            `### Preguntas de cualificación\n\n` +
+            `Haz estas preguntas de una en una. Aplica la acción indicada según la respuesta:\n\n` +
+            qLines.join('\n\n')
+        );
+    }
+
+    const instruccionesSection = `## Instrucciones\n\n${instrSections.join('\n\n')}`;
+
+    // ── 5. ## Etapas ──────────────────────────────────────────────────────────
+    const etapas: string[] = [];
+    let step = 1;
+
+    etapas.push(
+        `### ${step}. Saludo\n` +
+        `- Ya enviaste el mensaje de bienvenida configurado.\n` +
+        `- Si no sabes el nombre del contacto, pregunta: "¿Con quién tengo el gusto de hablar?"\n` +
+        `- Identifica el motivo de la llamada.`
+    );
+    step++;
+
+    if (hasQualification) {
+        etapas.push(
+            `### ${step}. Cualificación\n` +
+            `- Haz las preguntas de cualificación en orden.\n` +
+            `- Aplica la acción indicada según la respuesta de cada pregunta.`
+        );
+        step++;
+    }
+
+    if (hasCal && hasTransfer) {
+        const tList = dedupedDests.map(d => d.name).join(' o ');
+        etapas.push(
+            `### ${step}. Acción principal\n` +
+            `- Si el contacto quiere agendar una cita, sigue las instrucciones de book_appointment.\n` +
+            `- Si prefiere hablar con alguien de ${tList}, usa la herramienta de transferencia correspondiente.`
+        );
+        step++;
+    } else if (hasCal) {
+        etapas.push(
+            `### ${step}. Agendamiento\n` +
+            `- Ofrece una cita y sigue las instrucciones de book_appointment.`
+        );
+        step++;
+    } else if (hasTransfer) {
+        const tLines = dedupedDests.map(d => {
+            const desc = d.description?.trim();
+            return `- ${d.name}${desc ? ': ' + desc : ''}: usa ${d.toolName}.`;
+        }).join('\n');
+        etapas.push(`### ${step}. Transferencia\n${tLines}`);
+        step++;
+    }
+
+    if (hasEndCall) {
+        etapas.push(
+            `### ${step}. Cierre\n` +
+            `- Pregunta: "¿Hay algo más en lo que pueda ayudarte?" y espera la respuesta.\n` +
+            `- Si dice que no, despídete usando el nombre que capturaste${hasCal ? ', menciona la cita si se agendó,' : ''} desea un buen día y ejecuta end_call después de terminar la despedida.`
+        );
+    }
+
+    const etapasSection = `## Etapas\n\n${etapas.join('\n\n')}`;
+
+    // ── 6. ASSEMBLE ───────────────────────────────────────────────────────────
+    let finalPrompt = cleanPrompt + '\n\n' + langSection;
+    finalPrompt += '\n\n' + instruccionesSection;
+    finalPrompt += '\n\n' + etapasSection;
 
     // KB — clean, single occurrence
     if (hasKB) {
@@ -637,7 +668,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
             `Si la información no está en estos documentos ni en el prompt, díselo amablemente ` +
             `y ofrécete a consultarlo con el equipo: "No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar."`;
         if (p.kbUsageInstructions?.trim()) {
-            finalPrompt += `\n\n**Instrucciones de uso:**\n${p.kbUsageInstructions.trim()}`;
+            finalPrompt += `\n\nInstrucciones de uso:\n${p.kbUsageInstructions.trim()}`;
         }
     }
 

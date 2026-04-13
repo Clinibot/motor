@@ -22,9 +22,9 @@ const withCal: ToolsPayload = {
 describe('injectToolInstructions', () => {
 
     describe('secciones siempre presentes', () => {
-        it('incluye la sección de comunicación', () => {
+        it('incluye la sección de instrucciones', () => {
             const result = injectToolInstructions('Eres un asistente.', base);
-            expect(result).toContain('# Estilo de Comunicación');
+            expect(result).toContain('## Instrucciones');
         });
 
         it('incluye siempre la sección de idioma', () => {
@@ -32,9 +32,9 @@ describe('injectToolInstructions', () => {
             expect(result).toContain('# Idioma');
         });
 
-        it('incluye el guión de la llamada', () => {
+        it('incluye las etapas de la llamada', () => {
             const result = injectToolInstructions('Eres un asistente.', base);
-            expect(result).toContain('# Guión de la Llamada');
+            expect(result).toContain('## Etapas');
         });
 
         it('conserva el contenido del prompt base', () => {
@@ -44,10 +44,10 @@ describe('injectToolInstructions', () => {
     });
 
     describe('idempotencia', () => {
-        it('llamarlo dos veces no duplica # Estilo de Comunicación', () => {
+        it('llamarlo dos veces no duplica ## Instrucciones', () => {
             const first = injectToolInstructions('Prompt base.', base);
             const second = injectToolInstructions(first, base);
-            const count = (second.match(/# Estilo de Comunicación/g) || []).length;
+            const count = (second.match(/^## Instrucciones$/gm) || []).length;
             expect(count).toBe(1);
         });
 
@@ -58,10 +58,10 @@ describe('injectToolInstructions', () => {
             expect(count).toBe(1);
         });
 
-        it('llamarlo dos veces no duplica # Guión de la Llamada', () => {
+        it('llamarlo dos veces no duplica ## Etapas', () => {
             const first = injectToolInstructions('Prompt base.', base);
             const second = injectToolInstructions(first, base);
-            const count = (second.match(/# Guión de la Llamada/g) || []).length;
+            const count = (second.match(/^## Etapas$/gm) || []).length;
             expect(count).toBe(1);
         });
     });
@@ -351,7 +351,7 @@ describe('injectToolInstructions — ramas no cubiertas', () => {
                 { name: 'consultar_stock', url: 'https://api.ejemplo.com/stock', description: 'Consulta el stock disponible', speakDuring: false, speakAfter: false, parameters: [] },
             ],
         });
-        expect(result).toContain('Herramientas personalizadas');
+        expect(result).toContain('### Herramientas');
         expect(result).toContain('consultar_stock');
     });
 

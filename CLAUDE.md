@@ -15,7 +15,7 @@ Plataforma SaaS multi-tenant para crear agentes de voz IA con Retell AI. Cliente
 `src/lib/retell/toolMapper.ts` — construye el prompt final, las herramientas y el análisis post-llamada. Cualquier cambio en el comportamiento del agente pasa por aquí. Contiene:
 - `buildRetellTools()` — herramientas Retell (endcall, transfer, Cal.com, extracciones)
 - `buildPostCallAnalysis()` — variables post-llamada
-- `injectToolInstructions()` — ensambla el prompt final con guión, idioma, pronunciación, herramientas, KB y notas. **Siempre limpia secciones antiguas antes de regenerar.**
+- `injectToolInstructions()` — ensambla el prompt final en el formato del cliente: `# Idioma` + `## Instrucciones` (estilos, entonación, reglas, pronunciación, herramientas, cualificación) + `## Etapas` (saludo, cualificación, acción, cierre) + KB + notas. Sin bold, sin emojis, sin backticks en prosa. Siempre limpia secciones antiguas antes de regenerar (cut markers: `## Instrucciones`, `## Etapas`, y marcadores legacy).
 
 ## Arquitectura de la API de agentes
 
@@ -205,7 +205,7 @@ Framework: **Vitest** — `npm test` (sin API keys ni conexión externa).
 - **14 tests** en `src/app/api/retell/webhook/__tests__/route.test.ts` — todos pasan
 - **Tests de Cal.com** en `src/app/api/retell/calcom/__tests__/` — book y cancel cubiertos
 - **17 tests** en `src/app/api/retell/webhook/inbound/__tests__/route.test.ts` — todos pasan
-- **Total: 143 tests en 7 ficheros** — todos pasan
+- **Total: 142 tests en 7 ficheros** — todos pasan
 - Cobertura `toolMapper.ts`: 95.94% líneas · 100% funciones · 76.19% ramas
 - Cobertura `webhookAuth.ts`: 100% en todo
 
