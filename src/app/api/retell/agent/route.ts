@@ -87,7 +87,7 @@ function buildRetellAgentParams(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pii_config: { mode: 'post_call' } as any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        guardrail_config: { output_topics: ['harassment', 'self_harm', 'violence'], input_topics: ['platform_integrity_jailbreaking'] } as any,
+        guardrail_config: { output_topics: ['harassment', 'self_harm', 'sexual_exploitation', 'violence', 'defense_and_national_security', 'illicit_and_harmful_activity', 'gambling', 'regulated_professional_advice', 'child_safety_and_exploitation'], input_topics: ['platform_integrity_jailbreaking'] } as any,
     };
 }
 

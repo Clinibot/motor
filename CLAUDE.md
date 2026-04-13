@@ -40,7 +40,7 @@ Plataforma SaaS multi-tenant para crear agentes de voz IA con Retell AI. Cliente
 | `data_storage_setting` | `'everything_except_pii'` |
 | `data_storage_retention_days` | `null` (keep forever) |
 | `pii_config` | `{ mode: 'post_call' }` |
-| `guardrail_config` | harassment / self_harm / violence / jailbreaking |
+| `guardrail_config` | Todos los output topics de Retell + platform_integrity_jailbreaking (input) |
 | `voice_temperature` | `payload.voiceTemperature` (default `0.8`), nunca para voces `openai-*` |
 | `voice_speed` | `payload.voiceSpeed`, nunca para voces `openai-*` |
 | `boosted_keywords` | Lista netelip/SIP/email del store |
