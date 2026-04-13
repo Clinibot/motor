@@ -141,9 +141,6 @@ Antes de dar acceso al cliente, verifica:
 - [ ] `NEXT_PUBLIC_SITE_URL` apunta a la URL correcta del deploy
 - [ ] `OPENAI_API_KEY` está configurada (sin ella, el agente no tendrá disponibilidad de agenda al contestar)
 - [ ] `CRON_SECRET` está configurada y el cron aparece en Vercel
-- [ ] Al menos un workspace creado con la Retell API Key del cliente
-- [ ] Se ha creado un agente de prueba y completado una llamada de test
-
 ---
 
 ## Diagrama de dependencias del stack
