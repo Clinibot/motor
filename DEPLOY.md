@@ -25,19 +25,22 @@ Sigue los pasos **en este orden exacto**. Si te saltas alguno o lo haces en otro
 
 ## Paso 2 — Supabase: ejecutar las migraciones SQL
 
-Ve a **SQL Editor** en tu proyecto de Supabase y ejecuta los siguientes ficheros **en este orden**. Están en la carpeta `migrations/` del repositorio.
+Ve a **SQL Editor** en tu proyecto de Supabase y ejecuta los siguientes ficheros **en este orden exacto**. Están en la carpeta `supabase/migrations/` del repositorio.
 
 | Orden | Fichero | Qué hace |
 |---|---|---|
+| **0** | `00000_base_schema.sql` | **Crea todas las tablas base** (workspaces, users, agents, calls, phone_numbers, webhook_logs) |
 | 1 | `20260411_assign_free_workspace_rpc.sql` | RPC atómica para asignar workspaces |
 | 2 | `20260411_idempotency_keys.sql` | Tabla para evitar reservas duplicadas |
 | 3 | `20260411_rate_limit.sql` | Tabla + RPC de rate limiting |
-| 4 | `20260411_rls_data_tables.sql` | Activa RLS en tablas de datos |
+| 4 | `20260411_rls_data_tables.sql` | Activa RLS en las tablas base |
 | 5 | `20260411_rls_authenticated_select_policies.sql` | Políticas SELECT para el dashboard |
 | 6 | `20260411_cleanup_function.sql` | Función de limpieza de expirados |
 | 7 | `20260411_webhook_logs_index_and_cleanup.sql` | Índice en webhook_logs |
 
-> **Importante**: el paso 4 debe ejecutarse antes del 5. Si el 5 falla porque las tablas no existen, es que te has saltado el 4.
+> **Crítico**: el paso 0 (`00000_base_schema.sql`) debe ejecutarse primero. Los pasos 4 y 5 hacen `ALTER TABLE` sobre las tablas que crea el paso 0 — si no existen, fallarán.
+>
+> Todos los ficheros usan `CREATE TABLE IF NOT EXISTS` y `CREATE INDEX IF NOT EXISTS`, por lo que son idempotentes: ejecutarlos dos veces no rompe nada.
 
 ---
 
