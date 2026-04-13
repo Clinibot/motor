@@ -242,7 +242,7 @@ describe('POST /api/retell/webhook', () => {
 
     // ── Happy path: call_analyzed ──────────────────────────────────────────────
 
-    it('procesa call_analyzed, hace upsert y dispara threshold check (fire-and-forget)', async () => {
+    it('procesa call_analyzed, hace upsert y devuelve 200', async () => {
         setupHappyPath();
 
         const payload = makePayload({
@@ -256,19 +256,6 @@ describe('POST /api/retell/webhook', () => {
 
         expect(res.status).toBe(200);
         expect(body.received).toBe(true);
-        // Threshold check should have been fired
-        expect(mocks.fetchGlobal).toHaveBeenCalledWith(
-            expect.stringContaining('/api/alerts/check-thresholds'),
-            expect.any(Object)
-        );
-    });
-
-    it('NO dispara threshold check para call_ended', async () => {
-        setupHappyPath();
-
-        await POST(makeRequest(makePayload({}, 'call_ended')));
-
-        expect(mocks.fetchGlobal).not.toHaveBeenCalled();
     });
 
     // ── Merging logic ──────────────────────────────────────────────────────────

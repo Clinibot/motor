@@ -5,7 +5,6 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
 import { useWizardStore } from '../../../store/wizardStore';
-import AlertSettings from '../../../components/AlertSettings';
 import DashboardSidebar from '../../../components/DashboardSidebar';
 
 import DashboardTopbar from '../../../components/DashboardTopbar';
@@ -84,24 +83,8 @@ export default function SettingsPage() {
           </div>
 
           <div style={{ maxWidth: '800px' }}>
-            {/* ALERTS SECTION */}
-            <div className="card-premium" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--slate-100)', background: 'var(--slate-50)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--azul)', fontSize: '20px' }}>
-                  <i className="bi bi-bell-fill"></i>
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>Notificaciones por Email</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--slate-500)', margin: '4px 0 0' }}>Configura cuándo quieres recibir alertas de sistema.</p>
-                </div>
-              </div>
-              <div style={{ padding: '32px' }}>
-                <AlertSettings />
-              </div>
-            </div>
-
             {/* ACCOUNT INFO SECTION (FUTURE) */}
-            <div className="card-premium" style={{ marginTop: '24px', opacity: 0.7 }}>
+            <div className="card-premium" style={{ opacity: 0.7 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--slate-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--slate-400)', fontSize: '20px' }}>
                   <i className="bi bi-person-fill"></i>
