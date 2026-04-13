@@ -82,6 +82,7 @@ function buildRetellAgentParams(
         boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
         fallback_voice_ids: ['cartesia-Nico'],
         enable_llm_turbo_mode: true,
+        enable_keypad_input: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data_storage_setting: 'everything_except_pii' as any,
         data_storage_retention_days: null,
