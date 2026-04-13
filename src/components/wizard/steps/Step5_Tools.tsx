@@ -436,40 +436,40 @@ export const Step5_Tools: React.FC = () => {
                     {extractionVariables.length > 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
                             {extractionVariables.map((v, idx) => {
-                            const ph = ({
-                                texto:    { name: 'Ej: punto_de_accion',          desc: 'Ej: Resume los puntos de acción acordados durante la llamada.' },
-                                booleano: { name: 'Ej: primera_llamada',           desc: 'Ej: Determina si es la primera vez que el cliente llama.' },
-                                numero:   { name: 'Ej: puntuacion_satisfaccion',  desc: 'Ej: Puntuación de satisfacción del cliente del 1 al 10.' },
-                            } as Record<string, { name: string; desc: string }>)[v.type] ?? { name: 'Ej: motivo_consulta', desc: 'Ej: Extrae el motivo principal de la llamada.' };
+                            const typeInfo = ({
+                                texto:    { icon: 'bi-list-ul',     label: 'Texto',    namePh: 'Ej: punto_de_accion',         descPh: 'Ej: Resume los puntos de acción acordados durante la llamada.' },
+                                booleano: { icon: 'bi-slash-circle', label: 'Booleano', namePh: 'Ej: primera_llamada',          descPh: 'Ej: Determina si es la primera vez que el cliente llama.' },
+                                numero:   { icon: 'bi-hash',         label: 'Número',   namePh: 'Ej: puntuacion_satisfaccion', descPh: 'Ej: Puntuación de satisfacción del cliente del 1 al 10.' },
+                            } as Record<string, { icon: string; label: string; namePh: string; descPh: string }>)[v.type] ?? { icon: 'bi-list-ul', label: v.type, namePh: 'Ej: motivo_consulta', descPh: 'Ej: Extrae el motivo principal de la llamada.' };
                             return (
                                 <div key={idx} style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '14px 16px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                                        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                            <div className="fg" style={{ marginBottom: 0 }}>
-                                                <label className="lbl">Nombre de la variable</label>
-                                                <input type="text" className="inp" placeholder={ph.name}
-                                                    value={v.name}
-                                                    onChange={e => { const vars = [...extractionVariables]; vars[idx].name = e.target.value; updateField('extractionVariables', vars); }}
-                                                />
-                                            </div>
-                                            <div className="fg" style={{ marginBottom: 0 }}>
-                                                <label className="lbl">Descripción / instrucción</label>
-                                                <input type="text" className="inp" placeholder={ph.desc}
-                                                    value={v.description}
-                                                    onChange={e => { const vars = [...extractionVariables]; vars[idx].description = e.target.value; updateField('extractionVariables', vars); }}
-                                                />
-                                            </div>
+                                    {/* Header: type icon + label + × */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: 'var(--azul)' }}>
+                                            <i className={`bi ${typeInfo.icon}`}></i> {typeInfo.label}
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '20px' }}>
-                                            <span style={{ background: 'white', border: '1px solid var(--gris-borde)', borderRadius: '6px', padding: '3px 10px', fontSize: '11px', fontWeight: 600, color: 'var(--gris-texto)', whiteSpace: 'nowrap' }}>
-                                                {v.type.charAt(0).toUpperCase() + v.type.slice(1)}
-                                            </span>
-                                            <button type="button"
-                                                onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}
-                                                style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', fontSize: '14px', padding: '2px' }}
-                                            >
-                                                <i className="bi bi-trash"></i>
-                                            </button>
+                                        <button type="button"
+                                            onClick={() => updateField('extractionVariables', extractionVariables.filter((_, i) => i !== idx))}
+                                            style={{ background: 'none', border: 'none', color: 'var(--gris-texto)', cursor: 'pointer', fontSize: '16px', padding: '0', lineHeight: 1 }}
+                                        >×</button>
+                                    </div>
+                                    {/* Fields */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                        <div className="fg" style={{ marginBottom: 0 }}>
+                                            <label className="lbl">Nombre de la variable <span style={{ color: 'var(--error)' }}>*</span></label>
+                                            <input type="text" className="inp" placeholder={typeInfo.namePh}
+                                                value={v.name}
+                                                onChange={e => { const vars = [...extractionVariables]; vars[idx].name = e.target.value; updateField('extractionVariables', vars); }}
+                                            />
+                                            <div style={{ fontSize: '11px', color: 'var(--gris-texto)', marginTop: '4px' }}>Sin espacios, en minúscula.</div>
+                                        </div>
+                                        <div className="fg" style={{ marginBottom: 0 }}>
+                                            <label className="lbl">Descripción <span style={{ color: 'var(--error)' }}>*</span></label>
+                                            <input type="text" className="inp" placeholder={typeInfo.descPh}
+                                                value={v.description}
+                                                onChange={e => { const vars = [...extractionVariables]; vars[idx].description = e.target.value; updateField('extractionVariables', vars); }}
+                                            />
+                                            <div style={{ fontSize: '11px', color: 'var(--gris-texto)', marginTop: '4px' }}>Indica al agente qué debe extraer.</div>
                                         </div>
                                     </div>
                                 </div>
