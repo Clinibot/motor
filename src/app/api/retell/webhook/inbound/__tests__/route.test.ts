@@ -334,6 +334,8 @@ describe('POST /api/retell/webhook/inbound', () => {
         expect(body.call_inbound.override_agent_id).toBe('retell-agent-xyz');
         expect(body.call_inbound.dynamic_variables).toHaveProperty('disponibilidad_mas_temprana');
         expect(body.call_inbound.dynamic_variables).toHaveProperty('consultar_disponibilidad');
+        expect(body.call_inbound.dynamic_variables).toHaveProperty('slots_iso');
+        expect(body.call_inbound.dynamic_variables.slots_iso).toContain('2026-04-15T09:00:00.000+02:00');
         expect(body.call_inbound.dynamic_variables._debug).toBeUndefined();
     });
 
@@ -390,6 +392,8 @@ describe('POST /api/retell/webhook/inbound', () => {
         expect(res.status).toBe(200);
         expect(body.call_inbound.dynamic_variables.disponibilidad_mas_temprana).toBe('');
         expect(body.call_inbound.dynamic_variables.consultar_disponibilidad).toBe('');
+        // slots_iso is built from Cal.com data (not OpenAI), so it should still be populated
+        expect(body.call_inbound.dynamic_variables.slots_iso).toContain('2026-04-15T09:00:00.000+02:00');
         expect(body.call_inbound.dynamic_variables._debug).toBeUndefined();
     });
 });

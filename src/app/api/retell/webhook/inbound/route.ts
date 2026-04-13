@@ -120,6 +120,15 @@ export async function POST(request: NextRequest) {
         const calData = await calResponse.json();
         const slotsString = JSON.stringify(calData.data || {});
 
+        // Build a compact ISO slot list so the agent can use exact datetimes for start_time.
+        // Format: "YYYY-MM-DD: ISO1, ISO2, ...\nYYYY-MM-DD: ..."
+        // The LLM must pick one of these exact strings when calling book_appointment.
+        const rawSlots = (calData.data || {}) as Record<string, Array<{ start: string }>>;
+        const slotsIso = Object.entries(rawSlots)
+            .filter(([, slots]) => Array.isArray(slots) && slots.length > 0)
+            .map(([date, slots]) => `${date}: ${slots.map(s => s.start).join(', ')}`)
+            .join('\n');
+
         const nowFormatted = getFormattedNow();
 
         // Prepare prompts for OpenAI
@@ -335,7 +344,8 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
                 override_agent_id: agent_id,
                 dynamic_variables: {
                     disponibilidad_mas_temprana: req1Text,
-                    consultar_disponibilidad: req2Text
+                    consultar_disponibilidad: req2Text,
+                    slots_iso: slotsIso,
                 }
             }
         });

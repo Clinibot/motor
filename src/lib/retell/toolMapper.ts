@@ -521,18 +521,19 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         toolLines.push(
             `book_appointment\n` +
             `- Usa esta herramienta para reservar una cita cuando el usuario quiera agendar.\n` +
+            `- La variable {{slots_iso}} contiene los ISO datetimes exactos de todos los slots disponibles, agrupados por fecha. SIEMPRE extrae el start_time de {{slots_iso}}. NUNCA calcules ni deduzcas un ISO datetime.\n` +
             `- El sistema te proporciona los 2 huecos más próximos en {{disponibilidad_mas_temprana}}. Ofrécelos diciendo: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"\n` +
-            `- Si el usuario rechaza las 2 primeras opciones o pide más alternativas, consulta {{consultar_disponibilidad}} para mostrar la disponibilidad completa de los próximos 6 días.\n` +
+            `- Si el usuario rechaza las 2 primeras opciones o pide más alternativas, usa {{consultar_disponibilidad}} para describir los rangos disponibles, y {{slots_iso}} para proponer horarios concretos dentro de esos rangos. Cuando el usuario diga "la más cercana" o "la primera disponible", usa el primer slot de {{slots_iso}}.\n` +
             `- Si las variables están vacías (llamada saliente), pregunta qué día prefiere el usuario.\n` +
-            `- El horario que el usuario elija debe existir exactamente en las variables de disponibilidad. Nunca inventes ni calcules un horario distinto. Si el usuario pide uno que no está, di: "Lo siento, ese horario no está disponible. Los que tenemos son..." y repite las opciones reales.\n` +
+            `- El horario que el usuario elija debe existir exactamente en {{slots_iso}}. Nunca inventes ni calcules un horario distinto. Si el usuario pide uno que no está, di: "Lo siento, ese horario no está disponible. Los que tenemos son..." y propón el slot más cercano de {{slots_iso}}.\n` +
             `- Cuando el usuario acepta un horario, di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"\n` +
             `- Una vez confirmado el teléfono, di: "Genial. Ahora, ¿cuál es tu correo electrónico?"\n` +
             `- Escucha el email del usuario. Luego di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."\n` +
             `- Escucha el deletreo completo. Convierte MENTALMENTE a formato email estándar (NO lo digas en voz alta): "punto" → . | "arroba" → @ | "guion" → - | "guion bajo" → _. Letras en minúsculas, sin espacios. Ejemplo: "a-ene-a-punto-garcia-arroba-empresa-punto-com" → ana.garcia@empresa.com\n` +
             `- Inmediatamente después de escuchar el deletreo, di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta inmediatamente book_appointment.\n` +
-            `- El campo start_time debe ser la cadena ISO del slot tal como aparece en los datos de disponibilidad, incluyendo el offset de zona horaria completo. Formato: "YYYY-MM-DDTHH:mm:ss.sss+HH:MM". Nunca envíes el datetime sin offset.\n` +
+            `- El campo start_time debe ser el string ISO exacto extraído de {{slots_iso}} para el horario acordado. Incluye el offset completo. Formato: "YYYY-MM-DDTHH:mm:ss.sss+HH:MM". Nunca envíes el datetime sin offset.\n` +
             `- Si la reserva tiene éxito, di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite fecha/hora], hora de Madrid. Recibirás un correo de confirmación en unos minutos."\n` +
-            `- Si la reserva falla, di: "Vaya, parece que ese hueco acaba de ocuparse. Déjame ofrecerte otra opción." y vuelve a ofrecer los slots restantes.\n` +
+            `- Si la reserva falla, di: "Vaya, parece que ese hueco acaba de ocuparse. Déjame ofrecerte otra opción." y vuelve a ofrecer el siguiente slot disponible de {{slots_iso}}.\n` +
             `- Fechas coloquiales: "mañana" es el día siguiente, "pasado mañana" es +2 días, "el lunes" es el próximo lunes. Zona horaria: Europe/Madrid.`
         );
 
@@ -629,7 +630,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         const tList = dedupedDests.map(d => d.name).join(' o ');
         etapas.push(
             `### ${step}. Acción principal\n` +
-            `- Si el contacto quiere agendar una cita: ofrece {{disponibilidad_mas_temprana}}, si rechaza las 2 opciones consulta {{consultar_disponibilidad}} (próximos 6 días), solicita teléfono y email con deletreo, y ejecuta book_appointment inmediatamente después del deletreo.\n` +
+            `- Si el contacto quiere agendar una cita: ofrece {{disponibilidad_mas_temprana}}, si rechaza las 2 opciones usa {{consultar_disponibilidad}} para describir rangos y {{slots_iso}} para proponer horarios concretos, solicita teléfono y email con deletreo, y ejecuta book_appointment inmediatamente después del deletreo usando el ISO exacto de {{slots_iso}}.\n` +
             `- Si prefiere hablar con alguien de ${tList}, usa la herramienta de transferencia correspondiente.`
         );
         step++;
@@ -637,9 +638,9 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         etapas.push(
             `### ${step}. Agendamiento\n` +
             `- Ofrece los huecos de {{disponibilidad_mas_temprana}}.\n` +
-            `- Si el usuario rechaza las 2 primeras opciones, consulta {{consultar_disponibilidad}} para los próximos 6 días.\n` +
+            `- Si el usuario rechaza las 2 primeras opciones, usa {{consultar_disponibilidad}} para describir rangos y {{slots_iso}} para proponer horarios concretos dentro de esos rangos.\n` +
             `- Cuando acepte un horario, solicita teléfono, luego email, luego deletreo.\n` +
-            `- Inmediatamente después del deletreo, ejecuta book_appointment.\n` +
+            `- Inmediatamente después del deletreo, ejecuta book_appointment usando el ISO exacto de {{slots_iso}} como start_time.\n` +
             `- Confirma la cita y sigue a la etapa de cierre.`
         );
         step++;
