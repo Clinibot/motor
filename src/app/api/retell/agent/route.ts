@@ -87,7 +87,7 @@ function buildRetellAgentParams(
         // Send [] explicitly (not undefined) so Retell clears any previously set fallback on PATCH.
         fallback_voice_ids: !voiceId.startsWith('openai-') ? ['cartesia-Nico'] : [],
         enable_llm_turbo_mode: true,
-        enable_keypad_input: false,
+        allow_user_dtmf: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data_storage_setting: 'everything_except_pii' as any,
         data_storage_retention_days: null,
