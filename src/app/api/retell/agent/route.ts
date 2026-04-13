@@ -501,6 +501,7 @@ export async function PATCH(request: Request) {
                 await Promise.all(
                     assignedNumbers.map((row: { phone_number: string }) =>
                         retellClient.phoneNumber.update(row.phone_number, {
+                            inbound_agent_id: retellAgentId,   // re-pins to latest version on every update
                             inbound_webhook_url: webhookUrl,
                         })
                     )
