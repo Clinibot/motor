@@ -7,7 +7,7 @@ const PERSONALITIES = ['Profesional', 'Empático', 'Amigable', 'Proactivo', 'Dir
 const TONES = ['Formal', 'Semiformal', 'Casual'];
 
 export const Step2_LLM: React.FC = () => {
-    const { beginMessage, personality, tone, model, whoFirst, updateField, nextStep, prevStep } = useWizardStore();
+    const { beginMessage, personality, tone, model, updateField, nextStep, prevStep } = useWizardStore();
     const [validationError, setValidationError] = useState('');
 
     const togglePersonality = (trait: string) => {
@@ -19,8 +19,8 @@ export const Step2_LLM: React.FC = () => {
     };
 
     const handleNext = () => {
-        if (whoFirst === 'agent' && !beginMessage.trim()) {
-            setValidationError('El mensaje de inicio es obligatorio cuando el agente habla primero (RGPD).');
+        if (!beginMessage.trim()) {
+            setValidationError('El mensaje de inicio es obligatorio (RGPD).');
             return;
         }
         setValidationError('');
@@ -71,29 +71,6 @@ export const Step2_LLM: React.FC = () => {
 
             {/* Comportamiento */}
             <div className="form-section-title"><i className="bi bi-chat-dots"></i> Comportamiento y personalidad</div>
-
-            <div className="fg">
-                <label className="lbl">¿Quién habla primero? <span style={{ color: 'var(--error)' }}>*</span></label>
-                <div className="rcards-2" style={{ marginTop: '8px' }}>
-                    <div
-                        className={`rcard${whoFirst === 'agent' ? ' on' : ''}`}
-                        style={{ padding: '12px' }}
-                        onClick={() => updateField('whoFirst', 'agent')}
-                    >
-                        <div className="rcard-icon"><i className="bi bi-megaphone"></i></div>
-                        <div className="rcard-label">El agente habla primero</div>
-                    </div>
-                    <div
-                        className={`rcard${whoFirst === 'user' ? ' on' : ''}`}
-                        style={{ padding: '12px' }}
-                        onClick={() => updateField('whoFirst', 'user')}
-                    >
-                        <div className="rcard-icon"><i className="bi bi-person"></i></div>
-                        <div className="rcard-label">El usuario habla primero</div>
-                    </div>
-                </div>
-                <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Lo más habitual es que el agente hable primero saludando. Elige &quot;usuario habla primero&quot; solo si el agente actúa como receptor pasivo (ej: línea de soporte).</div>
-            </div>
 
             <div className="fg">
                 <label className="lbl" htmlFor="inp-mensaje-inicio">

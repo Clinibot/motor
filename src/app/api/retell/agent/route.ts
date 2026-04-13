@@ -169,7 +169,7 @@ export async function POST(request: Request) {
             begin_message: payload.beginMessage,
             model_temperature: payload.temperature,
             model_high_priority: payload.highPriority,
-            start_speaker: payload.whoFirst || 'agent',
+            start_speaker: 'agent',
         };
 
         llmCreateParams.general_tools = retellTools.length > 0 ? retellTools : [];
@@ -378,7 +378,7 @@ export async function PATCH(request: Request) {
             begin_message: payload.beginMessage,
             model_temperature: payload.temperature,
             model_high_priority: payload.highPriority,
-            start_speaker: payload.whoFirst || 'agent',
+            start_speaker: 'agent',
         };
 
         if (retellTools.length > 0) {
