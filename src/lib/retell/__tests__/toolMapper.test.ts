@@ -22,9 +22,9 @@ const withCal: ToolsPayload = {
 describe('injectToolInstructions', () => {
 
     describe('secciones siempre presentes', () => {
-        it('incluye la sección de pronunciación', () => {
+        it('incluye la sección de comunicación', () => {
             const result = injectToolInstructions('Eres un asistente.', base);
-            expect(result).toContain('# Estilo de Pronunciación');
+            expect(result).toContain('# Estilo de Comunicación');
         });
 
         it('incluye siempre la sección de idioma', () => {
@@ -44,10 +44,10 @@ describe('injectToolInstructions', () => {
     });
 
     describe('idempotencia', () => {
-        it('llamarlo dos veces no duplica # Estilo de Pronunciación', () => {
+        it('llamarlo dos veces no duplica # Estilo de Comunicación', () => {
             const first = injectToolInstructions('Prompt base.', base);
             const second = injectToolInstructions(first, base);
-            const count = (second.match(/# Estilo de Pronunciación/g) || []).length;
+            const count = (second.match(/# Estilo de Comunicación/g) || []).length;
             expect(count).toBe(1);
         });
 

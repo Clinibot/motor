@@ -400,7 +400,7 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     cleanPrompt = cleanPrompt.replace(/\n?# Base de Conocimiento[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Notas Adicionales[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Notas Específicas[\s\S]*?(?=\n#|$)/, '').trim();
-    cleanPrompt = cleanPrompt.replace(/\n?# Estilo de Pronunciación[\s\S]*?(?=\n#|$)/, '').trim();
+    cleanPrompt = cleanPrompt.replace(/\n?# Estilo de (?:Pronunciación|Comunicación)[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Idioma[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.replace(/\n?# Language[\s\S]*?(?=\n#|$)/, '').trim();
     cleanPrompt = cleanPrompt.trim();
@@ -571,7 +571,31 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
 
     // ── 5. ASSEMBLE ───────────────────────────────────────────────────────────
     const pronunciationSection =
-        `# Estilo de Pronunciación\n\n` +
+        `# Estilo de Comunicación\n\n` +
+        `## Instrucciones a seguir\n` +
+        `- Haz solo una pregunta a la vez y espera respuesta (no digas "¿Cuál es tu nombre y en qué puedo ayudarte?"; en su lugar pregunta "¿Cuál es tu nombre?", espera la respuesta, y luego pregunta "¿En qué puedo ayudarte?")\n` +
+        `- Mantén las interacciones breves con oraciones cortas\n` +
+        `- Esta es una conversación de voz con potencial retraso (2 mensajes cortados seguidos) y errores de transcripción (palabras equivocadas), así que adáptate en consecuencia. Considera el contexto para aclarar información ambigua o mal transcrita\n` +
+        `- Si recibes un mensaje obviamente incompleto, responde: "uhm"\n` +
+        `- Escribe los símbolos como palabras: "tres euros" no "3€", "arroba" no "@"\n` +
+        `- Menciona la zona horaria (hora de Madrid) una vez al inicio si es relevante, no la repitas durante la llamada\n` +
+        `- Presta atención a la información que el contacto ya ha compartido — si mencionan su nombre, empresa o motivo mientras responden otra pregunta, reconócelo y no vuelvas a preguntarlo\n` +
+        `- Al ofrecer opciones (ej. horarios de citas), limita las opciones a 2 máximo\n` +
+        `- Varía las respuestas entusiastas ("Genial", "Perfecto", "Estupendo") — evita repeticiones\n` +
+        `- Maneja preguntas sobre IA con humor y transparencia: si preguntan "¿Eres un robot?" o "¿Eres real?", responde "No soy un robot, soy un agente de voz creado con inteligencia artificial" y luego redirige al objetivo principal de la llamada\n` +
+        `- Considera la knowledge base proporcionada para aclarar cualquier información ambigua o confusa sobre los servicios o productos\n` +
+        `- Usa palabras de relleno naturales ("umm", "entonces") de forma muy limitada — máximo una cada 4 interacciones\n\n` +
+        `### Control de Entonación y Puntuación (IMPORTANTE)\n` +
+        `- Mantén un tono profesional y estable en todo momento\n` +
+        `- Evita el uso excesivo de signos de exclamación (máximo uno cada 3 frases)\n` +
+        `- NO uses puntos suspensivos innecesarios\n` +
+        `- Cuando expreses entusiasmo, usa palabras precisas pero mantén el mismo nivel de energía vocal\n` +
+        `- Las variaciones de confirmación ("Perfecto", "Genial", "Estupendo") deben sonar naturales, no forzadas\n` +
+        `- No subas ni bajes bruscamente el tono al cambiar de tema\n\n` +
+        `## Reglas de comunicación\n` +
+        `- Máximo 30 segundos por respuesta\n` +
+        `- Usa el {{user_name}} frecuentemente una vez lo tengas capturado\n` +
+        `- Lee las fechas de forma natural y con palabras completas: "lunes quince de abril a las seis y media de la tarde" no "15/04 a las 18:30"\n\n` +
         `### Cómo pronunciar los números de teléfono\n` +
         `Nunca repitas el teléfono del usuario; solo pregunta si es el número desde el que llama. ` +
         `Cuando debas dar un número al usuario, sigue esta regla exacta — nunca te la saltes:\n` +
