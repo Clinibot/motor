@@ -521,14 +521,18 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         toolLines.push(
             `book_appointment\n` +
             `- Usa esta herramienta para reservar una cita cuando el usuario quiera agendar.\n` +
-            `- Disponibilidad: {{disponibilidad_mas_temprana}} contiene los 2 huecos más próximos. {{consultar_disponibilidad}} contiene disponibilidad completa de los próximos días.\n` +
+            `- El sistema te proporciona los 2 huecos más próximos en {{disponibilidad_mas_temprana}}. Ofrécelos diciendo: "Tenemos disponibilidad el {{disponibilidad_mas_temprana}}. ¿Cuál te viene mejor?"\n` +
+            `- Si el usuario rechaza las 2 primeras opciones o pide más alternativas, consulta {{consultar_disponibilidad}} para mostrar la disponibilidad completa de los próximos 6 días.\n` +
             `- Si las variables están vacías (llamada saliente), pregunta qué día prefiere el usuario.\n` +
-            `- Ofrece siempre los huecos disponibles antes de pedir datos personales.\n` +
             `- El horario que el usuario elija debe existir exactamente en las variables de disponibilidad. Nunca inventes ni calcules un horario distinto. Si el usuario pide uno que no está, di: "Lo siento, ese horario no está disponible. Los que tenemos son..." y repite las opciones reales.\n` +
-            `- Antes de ejecutar, recoge el teléfono y el email del usuario. Pide que lo deletree letra por letra para confirmar.\n` +
+            `- Cuando el usuario acepta un horario, di: "Estupendo. Para confirmar tu cita necesito que me des un par de datos. ¿Cuál es tu número de teléfono?"\n` +
+            `- Una vez confirmado el teléfono, di: "Genial. Ahora, ¿cuál es tu correo electrónico?"\n` +
+            `- Escucha el email del usuario. Luego di: "Perfecto. Deletréamelo letra por letra para asegurarme de que lo tengo bien."\n` +
+            `- Escucha el deletreo completo. Convierte MENTALMENTE a formato email estándar (NO lo digas en voz alta): "punto" → . | "arroba" → @ | "guion" → - | "guion bajo" → _. Letras en minúsculas, sin espacios. Ejemplo: "a-ene-a-punto-garcia-arroba-empresa-punto-com" → ana.garcia@empresa.com\n` +
+            `- Inmediatamente después de escuchar el deletreo, di: "Perfecto, déjame confirmar tu cita, un momento por favor..." y ejecuta inmediatamente book_appointment.\n` +
             `- El campo start_time debe ser la cadena ISO del slot tal como aparece en los datos de disponibilidad, incluyendo el offset de zona horaria completo. Formato: "YYYY-MM-DDTHH:mm:ss.sss+HH:MM". Nunca envíes el datetime sin offset.\n` +
-            `- Si la reserva tiene éxito, confirma la fecha y hora al usuario e indica que recibirá un correo de confirmación.\n` +
-            `- Si la reserva falla, indica que ese hueco acaba de ocuparse y ofrece otra opción.\n` +
+            `- Si la reserva tiene éxito, di: "Listo, {{user_name}}. Tu cita está confirmada para el [repite fecha/hora], hora de Madrid. Recibirás un correo de confirmación en unos minutos."\n` +
+            `- Si la reserva falla, di: "Vaya, parece que ese hueco acaba de ocuparse. Déjame ofrecerte otra opción." y vuelve a ofrecer los slots restantes.\n` +
             `- Fechas coloquiales: "mañana" es el día siguiente, "pasado mañana" es +2 días, "el lunes" es el próximo lunes. Zona horaria: Europe/Madrid.`
         );
 
@@ -593,7 +597,8 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         instrSections.push(
             `### Preguntas de cualificación\n\n` +
             `Haz estas preguntas de una en una. Aplica la acción indicada según la respuesta:\n\n` +
-            qLines.join('\n\n')
+            qLines.join('\n\n') + '\n\n' +
+            `Nota: si la respuesta parece incompleta, ambigua o inconsistente con el contexto (posible error de transcripción), pide aclaración antes de aplicar la acción de no cualificación. Solo ejecuta end_call o una transferencia cuando estés seguro de haber entendido correctamente.`
         );
     }
 
@@ -624,14 +629,18 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         const tList = dedupedDests.map(d => d.name).join(' o ');
         etapas.push(
             `### ${step}. Acción principal\n` +
-            `- Si el contacto quiere agendar una cita, sigue las instrucciones de book_appointment.\n` +
+            `- Si el contacto quiere agendar una cita: ofrece {{disponibilidad_mas_temprana}}, si rechaza las 2 opciones consulta {{consultar_disponibilidad}} (próximos 6 días), solicita teléfono y email con deletreo, y ejecuta book_appointment inmediatamente después del deletreo.\n` +
             `- Si prefiere hablar con alguien de ${tList}, usa la herramienta de transferencia correspondiente.`
         );
         step++;
     } else if (hasCal) {
         etapas.push(
             `### ${step}. Agendamiento\n` +
-            `- Ofrece una cita y sigue las instrucciones de book_appointment.`
+            `- Ofrece los huecos de {{disponibilidad_mas_temprana}}.\n` +
+            `- Si el usuario rechaza las 2 primeras opciones, consulta {{consultar_disponibilidad}} para los próximos 6 días.\n` +
+            `- Cuando acepte un horario, solicita teléfono, luego email, luego deletreo.\n` +
+            `- Inmediatamente después del deletreo, ejecuta book_appointment.\n` +
+            `- Confirma la cita y sigue a la etapa de cierre.`
         );
         step++;
     } else if (hasTransfer) {
