@@ -421,7 +421,6 @@ export const Step5_Tools: React.FC = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
                         {[
                             { icon: 'bi-list-ul', label: 'Texto', desc: 'Información textual.', ex: 'Ej: Resumen, puntos de acción.' },
-                            { icon: 'bi-menu-button-wide', label: 'Selector', desc: 'Lista fija de opciones.', ex: 'Ej: Tipo de incidencia, estado.' },
                             { icon: 'bi-slash-circle', label: 'Booleano', desc: 'Sí o No.', ex: 'Ej: ¿Es primera llamada?' },
                             { icon: 'bi-hash', label: 'Número', desc: 'Valor numérico.', ex: 'Ej: Puntuación, importe.' },
                         ].map(t => (
