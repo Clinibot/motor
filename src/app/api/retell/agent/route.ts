@@ -83,8 +83,9 @@ function buildRetellAgentParams(
         stt_mode: 'accurate' as const,
         denoising_mode: 'noise-cancellation' as const,
         boosted_keywords: payload.boostedKeywords?.length ? payload.boostedKeywords : undefined,
-        // OpenAI voices (e.g. Catalan) don't support cartesia-Nico as fallback → omit it
-        fallback_voice_ids: !voiceId.startsWith('openai-') ? ['cartesia-Nico'] : undefined,
+        // OpenAI voices (e.g. Catalan) don't support cartesia-Nico as fallback.
+        // Send [] explicitly (not undefined) so Retell clears any previously set fallback on PATCH.
+        fallback_voice_ids: !voiceId.startsWith('openai-') ? ['cartesia-Nico'] : [],
         enable_llm_turbo_mode: true,
         enable_keypad_input: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
