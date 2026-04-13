@@ -140,10 +140,12 @@ El **cron job** (`/api/cron/cleanup`) también requiere plan Pro o superior en V
 Antes de dar acceso al cliente, verifica:
 
 - [ ] `GET /api/health` devuelve `{ "status": "ok" }`
-- [ ] Las 7 migraciones SQL están ejecutadas en Supabase
+- [ ] Las 8 migraciones SQL están ejecutadas en Supabase (paso 0 primero)
 - [ ] `NEXT_PUBLIC_SITE_URL` apunta a la URL correcta del deploy
 - [ ] `OPENAI_API_KEY` está configurada (sin ella, el agente no tendrá disponibilidad de agenda al contestar)
 - [ ] `CRON_SECRET` está configurada y el cron aparece en Vercel
+- [ ] Al menos un workspace creado en Admin con la Retell API Key del cliente
+- [ ] Se ha creado un agente de prueba y completado una llamada de test
 ---
 
 ## Diagrama de dependencias del stack
