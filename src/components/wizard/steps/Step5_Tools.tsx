@@ -435,20 +435,26 @@ export const Step5_Tools: React.FC = () => {
 
                     {extractionVariables.length > 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
-                            {extractionVariables.map((v, idx) => (
+                            {extractionVariables.map((v, idx) => {
+                            const ph = ({
+                                texto:    { name: 'Ej: punto_de_accion',          desc: 'Ej: Resume los puntos de acción acordados durante la llamada.' },
+                                booleano: { name: 'Ej: primera_llamada',           desc: 'Ej: Determina si es la primera vez que el cliente llama.' },
+                                numero:   { name: 'Ej: puntuacion_satisfaccion',  desc: 'Ej: Puntuación de satisfacción del cliente del 1 al 10.' },
+                            } as Record<string, { name: string; desc: string }>)[v.type] ?? { name: 'Ej: motivo_consulta', desc: 'Ej: Extrae el motivo principal de la llamada.' };
+                            return (
                                 <div key={idx} style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '14px 16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                                         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                             <div className="fg" style={{ marginBottom: 0 }}>
                                                 <label className="lbl">Nombre de la variable</label>
-                                                <input type="text" className="inp" placeholder="Ej: Motivo de consulta"
+                                                <input type="text" className="inp" placeholder={ph.name}
                                                     value={v.name}
                                                     onChange={e => { const vars = [...extractionVariables]; vars[idx].name = e.target.value; updateField('extractionVariables', vars); }}
                                                 />
                                             </div>
                                             <div className="fg" style={{ marginBottom: 0 }}>
                                                 <label className="lbl">Descripción / instrucción</label>
-                                                <input type="text" className="inp" placeholder="Ej: Extrae el motivo principal de la llamada"
+                                                <input type="text" className="inp" placeholder={ph.desc}
                                                     value={v.description}
                                                     onChange={e => { const vars = [...extractionVariables]; vars[idx].description = e.target.value; updateField('extractionVariables', vars); }}
                                                 />
@@ -467,7 +473,7 @@ export const Step5_Tools: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            ); })}
                         </div>
                     )}
 
