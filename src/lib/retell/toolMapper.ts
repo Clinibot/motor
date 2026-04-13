@@ -671,10 +671,12 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // KB — clean, single occurrence
     if (hasKB) {
         // Strip common file extensions so the name matches the Retell KB identifier exactly
-        const kbNames = p.kbFiles!.map(f => {
+        const kbNamesPlain = p.kbFiles!.map(f => {
             const raw = f.name || f.id;
-            return `- ${raw.replace(/\.(pdf|docx?|txt|md)$/i, '')}`;
-        }).join('\n');
+            return raw.replace(/\.(pdf|docx?|txt|md)$/i, '');
+        });
+        const kbNames = kbNamesPlain.map(n => `- ${n}`).join('\n');
+        const kbNamesInline = kbNamesPlain.join(', ');
 
         const kbFallback =
             `Si la información no está en la base de conocimiento, díselo amablemente y ofrécete a consultarlo con el equipo: ` +
@@ -684,7 +686,9 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
         finalPrompt += `\n\n# Base de Conocimiento\n${kbNames}\n`;
 
         if (p.kbUsageInstructions?.trim()) {
-            finalPrompt += `\n${p.kbUsageInstructions.trim()}\n\n${kbFallback}`;
+            // Append "consulta siempre [name]" so Retell knows which document to look up
+            const instruction = p.kbUsageInstructions.trim().replace(/[.,;:]+$/, '');
+            finalPrompt += `\n${instruction} consulta siempre ${kbNamesInline}\n\n${kbFallback}`;
         } else {
             finalPrompt +=
                 `\nConsulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa.\n\n` +
