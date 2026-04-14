@@ -357,7 +357,7 @@ Usando los datos de citas proporcionados al inicio, crea el output optimizado pa
             return NextResponse.json({
                 call_inbound: {
                     override_agent_id: agent_id,
-                    dynamic_variables: { _debug: 'internal_error' }
+                    dynamic_variables: { _debug: `internal_error: ${err instanceof Error ? err.message : String(err)}` }
                 }
             });
         }
