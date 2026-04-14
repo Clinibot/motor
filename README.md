@@ -11,7 +11,7 @@ Plataforma SaaS multi-tenant para crear, configurar y gestionar agentes de voz c
 | Framework | Next.js 14 (App Router, TypeScript) |
 | Base de datos | Supabase (PostgreSQL + Auth) |
 | Agentes de voz | Retell AI SDK v5 |
-| LLM | GPT-4.1 / Gemini (configurado por agente) |
+| LLM | Gemini (configurado por agente) |
 | Voces | ElevenLabs, OpenAI TTS, Cartesia (vía Retell) |
 | Calendario | Cal.com v2 API |
 | Email | Resend |
