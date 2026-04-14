@@ -72,7 +72,6 @@ export interface WizardState {
 
     // Knowledge Base (Moved to Step 2)
     kbFiles: { id: string; name: string; retell_name?: string; size: string; type: string }[];
-    kbUsageInstructions: string;
     kbRetrievalChunks: number;
     kbSimilarityThreshold: number;
 
@@ -169,7 +168,6 @@ const INITIAL_STATE = {
     companyWebsite: '',
     companyDescription: '',
     kbFiles: [] as { id: string; name: string; retell_name?: string; size: string; type: string }[],
-    kbUsageInstructions: '',
     kbRetrievalChunks: 3,
     kbSimilarityThreshold: 0.7,
 

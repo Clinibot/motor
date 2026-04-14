@@ -19,7 +19,7 @@ export const Step6_Summary: React.FC = () => {
     const {
         agentName, companyName, companyDescription,
         model, voiceId, voiceName, voiceProvider, language,
-        kbFiles, kbUsageInstructions,
+        kbFiles,
         enableTransfer, transferDestinations,
         enableCalBooking,
         personality, tone, customNotes,
@@ -528,38 +528,6 @@ export const Step6_Summary: React.FC = () => {
             </details>
 
             <hr className="divider" />
-
-            {/* ═══ REGLAS PARA LA BASE DE CONOCIMIENTO ═══ */}
-            <div className="fg">
-                <label className="lbl">
-                    <i className="bi bi-shield-check" style={{ marginRight: '4px', color: '#7c3aed' }}></i>
-                    Reglas para la base de conocimiento <span style={{ fontWeight: 400, color: 'var(--gris-texto)' }}>(opcional)</span>
-                </label>
-                <p style={{ fontSize: '12px', color: 'var(--gris-texto)', marginBottom: '10px', lineHeight: '1.6' }}>Define cómo debe comportarse el agente cuando consulta los documentos que has subido.</p>
-                <textarea
-                    className="inp" rows={3} style={{ resize: 'vertical' }}
-                    value={kbUsageInstructions}
-                    onChange={e => updateField('kbUsageInstructions', e.target.value)}
-                    placeholder='Ej: "Si te preguntan por precios, consulta siempre la base de conocimiento. Cita los precios exactos sin redondear."'
-                />
-                <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Estas instrucciones le dicen al agente cómo buscar y usar la información de los documentos.</div>
-            </div>
-
-            <details style={{ marginTop: '10px', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
-                <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '13px', padding: '12px 20px', background: 'var(--gris-bg)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '8px', userSelect: 'none' }}>
-                    <i className="bi bi-clipboard-check" style={{ color: '#7c3aed' }}></i> Ver ejemplos de reglas
-                    <i className="bi bi-chevron-right" style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--gris-texto)' }}></i>
-                </summary>
-                <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {[
-                        'Si te preguntan por precios, consulta siempre la base de conocimiento. Cita los precios exactos tal como aparecen en los documentos, sin redondear ni aproximar.',
-                        'Si la pregunta del cliente no tiene respuesta en la base de conocimiento, dilo con transparencia. No inventes información.',
-                        'Cuando respondas usando información de la base de conocimiento, hazlo de forma natural y conversacional. No menciones que estás consultando documentos.',
-                    ].map((ex, i) => (
-                        <div key={i} style={{ background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', padding: '10px 14px', fontSize: '12px', fontFamily: "'Courier New', monospace", lineHeight: '1.5', color: '#374151' }}>{ex}</div>
-                    ))}
-                </div>
-            </details>
 
             <hr className="divider" />
 

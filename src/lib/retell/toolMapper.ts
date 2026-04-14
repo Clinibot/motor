@@ -34,7 +34,6 @@ export interface ToolsPayload {
     webhookUrl?: string;
     customNotes?: string;
     kbFiles?: KBFile[];
-    kbUsageInstructions?: string;
     // Cal.com cancellation
     enableCalCancellation?: boolean;
     calTimezone?: string;
@@ -680,29 +679,20 @@ export function injectToolInstructions(basePrompt: string, p: ToolsPayload): str
     // KB — clean, single occurrence
     if (hasKB) {
         // Strip common file extensions so the name matches the Retell KB identifier exactly
-        const kbNamesPlain = p.kbFiles!.map(f => {
+        const kbNamesInline = p.kbFiles!.map(f => {
             const raw = f.name || f.id;
             return raw.replace(/\.(pdf|docx?|txt|md)$/i, '');
-        });
-        const kbNames = kbNamesPlain.map(n => `- ${n}`).join('\n');
-        const kbNamesInline = kbNamesPlain.join(', ');
+        }).join(', ');
 
         const kbFallback =
             `Si la información no está en la base de conocimiento, díselo amablemente y ofrécete a consultarlo con el equipo: ` +
             `"No tengo esa información ahora mismo, pero puedo consultarlo con el equipo y hacértela llegar." ` +
             `No des ninguna información que no aparezca explícitamente en tu base de conocimiento.`;
 
-        if (p.kbUsageInstructions?.trim()) {
-            // Name appears inline within the instruction — no need for a separate bullet list
-            const instruction = p.kbUsageInstructions.trim().replace(/[.,;:]+$/, '');
-            finalPrompt += `\n\n# Base de Conocimiento\n\n${instruction} consulta siempre ${kbNamesInline}\n\n${kbFallback}`;
-        } else {
-            // No custom instructions: show file name as bullet so Retell can resolve the document
-            finalPrompt +=
-                `\n\n# Base de Conocimiento\n${kbNames}\n\n` +
-                `Consulta los documentos adjuntos cuando el usuario pregunte sobre servicios, productos o información de la empresa.\n\n` +
-                `${kbFallback}`;
-        }
+        finalPrompt +=
+            `\n\n# Base de Conocimiento\n\n` +
+            `Cuando te pidan información consulta siempre ${kbNamesInline}\n\n` +
+            `${kbFallback}`;
     }
 
     // Notes — clean, single occurrence
