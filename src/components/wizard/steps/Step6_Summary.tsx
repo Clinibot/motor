@@ -244,7 +244,7 @@ export const Step6_Summary: React.FC = () => {
                             <i className="bi bi-cpu" style={{ color: '#7c3aed', fontSize: '14px' }}></i>
                         </div>
                         <div>
-                            <div style={{ fontSize: '14px', fontWeight: 700 }}>Modelo de IA y comportamiento</div>
+                            <div style={{ fontSize: '14px', fontWeight: 700 }}>Estilo y mensaje inicial</div>
                             <div style={{ fontSize: '12px', color: 'var(--gris-texto)' }}>Paso 2</div>
                         </div>
                     </div>
