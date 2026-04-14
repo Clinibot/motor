@@ -75,7 +75,6 @@ export interface WizardState {
     kbSimilarityThreshold: number;
 
     // Step 2: LLM Config
-    model: string;
     temperature: number;
     highPriority: boolean;
     whoFirst: 'agent' | 'user';
@@ -170,7 +169,6 @@ const INITIAL_STATE = {
     kbRetrievalChunks: 3,
     kbSimilarityThreshold: 0.7,
 
-    model: 'gemini-3.0-flash',
     temperature: 0,
     highPriority: false,
     whoFirst: 'agent' as const,

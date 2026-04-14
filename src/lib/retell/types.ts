@@ -84,7 +84,6 @@ export interface AgentPayload {
 
     // Retell Config
     kbFiles?: KBFile[];
-    model?: string;
     beginMessage?: string;
     temperature?: number;
     highPriority?: boolean;

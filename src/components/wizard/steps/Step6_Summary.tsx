@@ -18,7 +18,7 @@ export const Step6_Summary: React.FC = () => {
     const wizardData = useWizardStore();
     const {
         agentName, companyName, companyDescription,
-        model, voiceId, voiceName, voiceProvider, language,
+        voiceId, voiceName, voiceProvider, language,
         kbFiles,
         enableTransfer, transferDestinations,
         enableCalBooking,
@@ -257,15 +257,7 @@ export const Step6_Summary: React.FC = () => {
                 </div>
                 {openSections.llm && (
                     <div style={{ padding: '20px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-                            <div className="fg" style={{ marginBottom: 0 }}>
-                                <label className="lbl">Modelo IA</label>
-                                <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <i className="bi bi-stars" style={{ color: 'var(--azul)' }}></i>
-                                    {model === 'gemini-3.0-flash' ? 'Gemini 3.0 Flash' : 'GPT-4.1'}
-                                    {model === 'gemini-3.0-flash' && <span style={{ fontSize: '10px', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', marginLeft: 'auto' }}>Recomendado</span>}
-                                </div>
-                            </div>
+                        <div style={{ marginBottom: '14px' }}>
                             <div className="fg" style={{ marginBottom: 0 }}>
                                 <label className="lbl">Tono</label>
                                 <div style={{ padding: '10px 14px', background: 'var(--gris-bg)', border: '1px solid var(--gris-borde)', borderRadius: 'var(--r-md)', fontSize: '13px', fontWeight: 600 }}>

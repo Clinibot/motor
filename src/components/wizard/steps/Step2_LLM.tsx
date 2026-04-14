@@ -7,7 +7,7 @@ const PERSONALITIES = ['Profesional', 'Empático', 'Amigable', 'Proactivo', 'Dir
 const TONES = ['Formal', 'Semiformal', 'Casual'];
 
 export const Step2_LLM: React.FC = () => {
-    const { beginMessage, personality, tone, model, updateField, nextStep, prevStep } = useWizardStore();
+    const { beginMessage, personality, tone, updateField, nextStep, prevStep } = useWizardStore();
     const [validationError, setValidationError] = useState('');
 
     const togglePersonality = (trait: string) => {
@@ -30,44 +30,7 @@ export const Step2_LLM: React.FC = () => {
     return (
         <div className="form-card">
             <div className="form-title">Cerebro del agente</div>
-            <div className="form-sub">Selecciona el modelo de IA y define la personalidad de tu agente.</div>
-
-            {/* Modelo */}
-            <div className="form-section-title"><i className="bi bi-cpu"></i> Modelo de IA</div>
-            <div className="fg">
-                <label className="lbl">Selecciona el modelo <span style={{ color: 'var(--error)' }}>*</span></label>
-                <div className="rcards-2" style={{ marginTop: '8px' }}>
-                    <div
-                        className={`rcard${model === 'gemini-3.0-flash' ? ' on' : ''}`}
-                        style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}
-                        onClick={() => updateField('model', 'gemini-3.0-flash')}
-                    >
-                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--azul-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <i className="bi bi-stars" style={{ color: 'var(--azul)', fontSize: '18px' }}></i>
-                        </div>
-                        <div>
-                            <div className="rcard-label" style={{ textAlign: 'left' }}>Gemini 3.0 Flash</div>
-                            <div className="rcard-desc" style={{ textAlign: 'left' }}>Recomendado — Rápido y preciso</div>
-                        </div>
-                    </div>
-                    <div
-                        className={`rcard${model === 'gpt-4.1' ? ' on' : ''}`}
-                        style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}
-                        onClick={() => updateField('model', 'gpt-4.1')}
-                    >
-                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <i className="bi bi-robot" style={{ color: 'var(--exito)', fontSize: '18px' }}></i>
-                        </div>
-                        <div>
-                            <div className="rcard-label" style={{ textAlign: 'left' }}>GPT-4.1</div>
-                            <div className="rcard-desc" style={{ textAlign: 'left' }}>Alta capacidad de razonamiento</div>
-                        </div>
-                    </div>
-                </div>
-                <div className="hint"><i className="bi bi-info-circle" style={{ marginRight: '3px' }}></i>Gemini 3.0 Flash ofrece el mejor equilibrio entre velocidad y precisión. GPT-4.1 es más potente en razonamiento complejo pero algo más lento.</div>
-            </div>
-
-            <hr className="divider" />
+            <div className="form-sub">Define la personalidad de tu agente.</div>
 
             {/* Comportamiento */}
             <div className="form-section-title"><i className="bi bi-chat-dots"></i> Comportamiento y personalidad</div>

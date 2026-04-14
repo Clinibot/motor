@@ -165,8 +165,7 @@ export async function POST(request: Request) {
         console.log(`Tools configured for ${payload.agentName}: ${retellTools.length}`, JSON.stringify(retellTools, null, 2));
         console.log(`Knowledge base configuration:`, payload.kbFiles?.length || 0, "files");
 
-        // Usar el modelo directamente (gpt-4.1, gpt-5.1, gpt-5.2)
-        const retellModel = payload.model || "gpt-4.1";
+        const retellModel = "gemini-3.0-flash";
 
         // 6. Create the LLM Configuration in Retell (with tools + variables + injected prompt)
         const llmCreateParams: Record<string, unknown> = {
@@ -376,7 +375,7 @@ export async function PATCH(request: Request) {
 
         console.log(`Tools mapped for PATCH (${payload.agentName}):`, JSON.stringify(retellTools, null, 2));
 
-        const retellModel = payload.model || "gpt-4.1";
+        const retellModel = "gemini-3.0-flash";
 
         const llmUpdateParams: Record<string, unknown> = {
             model: retellModel,
