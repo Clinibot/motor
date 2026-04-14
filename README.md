@@ -142,7 +142,6 @@ Las voces están definidas en `src/store/wizardStore.ts` (constante `CURATED_VOI
 | Carolina | `11labs-UOIqAnmS11Reiei1Ytkc` | ElevenLabs (importar) |
 | MariCarmen | `11labs-YDDaC9XKjODs7hY78qEW` | ElevenLabs (importar) |
 | Sara Martin | `11labs-gD1IexrzCvsXPHUuT0s3` | ElevenLabs (importar) |
-| Manuel | `v2-manuel` | Retell nativo |
 | Santiago | `v2-santiago` | Retell nativo |
 
 ### Inglés
