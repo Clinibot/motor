@@ -508,6 +508,7 @@ export async function PATCH(request: Request) {
                         retellClient.phoneNumber.update(row.phone_number, {
                             inbound_agent_id: retellAgentId,   // re-pins to latest version on every update
                             inbound_webhook_url: webhookUrl,
+                            transport: 'UDP',                  // always force UDP (Netelip requirement)
                         })
                     )
                 );
