@@ -76,7 +76,7 @@ function buildRetellAgentParams(
         ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : null) as 'call-center' | null,
         ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' && payload.ambientSoundVolume !== undefined
             ? payload.ambientSoundVolume * 2
-            : null,
+            : undefined,
         normalize_for_speech: payload.normalizeForSpeech,
         post_call_analysis_data: postCallAnalysis.length > 0 ? postCallAnalysis : emptyAnalysisFallback,
         post_call_analysis_model: 'gemini-3.0-flash' as const,
