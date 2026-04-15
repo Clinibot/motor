@@ -1625,40 +1625,7 @@ body {
   transform: translateX(4px);
 }
 
-/* Admin Tabs */
-.adm-tabs-container {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--gris-borde);
-  padding: 0 4px;
-}
-
-.adm-tab {
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--gris-texto);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.adm-tab:hover {
-  color: var(--oscuro);
-  background: var(--gris-claro);
-  border-radius: 8px 8px 0 0;
-}
-
-.adm-tab.on {
-  color: var(--netelip-azul);
-  border-bottom-color: var(--netelip-azul);
-}
+/* Admin Tabs — definición única, ver "Administration System" más abajo */
 
 /* Utility classes for Admin Tables */
 .mono-key {
