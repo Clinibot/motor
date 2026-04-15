@@ -166,7 +166,6 @@ Todos los endpoints sensibles tienen rate limiting. La tabla `rate_limit_windows
 | `POST /api/retell/webhook` | 300 req | 1 min | `webhook:{workspaceId}` |
 | `POST /api/alerts/check-thresholds` | 1 req | 1 min | `alert:check:{workspaceId}` |
 | `POST /api/retell/sync-agents` | 5 req | 1 hora | `sync:agents:{workspaceId}` |
-| `POST /api/retell/voices/clone` | 5 req | 1 hora | `voice:clone:{workspaceId}` |
 
 ### Idempotencia distribuida (tabla `idempotency_keys`)
 
