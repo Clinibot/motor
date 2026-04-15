@@ -263,8 +263,8 @@ export default function HelpPage() {
           </div>`;
       }
       window.scrollTo(0, 0);
-      const mainView = document.querySelector('.main-view');
-      if (mainView) mainView.scrollTop = 0;
+      const content = document.querySelector('.dashboard-content');
+      if (content) content.scrollTop = 0;
     };
 
     w.showHelpHome = function() {

@@ -61,7 +61,7 @@ body {
 .app { display: flex; height: 100vh; overflow: hidden; }
 .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 .main { margin-left: 260px; flex: 1; height: 100vh; overflow-y: auto; }
-.main-view { flex: 1; margin-left: 260px; display: flex; flex-direction: column; overflow-y: auto; background: var(--slate-50); }
+.main-view { flex: 1; margin-left: 260px; display: flex; flex-direction: column; overflow: hidden; background: var(--slate-50); }
 
 /* Dashboard Sidebar */
 .sidebar {
@@ -1725,6 +1725,8 @@ body {
   padding: 40px;
   max-width: 1400px;
   width: 100%;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .card-premium {
