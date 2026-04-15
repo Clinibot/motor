@@ -200,7 +200,7 @@ const INITIAL_STATE = {
     reminderMaxCount: 1,
     ringDurationMs: 30000,
 
-    volume: 1.0,
+    volume: 0.6,
     enableAmbientSound: false,
     ambientSound: 'none',
     ambientSoundVolume: 0.2,
