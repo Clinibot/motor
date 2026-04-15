@@ -73,10 +73,10 @@ function buildRetellAgentParams(
         voice_temperature: !voiceId.startsWith('openai-') ? payload.voiceTemperature : undefined,
         // Wizard stores 0–1; Retell API accepts 0–2. Multiply by 2 to convert.
         volume: payload.volume !== undefined ? payload.volume * 2 : undefined,
-        ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : undefined) as 'call-center',
+        ambient_sound: (payload.enableAmbientSound && payload.ambientSound !== 'none' ? payload.ambientSound : null) as 'call-center' | null,
         ambient_sound_volume: payload.enableAmbientSound && payload.ambientSound !== 'none' && payload.ambientSoundVolume !== undefined
             ? payload.ambientSoundVolume * 2
-            : undefined,
+            : null,
         normalize_for_speech: payload.normalizeForSpeech,
         post_call_analysis_data: postCallAnalysis.length > 0 ? postCallAnalysis : emptyAnalysisFallback,
         post_call_analysis_model: 'gemini-3.0-flash' as const,
