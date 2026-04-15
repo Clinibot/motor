@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚠️ Alertas del sistema - ELIO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(0,141,203,0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255,80,80,0.12) 0%, transparent 50%);
+            animation: headerPulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes headerPulse {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .logo {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logo-text {
+            font-size: 3.5rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0,141,203,0.3);
+        }
+
+        .logo-waves {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .wave {
+            width: 2px;
+            background: #ffffff;
+            border-radius: 1px;
+            animation: waveAnimation 1.5s ease-in-out infinite alternate;
+        }
+
+        .w1 { height: 8px;  animation-delay: 0s; }
+        .w2 { height: 16px; animation-delay: 0.2s; }
+        .w3 { height: 12px; animation-delay: 0.4s; }
+        .w4 { height: 20px; animation-delay: 0.6s; }
+        .w5 { height: 14px; animation-delay: 0.8s; }
+        .w6 { height: 10px; animation-delay: 1s; }
+
+        @keyframes waveAnimation {
+            0%   { transform: scaleY(0.6); opacity: 0.7; }
+            100% { transform: scaleY(1);   opacity: 1; }
+        }
+
+        .header-badge {
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+            background: rgba(255,80,80,0.2);
+            border: 1px solid rgba(255,80,80,0.5);
+            color: #ff8080;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+        }
+
+        .header-title {
+            position: relative;
+            z-index: 2;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .header-subtitle {
+            position: relative;
+            z-index: 2;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.65);
+            font-weight: 300;
+        }
+
+        /* ─── CONTENT ─── */
+        .content {
+            padding: 40px 30px;
+        }
+
+        /* ─── ELIO INTRO ─── */
+        .elio-intro {
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            border-left: 4px solid #008dcb;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .elio-intro p {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .elio-intro p:last-child { margin-bottom: 0; }
+
+        .elio-intro .greeting {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 14px;
+        }
+
+        .elio-sign {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-top: 16px;
+        }
+
+        .elio-sign span {
+            color: #008dcb;
+        }
+
+        /* ─── META INFO ─── */
+        .meta-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .meta-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f3f5;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .meta-chip strong {
+            color: #1a1a1a;
+        }
+
+        /* ─── SECTION TITLE ─── */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── ALERT CARDS ─── */
+        .alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .alert-card {
+            border-radius: 10px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            border: 1.5px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Crítico — rojo */
+        .alert-critico {
+            background: #fff5f5;
+            border-color: #ffb3b3;
+        }
+
+        .alert-critico .alert-icon-wrap {
+            background: #ff4444;
+        }
+
+        .alert-critico .alert-type {
+            color: #cc0000;
+            background: #ffe0e0;
+        }
+
+        .alert-critico .alert-value {
+            color: #cc0000;
+        }
+
+        /* Advertencia — amarillo */
+        .alert-advertencia {
+            background: #fffdf0;
+            border-color: #ffe066;
+        }
+
+        .alert-advertencia .alert-icon-wrap {
+            background: #ffb700;
+        }
+
+        .alert-advertencia .alert-type {
+            color: #996600;
+            background: #fff3cc;
+        }
+
+        .alert-advertencia .alert-value {
+            color: #996600;
+        }
+
+        /* Info — azul */
+        .alert-info {
+            background: #f0f8ff;
+            border-color: #99d6f5;
+        }
+
+        .alert-info .alert-icon-wrap {
+            background: #008dcb;
+        }
+
+        .alert-info .alert-type {
+            color: #005f8a;
+            background: #d0edfa;
+        }
+
+        .alert-info .alert-value {
+            color: #005f8a;
+        }
+
+        .alert-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .alert-body {
+            flex: 1;
+        }
+
+        .alert-header-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .alert-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .alert-type {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .alert-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .alert-metrics {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .alert-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .alert-metric-label {
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .alert-value {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .alert-threshold {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .alert-client {
+            font-size: 0.85rem;
+            color: #444;
+            font-weight: 600;
+        }
+
+        /* ─── ACCIONES RECOMENDADAS ─── */
+        .actions-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%);
+            border-left: 4px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .actions-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .actions-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .action-num {
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ─── RETELL LINK ─── */
+        .retell-section {
+            text-align: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 10px;
+        }
+
+        .retell-section p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+        .retell-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #008dcb, #00c8ff);
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            background: #1a1a1a;
+            color: rgba(255,255,255,0.7);
+            padding: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            margin-bottom: 16px;
+        }
+
+        .footer-links a {
+            color: #008dcb;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+
+        .limit-note {
+            margin-top: 12px;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 600px) {
+            .email-container { border-radius: 0; }
+            .header { padding: 30px 20px; }
+            .logo-text { font-size: 2.5rem; }
+            .content { padding: 30px 20px; }
+            .meta-bar { flex-direction: column; }
+            .alert-metrics { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <span class="logo-text">elio</span>
+            <div class="logo-waves">
+                <div class="wave w1"></div>
+                <div class="wave w2"></div>
+                <div class="wave w3"></div>
+                <div class="wave w4"></div>
+                <div class="wave w5"></div>
+                <div class="wave w6"></div>
+            </div>
+        </div>
+        <div class="header-badge">Sistema de alertas</div>
+        <h1 class="header-title">Resumen de alertas activas</h1>
+        <p class="header-subtitle">Fábrica de Agentes IA</p>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- ELIO INTRO -->
+        <div class="elio-intro">
+            <p class="greeting">¡Hola, equipo de soporte!</p>
+            <p>
+                He detectado alertas activas en la Fábrica de Agentes IA que requieren vuestra atención.
+                Os las resumo para que podáis actuar antes de que el cliente se vea afectado.
+            </p>
+            <p>
+                Mi trabajo es supervisar el sistema para que los agentes de nuestros clientes funcionen sin interrupciones.
+                Cuando algo se sale de los umbrales definidos, os aviso de inmediato.
+            </p>
+            <p>
+                Revisad las alertas críticas primero.
+            </p>
+            <p class="elio-sign">
+                Un saludo,<br>
+                <span>ELIO</span> — Supervisor de la Fábrica de Agentes IA
+            </p>
+        </div>
+
+        <!-- META INFO -->
+        <div class="meta-bar">
+            <div class="meta-chip"><span><strong>Fecha:</strong> {{ $json.fecha_reporte }}</span></div>
+            <div class="meta-chip"><span><strong>Hora:</strong> {{ $json.hora_reporte }}</span></div>
+            <div class="meta-chip"><span><strong>Workspace Retell AI:</strong> {{ $json.workspace }}</span></div>
+            
+        </div>
+
+        <!-- ALERTS LIST -->
+        <div class="section-title">Alertas detectadas</div>
+        <div class="alerts-list">
+
+            <!-- ALERTA CRÍTICA: Errores de API -->
+            <div class="alert-card alert-critico">
+                <div class="alert-icon-wrap">API</div>
+                <div class="alert-body">
+                    <div class="alert-header-row">
+                        <span class="alert-name">Errores de API</span>
+                        <span class="alert-type">Crítico</span>
+                    </div>
+                    <p class="alert-description">{{ $json.alerta_api.descripcion }}</p>
+                    <div class="alert-metrics">
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Valor detectado</span>
+                            <span class="alert-value">{{ $json.alerta_api.valor }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Umbral configurado</span>
+                            <span class="alert-threshold">{{ $json.alerta_api.umbral }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Cliente afectado</span>
+                            <span class="alert-client">{{ $json.alerta_api.cliente }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERTA CRÍTICA: Fallos en transferencias -->
+            <div class="alert-card alert-critico">
+                <div class="alert-icon-wrap">SIP</div>
+                <div class="alert-body">
+                    <div class="alert-header-row">
+                        <span class="alert-name">Fallos en transferencias de llamada</span>
+                        <span class="alert-type">Crítico</span>
+                    </div>
+                    <p class="alert-description">{{ $json.alerta_transferencias.descripcion }}</p>
+                    <div class="alert-metrics">
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Valor detectado</span>
+                            <span class="alert-value">{{ $json.alerta_transferencias.valor }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Umbral configurado</span>
+                            <span class="alert-threshold">{{ $json.alerta_transferencias.umbral }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Cliente afectado</span>
+                            <span class="alert-client">{{ $json.alerta_transferencias.cliente }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERTA ADVERTENCIA: Fallos en funciones personalizadas -->
+            <div class="alert-card alert-advertencia">
+                <div class="alert-icon-wrap">FN</div>
+                <div class="alert-body">
+                    <div class="alert-header-row">
+                        <span class="alert-name">Fallos en funciones personalizadas</span>
+                        <span class="alert-type">Advertencia</span>
+                    </div>
+                    <p class="alert-description">{{ $json.alerta_funciones.descripcion }}</p>
+                    <div class="alert-metrics">
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Valor detectado</span>
+                            <span class="alert-value">{{ $json.alerta_funciones.valor }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Umbral configurado</span>
+                            <span class="alert-threshold">{{ $json.alerta_funciones.umbral }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Cliente afectado</span>
+                            <span class="alert-client">{{ $json.alerta_funciones.cliente }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERTA INFO: Concurrencia -->
+            <div class="alert-card alert-info">
+                <div class="alert-icon-wrap">CC</div>
+                <div class="alert-body">
+                    <div class="alert-header-row">
+                        <span class="alert-name">Pico de concurrencia</span>
+                        <span class="alert-type">Info</span>
+                    </div>
+                    <p class="alert-description">{{ $json.alerta_concurrencia.descripcion }}</p>
+                    <div class="alert-metrics">
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Valor detectado</span>
+                            <span class="alert-value">{{ $json.alerta_concurrencia.valor }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Umbral configurado</span>
+                            <span class="alert-threshold">{{ $json.alerta_concurrencia.umbral }}</span>
+                        </div>
+                        <div class="alert-metric">
+                            <span class="alert-metric-label">Ámbito</span>
+                            <span class="alert-client">{{ $json.alerta_concurrencia.ambito }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ACCIONES RECOMENDADAS -->
+        <div class="actions-section">
+            <div class="section-title" style="margin-bottom:0;">Acciones recomendadas</div>
+            <ul class="actions-list">
+                <li>
+                    <span class="action-num">1</span>
+                    <span>Revisar los <strong>errores de API</strong> en el panel de Retell AI e identificar si el fallo proviene de la integración o de un agente específico.</span>
+                </li>
+                <li>
+                    <span class="action-num">2</span>
+                    <span>Verificar la configuración de <strong>transferencias de llamada</strong> del agente afectado. Confirmar con el equipo de la Centralita Virtual si hay cambios en el SIP.</span>
+                </li>
+                <li>
+                    <span class="action-num">3</span>
+                    <span>Revisar los logs de <strong>funciones personalizadas</strong> para identificar la función fallida y notificar a Antonio si requiere cambios en el backend.</span>
+                </li>
+                <li>
+                    <span class="action-num">4</span>
+                    <span>Monitorizar la <strong>concurrencia</strong> durante las próximas horas. Si continúa al alza, valorar escalar límites con el equipo técnico.</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ACCESO A RETELL -->
+        <div class="retell-section">
+            <h3 style="font-size:1.1rem; font-weight:700; color:#1a1a1a; margin-bottom:10px;">Panel de alertas en Retell AI</h3>
+            <p>Accede directamente al historial completo de alertas y configura nuevas reglas desde el panel de Retell AI.</p>
+            <a href="https://app.retellai.com" class="retell-button">Abrir Retell AI →</a>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="https://elio.live">elio.live</a>
+            <a href="https://netelip.com">netelip.com</a>
+
+        </div>
+        <p>ELIO.LIVE — Fábrica de Agentes IA · Powered by netelip</p>
+    </div>
+</div>
+</body>
+</html>
