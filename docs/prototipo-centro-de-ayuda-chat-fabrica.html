@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayuda y soporte — Fábrica de Agentes IA</title>
+<style>
+:root {
+  --blue: #267ab0;
+  --blue-light: #3a9fd4;
+  --blue-dark: #1a5c8a;
+  --black: #0f1117;
+  --border: #e4e8ef;
+  --bg: #f5f7fa;
+  --bg-sidebar: #ffffff;
+  --white: #ffffff;
+  --text: #111827;
+  --text-soft: #6b7280;
+  --text-xsoft: #9ca3af;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --sidebar-w: 260px;
+  --topbar-h: 52px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 0 0;
+  z-index: 200;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 0;
+}
+
+.topbar-brand {
+  width: var(--sidebar-w);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-right: 1px solid var(--border);
+  height: 100%;
+}
+
+.brand-logo {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--blue);
+  letter-spacing: -0.3px;
+}
+
+.brand-sep { color: var(--border); font-size: 1.2rem; }
+
+.brand-product {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.topbar-search {
+  margin-left: 20px;
+  position: relative;
+  width: 280px;
+}
+
+.topbar-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-xsoft);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.topbar-search input {
+  width: 100%;
+  padding: 7px 12px 7px 32px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.83rem;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.topbar-search input:focus { border-color: var(--blue); background: white; }
+.topbar-search input::placeholder { color: var(--text-xsoft); }
+
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  display: none;
+  z-index: 300;
+  overflow: hidden;
+}
+.search-dropdown.open { display: block; }
+
+.search-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.search-item:last-child { border-bottom: none; }
+.search-item:hover { background: var(--bg); }
+.search-item-cat {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--blue);
+  background: rgba(38,122,176,0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.search-item-title { font-size: 0.855rem; font-weight: 500; color: var(--text); }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-btn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  padding: 6px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.topbar-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+  padding-bottom: 40px;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sidebar-section {
+  padding: 20px 16px 8px;
+}
+
+.sidebar-section-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-xsoft);
+  padding: 0 8px;
+  margin-bottom: 6px;
+}
+
+.sidebar-group {
+  margin-bottom: 6px;
+}
+
+.sidebar-group-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.15s;
+  user-select: none;
+  gap: 8px;
+}
+.sidebar-group-label:hover { background: var(--bg); color: var(--text); }
+.sidebar-group-label.active-group { color: var(--blue); }
+
+.sidebar-group-icon { font-size: 0.9rem; }
+
+.sidebar-group-chevron {
+  font-size: 0.7rem;
+  color: var(--text-xsoft);
+  transition: transform 0.2s;
+  margin-left: auto;
+}
+.sidebar-group.open .sidebar-group-chevron { transform: rotate(90deg); }
+
+.sidebar-items {
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 10px;
+  margin-top: 2px;
+}
+.sidebar-group.open .sidebar-items { display: flex; }
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.1s;
+  border-left: 2px solid transparent;
+  line-height: 1.4;
+}
+.sidebar-item:hover { background: var(--bg); color: var(--text); }
+.sidebar-item.active {
+  color: var(--blue);
+  background: rgba(38,122,176,0.07);
+  border-left-color: var(--blue);
+  font-weight: 600;
+}
+
+/* ── MAIN ── */
+.main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+  display: flex;
+}
+
+.content-area {
+  flex: 1;
+  max-width: 780px;
+  padding: 40px 48px 80px;
+}
+
+/* ── HOME ── */
+.home-hero {
+  margin-bottom: 36px;
+}
+
+.home-breadcrumb {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.home-breadcrumb span { cursor: pointer; }
+.home-breadcrumb span:hover { color: var(--blue); }
+
+.home-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.home-subtitle {
+  font-size: 0.97rem;
+  color: var(--text-soft);
+  margin-bottom: 28px;
+}
+
+.home-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.home-card {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.home-card:hover { border-color: var(--blue); box-shadow: 0 4px 16px rgba(38,122,176,0.1); transform: translateY(-1px); }
+
+.home-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(38,122,176,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--blue);
+  margin-bottom: 12px;
+}
+
+.home-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.home-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+/* ── ARTICLE ── */
+.article-header {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.article-breadcrumb {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.article-breadcrumb span { cursor: pointer; }
+.article-breadcrumb span:hover { color: var(--blue); }
+.article-breadcrumb .sep { color: var(--border); cursor: default; }
+.article-breadcrumb .sep:hover { color: var(--border); }
+
+.article-cat-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--blue);
+  background: rgba(38,122,176,0.1);
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.article-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.4px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.article-meta {
+  font-size: 0.78rem;
+  color: var(--text-xsoft);
+}
+
+/* Article body */
+.article-body h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 28px 0 10px;
+  padding-top: 4px;
+}
+
+.article-body h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 20px 0 8px;
+}
+
+.article-body p {
+  font-size: 0.92rem;
+  color: #374151;
+  line-height: 1.8;
+  margin-bottom: 14px;
+}
+
+.article-body ul, .article-body ol {
+  padding-left: 22px;
+  margin-bottom: 16px;
+}
+
+.article-body li {
+  font-size: 0.92rem;
+  color: #374151;
+  line-height: 1.75;
+  margin-bottom: 5px;
+}
+
+.article-body .callout {
+  background: rgba(38,122,176,0.06);
+  border: 1px solid rgba(38,122,176,0.2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 16px 0;
+  font-size: 0.875rem;
+  color: #1e4e72;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.6;
+}
+
+.callout-icon { flex-shrink: 0; font-size: 0.9rem; margin-top: 1px; }
+
+.article-body .callout-warn {
+  background: rgba(245,158,11,0.07);
+  border-color: rgba(245,158,11,0.3);
+  color: #78350f;
+}
+
+.article-body .step-list {
+  list-style: none;
+  padding: 0;
+  counter-reset: steps;
+  margin-bottom: 16px;
+}
+
+.article-body .step-list li {
+  counter-increment: steps;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  font-size: 0.92rem;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.article-body .step-list li::before {
+  content: counter(steps);
+  min-width: 24px;
+  height: 24px;
+  background: var(--blue);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+/* Article footer nav */
+.article-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.article-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.article-footer-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── TOC (right column) ── */
+.toc {
+  width: 200px;
+  flex-shrink: 0;
+  padding: 40px 0 40px 32px;
+  position: sticky;
+  top: var(--topbar-h);
+  height: fit-content;
+  max-height: calc(100vh - var(--topbar-h));
+  overflow-y: auto;
+  display: none;
+}
+.toc.visible { display: block; }
+
+.toc-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-xsoft);
+  margin-bottom: 10px;
+}
+
+.toc-item {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  padding: 4px 0 4px 10px;
+  border-left: 2px solid var(--border);
+  margin-bottom: 2px;
+  transition: all 0.1s;
+  line-height: 1.4;
+}
+.toc-item:hover { color: var(--blue); border-left-color: var(--blue); }
+.toc-item.active { color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
+
+/* ── CHATBOT ── */
+.chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 500;
+}
+
+.chat-fab-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f1117, #1a2035);
+  border: 2px solid rgba(38,122,176,0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+  gap: 3px;
+}
+.chat-fab-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(0,0,0,0.28); }
+
+.fab-logo { font-size: 1.1rem; font-weight: 200; letter-spacing: -0.5px; color: white; }
+
+.fab-waves { display: flex; gap: 1.5px; align-items: center; }
+.fab-wave { width: 1.5px; background: white; border-radius: 1px; animation: wv 1.5s ease-in-out infinite alternate; }
+.fv1 { height: 4px; animation-delay: 0s; }
+.fv2 { height: 8px; animation-delay: 0.2s; }
+.fv3 { height: 6px; animation-delay: 0.4s; }
+.fv4 { height: 10px; animation-delay: 0.6s; }
+.fv5 { height: 5px; animation-delay: 0.8s; }
+@keyframes wv { 0%{transform:scaleY(0.5);opacity:0.6} 100%{transform:scaleY(1);opacity:1} }
+
+.fab-badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 14px; height: 14px;
+  background: var(--green);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+
+/* Chat window */
+.chat-window {
+  position: absolute;
+  bottom: 66px;
+  right: 0;
+  width: 340px;
+  height: 500px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15), 0 0 0 1px var(--border);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.chat-window.open { display: flex; }
+
+.chat-head {
+  background: linear-gradient(135deg, #0f1117, #1a2035);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  flex-shrink: 0;
+}
+.chat-head::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: radial-gradient(circle at 15% 50%, rgba(38,122,176,0.2) 0%, transparent 60%);
+}
+
+.chat-head-logo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chat-head-logo-txt { font-size: 1.1rem; font-weight: 200; letter-spacing: -0.5px; color: white; }
+
+.chat-head-info { position: relative; flex: 1; }
+.chat-head-name { font-size: 0.88rem; font-weight: 700; color: white; line-height: 1.2; }
+.chat-head-status { font-size: 0.7rem; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 4px; }
+.status-dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; }
+
+.chat-close-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.chat-close-btn:hover { color: white; }
+
+.chat-msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+.chat-msgs::-webkit-scrollbar { width: 3px; }
+.chat-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.cm { display: flex; gap: 7px; align-items: flex-end; animation: cmIn 0.18s ease-out; }
+@keyframes cmIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.cm.user { flex-direction: row-reverse; }
+
+.cm-av {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f1117, #1a2035);
+  border: 1.5px solid rgba(38,122,176,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 200;
+  color: white;
+  letter-spacing: -0.3px;
+  flex-shrink: 0;
+}
+
+.cm-bubble {
+  max-width: 240px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  font-size: 0.835rem;
+  line-height: 1.55;
+}
+.cm.bot .cm-bubble { background: var(--bg); color: var(--text); border-bottom-left-radius: 3px; }
+.cm.user .cm-bubble { background: var(--blue); color: white; border-bottom-right-radius: 3px; }
+
+.cm-suggestions { display: flex; flex-direction: column; gap: 5px; margin-top: 7px; }
+.cm-sug {
+  font-size: 0.775rem;
+  color: var(--blue);
+  background: rgba(38,122,176,0.07);
+  border: 1px solid rgba(38,122,176,0.18);
+  border-radius: 6px;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: background 0.1s;
+  text-align: left;
+}
+.cm-sug:hover { background: rgba(38,122,176,0.14); }
+
+.typing-wrap { display:flex; gap:4px; align-items:center; padding:9px 12px; background:var(--bg); border-radius:11px; border-bottom-left-radius:3px; }
+.typing-dot { width:5px; height:5px; background:var(--text-xsoft); border-radius:50%; animation:td 1.2s ease-in-out infinite; }
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes td { 0%,60%,100%{transform:translateY(0);opacity:0.4} 30%{transform:translateY(-4px);opacity:1} }
+
+.chat-foot {
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.chat-inp {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 11px;
+  font-size: 0.835rem;
+  outline: none;
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+.chat-inp:focus { border-color: var(--blue); background: white; }
+.chat-inp::placeholder { color: var(--text-xsoft); }
+
+.chat-snd {
+  width: 34px; height: 34px;
+  border-radius: 7px;
+  background: var(--blue);
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.chat-snd:hover { background: var(--blue-dark); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 220px; }
+  .content-area { padding: 32px 28px 60px; }
+  .toc { display: none !important; }
+  .home-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .topbar-brand { width: auto; }
+  .topbar-search { width: 180px; }
+  .content-area { padding: 24px 20px 60px; }
+  .chat-window { width: 300px; right: -4px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-brand">
+      <span class="brand-logo">netelip</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-product">Fábrica de Agentes IA</span>
+    </div>
+    <div class="topbar-search">
+      <span class="topbar-search-icon">&#9906;</span>
+      <input type="text" id="searchInput" placeholder="Buscar en la documentación..." autocomplete="off" oninput="onSearch(this.value)" onblur="setTimeout(closeSearch,180)">
+      <div class="search-dropdown" id="searchDropdown"></div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="topbar-btn" onclick="alert('Redirigiendo al dashboard...')">&#8592; Dashboard</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Ayuda y soporte</div>
+
+    <!-- Primeros pasos -->
+    <div class="sidebar-group open" id="grp-primeros">
+      <div class="sidebar-group-label active-group" onclick="toggleGroup('grp-primeros')">
+        <span class="sidebar-group-icon">&#9654;</span>
+        Primeros pasos
+        <span class="sidebar-group-chevron">&#9658;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" onclick="showArticle('crear-agente',this)">Crear tu primer agente</div>
+        <div class="sidebar-item" onclick="showArticle('que-es-fabrica',this)">Qué es la Fábrica de Agentes IA</div>
+        <div class="sidebar-item" onclick="showArticle('tipos-agente',this)">Tipos de agente disponibles</div>
+        <div class="sidebar-item" onclick="showArticle('requisitos',this)">Requisitos previos</div>
+      </div>
+    </div>
+
+    <!-- Configurar agente -->
+    <div class="sidebar-group" id="grp-config">
+      <div class="sidebar-group-label" onclick="toggleGroup('grp-config')">
+        <span class="sidebar-group-icon">&#9881;</span>
+        Configurar el agente
+        <span class="sidebar-group-chevron">&#9658;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" onclick="showArticle('wizard-paso1',this)">Paso 1 — Información básica</div>
+        <div class="sidebar-item" onclick="showArticle('wizard-llm',this)">Paso 2 — Modelo de IA</div>
+        <div class="sidebar-item" onclick="showArticle('wizard-voz',this)">Paso 4 — Selección de voz</div>
+        <div class="sidebar-item" onclick="showArticle('wizard-herramientas',this)">Paso 8 — Herramientas</div>
+        <div class="sidebar-item" onclick="showArticle('prompt-generador',this)">Generador de prompts</div>
+        <div class="sidebar-item" onclick="showArticle('gdpr',this)">Cumplimiento RGPD y LOPD</div>
+      </div>
+    </div>
+
+    <!-- Mis números -->
+    <div class="sidebar-group" id="grp-numeros">
+      <div class="sidebar-group-label" onclick="toggleGroup('grp-numeros')">
+        <span class="sidebar-group-icon">&#9742;</span>
+        Mis números
+        <span class="sidebar-group-chevron">&#9658;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" onclick="showArticle('asignar-numero',this)">Asignar número a tu agente</div>
+        <div class="sidebar-item" onclick="showArticle('sip-trunk',this)">Conectar mediante SIP</div>
+        <div class="sidebar-item" onclick="showArticle('numero-apodo',this)">Gestionar y renombrar números</div>
+      </div>
+    </div>
+
+    <!-- Llamadas -->
+    <div class="sidebar-group" id="grp-llamadas">
+      <div class="sidebar-group-label" onclick="toggleGroup('grp-llamadas')">
+        <span class="sidebar-group-icon">&#8646;</span>
+        Llamadas
+        <span class="sidebar-group-chevron">&#9658;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" onclick="showArticle('llamadas-entrantes',this)">Llamadas entrantes</div>
+        <div class="sidebar-item" onclick="showArticle('llamadas-salientes',this)">Llamadas salientes</div>
+        <div class="sidebar-item" onclick="showArticle('transferencia',this)">Transferencia de llamadas</div>
+        <div class="sidebar-item" onclick="showArticle('grabacion',this)">Grabación y transcripción</div>
+      </div>
+    </div>
+
+    <!-- Analítica -->
+    <div class="sidebar-group" id="grp-analitica">
+      <div class="sidebar-group-label" onclick="toggleGroup('grp-analitica')">
+        <span class="sidebar-group-icon">&#9656;</span>
+        Analítica y métricas
+        <span class="sidebar-group-chevron">&#9658;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" onclick="showArticle('dashboard-metricas',this)">Dashboard de métricas</div>
+        <div class="sidebar-item" onclick="showArticle('tasa-exito',this)">Tasa de éxito de llamadas</div>
+        <div class="sidebar-item" onclick="showArticle('sentimiento',this)">Análisis de sentimiento</div>
+        <div class="sidebar-item" onclick="showArticle('alertas-cliente',this)">Alertas y notificaciones</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Soporte -->
+  <div class="sidebar-section" style="margin-top:8px; padding-top:16px; border-top:1px solid var(--border);">
+    <div class="sidebar-section-title">Soporte</div>
+    <div class="sidebar-item" style="gap:6px;" onclick="alert('soporte@netelip.com')">
+      &#9993; Contactar con soporte
+    </div>
+  </div>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="content-area" id="contentArea">
+
+    <!-- HOME -->
+    <div id="homeView">
+      <div class="home-hero">
+        <div class="home-breadcrumb">
+          <span>Fábrica de Agentes IA</span>
+          <span class="sep">›</span>
+          <span style="color:var(--text); cursor:default;">Ayuda y soporte</span>
+        </div>
+        <h1 class="home-title">¿En qué podemos ayudarte?</h1>
+        <p class="home-subtitle">Encuentra respuestas rápidas o habla directamente con Elio.</p>
+      </div>
+
+      <div class="home-cards">
+        <div class="home-card" onclick="openGroup('grp-primeros');showArticle('crear-agente')">
+          <div class="home-card-icon">&#9654;</div>
+          <div class="home-card-title">Primeros pasos</div>
+          <div class="home-card-desc">Crea tu primer agente y empieza a gestionar llamadas en minutos.</div>
+        </div>
+        <div class="home-card" onclick="openGroup('grp-config');showArticle('wizard-paso1')">
+          <div class="home-card-icon">&#9881;</div>
+          <div class="home-card-title">Configurar el agente</div>
+          <div class="home-card-desc">Guía completa de los 9 pasos del asistente de configuración.</div>
+        </div>
+        <div class="home-card" onclick="openGroup('grp-numeros');showArticle('asignar-numero')">
+          <div class="home-card-icon">&#9742;</div>
+          <div class="home-card-title">Mis números</div>
+          <div class="home-card-desc">Asigna y gestiona los números de teléfono de tus agentes.</div>
+        </div>
+        <div class="home-card" onclick="openGroup('grp-llamadas');showArticle('llamadas-entrantes')">
+          <div class="home-card-icon">&#8646;</div>
+          <div class="home-card-title">Llamadas</div>
+          <div class="home-card-desc">Entrantes, salientes, transferencias y grabaciones.</div>
+        </div>
+        <div class="home-card" onclick="openGroup('grp-analitica');showArticle('dashboard-metricas')">
+          <div class="home-card-icon">&#9656;</div>
+          <div class="home-card-title">Analítica y métricas</div>
+          <div class="home-card-desc">Entiende el rendimiento de tus agentes con datos reales.</div>
+        </div>
+        <div class="home-card" onclick="openChat()">
+          <div class="home-card-icon" style="background:rgba(15,17,23,0.08);color:#0f1117;">elio</div>
+          <div class="home-card-title">Hablar con Elio</div>
+          <div class="home-card-desc">¿No encuentras lo que buscas? Elio te responde al instante.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARTICLE VIEW -->
+    <div id="articleView" style="display:none;">
+      <div id="articleContent"></div>
+    </div>
+
+  </div>
+
+  <!-- TOC -->
+  <div class="toc" id="tocPanel">
+    <div class="toc-title">En esta página</div>
+    <div id="tocItems"></div>
+  </div>
+</div>
+
+<!-- CHATBOT -->
+<div class="chat-fab">
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-head">
+      <div class="chat-head-logo">
+        <span class="chat-head-logo-txt">elio</span>
+        <div class="fab-waves" style="gap:1.5px;">
+          <div class="fab-wave fv1"></div><div class="fab-wave fv2"></div>
+          <div class="fab-wave fv3"></div><div class="fab-wave fv4"></div>
+          <div class="fab-wave fv5"></div>
+        </div>
+      </div>
+      <div class="chat-head-info">
+        <div class="chat-head-name">Elio — Asistente de ayuda</div>
+        <div class="chat-head-status"><span class="status-dot"></span> Disponible ahora</div>
+      </div>
+      <button class="chat-close-btn" onclick="toggleChat()">&#10005;</button>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="cm bot">
+        <div class="cm-av">elio</div>
+        <div>
+          <div class="cm-bubble">¡Hola! Soy Elio. ¿En qué puedo ayudarte hoy?</div>
+          <div class="cm-suggestions">
+            <button class="cm-sug" onclick="askElio('¿Cómo creo mi primer agente?')">¿Cómo creo mi primer agente?</button>
+            <button class="cm-sug" onclick="askElio('¿Cómo asigno un número de teléfono?')">¿Cómo asigno un número?</button>
+            <button class="cm-sug" onclick="askElio('¿Qué métricas puedo ver?')">¿Qué métricas puedo ver?</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-foot">
+      <input class="chat-inp" id="chatInp" type="text" placeholder="Escribe tu pregunta..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-snd" onclick="sendChat()">&#8250;</button>
+    </div>
+  </div>
+
+  <button class="chat-fab-btn" onclick="toggleChat()" id="chatFabBtn">
+    <span class="fab-logo">elio</span>
+    <div class="fab-waves">
+      <div class="fab-wave fv1"></div><div class="fab-wave fv2"></div>
+      <div class="fab-wave fv3"></div><div class="fab-wave fv4"></div>
+      <div class="fab-wave fv5"></div>
+    </div>
+    <span class="fab-badge"></span>
+  </button>
+</div>
+
+<script>
+// ── ARTICLES ──
+const articles = {
+  'crear-agente': { cat:'Primeros pasos', title:'Crear tu primer agente', updated:'18 mar 2026',
+    body:`<p>Crear tu primer agente en la Fábrica de Agentes IA es un proceso guiado paso a paso. El asistente de configuración te irá pidiendo la información necesaria para que tu agente esté listo en minutos.</p>
+    <h2>Antes de empezar</h2><p>Asegúrate de tener a mano:</p><ul><li>El nombre que quieres darle a tu agente</li><li>El nombre de tu empresa</li><li>Una descripción breve de para qué lo vas a usar</li><li>El número de teléfono asignado (si ya tienes uno)</li></ul>
+    <h2>Pasos para crear el agente</h2><ol class="step-list"><li>Desde el dashboard principal, haz clic en <strong>+ Crear nuevo agente</strong>.</li><li>Rellena la información básica: nombre del agente, empresa y sector.</li><li>Selecciona el modelo de IA y configura el comportamiento de la conversación.</li><li>Elige la voz que usará tu agente en las llamadas.</li><li>Configura los tiempos de respuesta y las herramientas adicionales.</li><li>Revisa el resumen y haz clic en <strong>Crear agente</strong>.</li></ol>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Una vez creado, tu agente estará listo para recibir llamadas si tienes un número asignado. Puedes probarlo directamente desde el panel.</span></div>
+    <h2>¿Y si me equivoco en algo?</h2><p>Puedes editar la configuración de tu agente en cualquier momento desde <strong>Mis agentes IA</strong> en el menú lateral.</p>`},
+
+  'que-es-fabrica': { cat:'Primeros pasos', title:'Qué es la Fábrica de Agentes IA', updated:'15 mar 2026',
+    body:`<p>La <strong>Fábrica de Agentes IA</strong> es una plataforma de netelip que te permite crear, configurar y gestionar agentes de voz inteligentes para tu negocio, sin necesidad de conocimientos técnicos.</p>
+    <h2>¿Qué puede hacer un agente?</h2><ul><li>Atender llamadas entrantes de forma automática</li><li>Gestionar citas y reservas sin intervención humana</li><li>Transferir llamadas al equipo correcto según el contexto</li><li>Recopilar información del cliente y enviarte un resumen por email</li><li>Funcionar 24/7 sin interrupciones</li></ul>
+    <h2>¿Cómo se integra con mi empresa?</h2><p>Los agentes se conectan a través de la infraestructura de telefonía de netelip. Solo necesitas asignarle un número de teléfono y el agente empezará a gestionar las llamadas de forma inmediata.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>La plataforma está diseñada para pymes españolas y latinoamericanas. Todos los agentes cumplen con la normativa RGPD y LOPD.</span></div>`},
+
+  'tipos-agente': { cat:'Primeros pasos', title:'Tipos de agente disponibles', updated:'15 mar 2026',
+    body:`<p>La Fábrica de Agentes IA ofrece tres tipos de agente, cada uno optimizado para un caso de uso específico.</p>
+    <h2>Transferencia de llamadas</h2><p>Ideal para empresas que necesitan un primer filtro inteligente. El agente atiende la llamada, entiende qué necesita el cliente y lo deriva al departamento o persona adecuada.</p>
+    <h2>Agendamiento de citas</h2><p>Perfecto para clínicas, talleres, despachos o cualquier negocio que trabaje con citas. El agente consulta la disponibilidad en tu calendario y reserva la cita automáticamente.</p>
+    <h2>Atención al cliente</h2><p>Para responder preguntas frecuentes, dar información sobre productos o servicios y gestionar incidencias básicas sin intervención humana.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Puedes crear múltiples agentes con diferentes funciones y asignarlos a distintos números de teléfono.</span></div>`},
+
+  'requisitos': { cat:'Primeros pasos', title:'Requisitos previos para empezar', updated:'14 mar 2026',
+    body:`<p>Para empezar a usar la Fábrica de Agentes IA, necesitas cumplir con estos requisitos básicos.</p>
+    <h2>Cuenta netelip activa</h2><p>La Fábrica de Agentes IA es un servicio de netelip. Necesitas tener una cuenta activa y haber contratado el servicio con tu gestor de netelip.</p>
+    <h2>Saldo en tu cuenta</h2><p>Los agentes consumen saldo de tu cuenta netelip por cada minuto de llamada. Asegúrate de tener saldo suficiente antes de activar tu agente.</p>
+    <h2>Número de teléfono</h2><p>Necesitas al menos un número de teléfono asignado para que tu agente pueda recibir o realizar llamadas. Puedes usar números existentes de tu Centralita Virtual o solicitar uno nuevo a netelip.</p>`},
+
+  'wizard-paso1': { cat:'Configurar el agente', title:'Paso 1 — Información básica', updated:'18 mar 2026',
+    body:`<p>El primer paso del asistente de configuración es donde defines la identidad de tu agente. Esta información se usará en todas sus interacciones con clientes.</p>
+    <h2>Nombre del agente</h2><p>Elige un nombre natural para tu agente. Este nombre aparecerá en las llamadas cuando el agente se presente. Algunos ejemplos: <em>Sofía, Carlos, Laura, Marta</em>.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Elige un nombre que encaje con la imagen de tu empresa. Un nombre amigable genera más confianza en los clientes.</span></div>
+    <h2>Nombre de tu empresa</h2><p>Este dato se incluirá automáticamente en el prompt del agente para identificar a tu empresa durante la conversación.</p>
+    <h2>Tipo de agente</h2><p>Selecciona el propósito principal: <strong>Transferencia de llamadas</strong>, <strong>Agendamiento de citas</strong> o <strong>Atención al cliente</strong>.</p>
+    <div class="callout callout-warn"><span class="callout-icon">&#9888;</span><span>El tipo de agente define las herramientas disponibles en los pasos siguientes. Puedes cambiarlo más adelante si tus necesidades cambian.</span></div>`},
+
+  'wizard-llm': { cat:'Configurar el agente', title:'Paso 2 — Modelo de IA y comportamiento', updated:'18 mar 2026',
+    body:`<p>En este paso configuras el cerebro de tu agente: qué modelo de IA usa y cómo arranca las conversaciones.</p>
+    <h2>Modelo de IA</h2><p>Por defecto se recomienda <strong>Gemini 3.0 Flash</strong>, que ofrece el mejor equilibrio entre calidad y velocidad de respuesta. También puedes elegir modelos de OpenAI o Claude.</p>
+    <h2>Temperature</h2><p>Controla la variedad de las respuestas. Un valor de <strong>0</strong> hace que el agente sea más predecible y consistente. Un valor más alto genera respuestas más variadas.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Para agentes de atención al cliente o transferencia, recomendamos un valor entre 0 y 0.3 para mantener coherencia en las respuestas.</span></div>
+    <h2>¿Quién habla primero?</h2><ul><li><strong>Agente habla primero</strong> — El agente se presenta nada más coger la llamada. Recomendado para la mayoría de casos.</li><li><strong>Usuario habla primero</strong> — El agente espera. Útil para líneas donde el cliente ya sabe a quién llama.</li></ul>
+    <h2>Mensaje de inicio</h2><p>Es lo primero que dice el agente al responder. Debe incluir la presentación, el nombre de tu empresa y el aviso de grabación (obligatorio por LOPD).</p>`},
+
+  'wizard-voz': { cat:'Configurar el agente', title:'Paso 4 — Selección de voz', updated:'16 mar 2026',
+    body:`<p>La voz es uno de los elementos más importantes de la experiencia de tu agente. En este paso seleccionas la voz que usará en todas las llamadas.</p>
+    <h2>Voces disponibles</h2><p>Puedes elegir entre una amplia selección de voces en español de España y español latinoamericano, tanto masculinas como femeninas.</p>
+    <h2>Previsualizar una voz</h2><p>Antes de seleccionarla definitivamente, puedes escuchar una muestra de cada voz directamente desde el panel.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>La voz que elijas debe encajar con la identidad de tu empresa. Una voz cercana y natural mejora significativamente la experiencia del cliente.</span></div>`},
+
+  'wizard-herramientas': { cat:'Configurar el agente', title:'Paso 8 — Herramientas e integraciones', updated:'17 mar 2026',
+    body:`<p>Las herramientas amplían las capacidades de tu agente más allá de la conversación básica.</p>
+    <h2>Herramientas disponibles</h2><ul><li><strong>Transferencia de llamadas</strong> — Configura a qué número o extensión deriva el agente las llamadas.</li><li><strong>Agendamiento de citas</strong> — Integración con Cal.com para reservar citas en tu calendario.</li><li><strong>Recopilación de datos</strong> — El agente recopila información del cliente y te la envía por email al finalizar la llamada.</li></ul>
+    <div class="callout callout-warn"><span class="callout-icon">&#9888;</span><span>Activa solo las herramientas que realmente necesites. Demasiadas herramientas activas pueden ralentizar las respuestas del agente.</span></div>`},
+
+  'prompt-generador': { cat:'Configurar el agente', title:'Generador de prompts', updated:'18 mar 2026',
+    body:`<p>El generador de prompts crea automáticamente el prompt del agente a partir de la información que introduces en el asistente de configuración.</p>
+    <h2>¿Qué es un prompt?</h2><p>El prompt es el conjunto de instrucciones que le dice a la IA cómo debe comportarse durante las llamadas: la personalidad del agente, su objetivo, cómo debe responder y qué no debe hacer.</p>
+    <h2>¿Cómo se genera?</h2><p>El sistema toma los datos que introduces en el wizard y los combina con una plantilla base optimizada para llamadas de voz. El resultado es un prompt coherente y listo para usar.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>El prompt base está construido sobre una estructura probada. Los parámetros que introduces se integran de forma inteligente sin romper la coherencia.</span></div>
+    <h2>¿Puedo editarlo manualmente?</h2><p>Sí. Una vez generado, puedes revisar y ajustar el prompt desde la configuración del agente. Recomendamos hacer cambios pequeños y probar el agente después de cada modificación.</p>`},
+
+  'gdpr': { cat:'Configurar el agente', title:'Cumplimiento RGPD y LOPD', updated:'15 mar 2026',
+    body:`<p>Todos los agentes creados en la Fábrica de Agentes IA están diseñados para cumplir con la normativa española de protección de datos (LOPD) y el Reglamento General de Protección de Datos europeo (RGPD).</p>
+    <h2>Obligaciones legales</h2><ol class="step-list"><li><strong>Identificación como IA</strong> — El agente debe identificarse al inicio de la llamada como un sistema de inteligencia artificial, no como una persona humana.</li><li><strong>Aviso de grabación</strong> — Si grabas las llamadas, debes informar al interlocutor al inicio de la conversación.</li></ol>
+    <h2>¿Cómo lo gestiona la plataforma?</h2><p>El generador de prompts incluye automáticamente ambas declaraciones en el mensaje de inicio.</p>
+    <div class="callout callout-warn"><span class="callout-icon">&#9888;</span><span>No elimines ni modifiques estas declaraciones del mensaje de inicio. Hacerlo podría implicar un incumplimiento legal.</span></div>`},
+
+  'asignar-numero': { cat:'Mis números', title:'Asignar un número a tu agente', updated:'16 mar 2026',
+    body:`<p>Para que tu agente pueda recibir o realizar llamadas, necesita tener asignado un número de teléfono. Puedes gestionar tus números desde la sección <strong>Mis números</strong> en el menú lateral.</p>
+    <h2>Asignar un número existente</h2><ol class="step-list"><li>Ve a <strong>Mis números</strong> en el panel lateral.</li><li>Selecciona el número que quieres configurar.</li><li>En el campo <strong>Agente entrante</strong>, elige el agente que gestionará las llamadas recibidas.</li><li>Si también realizas llamadas salientes, configura el <strong>Agente saliente</strong>.</li><li>Guarda los cambios.</li></ol>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Una vez asignado el número, tu agente empezará a gestionar las llamadas entrantes de forma inmediata.</span></div>
+    <h2>¿No tienes número todavía?</h2><p>Si aún no tienes un número configurado, contacta con el equipo de netelip para que te asignen uno a través de tu Centralita Virtual.</p>`},
+
+  'sip-trunk': { cat:'Mis números', title:'Conectar mediante SIP', updated:'14 mar 2026',
+    body:`<p>La Fábrica de Agentes IA se integra con la infraestructura de telefonía de netelip a través de SIP, lo que permite conectar tu agente con la Centralita Virtual existente.</p>
+    <h2>¿Qué es la conexión por SIP?</h2><p>El SIP es el protocolo estándar de comunicaciones de voz sobre IP. En lugar de usar un número nuevo, puedes usar tu numeración actual de netelip y redirigir las llamadas a tu agente de IA.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Esta integración la gestiona el equipo técnico de netelip. Si necesitas configurarla, contacta con soporte.</span></div>
+    <h2>Flujo de una llamada con SIP</h2><ol class="step-list"><li>El cliente llama a tu número de netelip.</li><li>La Centralita Virtual enruta la llamada hacia el agente de IA.</li><li>El agente gestiona la conversación.</li><li>Si es necesario, transfiere la llamada a un agente humano o extensión.</li></ol>
+    <div class="callout callout-warn"><span class="callout-icon">&#9888;</span><span>La transferencia a extensiones internas requiere coordinación con el equipo técnico de netelip.</span></div>`},
+
+  'numero-apodo': { cat:'Mis números', title:'Gestionar y renombrar números', updated:'15 mar 2026',
+    body:`<p>Desde la sección <strong>Mis números</strong> puedes ver todos los números asignados a tu cuenta y gestionar su configuración.</p>
+    <h2>Renombrar un número</h2><ol class="step-list"><li>Ve a <strong>Mis números</strong> en el menú lateral.</li><li>Haz clic en el número que quieres renombrar.</li><li>Edita el campo <strong>Apodo</strong> y guarda los cambios.</li></ol>
+    <h2>Cambiar el agente asignado</h2><p>Puedes cambiar en cualquier momento qué agente gestiona un número. El cambio es inmediato: la próxima llamada que recibas ya será gestionada por el nuevo agente.</p>`},
+
+  'llamadas-entrantes': { cat:'Llamadas', title:'Llamadas entrantes', updated:'17 mar 2026',
+    body:`<p>Las llamadas entrantes son aquellas que recibe tu agente de tus clientes. Una vez que tienes un número asignado y un agente configurado, tu agente empieza a atender llamadas automáticamente.</p>
+    <h2>¿Cómo sabe el agente qué hacer?</h2><p>El agente sigue el comportamiento definido en el asistente de configuración: el prompt, el tipo de agente, el mensaje de inicio y las herramientas activadas.</p>
+    <h2>Horarios de atención</h2><p>Los agentes funcionan 24/7 por defecto. Si necesitas restringir el horario, puedes hacerlo desde la configuración del agente en el paso de <strong>Información de la empresa</strong>.</p>
+    <h2>Probar tu agente</h2><p>Una vez configurado, la mejor forma de probarlo es hacer una llamada real al número asignado. También puedes usar la herramienta de prueba en el panel para simular una conversación.</p>`},
+
+  'llamadas-salientes': { cat:'Llamadas', title:'Llamadas salientes', updated:'17 mar 2026',
+    body:`<p>Además de atender llamadas entrantes, tu agente puede realizar llamadas salientes de forma automática. Útil para campañas de seguimiento, confirmación de citas o avisos a clientes.</p>
+    <h2>¿Cómo funciona?</h2><p>Para realizar llamadas salientes necesitas tener configurado un <strong>agente saliente</strong> en tu número. El agente marcará el número del destinatario y gestionará la conversación según su configuración.</p>
+    <div class="callout callout-warn"><span class="callout-icon">&#9888;</span><span>Las llamadas salientes consumen saldo de tu cuenta netelip. Revisa tu balance antes de lanzar una campaña de llamadas masiva.</span></div>
+    <h2>Buenas prácticas</h2><ul><li>El agente debe identificarse como IA al inicio de la llamada.</li><li>Respeta los horarios legales para llamadas comerciales en España (9h–21h en días laborables).</li><li>Incluye siempre una opción para que el destinatario pueda rechazar futuras llamadas.</li></ul>`},
+
+  'transferencia': { cat:'Llamadas', title:'Transferencia de llamadas', updated:'17 mar 2026',
+    body:`<p>La transferencia de llamadas permite que tu agente derive una conversación a un agente humano o a otra extensión cuando sea necesario.</p>
+    <h2>¿Cuándo transfiere el agente?</h2><ul><li>Cuando el cliente lo solicita expresamente.</li><li>Cuando la solicitud supera las capacidades del agente.</li><li>Cuando así lo has configurado para determinados tipos de llamada.</li></ul>
+    <h2>Configurar la transferencia</h2><p>En el paso de <strong>Herramientas</strong> del asistente de configuración, activa la herramienta de transferencia e indica el número o extensión de destino.</p>
+    <div class="callout callout-warn"><span class="callout-icon">&#9888;</span><span>La transferencia a extensiones internas de tu Centralita Virtual requiere coordinación con el equipo técnico de netelip.</span></div>`},
+
+  'grabacion': { cat:'Llamadas', title:'Grabación y transcripción', updated:'16 mar 2026',
+    body:`<p>La Fábrica de Agentes IA genera automáticamente una grabación y una transcripción de cada llamada gestionada por tu agente.</p>
+    <h2>¿Dónde encuentro las grabaciones?</h2><p>En el historial de llamadas del dashboard. Cada llamada incluye grabación de audio, transcripción completa, resumen automático generado por IA y análisis de sentimiento.</p>
+    <div class="callout callout-warn"><span class="callout-icon">&#9888;</span><span>Grabar llamadas sin informar al interlocutor es ilegal en España. Asegúrate de que tu mensaje de inicio incluye el aviso de grabación obligatorio.</span></div>
+    <h2>¿Cuánto tiempo se conservan?</h2><p>Las grabaciones y transcripciones se conservan durante 90 días por defecto.</p>`},
+
+  'dashboard-metricas': { cat:'Analítica', title:'Dashboard de métricas', updated:'18 mar 2026',
+    body:`<p>El dashboard principal te da una visión general del rendimiento de todos tus agentes en tiempo real.</p>
+    <h2>Métricas principales</h2><ul><li><strong>Total de llamadas</strong> — Número total de llamadas gestionadas en el período.</li><li><strong>Tasa de éxito</strong> — Porcentaje de llamadas resueltas correctamente.</li><li><strong>Duración promedio</strong> — Tiempo medio de cada conversación.</li><li><strong>Coste total</strong> — Gasto acumulado en el período.</li></ul>
+    <h2>Gráficos disponibles</h2><p>Evolución de llamadas en el tiempo, sentimiento de usuarios, motivos de desconexión y distribución por agente.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Usa el selector de período (arriba a la derecha) para filtrar por los últimos 7 días, 30 días o un rango personalizado.</span></div>`},
+
+  'tasa-exito': { cat:'Analítica', title:'Tasa de éxito de llamadas', updated:'16 mar 2026',
+    body:`<p>La <strong>tasa de éxito</strong> mide el porcentaje de llamadas que tu agente ha gestionado correctamente en un período determinado.</p>
+    <h2>¿Qué se considera una llamada exitosa?</h2><ul><li>Ha resuelto la consulta del cliente sin necesidad de transferencia.</li><li>Ha completado el agendamiento de una cita.</li><li>Ha recogido la información solicitada y enviado el resumen.</li></ul>
+    <h2>¿Qué hacer si la tasa baja?</h2><ol class="step-list"><li>Revisa el prompt del agente.</li><li>Analiza las transcripciones de las llamadas fallidas.</li><li>Verifica que las herramientas necesarias están activadas.</li></ol>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Si recibes una alerta por baja tasa de éxito, puedes acceder directamente al historial de llamadas del día desde el email de notificación.</span></div>`},
+
+  'sentimiento': { cat:'Analítica', title:'Análisis de sentimiento', updated:'16 mar 2026',
+    body:`<p>El análisis de sentimiento evalúa cómo se ha sentido el cliente durante cada llamada. Esta métrica te ayuda a detectar problemas en la experiencia de usuario antes de que se conviertan en quejas.</p>
+    <h2>Categorías</h2><ul><li><strong>Positivo</strong> — El cliente expresó satisfacción o resolvió su consulta sin problemas.</li><li><strong>Neutral</strong> — La llamada fue informativa sin carga emocional especial.</li><li><strong>Negativo</strong> — El cliente mostró frustración, confusión o insatisfacción.</li></ul>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>Si el sentimiento negativo supera el umbral configurado, recibirás una alerta por email para que puedas actuar de inmediato.</span></div>`},
+
+  'alertas-cliente': { cat:'Analítica', title:'Alertas y notificaciones', updated:'18 mar 2026',
+    body:`<p>La Fábrica de Agentes IA incluye un sistema de alertas que te notifica por email cuando alguna métrica de tu agente supera los umbrales configurados.</p>
+    <h2>Alertas disponibles</h2><ul><li><strong>Llamadas recibidas</strong> — Si el volumen sube o baja de forma inesperada.</li><li><strong>Tasa de éxito</strong> — Si baja del umbral mínimo configurado.</li><li><strong>Llamadas con incidencia</strong> — Si el porcentaje de clientes insatisfechos sube.</li><li><strong>Transferencias fallidas</strong> — Si el agente no puede completar las transferencias.</li></ul>
+    <h2>¿Cómo configuro los umbrales?</h2><p>Desde la sección <strong>Configuración</strong> en el menú lateral. Define el valor mínimo o máximo para cada métrica.</p>
+    <div class="callout"><span class="callout-icon">&#9432;</span><span>El sistema evalúa las métricas cada hora. Si una métrica supera el umbral, recibirás la notificación en los próximos minutos.</span></div>`}
+};
+
+// ── SEARCH ──
+const searchIndex = Object.entries(articles).map(([id,a])=>({id,title:a.title,cat:a.cat}));
+
+function onSearch(q){
+  const dd = document.getElementById('searchDropdown');
+  if(!q.trim()){dd.classList.remove('open');return;}
+  const r = searchIndex.filter(a=>a.title.toLowerCase().includes(q.toLowerCase())||a.cat.toLowerCase().includes(q.toLowerCase())).slice(0,6);
+  if(!r.length){dd.classList.remove('open');return;}
+  dd.innerHTML = r.map(x=>`<div class="search-item" onmousedown="showArticle('${x.id}')"><span class="search-item-cat">${x.cat}</span><span class="search-item-title">${x.title}</span></div>`).join('');
+  dd.classList.add('open');
+}
+function closeSearch(){ document.getElementById('searchDropdown').classList.remove('open'); }
+
+// ── SIDEBAR ──
+function toggleGroup(id){
+  const g = document.getElementById(id);
+  g.classList.toggle('open');
+}
+function openGroup(id){
+  document.getElementById(id).classList.add('open');
+}
+
+// ── ARTICLES ──
+let currentItem = null;
+
+function showArticle(id, el){
+  if(el){
+    if(currentItem) currentItem.classList.remove('active');
+    el.classList.add('active');
+    currentItem = el;
+  }
+  const a = articles[id];
+  if(!a) return;
+
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('articleView').style.display = 'block';
+
+  // Build TOC from h2s
+  const h2s = [...a.body.matchAll(/<h2>(.*?)<\/h2>/g)].map(m=>m[1]);
+  const toc = document.getElementById('tocItems');
+  const tocPanel = document.getElementById('tocPanel');
+  if(h2s.length > 1){
+    toc.innerHTML = h2s.map((h,i)=>`<div class="toc-item" onclick="scrollToH2(${i})">${h}</div>`).join('');
+    tocPanel.classList.add('visible');
+  } else {
+    toc.innerHTML = '';
+    tocPanel.classList.remove('visible');
+  }
+
+  document.getElementById('articleContent').innerHTML = `
+    <div class="article-header">
+      <div class="article-breadcrumb">
+        <span onclick="showHome()">Ayuda</span>
+        <span class="sep">›</span>
+        <span>${a.cat}</span>
+        <span class="sep">›</span>
+        <span style="color:var(--text);cursor:default;">${a.title}</span>
+      </div>
+      <div class="article-cat-badge">${a.cat}</div>
+      <h1 class="article-title">${a.title}</h1>
+      <div class="article-meta">Actualizado el ${a.updated}</div>
+    </div>
+    <div class="article-body" id="articleBody">${a.body}</div>
+    <div class="article-footer">
+      <button class="article-footer-btn" onclick="showHome()">&#8592; Volver a ayuda</button>
+      <button class="article-footer-btn" onclick="askElioArticle('${a.title}')">Preguntarle a Elio &#8250;</button>
+    </div>
+  `;
+  window.scrollTo(0,0);
+  closeSearch();
+}
+
+function scrollToH2(idx){
+  const h2s = document.getElementById('articleBody').querySelectorAll('h2');
+  if(h2s[idx]) h2s[idx].scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function showHome(){
+  document.getElementById('homeView').style.display = 'block';
+  document.getElementById('articleView').style.display = 'none';
+  document.getElementById('tocPanel').classList.remove('visible');
+  if(currentItem){ currentItem.classList.remove('active'); currentItem=null; }
+  window.scrollTo(0,0);
+}
+
+// ── CHAT ──
+let chatOpen = false;
+
+function toggleChat(){ chatOpen=!chatOpen; document.getElementById('chatWindow').classList.toggle('open',chatOpen); }
+function openChat(){ if(!chatOpen) toggleChat(); }
+
+function addMsg(role,text){
+  const msgs = document.getElementById('chatMsgs');
+  const d = document.createElement('div');
+  d.className = `cm ${role}`;
+  d.innerHTML = role==='bot'
+    ? `<div class="cm-av">elio</div><div class="cm-bubble">${text}</div>`
+    : `<div class="cm-bubble">${text}</div>`;
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping(){
+  const msgs = document.getElementById('chatMsgs');
+  const d = document.createElement('div');
+  d.className='cm bot'; d.id='typingEl';
+  d.innerHTML=`<div class="cm-av">elio</div><div class="typing-wrap"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+}
+function removeTyping(){ const t=document.getElementById('typingEl'); if(t)t.remove(); }
+
+const botMap = {
+  'primer agente':   {t:'Para crear tu primer agente, haz clic en <strong>+ Crear nuevo agente</strong> desde el dashboard. El asistente te guiará en 9 pasos.', a:'crear-agente'},
+  'crear':           {t:'Haz clic en <strong>+ Crear nuevo agente</strong> en el dashboard. Son 9 pasos y puedes guardarlo en cualquier momento.', a:'crear-agente'},
+  'número':          {t:'Desde <strong>Mis números</strong> en el menú lateral puedes asignar y gestionar los números de teléfono de tus agentes.', a:'asignar-numero'},
+  'teléfono':        {t:'Ve a <strong>Mis números</strong> para asignar un número a tu agente. El cambio es inmediato.', a:'asignar-numero'},
+  'métrica':         {t:'El dashboard muestra llamadas totales, tasa de éxito, duración promedio y coste. También tienes gráficos de sentimiento y motivos de desconexión.', a:'dashboard-metricas'},
+  'dashboard':       {t:'En el dashboard encuentras todas las métricas de tus agentes. Usa el selector de período para filtrar los datos.', a:'dashboard-metricas'},
+  'éxito':           {t:'La tasa de éxito mide el porcentaje de llamadas que tu agente resolvió correctamente. Si baja, revisa el prompt y las transcripciones.', a:'tasa-exito'},
+  'sentimiento':     {t:'El análisis de sentimiento clasifica cada llamada como positiva, neutral o negativa. Lo encuentras en el historial de llamadas.', a:'sentimiento'},
+  'transferencia':   {t:'La transferencia se configura en el paso de <strong>Herramientas</strong> del wizard. Para extensiones internas, contacta con soporte de netelip.', a:'transferencia'},
+  'alerta':          {t:'Las alertas se activan cuando una métrica supera el umbral configurado. Te llegará un email con el resumen y el contexto.', a:'alertas-cliente'},
+  'grabación':       {t:'Todas las llamadas se graban y transcriben automáticamente. Las encuentras en el historial del dashboard durante 90 días.', a:'grabacion'},
+  'lopd':            {t:'El agente debe identificarse como IA e informar de la grabación al inicio de cada llamada. El generador de prompts lo incluye automáticamente.', a:'gdpr'},
+  'rgpd':            {t:'La plataforma cumple con RGPD y LOPD. El mensaje de inicio incluye las declaraciones legales obligatorias.', a:'gdpr'},
+  'prompt':          {t:'El generador de prompts crea las instrucciones de tu agente a partir del wizard. Puedes ajustarlo manualmente después.', a:'prompt-generador'},
+  'sip':             {t:'La conexión SIP te permite usar tu numeración actual de netelip. La gestiona el equipo técnico. Contacta con soporte para configurarla.', a:'sip-trunk'},
+  'voz':             {t:'En el paso 4 del wizard puedes escuchar y seleccionar la voz de tu agente entre una amplia selección en español.', a:'wizard-voz'},
+};
+
+function getBotResponse(text){
+  const l = text.toLowerCase();
+  for(const [k,v] of Object.entries(botMap)) if(l.includes(k)) return v;
+  return {t:'Esa pregunta es buena. Te recomiendo buscarla en el centro de ayuda o contactar con soporte@netelip.com si no encuentras la respuesta.', a:null};
+}
+
+function sendChat(){
+  const inp = document.getElementById('chatInp');
+  const txt = inp.value.trim(); if(!txt) return;
+  inp.value = '';
+  addMsg('user', txt);
+  showTyping();
+  setTimeout(()=>{
+    removeTyping();
+    const r = getBotResponse(txt);
+    let html = r.t;
+    if(r.a) html += `<br><br><span style="font-size:0.75rem;color:var(--blue);cursor:pointer;text-decoration:underline;" onclick="showArticle('${r.a}')">Ver artículo completo</span>`;
+    addMsg('bot', html);
+  }, 800);
+}
+
+function askElio(q){ if(!chatOpen) toggleChat(); document.getElementById('chatInp').value=q; sendChat(); }
+function askElioArticle(title){ if(!chatOpen) toggleChat(); document.getElementById('chatInp').value=`Tengo una duda sobre: ${title}`; sendChat(); }
+</script>
+</body>
+</html>
