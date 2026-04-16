@@ -1,0 +1,2694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Diseño — Fábrica de Agentes IA | Netelip</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+/* ============================================
+   DESIGN MANUAL — BASE STYLES
+   ============================================ */
+:root {
+  --azul: #267ab0;
+  --azul-hover: #1e6291;
+  --azul-light: #eff6fb;
+  --netelip-azul: #267ab0;
+  --netelip-azul-hover: #1e6291;
+  --gris-bg: #f5f6f8;
+  --gris-borde: #e5e7eb;
+  --gris-texto: #6c757d;
+  --gris-claro: #f5f6f8;
+  --oscuro: #1a2428;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --exito: #10b981;
+  --exito-light: #ecfdf5;
+  --alerta: #f59e0b;
+  --alerta-light: #fffbeb;
+  --error: #ef4444;
+  --error-light: #fef2f2;
+  --purpura: #8b5cf6;
+  --purpura-light: #f5f3ff;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 1rem;
+  --r-2xl: 1.5rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 15px;
+  background: #fff;
+  color: var(--slate-800);
+  line-height: 1.6;
+}
+
+/* Manual Layout */
+.manual {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.manual-cover {
+  padding: 80px 0 60px;
+  border-bottom: 3px solid var(--azul);
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.manual-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--azul), #1e40af, var(--purpura));
+}
+
+.cover-logo {
+  width: 56px;
+  height: 56px;
+  background: var(--azul);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 32px;
+}
+
+.cover-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--slate-900);
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+  line-height: 1.1;
+}
+
+.cover-subtitle {
+  font-size: 20px;
+  color: var(--slate-500);
+  font-weight: 500;
+  margin-bottom: 40px;
+}
+
+.cover-meta {
+  display: flex;
+  gap: 32px;
+  font-size: 13px;
+  color: var(--slate-400);
+}
+
+.cover-meta strong {
+  color: var(--slate-600);
+  font-weight: 700;
+}
+
+/* Table of Contents */
+.toc {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-100);
+  border-radius: 16px;
+  padding: 40px;
+  margin-bottom: 60px;
+}
+
+.toc h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--slate-900);
+  margin-bottom: 20px;
+}
+
+.toc-list {
+  list-style: none;
+  columns: 2;
+  column-gap: 40px;
+}
+
+.toc-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--slate-100);
+  break-inside: avoid;
+}
+
+.toc-list a {
+  text-decoration: none;
+  color: var(--slate-600);
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 0.15s;
+}
+
+.toc-list a:hover { color: var(--azul); }
+
+.toc-num {
+  background: var(--azul-light);
+  color: var(--azul);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 80px;
+  scroll-margin-top: 40px;
+}
+
+.section-number {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--azul);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.section h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--slate-900);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.section-desc {
+  font-size: 16px;
+  color: var(--slate-500);
+  margin-bottom: 40px;
+  max-width: 700px;
+}
+
+.subsection {
+  margin-bottom: 48px;
+}
+
+.subsection h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--slate-800);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--slate-100);
+}
+
+.subsection h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--slate-600);
+  margin-bottom: 12px;
+  margin-top: 24px;
+}
+
+/* Specimen Grid */
+.specimen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.color-card {
+  border: 1px solid var(--slate-100);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.color-card:hover { transform: translateY(-2px); }
+
+.color-swatch {
+  height: 80px;
+  width: 100%;
+}
+
+.color-info {
+  padding: 12px 14px;
+  background: white;
+}
+
+.color-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--slate-800);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.color-var {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--slate-400);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.color-hex {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate-600);
+}
+
+/* Typography specimen */
+.type-specimen {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-100);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+.type-row {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--slate-100);
+}
+
+.type-row:last-child { border-bottom: none; }
+
+.type-label {
+  min-width: 160px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--slate-400);
+  font-weight: 600;
+}
+
+.type-example { flex: 1; }
+
+/* Component showcase */
+.showcase {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-100);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+.showcase-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--slate-400);
+  margin-bottom: 16px;
+}
+
+.showcase-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Code block */
+.code-block {
+  background: var(--slate-900);
+  color: #e2e8f0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  padding: 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.code-block .comment { color: #64748b; }
+.code-block .prop { color: #93c5fd; }
+.code-block .val { color: #86efac; }
+.code-block .str { color: #fde68a; }
+
+/* Spec table */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.spec-table th {
+  padding: 14px 20px;
+  background: var(--slate-50);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--slate-400);
+  text-align: left;
+  border-bottom: 2px solid var(--slate-100);
+}
+
+.spec-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--slate-50);
+  color: var(--slate-600);
+}
+
+.spec-table td:first-child {
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.spec-table code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--slate-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--azul);
+}
+
+/* Live demo containers */
+.demo-sidebar {
+  background: white;
+  border: 1px solid var(--gris-borde);
+  border-radius: 12px;
+  width: 260px;
+  overflow: hidden;
+}
+
+.demo-topbar {
+  background: white;
+  border: 1px solid var(--gris-borde);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.demo-card {
+  background: white;
+  border: 1px solid var(--slate-100);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Annotation callout */
+.annotation {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #1e40af;
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.annotation i { margin-top: 2px; flex-shrink: 0; }
+
+/* Page break for printing */
+.page-break { page-break-before: always; }
+
+@media print {
+  .manual { max-width: 100%; padding: 0 20px; }
+  .section { page-break-inside: avoid; }
+}
+
+/* Radius specimens */
+.radius-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.radius-item {
+  text-align: center;
+}
+
+.radius-box {
+  width: 80px;
+  height: 80px;
+  background: var(--azul-light);
+  border: 2px solid var(--azul);
+  margin-bottom: 8px;
+}
+
+.radius-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--slate-500);
+}
+
+.radius-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+/* Shadow specimens */
+.shadow-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.shadow-item {
+  text-align: center;
+}
+
+.shadow-box {
+  width: 120px;
+  height: 80px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* Spacing */
+.spacing-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.spacing-bar {
+  height: 20px;
+  background: var(--azul-light);
+  border: 1px solid var(--azul);
+  border-radius: 4px;
+}
+
+.spacing-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--slate-500);
+  min-width: 60px;
+}
+
+/* Icon grid */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.icon-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--slate-50);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--slate-600);
+  font-weight: 600;
+}
+
+.icon-item i { font-size: 18px; color: var(--slate-800); }
+
+/* Layout diagram */
+.layout-diagram {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  height: 400px;
+  gap: 0;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.layout-sidebar {
+  width: 200px;
+  background: white;
+  border: 2px dashed var(--azul);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  flex-shrink: 0;
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+  gap: 8px;
+}
+
+.layout-topbar {
+  height: 48px;
+  background: white;
+  border: 2px dashed var(--purpura);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--purpura);
+  flex-shrink: 0;
+}
+
+.layout-content {
+  flex: 1;
+  background: white;
+  border: 2px dashed var(--exito);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--exito);
+}
+
+.layout-viewswitcher {
+  height: 36px;
+  background: #1e2a30;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  flex-shrink: 0;
+}
+
+.layout-label {
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+/* Wizard flow */
+.wizard-flow {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 20px 0;
+}
+
+.wizard-step-card {
+  min-width: 160px;
+  background: white;
+  border: 1px solid var(--slate-100);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.wizard-step-num {
+  width: 32px;
+  height: 32px;
+  background: var(--azul);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  margin: 0 auto 10px;
+}
+
+.wizard-step-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--slate-800);
+  margin-bottom: 4px;
+}
+
+.wizard-step-desc {
+  font-size: 11px;
+  color: var(--slate-400);
+}
+
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--slate-300);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* Responsive grid */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .two-col { grid-template-columns: 1fr; }
+  .toc-list { columns: 1; }
+  .cover-title { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+
+<div class="manual">
+
+<!-- ============================================
+     COVER
+     ============================================ -->
+<div class="manual-cover">
+  <div class="cover-logo">F</div>
+  <h1 class="cover-title">Manual de Diseno</h1>
+  <p class="cover-subtitle">Fabrica de Agentes IA &mdash; Plataforma SaaS de Netelip</p>
+  <div class="cover-meta">
+    <span><strong>Version</strong> 1.0</span>
+    <span><strong>Fecha</strong> Abril 2026</span>
+    <span><strong>Stack</strong> Next.js 14 &middot; Tailwind CSS &middot; Supabase</span>
+    <span><strong>Para</strong> Antonio / Equipo de desarrollo</span>
+  </div>
+</div>
+
+<!-- ============================================
+     TABLE OF CONTENTS
+     ============================================ -->
+<nav class="toc">
+  <h2>Indice</h2>
+  <ol class="toc-list">
+    <li><a href="#s1"><span class="toc-num">01</span> Identidad y marca</a></li>
+    <li><a href="#s2"><span class="toc-num">02</span> Paleta de colores</a></li>
+    <li><a href="#s3"><span class="toc-num">03</span> Tipografia</a></li>
+    <li><a href="#s4"><span class="toc-num">04</span> Espaciado, radios y sombras</a></li>
+    <li><a href="#s5"><span class="toc-num">05</span> Iconografia</a></li>
+    <li><a href="#s6"><span class="toc-num">06</span> Layout y estructura</a></li>
+    <li><a href="#s7"><span class="toc-num">07</span> Componentes: Botones</a></li>
+    <li><a href="#s8"><span class="toc-num">08</span> Componentes: Formularios</a></li>
+    <li><a href="#s9"><span class="toc-num">09</span> Componentes: Cards</a></li>
+    <li><a href="#s10"><span class="toc-num">10</span> Componentes: Navegacion</a></li>
+    <li><a href="#s11"><span class="toc-num">11</span> Wizard (6 pasos)</a></li>
+    <li><a href="#s12"><span class="toc-num">12</span> Paginas y rutas</a></li>
+    <li><a href="#s13"><span class="toc-num">13</span> Responsive y breakpoints</a></li>
+    <li><a href="#s14"><span class="toc-num">14</span> Animaciones y transiciones</a></li>
+    <li><a href="#s15"><span class="toc-num">15</span> Tokens CSS (referencia completa)</a></li>
+    <li><a href="#s16"><span class="toc-num">16</span> Modales y overlays</a></li>
+    <li><a href="#s17"><span class="toc-num">17</span> Paginas de autenticacion</a></li>
+    <li><a href="#s18"><span class="toc-num">18</span> Data tables (admin)</a></li>
+    <li><a href="#s19"><span class="toc-num">19</span> Elio: banner y chat</a></li>
+    <li><a href="#s20"><span class="toc-num">20</span> Estados de carga</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================
+     01 — IDENTIDAD Y MARCA
+     ============================================ -->
+<section class="section" id="s1">
+  <div class="section-number">Seccion 01</div>
+  <h2>Identidad y marca</h2>
+  <p class="section-desc">La Fabrica de Agentes IA es la plataforma SaaS de Netelip para crear agentes de voz con inteligencia artificial. La marca combina profesionalidad con accesibilidad tecnologica.</p>
+
+  <div class="subsection">
+    <h3>Logo</h3>
+    <div class="showcase">
+      <div class="showcase-label">Logo principal</div>
+      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+        <div style="width: 40px; height: 40px; background: var(--azul); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 20px;">F</div>
+        <div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--oscuro);">Fabrica de Agentes IA</div>
+          <div style="font-size: 11px; color: var(--gris-texto);">netelip</div>
+        </div>
+      </div>
+      <div class="showcase-label">Logo compacto (sidebar)</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 32px; height: 32px; background: var(--azul); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 800;">F</div>
+        <div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--oscuro);">Fabrica de Agentes IA</div>
+          <div style="font-size: 11px; color: var(--gris-texto);">netelip</div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <i class="bi bi-info-circle"></i>
+      <div>El logo se compone de un cuadrado redondeado azul (<code>--azul: #267ab0</code>) con la letra "F" en blanco, acompanado del nombre completo y el subtitulo "netelip". Clase CSS: <code>.logo-dot</code> (compacto) o <code>.logo-box</code> (legacy).</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Metadata de la aplicacion</h3>
+    <table class="spec-table">
+      <thead><tr><th>Propiedad</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Titulo</td><td>Fabrica de Agentes | Netelip</td></tr>
+        <tr><td>Descripcion</td><td>Creador de agentes de IA integrados con Retell AI</td></tr>
+        <tr><td>Idioma</td><td><code>es</code> (espanol)</td></tr>
+        <tr><td>Favicon</td><td><code>/favicon.ico</code>, <code>/icon.ico</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     02 — PALETA DE COLORES
+     ============================================ -->
+<section class="section page-break" id="s2">
+  <div class="section-number">Seccion 02</div>
+  <h2>Paleta de colores</h2>
+  <p class="section-desc">Sistema de colores basado en CSS custom properties. El azul corporativo de Netelip es el color primario. Se complementa con una escala de grises (slate) y colores semanticos para estados.</p>
+
+  <div class="subsection">
+    <h3>Color primario (Brand)</h3>
+    <div class="specimen-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background: #267ab0;"></div>
+        <div class="color-info">
+          <span class="color-name">Azul Netelip</span>
+          <span class="color-var">--azul</span>
+          <span class="color-hex">#267ab0</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #1e6291;"></div>
+        <div class="color-info">
+          <span class="color-name">Azul Hover</span>
+          <span class="color-var">--azul-hover</span>
+          <span class="color-hex">#1e6291</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #eff6fb;"></div>
+        <div class="color-info">
+          <span class="color-name">Azul Light</span>
+          <span class="color-var">--azul-light</span>
+          <span class="color-hex">#eff6fb</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Escala de grises (UI)</h3>
+    <div class="specimen-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background: #f5f6f8;"></div>
+        <div class="color-info">
+          <span class="color-name">Gris Background</span>
+          <span class="color-var">--gris-bg</span>
+          <span class="color-hex">#f5f6f8</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #e5e7eb;"></div>
+        <div class="color-info">
+          <span class="color-name">Gris Borde</span>
+          <span class="color-var">--gris-borde</span>
+          <span class="color-hex">#e5e7eb</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #6c757d;"></div>
+        <div class="color-info">
+          <span class="color-name">Gris Texto</span>
+          <span class="color-var">--gris-texto</span>
+          <span class="color-hex">#6c757d</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #1a2428;"></div>
+        <div class="color-info">
+          <span class="color-name">Oscuro</span>
+          <span class="color-var">--oscuro</span>
+          <span class="color-hex">#1a2428</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Escala Slate (complementaria)</h3>
+    <div class="specimen-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background: #f8fafc;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 50</span>
+          <span class="color-var">--slate-50</span>
+          <span class="color-hex">#f8fafc</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #f1f5f9;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 100</span>
+          <span class="color-var">--slate-100</span>
+          <span class="color-hex">#f1f5f9</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #e2e8f0;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 200</span>
+          <span class="color-var">--slate-200</span>
+          <span class="color-hex">#e2e8f0</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #94a3b8;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 400</span>
+          <span class="color-var">--slate-400</span>
+          <span class="color-hex">#94a3b8</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #64748b;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 500</span>
+          <span class="color-var">--slate-500</span>
+          <span class="color-hex">#64748b</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #475569;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 600</span>
+          <span class="color-var">--slate-600</span>
+          <span class="color-hex">#475569</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #1e293b;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 800</span>
+          <span class="color-var">--slate-800</span>
+          <span class="color-hex">#1e293b</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #0f172a;"></div>
+        <div class="color-info">
+          <span class="color-name">Slate 900</span>
+          <span class="color-var">--slate-900</span>
+          <span class="color-hex">#0f172a</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Colores semanticos (estados)</h3>
+    <div class="specimen-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background: #10b981;"></div>
+        <div class="color-info">
+          <span class="color-name">Exito</span>
+          <span class="color-var">--exito</span>
+          <span class="color-hex">#10b981</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #ecfdf5;"></div>
+        <div class="color-info">
+          <span class="color-name">Exito Light</span>
+          <span class="color-var">--exito-light</span>
+          <span class="color-hex">#ecfdf5</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #f59e0b;"></div>
+        <div class="color-info">
+          <span class="color-name">Alerta</span>
+          <span class="color-var">--alerta</span>
+          <span class="color-hex">#f59e0b</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #fffbeb;"></div>
+        <div class="color-info">
+          <span class="color-name">Alerta Light</span>
+          <span class="color-var">--alerta-light</span>
+          <span class="color-hex">#fffbeb</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #ef4444;"></div>
+        <div class="color-info">
+          <span class="color-name">Error</span>
+          <span class="color-var">--error</span>
+          <span class="color-hex">#ef4444</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #fef2f2;"></div>
+        <div class="color-info">
+          <span class="color-name">Error Light</span>
+          <span class="color-var">--error-light</span>
+          <span class="color-hex">#fef2f2</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #8b5cf6;"></div>
+        <div class="color-info">
+          <span class="color-name">Purpura</span>
+          <span class="color-var">--purpura</span>
+          <span class="color-hex">#8b5cf6</span>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #f5f3ff;"></div>
+        <div class="color-info">
+          <span class="color-name">Purpura Light</span>
+          <span class="color-var">--purpura-light</span>
+          <span class="color-hex">#f5f3ff</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Colores para iconos</h3>
+    <div class="showcase">
+      <div class="showcase-row">
+        <div style="width: 40px; height: 40px; background: var(--azul-light); color: var(--azul); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-robot"></i></div>
+        <span style="font-size: 12px; color: var(--slate-500);">.icon-blue</span>
+
+        <div style="width: 40px; height: 40px; background: #f0fdf4; color: var(--exito); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-check-circle"></i></div>
+        <span style="font-size: 12px; color: var(--slate-500);">.icon-green</span>
+
+        <div style="width: 40px; height: 40px; background: #f5f3ff; color: #9333ea; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-lightning"></i></div>
+        <span style="font-size: 12px; color: var(--slate-500);">.icon-purple</span>
+
+        <div style="width: 40px; height: 40px; background: #fff7ed; color: #ea580c; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-fire"></i></div>
+        <span style="font-size: 12px; color: var(--slate-500);">.icon-orange</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     03 — TIPOGRAFIA
+     ============================================ -->
+<section class="section page-break" id="s3">
+  <div class="section-number">Seccion 03</div>
+  <h2>Tipografia</h2>
+  <p class="section-desc">Dos familias tipograficas principales y una monoespaciada para datos tecnicos. Todas cargadas via Google Fonts con display swap.</p>
+
+  <div class="subsection">
+    <h3>Familias tipograficas</h3>
+    <table class="spec-table">
+      <thead><tr><th>Familia</th><th>Uso</th><th>Variable CSS</th><th>Fallback</th></tr></thead>
+      <tbody>
+        <tr><td>Inter</td><td>Cuerpo de texto, UI, formularios</td><td><code>--font-inter</code></td><td><code>-apple-system, sans-serif</code></td></tr>
+        <tr><td>Outfit</td><td>Titulares y encabezados destacados</td><td><code>--font-outfit</code></td><td><code>sans-serif</code></td></tr>
+        <tr><td>JetBrains Mono</td><td>Codigo, API keys, datos tecnicos</td><td>&mdash;</td><td><code>Fira Code, monospace</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Escala tipografica</h3>
+    <div class="type-specimen">
+      <div class="type-row">
+        <div class="type-label">28px / 800<br>Page heading</div>
+        <div class="type-example" style="font-size: 28px; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em;">Mis agentes IA</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">20px / 800<br>Section title</div>
+        <div class="type-example" style="font-size: 20px; font-weight: 800; color: var(--slate-900);">Dashboard principal</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">18px / 700<br>Topbar title</div>
+        <div class="type-example" style="font-size: 18px; font-weight: 700; color: var(--oscuro); letter-spacing: -0.3px;">Panel de control</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">16px / 700<br>Card name</div>
+        <div class="type-example" style="font-size: 16px; font-weight: 700; color: var(--slate-900);">Agente de ventas</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">15px / 700<br>Card title</div>
+        <div class="type-example" style="font-size: 15px; font-weight: 700; color: var(--slate-800);">Configuracion general</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">14px / 500<br>Body text</div>
+        <div class="type-example" style="font-size: 14px; font-weight: 500; color: var(--slate-600);">Configura tu agente de voz IA con los parametros que desees para tu negocio.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">13px / 600<br>Labels, buttons</div>
+        <div class="type-example" style="font-size: 13px; font-weight: 600; color: var(--oscuro);">Nombre del agente *</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">12px / 500<br>Hints, metadata</div>
+        <div class="type-example" style="font-size: 12px; font-weight: 500; color: var(--gris-texto);">Maximo 200 caracteres. Sera visible en la lista de agentes.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">11px / 700<br>Badges, tags</div>
+        <div class="type-example" style="font-size: 11px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.8px;">EQUIPO NETELIP</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">12px / mono<br>Codigo, keys</div>
+        <div class="type-example" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--slate-50); padding: 6px 10px; border-radius: 6px; color: var(--slate-500); display: inline-block;">sk-ret_1a2b3c4d5e6f...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Pesos utilizados</h3>
+    <table class="spec-table">
+      <thead><tr><th>Peso</th><th>Nombre</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td>400</td><td>Regular</td><td>Texto secundario, descripciones largas</td></tr>
+        <tr><td>500</td><td>Medium</td><td>Cuerpo de texto, inputs, breadcrumbs</td></tr>
+        <tr><td>600</td><td>Semibold</td><td>Labels, botones, links de navegacion, tags</td></tr>
+        <tr><td>700</td><td>Bold</td><td>Titulares de tarjetas, titulos de seccion, nombres</td></tr>
+        <tr><td>800</td><td>Extrabold</td><td>Titulares de pagina, valores de stats, logo</td></tr>
+        <tr><td>900</td><td>Black</td><td>Logo (letra F), avatares Elio</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     04 — ESPACIADO, RADIOS Y SOMBRAS
+     ============================================ -->
+<section class="section page-break" id="s4">
+  <div class="section-number">Seccion 04</div>
+  <h2>Espaciado, radios y sombras</h2>
+  <p class="section-desc">Sistema consistente de spacing basado en multiplos de 4px. Border-radius definidos como tokens CSS y sombras con diferentes niveles de elevacion.</p>
+
+  <div class="subsection">
+    <h3>Escala de espaciado</h3>
+    <div class="showcase">
+      <div class="spacing-row"><span class="spacing-label">4px</span><div class="spacing-bar" style="width: 16px;"></div><span style="font-size:11px;color:var(--slate-400)">micro gaps, margin-top tags</span></div>
+      <div class="spacing-row"><span class="spacing-label">6px</span><div class="spacing-bar" style="width: 24px;"></div><span style="font-size:11px;color:var(--slate-400)">gap en tags, margin labels</span></div>
+      <div class="spacing-row"><span class="spacing-label">8px</span><div class="spacing-bar" style="width: 32px;"></div><span style="font-size:11px;color:var(--slate-400)">gap pill-row, padding dropdown items</span></div>
+      <div class="spacing-row"><span class="spacing-label">10px</span><div class="spacing-bar" style="width: 40px;"></div><span style="font-size:11px;color:var(--slate-400)">gap nav-btn, padding inputs</span></div>
+      <div class="spacing-row"><span class="spacing-label">12px</span><div class="spacing-bar" style="width: 48px;"></div><span style="font-size:11px;color:var(--slate-400)">gap card components, padding nav sections</span></div>
+      <div class="spacing-row"><span class="spacing-label">16px</span><div class="spacing-bar" style="width: 64px;"></div><span style="font-size:11px;color:var(--slate-400)">gap grids, margin-bottom groups, sidebar footer</span></div>
+      <div class="spacing-row"><span class="spacing-label">20px</span><div class="spacing-bar" style="width: 80px;"></div><span style="font-size:11px;color:var(--slate-400)">padding sidebar header, card padding</span></div>
+      <div class="spacing-row"><span class="spacing-label">24px</span><div class="spacing-bar" style="width: 96px;"></div><span style="font-size:11px;color:var(--slate-400)">padding agent cards, gap agent grid, divider margin</span></div>
+      <div class="spacing-row"><span class="spacing-label">32px</span><div class="spacing-bar" style="width: 128px;"></div><span style="font-size:11px;color:var(--slate-400)">padding content area, card-premium padding</span></div>
+      <div class="spacing-row"><span class="spacing-label">40px</span><div class="spacing-bar" style="width: 160px;"></div><span style="font-size:11px;color:var(--slate-400)">dashboard-content padding, page-header margin</span></div>
+      <div class="spacing-row"><span class="spacing-label">60px</span><div class="spacing-bar" style="width: 240px;"></div><span style="font-size:11px;color:var(--slate-400)">wizard content-area padding lateral</span></div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Border Radius (tokens)</h3>
+    <div class="radius-grid">
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius: 6px;"></div>
+        <div class="radius-value">6px</div>
+        <div class="radius-label">--r-sm</div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius: 8px;"></div>
+        <div class="radius-value">8px</div>
+        <div class="radius-label">--r-md</div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius: 12px;"></div>
+        <div class="radius-value">12px</div>
+        <div class="radius-label">--r-lg</div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius: 16px;"></div>
+        <div class="radius-value">16px</div>
+        <div class="radius-label">--r-xl</div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius: 24px;"></div>
+        <div class="radius-value">24px</div>
+        <div class="radius-label">--r-2xl</div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-box" style="border-radius: 50%; width: 80px;"></div>
+        <div class="radius-value">50%</div>
+        <div class="radius-label">Circular</div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top: 24px;">
+      <thead><tr><th>Token</th><th>Valor</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td><code>--r-sm</code></td><td>6px</td><td>Slider badges, botones pequenos</td></tr>
+        <tr><td><code>--r-md</code></td><td>8px</td><td>Inputs, botones principales, selects, nav items</td></tr>
+        <tr><td><code>--r-lg</code></td><td>12px</td><td>Cards, tool blocks, agent type cards</td></tr>
+        <tr><td><code>--r-xl</code></td><td>16px</td><td>Voice cards v2, dropzones, banners</td></tr>
+        <tr><td><code>--r-2xl</code></td><td>24px</td><td>Card premium, dropdown user menu</td></tr>
+        <tr><td>20px</td><td>&mdash;</td><td>Agent card v2, pills badge, badges tipo pill</td></tr>
+        <tr><td>50%</td><td>&mdash;</td><td>Avatares, step numbers, dot indicators</td></tr>
+        <tr><td>100px</td><td>&mdash;</td><td>Badge pill status (fully rounded)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Sombras (elevacion)</h3>
+    <div class="shadow-grid">
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);"></div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--slate-700);">Nivel 1 — Sutil</div>
+        <div style="font-family: 'JetBrains Mono',monospace; font-size: 10px; color: var(--slate-400);">0 1px 3px rgba(0,0,0,0.05)</div>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 4px 12px rgba(15,23,42,0.03);"></div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--slate-700);">Nivel 2 — Card</div>
+        <div style="font-family: 'JetBrains Mono',monospace; font-size: 10px; color: var(--slate-400);">0 4px 12px rgba(15,23,42,0.03)</div>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 4px 12px rgba(37,99,235,0.2);"></div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--slate-700);">Nivel 3 — Hover azul</div>
+        <div style="font-family: 'JetBrains Mono',monospace; font-size: 10px; color: var(--slate-400);">0 4px 12px rgba(37,99,235,0.2)</div>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);"></div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--slate-700);">Nivel 4 — Dropdown</div>
+        <div style="font-family: 'JetBrains Mono',monospace; font-size: 10px; color: var(--slate-400);">0 10px 25px -5px rgba(0,0,0,0.1)</div>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-box" style="box-shadow: 0 20px 40px -12px rgba(15,23,42,0.08);"></div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--slate-700);">Nivel 5 — Card hover</div>
+        <div style="font-family: 'JetBrains Mono',monospace; font-size: 10px; color: var(--slate-400);">0 20px 40px -12px rgba(15,23,42,0.08)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     05 — ICONOGRAFIA
+     ============================================ -->
+<section class="section page-break" id="s5">
+  <div class="section-number">Seccion 05</div>
+  <h2>Iconografia</h2>
+  <p class="section-desc">Sistema dual de iconos: Bootstrap Icons (via CDN) para la UI general y Lucide React para componentes especificos como alertas.</p>
+
+  <div class="subsection">
+    <h3>Bootstrap Icons (principales)</h3>
+    <p style="font-size: 13px; color: var(--slate-500); margin-bottom: 16px;">CDN: <code>bootstrap-icons@1.11.3</code> &mdash; Clases: <code>bi bi-{nombre}</code></p>
+    <div class="icon-grid">
+      <div class="icon-item"><i class="bi bi-house-door"></i> house-door</div>
+      <div class="icon-item"><i class="bi bi-robot"></i> robot</div>
+      <div class="icon-item"><i class="bi bi-telephone"></i> telephone</div>
+      <div class="icon-item"><i class="bi bi-question-circle"></i> question-circle</div>
+      <div class="icon-item"><i class="bi bi-shield-lock"></i> shield-lock</div>
+      <div class="icon-item"><i class="bi bi-plus-lg"></i> plus-lg</div>
+      <div class="icon-item"><i class="bi bi-pencil"></i> pencil</div>
+      <div class="icon-item"><i class="bi bi-trash"></i> trash</div>
+      <div class="icon-item"><i class="bi bi-check"></i> check</div>
+      <div class="icon-item"><i class="bi bi-arrow-left"></i> arrow-left</div>
+      <div class="icon-item"><i class="bi bi-chevron-right"></i> chevron-right</div>
+      <div class="icon-item"><i class="bi bi-box-arrow-right"></i> box-arrow-right</div>
+      <div class="icon-item"><i class="bi bi-cloud-arrow-up"></i> cloud-arrow-up</div>
+      <div class="icon-item"><i class="bi bi-play-fill"></i> play-fill</div>
+      <div class="icon-item"><i class="bi bi-info-circle"></i> info-circle</div>
+      <div class="icon-item"><i class="bi bi-exclamation-triangle"></i> exclamation-triangle</div>
+      <div class="icon-item"><i class="bi bi-person"></i> person</div>
+      <div class="icon-item"><i class="bi bi-gear"></i> gear</div>
+      <div class="icon-item"><i class="bi bi-lightning"></i> lightning</div>
+      <div class="icon-item"><i class="bi bi-calendar"></i> calendar</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Lucide React (AdminAlertSettings)</h3>
+    <p style="font-size: 13px; color: var(--slate-500); margin-bottom: 16px;">Import: <code>lucide-react@^0.575.0</code></p>
+    <table class="spec-table">
+      <thead><tr><th>Icono</th><th>Componente</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td>Campana</td><td><code>Bell</code></td><td>Notificaciones, alertas</td></tr>
+        <tr><td>Mas</td><td><code>Plus</code></td><td>Anadir email/webhook</td></tr>
+        <tr><td>Papelera</td><td><code>Trash2</code></td><td>Eliminar elementos</td></tr>
+        <tr><td>Guardar</td><td><code>Save</code></td><td>Boton guardar</td></tr>
+        <tr><td>Globo</td><td><code>Globe</code></td><td>Webhook config</td></tr>
+        <tr><td>Actividad</td><td><code>Activity</code></td><td>Tipo alerta actividad</td></tr>
+        <tr><td>Repetir</td><td><code>Repeat</code></td><td>Tipo alerta recurrente</td></tr>
+        <tr><td>Llave</td><td><code>Wrench</code></td><td>Tipo alerta tecnica</td></tr>
+        <tr><td>Alerta</td><td><code>AlertTriangle</code></td><td>Tipo alerta critica</td></tr>
+        <tr><td>Cargando</td><td><code>Loader2</code></td><td>Estados de carga (spinner)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Banderas (inline SVG)</h3>
+    <div class="showcase">
+      <div class="showcase-row" style="gap: 32px;">
+        <div style="text-align:center">
+          <div style="width:24px;height:16px;border-radius:3px;overflow:hidden;margin: 0 auto 6px;border:1px solid var(--slate-200);">
+            <div style="height:33%;background:#c60b1e;"></div>
+            <div style="height:34%;background:#ffc400;"></div>
+            <div style="height:33%;background:#c60b1e;"></div>
+          </div>
+          <span style="font-size:11px;font-weight:600;color:var(--slate-500)">Espanol</span>
+        </div>
+        <div style="text-align:center">
+          <div style="width:24px;height:16px;border-radius:3px;overflow:hidden;margin: 0 auto 6px;border:1px solid var(--slate-200);background:#012169;display:flex;align-items:center;justify-content:center;">
+            <span style="color:white;font-size:8px;font-weight:900">UK</span>
+          </div>
+          <span style="font-size:11px;font-weight:600;color:var(--slate-500)">Ingles</span>
+        </div>
+        <div style="text-align:center">
+          <div style="width:24px;height:16px;border-radius:3px;overflow:hidden;margin: 0 auto 6px;border:1px solid var(--slate-200);">
+            <div style="height:33%;background:#FCDD09;"></div>
+            <div style="height:34%;background:#DA121A;"></div>
+            <div style="height:33%;background:#FCDD09;"></div>
+          </div>
+          <span style="font-size:11px;font-weight:600;color:var(--slate-500)">Catalan</span>
+        </div>
+      </div>
+    </div>
+    <div class="annotation"><i class="bi bi-info-circle"></i>Las banderas se renderizan como SVG inline en Step3_Voice.tsx para los filtros de idioma de voces.</div>
+  </div>
+</section>
+
+<!-- ============================================
+     06 — LAYOUT Y ESTRUCTURA
+     ============================================ -->
+<section class="section page-break" id="s6">
+  <div class="section-number">Seccion 06</div>
+  <h2>Layout y estructura</h2>
+  <p class="section-desc">La aplicacion usa un layout de sidebar fijo + area principal con topbar sticky. Dos variantes: Dashboard y Wizard.</p>
+
+  <div class="subsection">
+    <h3>Layout Dashboard</h3>
+    <div class="layout-diagram">
+      <div class="layout-sidebar">
+        <div class="layout-label" style="color: var(--azul);">SIDEBAR</div>
+        <div style="font-size:11px;color:var(--slate-400);margin-top:4px">260px fijo</div>
+        <div style="font-size:11px;color:var(--slate-400);">position: fixed</div>
+        <div style="font-size:11px;color:var(--slate-400);">z-index: 100</div>
+        <div style="flex:1;"></div>
+        <div style="font-size:10px;color:var(--slate-400);border-top:1px dashed var(--slate-200);padding-top:8px;">Footer: user pill</div>
+      </div>
+      <div class="layout-main">
+        <div class="layout-topbar">TOPBAR &mdash; 56px sticky (z-index: 50)</div>
+        <div class="layout-content">CONTENT &mdash; padding: 32px, pb: 76px</div>
+        <div class="layout-viewswitcher">VIEW SWITCHER &mdash; fixed bottom, bg: #1e2a30</div>
+      </div>
+    </div>
+
+    <table class="spec-table">
+      <thead><tr><th>Elemento</th><th>Clase CSS</th><th>Dimensiones</th><th>Posicion</th></tr></thead>
+      <tbody>
+        <tr><td>Sidebar</td><td><code>.sidebar</code></td><td>260px ancho, 100vh alto</td><td>fixed, left: 0, z-index: 100</td></tr>
+        <tr><td>Main</td><td><code>.main</code></td><td>margin-left: 260px, flex: 1</td><td>relativo</td></tr>
+        <tr><td>Topbar</td><td><code>.topbar</code></td><td>56px alto, padding: 0 32px</td><td>sticky, top: 0, z-index: 50</td></tr>
+        <tr><td>Content</td><td><code>.content</code></td><td>padding: 32px, pb: 76px</td><td>flow</td></tr>
+        <tr><td>View Switcher</td><td><code>.vs</code></td><td>left: 260px, right: 0, padding: 8px 16px</td><td>fixed, bottom: 0, z-index: 200</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Layout Wizard</h3>
+    <div class="layout-diagram" style="height: 320px;">
+      <div class="layout-sidebar" style="width: 240px;">
+        <div class="layout-label" style="color: var(--azul);">WIZARD SIDEBAR</div>
+        <div style="font-size:11px;color:var(--slate-400);margin-top:4px">280-300px</div>
+        <div style="margin-top:16px;font-size:10px;color:var(--slate-400);">
+          1. Info basica<br>
+          2. LLM<br>
+          3. Voz<br>
+          4. Audio<br>
+          5. Herramientas<br>
+          6. Resumen
+        </div>
+        <div style="flex:1;"></div>
+        <div style="height:4px;background:var(--azul);border-radius:2px;"></div>
+        <div style="font-size:10px;color:var(--slate-400);margin-top:4px;">Progress bar</div>
+      </div>
+      <div class="layout-main">
+        <div class="layout-topbar" style="border-color:var(--purpura);">TOPBAR WIZARD &mdash; 56px "Crear agente IA"</div>
+        <div class="layout-content" style="border-color:var(--exito);">CONTENT AREA &mdash; max-width: 1100px, padding: 40px 60px</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Grids de contenido</h3>
+    <table class="spec-table">
+      <thead><tr><th>Grid</th><th>Clase CSS</th><th>Columnas</th><th>Gap</th></tr></thead>
+      <tbody>
+        <tr><td>Agentes</td><td><code>.agents-grid</code></td><td><code>repeat(auto-fill, minmax(260px, 1fr))</code></td><td>24px</td></tr>
+        <tr><td>Cards generica</td><td><code>.card-grid</code></td><td><code>repeat(auto-fill, minmax(280px, 1fr))</code></td><td>20px</td></tr>
+        <tr><td>Stats</td><td><code>.stats-row</code></td><td><code>repeat(4, 1fr)</code></td><td>16px</td></tr>
+        <tr><td>Voces</td><td><code>.voices-grid</code></td><td><code>repeat(auto-fill, minmax(200px, 1fr))</code></td><td>16px</td></tr>
+        <tr><td>Tipos agente</td><td><code>.agent-types-grid</code></td><td><code>repeat(auto-fit, minmax(300px, 1fr))</code></td><td>24px</td></tr>
+        <tr><td>Ayuda</td><td><code>.help-grid</code></td><td><code>repeat(auto-fill, minmax(280px, 1fr))</code></td><td>32px</td></tr>
+        <tr><td>KB files</td><td><code>.kb-file-grid</code></td><td><code>repeat(auto-fill, minmax(280px, 1fr))</code></td><td>12px</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     07 — COMPONENTES: BOTONES
+     ============================================ -->
+<section class="section page-break" id="s7">
+  <div class="section-number">Seccion 07</div>
+  <h2>Componentes: Botones</h2>
+  <p class="section-desc">Sistema jerarquico de botones con variantes primary, secondary, premium, pills y estados especiales.</p>
+
+  <div class="subsection">
+    <h3>Botones principales</h3>
+    <div class="showcase">
+      <div class="showcase-label">Primary (.btn-p)</div>
+      <div class="showcase-row" style="margin-bottom: 20px;">
+        <button style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:var(--azul);color:white;border:none;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
+          <i class="bi bi-plus-lg"></i> Nuevo Agente
+        </button>
+        <button style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:var(--azul);color:white;border:none;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;opacity:0.5;">
+          Deshabilitado
+        </button>
+      </div>
+      <div class="showcase-label">Secondary (.btn-s)</div>
+      <div class="showcase-row" style="margin-bottom: 20px;">
+        <button style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:white;color:var(--gris-texto);border:1px solid var(--gris-borde);border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
+          <i class="bi bi-arrow-left"></i> Anterior
+        </button>
+      </div>
+      <div class="showcase-label">Premium (.btn-premium)</div>
+      <div class="showcase-row" style="margin-bottom: 20px;">
+        <button style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--azul);color:white;border:none;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">
+          <i class="bi bi-plus-lg"></i> Crear agente
+        </button>
+      </div>
+      <div class="showcase-label">Wizard (.btn-primary-wizard / .btn-secondary-wizard)</div>
+      <div class="showcase-row">
+        <button style="background:var(--azul);color:white;padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;">
+          Siguiente <i class="bi bi-arrow-right"></i>
+        </button>
+        <button style="background:white;color:var(--gris-texto);padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px;border:1px solid var(--gris-borde);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;">
+          <i class="bi bi-arrow-left"></i> Anterior
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Botones de accion (Agent Card)</h3>
+    <div class="showcase">
+      <div class="showcase-row">
+        <button style="flex:1;max-width:180px;height:40px;background:var(--azul);color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:inherit;">
+          <i class="bi bi-play-fill"></i> Probar
+        </button>
+        <button style="width:80px;height:40px;background:white;border:1px solid var(--slate-200);color:var(--slate-600);border-radius:10px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:inherit;">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button style="width:40px;height:40px;background:white;border:1px solid #fee2e2;color:#ef4444;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+    <table class="spec-table">
+      <thead><tr><th>Clase</th><th>Fondo</th><th>Color</th><th>Borde</th><th>Radio</th><th>Altura</th></tr></thead>
+      <tbody>
+        <tr><td><code>.ac-btn-test</code></td><td><code>var(--azul)</code></td><td>white</td><td>none</td><td>10px</td><td>40px</td></tr>
+        <tr><td><code>.ac-btn-edit</code></td><td>white</td><td><code>var(--slate-600)</code></td><td><code>var(--slate-200)</code></td><td>10px</td><td>40px, 80px ancho</td></tr>
+        <tr><td><code>.ac-btn-delete</code></td><td>white</td><td><code>#ef4444</code></td><td><code>#fee2e2</code></td><td>10px</td><td>40px cuadrado</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Pills y tags</h3>
+    <div class="showcase">
+      <div class="showcase-label">Pills (.pill)</div>
+      <div class="showcase-row" style="margin-bottom: 16px;">
+        <span style="padding:6px 14px;border-radius:20px;border:1px solid var(--gris-borde);font-size:12px;font-weight:600;color:var(--gris-texto);background:white;cursor:pointer;font-family:inherit;">Profesional</span>
+        <span style="padding:6px 14px;border-radius:20px;border:1px solid var(--azul);font-size:12px;font-weight:600;color:white;background:var(--azul);cursor:pointer;font-family:inherit;">Empatico</span>
+        <span style="padding:6px 14px;border-radius:20px;border:1px solid var(--gris-borde);font-size:12px;font-weight:600;color:var(--gris-texto);background:white;cursor:pointer;font-family:inherit;">Amigable</span>
+      </div>
+      <div class="showcase-label">Pill buttons (.pill-btn)</div>
+      <div class="showcase-row">
+        <span style="flex:1;max-width:120px;padding:14px 20px;border:1.5px solid var(--gris-borde);border-radius:8px;background:white;color:var(--oscuro);font-size:14px;font-weight:600;text-align:center;cursor:pointer;font-family:inherit;">Formal</span>
+        <span style="flex:1;max-width:120px;padding:14px 20px;border:2px solid var(--azul);border-radius:8px;background:#eff6ff;color:var(--azul);font-size:14px;font-weight:600;text-align:center;cursor:pointer;font-family:inherit;">Semiformal</span>
+        <span style="flex:1;max-width:120px;padding:14px 20px;border:1.5px solid var(--gris-borde);border-radius:8px;background:white;color:var(--oscuro);font-size:14px;font-weight:600;text-align:center;cursor:pointer;font-family:inherit;">Casual</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Toggle switches</h3>
+    <div class="showcase">
+      <div class="showcase-row" style="gap: 32px;">
+        <div style="text-align:center">
+          <div style="width:40px;height:22px;background:var(--exito);border-radius:11px;position:relative;display:inline-block;">
+            <div style="width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:2px;right:2px;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-500);margin-top:4px;">.tog-on</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:40px;height:22px;background:var(--gris-borde);border-radius:11px;position:relative;display:inline-block;">
+            <div style="width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-500);margin-top:4px;">.tog-off</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     08 — COMPONENTES: FORMULARIOS
+     ============================================ -->
+<section class="section page-break" id="s8">
+  <div class="section-number">Seccion 08</div>
+  <h2>Componentes: Formularios</h2>
+  <p class="section-desc">Inputs, selects, textareas, sliders y file uploads con un sistema consistente de labels y hints.</p>
+
+  <div class="subsection">
+    <h3>Input de texto (.inp)</h3>
+    <div class="showcase">
+      <div style="max-width:400px;">
+        <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;color:var(--oscuro);">Nombre del agente <span style="color:var(--error)">*</span></label>
+        <input type="text" value="Agente de ventas" style="width:100%;padding:10px 14px;border:1px solid var(--gris-borde);border-radius:var(--r-md);font-size:13px;font-weight:500;color:var(--oscuro);background:white;outline:none;font-family:inherit;">
+        <div style="font-size:12px;color:var(--gris-texto);margin-top:4px;">Nombre identificativo del agente en el panel.</div>
+      </div>
+    </div>
+    <table class="spec-table">
+      <thead><tr><th>Propiedad</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Padding</td><td><code>10px 14px</code></td></tr>
+        <tr><td>Border</td><td><code>1px solid var(--gris-borde)</code></td></tr>
+        <tr><td>Border radius</td><td><code>var(--r-md)</code> = 8px</td></tr>
+        <tr><td>Font</td><td>13px, weight 500, inherit family</td></tr>
+        <tr><td>Focus border</td><td><code>var(--azul)</code></td></tr>
+        <tr><td>Focus shadow</td><td><code>0 0 0 3px rgba(38, 122, 176, 0.1)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Select (.premium-select)</h3>
+    <div class="showcase">
+      <div style="max-width:400px;">
+        <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;color:var(--oscuro);">Zona horaria</label>
+        <select style="display:block;width:100%;padding:11px 40px 11px 14px;font-size:14px;font-weight:500;color:var(--oscuro);background-color:white;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2716%27 height=%2716%27 fill=%27%236c757d%27 viewBox=%270 0 16 16%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 14px center;border:1px solid var(--gris-borde);border-radius:8px;appearance:none;-webkit-appearance:none;cursor:pointer;font-family:inherit;">
+          <option>Europe/Madrid</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Slider con badge</h3>
+    <div class="showcase">
+      <div style="max-width:400px;">
+        <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;color:var(--oscuro);">Volumen del agente</label>
+        <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+          <input type="range" min="0" max="100" value="80" style="flex:1;accent-color:var(--azul);cursor:pointer;height:6px;">
+          <div style="min-width:44px;background:var(--azul);color:white;font-weight:700;font-size:13px;padding:6px 10px;border-radius:6px;text-align:center;">80%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Dropzone de archivos (Knowledge Base)</h3>
+    <div class="showcase">
+      <div style="max-width: 500px;">
+        <div style="border:2px dashed #cbd5e1;border-radius:16px;padding:40px 30px;text-align:center;background:#f8fafc;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;">
+          <div style="width:56px;height:56px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:28px;box-shadow:0 2px 6px rgba(0,0,0,0.05);">
+            <i class="bi bi-cloud-arrow-up"></i>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--oscuro);">Arrastra archivos aqui</div>
+            <div style="font-size:13px;color:var(--gris-texto);margin-top:4px;">PDF, DOCX, TXT, MD &mdash; Max 25MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Callouts de advertencia e informacion</h3>
+    <div class="showcase">
+      <div style="max-width: 500px;">
+        <div class="showcase-label">Warning (.cw)</div>
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #f97316;border-radius:var(--r-md);padding:12px 16px;font-size:12px;color:#7c2d12;display:flex;gap:8px;margin-bottom:16px;">
+          <i class="bi bi-exclamation-triangle" style="flex-shrink:0;margin-top:1px;"></i>
+          <span>Recuerda configurar la API key de Cal.com antes de activar la reserva de citas.</span>
+        </div>
+        <div class="showcase-label">Info (.ci)</div>
+        <div style="background:var(--azul-light);border:1px solid #bee3f8;border-left:4px solid var(--azul);border-radius:var(--r-md);padding:12px 16px;font-size:12px;color:#1e40af;display:flex;gap:8px;">
+          <i class="bi bi-info-circle" style="flex-shrink:0;margin-top:1px;"></i>
+          <span>El agente utilizara esta voz para todas las llamadas entrantes y salientes.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     09 — COMPONENTES: CARDS
+     ============================================ -->
+<section class="section page-break" id="s9">
+  <div class="section-number">Seccion 09</div>
+  <h2>Componentes: Cards</h2>
+  <p class="section-desc">Sistema de tarjetas con diferentes variantes segun el contexto: agentes, estadisticas, voces, tipos de agente y formularios.</p>
+
+  <div class="subsection">
+    <h3>Agent Card v2 (.agent-card-v2)</h3>
+    <div class="showcase">
+      <div style="max-width: 300px;">
+        <div style="background:white;border:1px solid var(--slate-100);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:var(--azul-light);color:var(--azul);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">A</div>
+            <div>
+              <div style="font-size:16px;font-weight:700;color:var(--slate-900);">Agente Ventas</div>
+              <div style="font-size:12px;color:var(--slate-400);font-weight:500;">Atencion comercial</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:var(--slate-500);font-weight:500;">Llamadas totales</span>
+              <span style="font-size:13px;font-weight:700;color:var(--slate-700);">142</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:var(--slate-500);font-weight:500;">Estado</span>
+              <span style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--exito-light);color:var(--exito);">
+                <span style="width:6px;height:6px;background:var(--exito);border-radius:50%;"></span> Activo
+              </span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button style="flex:1;height:40px;background:var(--azul);color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:inherit;">
+              <i class="bi bi-play-fill"></i> Probar
+            </button>
+            <button style="width:80px;height:40px;background:white;border:1px solid var(--slate-200);color:var(--slate-600);border-radius:10px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:inherit;">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button style="width:40px;height:40px;background:white;border:1px solid #fee2e2;color:#ef4444;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-family:inherit;">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Stat Card (.stat-card)</h3>
+    <div class="showcase">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <div style="background:white;border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:12px;font-weight:500;color:var(--gris-texto);">Llamadas hoy</span>
+            <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--azul-light);color:var(--azul);"><i class="bi bi-telephone"></i></div>
+          </div>
+          <div style="font-size:28px;font-weight:800;color:var(--oscuro);">24</div>
+          <div style="font-size:11px;color:var(--gris-texto);margin-top:4px;">+12% vs ayer</div>
+        </div>
+        <div style="background:white;border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:12px;font-weight:500;color:var(--gris-texto);">Duracion media</span>
+            <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#f0fdf4;color:var(--exito);"><i class="bi bi-clock"></i></div>
+          </div>
+          <div style="font-size:28px;font-weight:800;color:var(--exito);">3:42</div>
+          <div style="font-size:11px;color:var(--gris-texto);margin-top:4px;">minutos</div>
+        </div>
+        <div style="background:white;border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:12px;font-weight:500;color:var(--gris-texto);">Agentes activos</span>
+            <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#f5f3ff;color:#9333ea;"><i class="bi bi-robot"></i></div>
+          </div>
+          <div style="font-size:28px;font-weight:800;color:var(--oscuro);">3</div>
+          <div style="font-size:11px;color:var(--gris-texto);margin-top:4px;">de 5 creados</div>
+        </div>
+        <div style="background:white;border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:12px;font-weight:500;color:var(--gris-texto);">Coste mensual</span>
+            <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff7ed;color:#ea580c;"><i class="bi bi-currency-euro"></i></div>
+          </div>
+          <div style="font-size:28px;font-weight:800;color:var(--oscuro);">12.50</div>
+          <div style="font-size:11px;color:var(--gris-texto);margin-top:4px;">euros</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Voice Card v2 (.voice-card-v2)</h3>
+    <div class="showcase">
+      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;">
+        <div style="background:white;border:1px solid var(--slate-100);border-radius:16px;padding:20px;cursor:pointer;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#eff6ff;color:var(--azul);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">A</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--slate-900);">Adrian</div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <span style="background:var(--slate-100);color:var(--slate-600);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">ES</span>
+                <span style="background:var(--slate-100);color:var(--slate-600);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">11LABS</span>
+              </div>
+            </div>
+          </div>
+          <button style="border:none;background:transparent;color:var(--slate-500);font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0;font-family:inherit;">
+            <i class="bi bi-play-fill" style="font-size:16px;"></i> Vista previa
+          </button>
+        </div>
+        <div style="background:#f0f7ff;border:1px solid var(--azul);border-radius:16px;padding:20px;cursor:pointer;display:flex;flex-direction:column;gap:16px;box-shadow:0 4px 12px rgba(29,78,216,0.08);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:var(--azul);color:white;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">C</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--slate-900);">Carolina</div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <span style="background:var(--slate-100);color:var(--slate-600);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">ES</span>
+                <span style="background:var(--slate-100);color:var(--slate-600);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">11LABS</span>
+              </div>
+            </div>
+          </div>
+          <button style="border:none;background:transparent;color:var(--azul);font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0;font-family:inherit;">
+            <i class="bi bi-play-fill" style="font-size:16px;"></i> Vista previa
+          </button>
+        </div>
+        <div style="background:white;border:1px solid var(--slate-100);border-radius:16px;padding:20px;cursor:pointer;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#eff6ff;color:var(--azul);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">N</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--slate-900);">Nico</div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <span style="background:var(--slate-100);color:var(--slate-600);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">ES</span>
+                <span style="background:var(--slate-100);color:var(--slate-600);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">CARTESIA</span>
+              </div>
+            </div>
+          </div>
+          <button style="border:none;background:transparent;color:var(--slate-500);font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0;font-family:inherit;">
+            <i class="bi bi-play-fill" style="font-size:16px;"></i> Vista previa
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Form Card (.form-card) &mdash; Wizard</h3>
+    <div class="showcase">
+      <div style="background:white;border-radius:var(--r-lg);padding:28px 32px;border:1px solid var(--gris-borde);max-width:500px;">
+        <div style="font-size:20px;font-weight:700;margin-bottom:6px;color:var(--oscuro);">Informacion basica</div>
+        <div style="font-size:13px;color:var(--gris-texto);margin-bottom:28px;">Configura los datos principales de tu agente.</div>
+        <div style="margin-bottom:16px;">
+          <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;color:var(--oscuro);">Nombre del agente <span style="color:var(--error)">*</span></label>
+          <input type="text" placeholder="Ej: Agente de reservas" style="width:100%;padding:10px 14px;border:1px solid var(--gris-borde);border-radius:var(--r-md);font-size:13px;font-weight:500;color:var(--oscuro);background:white;outline:none;font-family:inherit;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Tool Block (.tool-block) &mdash; Step 5</h3>
+    <div class="showcase">
+      <div style="border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:20px;max-width:500px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:var(--azul-light);color:var(--azul);border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-calendar"></i></div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--oscuro);">Cal.com</div>
+              <div style="font-size:12px;color:var(--gris-texto);">Gestion de citas</div>
+            </div>
+          </div>
+          <div style="width:40px;height:22px;background:var(--exito);border-radius:11px;position:relative;">
+            <div style="width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:2px;right:2px;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--gris-borde);margin:14px 0;">
+        <div style="font-size:13px;color:var(--gris-texto);">Contenido expandible del tool block...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     10 — COMPONENTES: NAVEGACION
+     ============================================ -->
+<section class="section page-break" id="s10">
+  <div class="section-number">Seccion 10</div>
+  <h2>Componentes: Navegacion</h2>
+  <p class="section-desc">Sidebar, topbar, view switcher y tabs de administracion.</p>
+
+  <div class="subsection">
+    <h3>Sidebar navigation (.nav-btn)</h3>
+    <div class="showcase">
+      <div style="width:240px;background:white;border:1px solid var(--gris-borde);border-radius:12px;padding:12px;">
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:13px;font-weight:600;background:var(--azul-light);color:var(--azul);text-decoration:none;margin-bottom:2px;">
+          <i class="bi bi-house-door" style="width:18px;text-align:center;font-size:14px;"></i> Dashboard
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:13px;font-weight:500;color:var(--gris-texto);text-decoration:none;margin-bottom:2px;">
+          <i class="bi bi-robot" style="width:18px;text-align:center;font-size:14px;"></i> Mis agentes IA
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:13px;font-weight:500;color:var(--gris-texto);text-decoration:none;margin-bottom:2px;">
+          <i class="bi bi-telephone" style="width:18px;text-align:center;font-size:14px;"></i> Mis numeros
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:13px;font-weight:500;color:var(--gris-texto);text-decoration:none;">
+          <i class="bi bi-question-circle" style="width:18px;text-align:center;font-size:14px;"></i> Ayuda y soporte
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>View Switcher (.vs)</h3>
+    <div class="showcase" style="padding: 0;">
+      <div style="background:#1e2a30;border-radius:12px;padding:8px 16px;display:flex;align-items:center;gap:4px;">
+        <span style="color:#6b7280;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-right:4px;">Vistas</span>
+        <a href="#" style="padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:var(--azul);color:white;font-size:11px;font-weight:600;text-decoration:none;">Dashboard</a>
+        <a href="#" style="padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.55);font-size:11px;font-weight:600;text-decoration:none;">Agentes</a>
+        <div style="width:1px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;"></div>
+        <a href="#" style="padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.55);font-size:11px;font-weight:600;text-decoration:none;">Numeros</a>
+        <a href="#" style="padding:4px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.55);font-size:11px;font-weight:600;text-decoration:none;">Admin</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Admin Tabs (.adm-tab)</h3>
+    <div class="showcase">
+      <div style="display:flex;gap:8px;border-bottom:1px solid var(--slate-100);">
+        <button style="padding:14px 24px;font-size:14px;font-weight:700;color:var(--azul);border:none;background:none;cursor:pointer;border-bottom:3px solid var(--azul);display:flex;align-items:center;gap:10px;font-family:inherit;">
+          <i class="bi bi-building"></i> Workspaces
+        </button>
+        <button style="padding:14px 24px;font-size:14px;font-weight:700;color:var(--slate-400);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;display:flex;align-items:center;gap:10px;font-family:inherit;">
+          <i class="bi bi-people"></i> Usuarios
+        </button>
+        <button style="padding:14px 24px;font-size:14px;font-weight:700;color:var(--slate-400);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;display:flex;align-items:center;gap:10px;font-family:inherit;">
+          <i class="bi bi-bell"></i> Alertas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Badges de estado</h3>
+    <div class="showcase">
+      <div class="showcase-row" style="gap: 24px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:600;background:#ecfdf5;color:#059669;">
+          <span style="width:6px;height:6px;background:#10b981;border-radius:50%;"></span> Activo
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:#dcfce7;color:#16a34a;">Conectado</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--exito);"><i class="bi bi-check-circle-fill"></i> OK</span>
+        <span style="display:inline-block;padding:4px 10px;background:var(--azul);color:white;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Recomendado</span>
+        <span style="background:#f59e0b;color:white;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Proximamente</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     11 — WIZARD (6 PASOS)
+     ============================================ -->
+<section class="section page-break" id="s11">
+  <div class="section-number">Seccion 11</div>
+  <h2>Wizard (6 pasos)</h2>
+  <p class="section-desc">Flujo de creacion de agentes en 6 pasos guiados. Cada paso tiene su propio componente con validacion y navegacion integrada.</p>
+
+  <div class="subsection">
+    <h3>Flujo del wizard</h3>
+    <div class="wizard-flow">
+      <div class="wizard-step-card">
+        <div class="wizard-step-num">1</div>
+        <div class="wizard-step-title">Info basica</div>
+        <div class="wizard-step-desc">Nombre, empresa, tipo</div>
+      </div>
+      <div class="flow-arrow"><i class="bi bi-chevron-right"></i></div>
+      <div class="wizard-step-card">
+        <div class="wizard-step-num">2</div>
+        <div class="wizard-step-title">LLM</div>
+        <div class="wizard-step-desc">Mensaje, personalidad, tono</div>
+      </div>
+      <div class="flow-arrow"><i class="bi bi-chevron-right"></i></div>
+      <div class="wizard-step-card">
+        <div class="wizard-step-num">3</div>
+        <div class="wizard-step-title">Voz</div>
+        <div class="wizard-step-desc">Proveedor, idioma, genero</div>
+      </div>
+      <div class="flow-arrow"><i class="bi bi-chevron-right"></i></div>
+      <div class="wizard-step-card">
+        <div class="wizard-step-num">4</div>
+        <div class="wizard-step-title">Audio</div>
+        <div class="wizard-step-desc">Volumen, sonido ambiente</div>
+      </div>
+      <div class="flow-arrow"><i class="bi bi-chevron-right"></i></div>
+      <div class="wizard-step-card">
+        <div class="wizard-step-num">5</div>
+        <div class="wizard-step-title">Herramientas</div>
+        <div class="wizard-step-desc">Cal.com, transfer, leads</div>
+      </div>
+      <div class="flow-arrow"><i class="bi bi-chevron-right"></i></div>
+      <div class="wizard-step-card">
+        <div class="wizard-step-num">6</div>
+        <div class="wizard-step-title">Resumen</div>
+        <div class="wizard-step-desc">KB, notas, crear agente</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Sidebar del wizard (progress)</h3>
+    <div class="showcase">
+      <div style="width:260px;background:white;border:1px solid var(--gris-borde);border-radius:12px;overflow:hidden;">
+        <div style="padding:20px;border-bottom:1px solid var(--gris-borde);">
+          <div style="font-size:14px;font-weight:700;color:var(--oscuro);">Crear agente IA</div>
+        </div>
+        <div style="padding:8px 0;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);font-size:12.5px;font-weight:500;color:var(--exito);margin:0 12px 2px;border-left:3px solid transparent;">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--exito);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;">&#10003;</div>
+            Info basica
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);font-size:12.5px;font-weight:500;color:var(--exito);margin:0 12px 2px;border-left:3px solid transparent;">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--exito);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;">&#10003;</div>
+            LLM
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);font-size:12.5px;font-weight:600;color:var(--azul);background:var(--azul-light);margin:0 12px 2px;border-left:3px solid var(--azul);">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--azul);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;">3</div>
+            Voz
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);font-size:12.5px;font-weight:500;color:var(--gris-texto);margin:0 12px 2px;border-left:3px solid transparent;">
+            <div style="width:22px;height:22px;border-radius:50%;border:2px solid var(--gris-borde);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--gris-borde);">4</div>
+            Audio
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);font-size:12.5px;font-weight:500;color:var(--gris-texto);margin:0 12px 2px;border-left:3px solid transparent;">
+            <div style="width:22px;height:22px;border-radius:50%;border:2px solid var(--gris-borde);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--gris-borde);">5</div>
+            Herramientas
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);font-size:12.5px;font-weight:500;color:var(--gris-texto);margin:0 12px 2px;border-left:3px solid transparent;">
+            <div style="width:22px;height:22px;border-radius:50%;border:2px solid var(--gris-borde);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--gris-borde);">6</div>
+            Resumen
+          </div>
+        </div>
+        <div style="padding:12px;"><div style="height:4px;background:var(--gris-borde);border-radius:2px;overflow:hidden;"><div style="width:40%;height:100%;background:var(--azul);border-radius:2px;"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Detalle de cada paso</h3>
+    <table class="spec-table">
+      <thead><tr><th>Paso</th><th>Componente</th><th>Elementos UI</th><th>Validacion</th></tr></thead>
+      <tbody>
+        <tr><td>1. Info basica</td><td><code>Step1_BasicInfo.tsx</code></td><td>Inputs (nombre, empresa), textarea (descripcion), grid de tipo de agente con cards seleccionables</td><td>Nombre requerido</td></tr>
+        <tr><td>2. LLM</td><td><code>Step2_LLM.tsx</code></td><td>Textarea (mensaje inicial con aviso RGPD), pills personalidad (4 cols), pills tono (flex), horario semanal con toggle dia/cerrado</td><td>Mensaje requerido</td></tr>
+        <tr><td>3. Voz</td><td><code>Step3_Voice.tsx</code></td><td>Provider tabs, filtros (idioma/genero/proveedor), grid voice-card-v2 con preview audio, banderas inline SVG</td><td>Voz requerida</td></tr>
+        <tr><td>4. Audio</td><td><code>Step4_Audio.tsx</code></td><td>Sliders (volumen, velocidad, temperatura), checkbox sonido ambiente, select tipo ambiente, slider volumen ambiente</td><td>Ninguna</td></tr>
+        <tr><td>5. Herramientas</td><td><code>Step5_Tools.tsx</code></td><td>Tool blocks con toggles: cualificacion (grid preguntas), transferencia (cards destino), Cal.com (inputs API), extraccion datos (variables custom)</td><td>Ninguna (opcional)</td></tr>
+        <tr><td>6. Resumen</td><td><code>Step6_Summary.tsx</code></td><td>Secciones expandibles, dropzone KB, lista ficheros con delete, textarea notas, boton "Crear agente", accordion buenas practicas</td><td>Ninguna</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     12 — PAGINAS Y RUTAS
+     ============================================ -->
+<section class="section page-break" id="s12">
+  <div class="section-number">Seccion 12</div>
+  <h2>Paginas y rutas</h2>
+  <p class="section-desc">Mapa completo de todas las rutas de la aplicacion con su proposito y componentes principales.</p>
+
+  <div class="subsection">
+    <h3>Mapa de rutas</h3>
+    <table class="spec-table">
+      <thead><tr><th>Ruta</th><th>Pagina</th><th>Acceso</th><th>Componentes principales</th></tr></thead>
+      <tbody>
+        <tr><td><code>/</code></td><td>Home</td><td>Publico</td><td>Redirect a <code>/login</code></td></tr>
+        <tr><td><code>/login</code></td><td>Login</td><td>Publico</td><td>Formulario email/password via Supabase</td></tr>
+        <tr><td><code>/register</code></td><td>Registro</td><td>Publico</td><td>Formulario nombre/email/password (min 8 chars)</td></tr>
+        <tr><td><code>/dashboard</code></td><td>Dashboard</td><td>Autenticado</td><td>Stats grid (4 cols), Chart.js (donut, linea, barras), filtros fecha, export CSV, transcripciones</td></tr>
+        <tr><td><code>/dashboard/agents</code></td><td>Mis agentes</td><td>Autenticado</td><td>Agent cards v2, modal test con voz Retell, botones editar/eliminar</td></tr>
+        <tr><td><code>/dashboard/templates</code></td><td>Plantillas</td><td>Superadmin</td><td>Libreria de prompts (agenda Cal.com)</td></tr>
+        <tr><td><code>/dashboard/numbers</code></td><td>Mis numeros</td><td>Autenticado</td><td>Lista numeros SIP, credenciales, asignacion agente, banner info</td></tr>
+        <tr><td><code>/dashboard/settings</code></td><td>Ajustes</td><td>Autenticado</td><td>Placeholder futuro</td></tr>
+        <tr><td><code>/dashboard/help</code></td><td>Ayuda</td><td>Autenticado</td><td>40+ articulos en 6 categorias, buscador, asistente IA "Elio" (chat FAB)</td></tr>
+        <tr><td><code>/wizard</code></td><td>Wizard</td><td>Autenticado</td><td>6 steps + sidebar progress. Edicion via <code>?editId=X&step=N</code></td></tr>
+        <tr><td><code>/admin</code></td><td>Admin</td><td>Superadmin</td><td>Tabs: Workspaces, Usuarios, Alertas. CRUD workspaces, gestion API keys</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Estructura de navegacion</h3>
+    <table class="spec-table">
+      <thead><tr><th>Seccion</th><th>Items</th><th>Icono</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="4">Menu principal (sidebar)</td><td>Dashboard</td><td><code>bi-house-door</code></td></tr>
+        <tr><td>Mis agentes IA</td><td><code>bi-robot</code></td></tr>
+        <tr><td>Mis numeros</td><td><code>bi-telephone</code></td></tr>
+        <tr><td>Ayuda y soporte</td><td><code>bi-question-circle</code></td></tr>
+        <tr><td>Equipo Netelip (superadmin)</td><td>Gestion de la plataforma</td><td><code>bi-shield-lock</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     13 — RESPONSIVE Y BREAKPOINTS
+     ============================================ -->
+<section class="section page-break" id="s13">
+  <div class="section-number">Seccion 13</div>
+  <h2>Responsive y breakpoints</h2>
+  <p class="section-desc">Tres breakpoints principales que adaptan la interfaz desde desktop completo hasta movil.</p>
+
+  <div class="subsection">
+    <h3>Breakpoints</h3>
+    <table class="spec-table">
+      <thead><tr><th>Breakpoint</th><th>Media Query</th><th>Cambios</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Desktop</td>
+          <td><code>> 1024px</code></td>
+          <td>Layout completo con sidebar 260px. Content padding 32px. Grids multi-columna.</td>
+        </tr>
+        <tr>
+          <td>Tablet</td>
+          <td><code>max-width: 1023px</code></td>
+          <td>Sidebar oculto (<code>display: none</code>). Main sin margen izquierdo. Content padding 20px. View switcher desde left: 0. Topbar padding reducido a 16px.</td>
+        </tr>
+        <tr>
+          <td>Movil</td>
+          <td><code>max-width: 767px</code></td>
+          <td>Content padding 14px. Page header en columna. Wizard content-area padding 20px.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Grids responsive</h3>
+    <table class="spec-table">
+      <thead><tr><th>Componente</th><th>Desktop</th><th>Tablet/Movil</th></tr></thead>
+      <tbody>
+        <tr><td>Stats</td><td>4 columnas fijas</td><td>Auto-wrap a 2 y luego 1 columna</td></tr>
+        <tr><td>Agents grid</td><td><code>minmax(260px, 1fr)</code> auto-fill</td><td>1 columna en movil</td></tr>
+        <tr><td>Voices grid</td><td><code>minmax(200px, 1fr)</code> auto-fill</td><td>2 columnas, luego 1</td></tr>
+        <tr><td>Agent types</td><td><code>minmax(300px, 1fr)</code> auto-fit</td><td>1 columna en movil</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     14 — ANIMACIONES Y TRANSICIONES
+     ============================================ -->
+<section class="section page-break" id="s14">
+  <div class="section-number">Seccion 14</div>
+  <h2>Animaciones y transiciones</h2>
+  <p class="section-desc">Transiciones suaves y consistentes en toda la interfaz. Sin animaciones pesadas ni keyframes complejos.</p>
+
+  <div class="subsection">
+    <h3>Transiciones estandar</h3>
+    <table class="spec-table">
+      <thead><tr><th>Duracion</th><th>Easing</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td><code>0.15s</code></td><td>ease (default)</td><td>Nav buttons, pills, inputs (feedback rapido)</td></tr>
+        <tr><td><code>0.2s</code></td><td>ease</td><td>Botones principales, tool blocks, selects, toggles</td></tr>
+        <tr><td><code>0.3s</code></td><td><code>cubic-bezier(0.4, 0, 0.2, 1)</code></td><td>Cards con hover (voice cards, agent cards, category cards), agent type cards</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Hover transforms</h3>
+    <table class="spec-table">
+      <thead><tr><th>Componente</th><th>Transform</th><th>Extra</th></tr></thead>
+      <tbody>
+        <tr><td>Botones premium</td><td><code>translateY(-1px)</code></td><td>+ blue box-shadow</td></tr>
+        <tr><td>Voice cards</td><td><code>translateY(-2px)</code></td><td>+ elevacion sombra</td></tr>
+        <tr><td>Agent type cards</td><td><code>translateY(-4px)</code></td><td>+ barra azul top (scaleX 0→1)</td></tr>
+        <tr><td>Category cards (help)</td><td><code>translateY(-8px)</code></td><td>+ sombra profunda</td></tr>
+        <tr><td>Card premium</td><td><code>translateY(-4px)</code></td><td>+ sombra expandida</td></tr>
+        <tr><td>Play button</td><td><code>scale(1.05)</code></td><td>&mdash;</td></tr>
+        <tr><td>KB dropzone</td><td><code>translateY(-2px)</code></td><td>+ icon scale(1.1)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Keyframe animations</h3>
+    <table class="spec-table">
+      <thead><tr><th>Nombre</th><th>CSS</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td><code>@keyframes spin</code></td><td><code>rotate(0 → 360deg)</code>, 0.8-1s linear infinite</td><td>Spinner de carga (<code>.spinner</code>)</td></tr>
+        <tr><td><code>@keyframes pulse</code></td><td><code>opacity/scale</code> 1→0.5→1</td><td>Indicadores de actividad</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     15 — TOKENS CSS (REFERENCIA COMPLETA)
+     ============================================ -->
+<section class="section page-break" id="s15">
+  <div class="section-number">Seccion 15</div>
+  <h2>Tokens CSS (referencia completa)</h2>
+  <p class="section-desc">Lista exhaustiva de todas las CSS custom properties definidas en <code>:root</code> de <code>globals.css</code>.</p>
+
+  <div class="code-block">
+<span class="comment">/* ===== TOKENS — globals.css :root ===== */</span>
+
+<span class="comment">/* Brand */</span>
+<span class="prop">--azul</span>: <span class="val">#267ab0</span>;
+<span class="prop">--azul-hover</span>: <span class="val">#1e6291</span>;
+<span class="prop">--azul-light</span>: <span class="val">#eff6fb</span>;
+<span class="prop">--netelip-azul</span>: <span class="val">#267ab0</span>;
+<span class="prop">--netelip-azul-hover</span>: <span class="val">#1e6291</span>;
+
+<span class="comment">/* Grays */</span>
+<span class="prop">--gris-bg</span>: <span class="val">#f5f6f8</span>;
+<span class="prop">--gris-borde</span>: <span class="val">#e5e7eb</span>;
+<span class="prop">--gris-texto</span>: <span class="val">#6c757d</span>;
+<span class="prop">--gris-claro</span>: <span class="val">#f5f6f8</span>;
+<span class="prop">--oscuro</span>: <span class="val">#1a2428</span>;
+
+<span class="comment">/* Slate scale */</span>
+<span class="prop">--slate-50</span>: <span class="val">#f8fafc</span>;
+<span class="prop">--slate-100</span>: <span class="val">#f1f5f9</span>;
+<span class="prop">--slate-200</span>: <span class="val">#e2e8f0</span>;
+<span class="prop">--slate-400</span>: <span class="val">#94a3b8</span>;
+<span class="prop">--slate-500</span>: <span class="val">#64748b</span>;
+<span class="prop">--slate-600</span>: <span class="val">#475569</span>;
+<span class="prop">--slate-800</span>: <span class="val">#1e293b</span>;
+<span class="prop">--slate-900</span>: <span class="val">#0f172a</span>;
+
+<span class="comment">/* Semantic */</span>
+<span class="prop">--exito</span>: <span class="val">#10b981</span>;
+<span class="prop">--exito-light</span>: <span class="val">#ecfdf5</span>;
+<span class="prop">--alerta</span>: <span class="val">#f59e0b</span>;
+<span class="prop">--alerta-light</span>: <span class="val">#fffbeb</span>;
+<span class="prop">--error</span>: <span class="val">#ef4444</span>;
+<span class="prop">--error-light</span>: <span class="val">#fef2f2</span>;
+<span class="prop">--purpura</span>: <span class="val">#8b5cf6</span>;
+<span class="prop">--purpura-light</span>: <span class="val">#f5f3ff</span>;
+
+<span class="comment">/* Radii */</span>
+<span class="prop">--r-sm</span>: <span class="val">6px</span>;
+<span class="prop">--r-md</span>: <span class="val">8px</span>;
+<span class="prop">--r-lg</span>: <span class="val">12px</span>;
+<span class="prop">--r-xl</span>: <span class="val">1rem</span>;
+<span class="prop">--r-2xl</span>: <span class="val">1.5rem</span>;
+
+<span class="comment">/* Fonts (Next.js variables) */</span>
+<span class="prop">--font-inter</span>: <span class="str">'Inter'</span>;
+<span class="prop">--font-outfit</span>: <span class="str">'Outfit'</span>;
+  </div>
+
+  <div class="subsection">
+    <h3>Dependencias UI</h3>
+    <table class="spec-table">
+      <thead><tr><th>Paquete</th><th>Version</th><th>Proposito</th></tr></thead>
+      <tbody>
+        <tr><td><code>next</code></td><td>14.2.15</td><td>Framework React (App Router)</td></tr>
+        <tr><td><code>react</code></td><td>^18</td><td>UI library</td></tr>
+        <tr><td><code>tailwindcss</code></td><td>^3.4.1</td><td>Utility CSS (minimal use, mainly custom CSS)</td></tr>
+        <tr><td><code>lucide-react</code></td><td>^0.575.0</td><td>Iconos React (AdminAlertSettings)</td></tr>
+        <tr><td><code>react-hot-toast</code></td><td>^2.6.0</td><td>Notificaciones toast (top-right)</td></tr>
+        <tr><td><code>zustand</code></td><td>^5.0.11</td><td>State management (wizard store)</td></tr>
+        <tr><td><code>retell-client-js-sdk</code></td><td>^2.0.7</td><td>Llamadas de prueba con voz</td></tr>
+        <tr><td>Bootstrap Icons</td><td>1.11.3</td><td>Iconografia principal (CDN)</td></tr>
+        <tr><td>Chart.js</td><td>4.4.0</td><td>Graficas dashboard (donut, linea, barras)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Notas tecnicas importantes</h3>
+    <div class="annotation" style="margin-bottom:12px;">
+      <i class="bi bi-info-circle"></i>
+      <div><strong>Sin dark mode:</strong> La aplicacion solo tiene tema claro. No hay <code>prefers-color-scheme</code> ni toggle de tema. Fondos blancos con acentos azules.</div>
+    </div>
+    <div class="annotation" style="margin-bottom:12px;">
+      <i class="bi bi-info-circle"></i>
+      <div><strong>CSS custom vs Tailwind:</strong> El proyecto usa Tailwind instalado pero la mayor parte del styling es CSS custom en <code>globals.css</code> (~2300 lineas). Los componentes usan clases CSS y estilos inline, no utilidades Tailwind.</div>
+    </div>
+    <div class="annotation" style="margin-bottom:12px;">
+      <i class="bi bi-info-circle"></i>
+      <div><strong>Sin component library:</strong> No se usa shadcn/ui, Radix UI, ni Chakra. Todos los componentes son custom. Las clases tienen versionado (v2) indicando iteraciones de diseno.</div>
+    </div>
+    <div class="annotation">
+      <i class="bi bi-info-circle"></i>
+      <div><strong>Toast notifications:</strong> Via <code>react-hot-toast</code>, posicion <code>top-right</code>, configurado en el root layout.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     16 — MODALES Y OVERLAYS
+     ============================================ -->
+<section class="section page-break" id="s16">
+  <div class="section-number">Seccion 16</div>
+  <h2>Modales y overlays</h2>
+  <p class="section-desc">Patron de modal consistente: overlay oscuro con blur, card centrada con header, contenido y acciones. Usado para test de voz, guia Cal.com y confirmaciones.</p>
+
+  <div class="subsection">
+    <h3>Estructura del modal</h3>
+    <div class="showcase" style="position:relative;min-height:480px;overflow:hidden;padding:0;">
+      <!-- Overlay -->
+      <div style="position:absolute;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;">
+        <!-- Modal card -->
+        <div style="width:100%;max-width:480px;background:white;border-radius:var(--r-lg);box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);overflow:hidden;">
+          <!-- Header -->
+          <div style="padding:24px 32px;border-bottom:1px solid var(--slate-100);background:var(--slate-50);display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <h3 style="font-size:20px;font-weight:800;color:var(--slate-900);margin:0;letter-spacing:-0.02em;">Probar agente</h3>
+              <p style="font-size:13px;color:var(--slate-500);margin:4px 0 0 0;font-weight:500;">Agente de ventas</p>
+            </div>
+            <button style="width:36px;height:36px;padding:0;border-radius:50%;background:white;border:1px solid var(--slate-200);color:var(--slate-400);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          <!-- Body -->
+          <div style="padding:32px;text-align:center;">
+            <div style="width:100px;height:100px;border-radius:32px;background:var(--azul-light);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--azul);margin:0 auto 24px;position:relative;box-shadow:0 0 0 8px rgba(38,122,176,0.1);">
+              <i class="bi bi-soundwave"></i>
+              <div style="width:20px;height:20px;background:var(--exito);border-radius:50%;border:3px solid white;position:absolute;top:-6px;right:-6px;"></div>
+            </div>
+            <p style="color:var(--slate-600);font-size:15px;line-height:1.6;max-width:340px;margin:0 auto 28px;font-weight:500;">Pulsa el boton para iniciar una llamada de prueba con tu agente.</p>
+            <button style="width:100%;padding:16px;border-radius:16px;font-size:16px;font-weight:700;background:var(--exito);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 20px -5px rgba(0,0,0,0.1);font-family:inherit;">
+              <i class="bi bi-play-fill"></i> Iniciar llamada
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Especificaciones del overlay</h3>
+    <table class="spec-table">
+      <thead><tr><th>Propiedad</th><th>Valor</th><th>Notas</th></tr></thead>
+      <tbody>
+        <tr><td>Position</td><td><code>fixed</code>, <code>inset: 0</code></td><td>Cubre toda la pantalla</td></tr>
+        <tr><td>Background</td><td><code>rgba(15, 23, 42, 0.7)</code></td><td>Slate-900 al 70% opacidad</td></tr>
+        <tr><td>Backdrop filter</td><td><code>blur(12px)</code></td><td>Desenfoque del contenido detras</td></tr>
+        <tr><td>Z-index</td><td><code>1000</code></td><td>Por encima de todo</td></tr>
+        <tr><td>Click outside</td><td>Cierra el modal</td><td>Solo cuando no hay accion activa</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Especificaciones del card modal</h3>
+    <table class="spec-table">
+      <thead><tr><th>Propiedad</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Max width</td><td><code>520px</code></td></tr>
+        <tr><td>Border radius</td><td><code>var(--r-lg)</code> = 12px</td></tr>
+        <tr><td>Box shadow</td><td><code>0 25px 50px -12px rgba(0,0,0,0.25)</code></td></tr>
+        <tr><td>Header bg</td><td><code>var(--slate-50)</code> con border-bottom <code>var(--slate-100)</code></td></tr>
+        <tr><td>Header padding</td><td><code>32px</code></td></tr>
+        <tr><td>Body padding</td><td><code>48px 40px</code></td></tr>
+        <tr><td>Close button</td><td>Circular 40px, <code>btn-s</code>, solo visible cuando inactivo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Boton de llamada (estados)</h3>
+    <div class="showcase">
+      <div class="showcase-row" style="gap: 20px;">
+        <div style="text-align:center;flex:1;">
+          <button style="width:100%;padding:16px;border-radius:16px;font-size:15px;font-weight:700;background:var(--exito);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;">
+            <i class="bi bi-play-fill"></i> Iniciar llamada
+          </button>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-400);margin-top:8px;">Inactivo</div>
+        </div>
+        <div style="text-align:center;flex:1;">
+          <button style="width:100%;padding:16px;border-radius:16px;font-size:15px;font-weight:700;background:var(--alerta);color:white;border:none;cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;opacity:0.85;">
+            <i class="bi bi-hourglass-split"></i> Conectando...
+          </button>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-400);margin-top:8px;">Conectando</div>
+        </div>
+        <div style="text-align:center;flex:1;">
+          <button style="width:100%;padding:16px;border-radius:16px;font-size:15px;font-weight:700;background:var(--error);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;">
+            <i class="bi bi-stop-fill"></i> Colgar
+          </button>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-400);margin-top:8px;">Activo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Aviso importante (dentro del modal)</h3>
+    <div class="showcase">
+      <div style="max-width:440px;">
+        <div style="background:#fffbeb;border:1px solid #fef3c7;border-radius:16px;padding:20px;text-align:left;">
+          <div style="margin-bottom:12px;color:#92400e;font-weight:800;font-size:12px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:0.05em;">
+            <i class="bi bi-exclamation-triangle-fill" style="font-size:14px;"></i> Importante
+          </div>
+          <ul style="padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:10px;">
+            <li style="font-size:12px;color:#b45309;line-height:1.5;display:flex;gap:10px;">
+              <span style="width:6px;height:6px;background:#d97706;border-radius:50%;margin-top:6px;flex-shrink:0;"></span>
+              Necesitas microfono y altavoces activados
+            </li>
+            <li style="font-size:12px;color:#b45309;line-height:1.5;display:flex;gap:10px;">
+              <span style="width:6px;height:6px;background:#d97706;border-radius:50%;margin-top:6px;flex-shrink:0;"></span>
+              La llamada se factura como una llamada real
+            </li>
+            <li style="font-size:12px;color:#b45309;line-height:1.5;display:flex;gap:10px;">
+              <span style="width:6px;height:6px;background:#d97706;border-radius:50%;margin-top:6px;flex-shrink:0;"></span>
+              Si no oyes nada, revisa los permisos del navegador
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     17 — PAGINAS DE AUTENTICACION
+     ============================================ -->
+<section class="section page-break" id="s17">
+  <div class="section-number">Seccion 17</div>
+  <h2>Paginas de autenticacion</h2>
+  <p class="section-desc">Login y registro comparten el mismo patron visual: card centrada sobre fondo gris, con logo arriba y formulario compacto.</p>
+
+  <div class="subsection">
+    <h3>Login</h3>
+    <div class="showcase" style="background:#f5f6f8;padding:40px;">
+      <div style="max-width:440px;margin:0 auto;">
+        <!-- Logo -->
+        <div style="text-align:center;margin-bottom:32px;">
+          <div style="display:inline-flex;align-items:center;gap:10px;">
+            <div style="width:40px;height:40px;background:var(--azul);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:20px;">F</div>
+            <span style="font-size:18px;font-weight:800;color:var(--oscuro);">Fabrica de Agentes</span>
+          </div>
+          <p style="font-size:14px;color:var(--gris-texto);font-weight:500;margin:8px 0 0 0;">Crea agentes de voz IA para tu negocio</p>
+        </div>
+        <!-- Card -->
+        <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:40px;">
+          <h2 style="font-size:22px;font-weight:700;color:var(--oscuro);margin:0 0 6px 0;">Iniciar sesion</h2>
+          <p style="font-size:14px;color:var(--gris-texto);margin:0 0 32px 0;">Accede a tu panel de agentes</p>
+          <!-- Error example -->
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;font-size:14px;color:#dc2626;margin-bottom:20px;">Credenciales incorrectas</div>
+          <!-- Form -->
+          <div style="margin-bottom:20px;">
+            <label style="font-size:14px;font-weight:600;color:var(--oscuro);display:block;margin-bottom:6px;">Email</label>
+            <input type="email" value="usuario@empresa.com" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:var(--oscuro);background:white;outline:none;font-family:inherit;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:28px;">
+            <label style="font-size:14px;font-weight:600;color:var(--oscuro);display:block;margin-bottom:6px;">Contrasena</label>
+            <input type="password" value="password123" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:var(--oscuro);background:white;outline:none;font-family:inherit;box-sizing:border-box;">
+          </div>
+          <button style="width:100%;padding:12px;background:var(--azul);color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">Entrar</button>
+          <div style="margin-top:24px;padding-top:24px;border-top:1px solid #e5e7eb;text-align:center;font-size:14px;color:var(--gris-texto);">
+            No tienes cuenta? <a href="#" style="color:var(--azul);font-weight:600;text-decoration:none;">Crear cuenta</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Especificaciones auth card</h3>
+    <table class="spec-table">
+      <thead><tr><th>Propiedad</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Fondo pagina</td><td><code>#f5f6f8</code> (--gris-bg)</td></tr>
+        <tr><td>Layout</td><td><code>min-height: 100vh</code>, flex center, padding <code>32px 16px</code></td></tr>
+        <tr><td>Card max-width</td><td><code>440px</code></td></tr>
+        <tr><td>Card padding</td><td><code>40px</code></td></tr>
+        <tr><td>Card background</td><td>white</td></tr>
+        <tr><td>Card border</td><td><code>1px solid #e5e7eb</code></td></tr>
+        <tr><td>Card radius</td><td><code>12px</code></td></tr>
+        <tr><td>Titulo</td><td>22px, weight 700, color <code>#1a2428</code></td></tr>
+        <tr><td>Subtitulo</td><td>14px, color <code>#6c757d</code>, margin-bottom <code>32px</code></td></tr>
+        <tr><td>Labels</td><td>14px, weight 600, color <code>#1a2428</code></td></tr>
+        <tr><td>Inputs</td><td>14px, padding <code>10px 14px</code>, radius 8px</td></tr>
+        <tr><td>Input focus</td><td>border-color <code>#267ab0</code></td></tr>
+        <tr><td>Submit button</td><td>100% width, 15px, weight 600, radius 8px, bg <code>#267ab0</code></td></tr>
+        <tr><td>Submit hover</td><td>bg <code>#1e6291</code></td></tr>
+        <tr><td>Submit loading</td><td>bg <code>#6b9fc7</code>, cursor <code>not-allowed</code></td></tr>
+        <tr><td>Error banner</td><td>bg <code>#fef2f2</code>, border <code>#fecaca</code>, color <code>#dc2626</code></td></tr>
+        <tr><td>Link</td><td>color <code>#267ab0</code>, weight 600, sin underline</td></tr>
+      </tbody>
+    </table>
+    <div class="annotation">
+      <i class="bi bi-info-circle"></i>
+      <div>La pagina de <strong>registro</strong> es identica al login con un campo extra (Nombre completo) y contrasena con min 8 caracteres. Tras registro exitoso, muestra estado de verificacion de email.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     18 — DATA TABLES (ADMIN)
+     ============================================ -->
+<section class="section page-break" id="s18">
+  <div class="section-number">Seccion 18</div>
+  <h2>Data tables (admin)</h2>
+  <p class="section-desc">Tablas de datos usadas en el panel de administracion para workspaces, usuarios y configuracion.</p>
+
+  <div class="subsection">
+    <h3>Tabla de datos (.data-table)</h3>
+    <div class="showcase" style="padding:0;overflow:hidden;border-radius:16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <thead>
+          <tr>
+            <th style="padding:16px 24px;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--slate-400);letter-spacing:0.05em;background:var(--slate-50);text-align:left;">Workspace</th>
+            <th style="padding:16px 24px;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--slate-400);letter-spacing:0.05em;background:var(--slate-50);text-align:left;">API Key</th>
+            <th style="padding:16px 24px;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--slate-400);letter-spacing:0.05em;background:var(--slate-50);text-align:left;">Usuario</th>
+            <th style="padding:16px 24px;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--slate-400);letter-spacing:0.05em;background:var(--slate-50);text-align:left;">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);font-size:14px;color:var(--slate-800);font-weight:700;">WS-001</td>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--slate-50);padding:4px 8px;border-radius:6px;color:var(--slate-500);">sk-ret_1a2b3c...</span>
+            </td>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);font-size:14px;color:var(--slate-600);">maria@empresa.com</td>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);">
+              <span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--exito);"><i class="bi bi-check-circle-fill"></i> Activo</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);font-size:14px;color:var(--slate-800);font-weight:700;">WS-002</td>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--slate-50);padding:4px 8px;border-radius:6px;color:var(--slate-500);">sk-ret_7x8y9z...</span>
+            </td>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);font-size:14px;color:var(--slate-600);">carlos@negocio.es</td>
+            <td style="padding:20px 24px;border-bottom:1px solid var(--slate-50);">
+              <span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--exito);"><i class="bi bi-check-circle-fill"></i> Activo</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 24px;font-size:14px;color:var(--slate-800);font-weight:700;">WS-003</td>
+            <td style="padding:20px 24px;">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--slate-50);padding:4px 8px;border-radius:6px;color:var(--slate-400);">sin asignar</span>
+            </td>
+            <td style="padding:20px 24px;font-size:14px;color:var(--slate-400);font-style:italic;">Libre</td>
+            <td style="padding:20px 24px;">
+              <span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--slate-400);"><i class="bi bi-dash-circle"></i> Disponible</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Especificaciones de tabla</h3>
+    <table class="spec-table">
+      <thead><tr><th>Elemento</th><th>Estilo</th></tr></thead>
+      <tbody>
+        <tr><td>Header (th)</td><td>Padding <code>16px 24px</code>, font 11px/800, uppercase, letter-spacing 0.05em, bg <code>var(--slate-50)</code>, color <code>var(--slate-400)</code></td></tr>
+        <tr><td>Celda (td)</td><td>Padding <code>20px 24px</code>, border-bottom <code>1px solid var(--slate-50)</code>, font 14px, color <code>var(--slate-600)</code></td></tr>
+        <tr><td>Monospace key (.mono-key)</td><td>Font <code>JetBrains Mono</code> 12px, bg <code>var(--slate-50)</code>, padding <code>4px 8px</code>, radius 6px, color <code>var(--slate-500)</code>, max-width 140px, ellipsis</td></tr>
+        <tr><td>Badge OK (.badge-ok)</td><td>Flex, gap 6px, font 12px/700, color <code>var(--exito)</code></td></tr>
+        <tr><td>Status dot activo</td><td><code>6px</code> circulo, bg <code>#10b981</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================
+     19 — ELIO: BANNER Y CHAT
+     ============================================ -->
+<section class="section page-break" id="s19">
+  <div class="section-number">Seccion 19</div>
+  <h2>Elio: banner y chat</h2>
+  <p class="section-desc">Elio es el asistente IA integrado en la pagina de ayuda. Tiene un banner hero con gradiente, botones de pregunta rapida y una ventana de chat flotante.</p>
+
+  <div class="subsection">
+    <h3>Banner Elio</h3>
+    <div class="showcase" style="padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1a2428,#267ab0);border-radius:12px;padding:22px 24px;color:white;">
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <!-- Avatar -->
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;">E</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;">Elio</div>
+              <div style="font-size:11px;opacity:.7;">Asistente IA</div>
+            </div>
+          </div>
+          <!-- Quick questions -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;justify-content:flex-end;">
+            <button style="text-align:left;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;font-size:12px;color:white;cursor:pointer;font-family:inherit;">Como configuro Cal.com?</button>
+            <button style="text-align:left;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;font-size:12px;color:white;cursor:pointer;font-family:inherit;">Que voces hay?</button>
+            <button style="background:white;color:var(--azul);border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">Abrir chat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:20px;">
+      <thead><tr><th>Propiedad</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Background</td><td><code>linear-gradient(135deg, #1a2428, #267ab0)</code></td></tr>
+        <tr><td>Border radius</td><td><code>var(--r-lg)</code> = 12px</td></tr>
+        <tr><td>Padding</td><td><code>22px 24px</code></td></tr>
+        <tr><td>Avatar</td><td>40px circulo, bg <code>rgba(255,255,255,.15)</code>, "E" 17px/800</td></tr>
+        <tr><td>Quick buttons</td><td>bg <code>rgba(255,255,255,.12)</code>, border <code>rgba(255,255,255,.2)</code>, radius 8px</td></tr>
+        <tr><td>CTA button</td><td>bg white, color <code>var(--azul)</code>, weight 700, radius 8px</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Chat flotante</h3>
+    <div class="showcase" style="display:flex;justify-content:flex-end;min-height:480px;position:relative;">
+      <!-- Chat window -->
+      <div style="width:320px;background:white;border:1px solid var(--gris-borde);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;">
+        <!-- Header -->
+        <div style="padding:14px 16px;background:linear-gradient(135deg,#1a2428,#267ab0);display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;">E</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:white;">Elio</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.7);">Asistente IA</div>
+            </div>
+          </div>
+          <button style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:white;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-x"></i></button>
+        </div>
+        <!-- Messages -->
+        <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;">
+          <!-- Bot message -->
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1a2428,#267ab0);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">E</div>
+            <div style="background:var(--gris-bg);border:1px solid var(--gris-borde);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;max-width:230px;">Hola! Soy Elio, tu asistente. En que puedo ayudarte?</div>
+          </div>
+          <!-- User message -->
+          <div style="display:flex;align-items:flex-start;gap:8px;flex-direction:row-reverse;">
+            <div style="background:var(--azul);color:white;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;line-height:1.6;max-width:230px;">Como configuro Cal.com?</div>
+          </div>
+          <!-- Bot response -->
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1a2428,#267ab0);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">E</div>
+            <div style="background:var(--gris-bg);border:1px solid var(--gris-borde);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;max-width:230px;">Para configurar Cal.com, ve al paso 5 del wizard y activa la integracion...</div>
+          </div>
+        </div>
+        <!-- Input -->
+        <div style="padding:12px;border-top:1px solid var(--gris-borde);display:flex;gap:8px;">
+          <input type="text" placeholder="Escribe tu pregunta..." style="flex:1;padding:9px 12px;font-size:13px;border:1px solid var(--gris-borde);border-radius:var(--r-md);outline:none;font-family:inherit;">
+          <button style="padding:9px 14px;background:var(--azul);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-weight:600;font-size:13px;font-family:inherit;">
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+      </div>
+      <!-- FAB button (visual reference) -->
+      <div style="position:absolute;bottom:16px;right:16px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a2428,#267ab0);border:none;color:white;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(38,122,176,.4);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-chat-dots-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Especificaciones del chat</h3>
+    <table class="spec-table">
+      <thead><tr><th>Elemento</th><th>Estilo</th></tr></thead>
+      <tbody>
+        <tr><td>Ventana</td><td>Fixed, bottom/right 24px, width 340px, radius 16px, shadow <code>0 20px 60px rgba(0,0,0,.15)</code>, z-index 500</td></tr>
+        <tr><td>Header</td><td>Gradient <code>135deg, #1a2428 → #267ab0</code>, padding <code>14px 16px</code>, radius top <code>16px</code></td></tr>
+        <tr><td>Mensaje bot</td><td>bg <code>var(--gris-bg)</code>, border <code>var(--gris-borde)</code>, radius <code>12px 12px 12px 4px</code></td></tr>
+        <tr><td>Mensaje user</td><td>bg <code>var(--azul)</code>, color white, radius <code>12px 12px 4px 12px</code></td></tr>
+        <tr><td>Avatar bot</td><td>28px circulo, gradient bg, "E" 10px/800</td></tr>
+        <tr><td>Max width bubble</td><td><code>230px</code></td></tr>
+        <tr><td>FAB</td><td>52px circulo, gradient bg, shadow <code>0 4px 16px rgba(38,122,176,.4)</code>, z-index 499</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Quick access cards (pagina ayuda)</h3>
+    <div class="showcase">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+        <div style="background:linear-gradient(135deg,var(--azul),var(--azul-hover));border-radius:var(--r-lg);padding:22px;color:white;cursor:pointer;">
+          <i class="bi bi-lightning-fill" style="font-size:22px;margin-bottom:10px;display:block;opacity:.85;"></i>
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Primeros pasos</div>
+          <div style="font-size:12px;opacity:.75;">Guia rapida para crear tu primer agente</div>
+        </div>
+        <div style="background:white;border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:22px;cursor:pointer;">
+          <i class="bi bi-stars" style="font-size:22px;margin-bottom:10px;display:block;color:#7c3aed;"></i>
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;color:#7c3aed;">Cualificacion</div>
+          <div style="font-size:12px;color:var(--gris-texto);">Configura preguntas de filtrado</div>
+        </div>
+        <div style="background:white;border:1px solid var(--gris-borde);border-radius:var(--r-lg);padding:22px;cursor:pointer;">
+          <i class="bi bi-calendar-check" style="font-size:22px;margin-bottom:10px;display:block;color:var(--exito);"></i>
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;color:var(--exito);">Cal.com</div>
+          <div style="font-size:12px;color:var(--gris-texto);">Integracion de citas y reservas</div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <i class="bi bi-info-circle"></i>
+      <div>La primera card del grid usa gradiente azul (featured). Las demas tienen fondo blanco con iconos y titulos de color segun la categoria: purpura (#7c3aed), verde (--exito), azul (--azul), naranja (#d97706), rojo (#ef4444).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     20 — ESTADOS DE CARGA
+     ============================================ -->
+<section class="section page-break" id="s20">
+  <div class="section-number">Seccion 20</div>
+  <h2>Estados de carga</h2>
+  <p class="section-desc">Indicadores visuales para estados de carga, procesamiento y feedback al usuario.</p>
+
+  <div class="subsection">
+    <h3>Spinner (.spinner)</h3>
+    <div class="showcase">
+      <div class="showcase-row" style="gap:40px;">
+        <div style="text-align:center;">
+          <div style="border:2px solid rgba(0,0,0,0.1);border-top:2px solid var(--azul);border-radius:50%;width:20px;height:20px;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-500);">20px (default)</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="border:3px solid rgba(0,0,0,0.1);border-top:3px solid var(--azul);border-radius:50%;width:32px;height:32px;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-500);">32px (large)</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="border:2px solid rgba(255,255,255,0.3);border-top:2px solid white;border-radius:50%;width:16px;height:16px;animation:spin 0.8s linear infinite;margin:0 auto 10px;background:var(--azul);padding:8px;box-sizing:content-box;border-radius:50%;width:16px;height:16px;"></div>
+          <div style="font-size:11px;font-weight:600;color:var(--slate-500);">En boton</div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <table class="spec-table">
+      <thead><tr><th>Propiedad</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Border</td><td><code>2px solid rgba(0,0,0,0.1)</code></td></tr>
+        <tr><td>Border-top</td><td><code>2px solid var(--azul)</code></td></tr>
+        <tr><td>Tamano</td><td><code>20px</code> x <code>20px</code> (default)</td></tr>
+        <tr><td>Animacion</td><td><code>spin 0.8s linear infinite</code></td></tr>
+        <tr><td>Border radius</td><td><code>50%</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Botones con estado de carga</h3>
+    <div class="showcase">
+      <div class="showcase-row" style="gap:20px;">
+        <button style="padding:12px 24px;background:var(--azul);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;">
+          Crear agente
+        </button>
+        <button style="padding:12px 24px;background:#6b9fc7;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:not-allowed;font-family:inherit;display:inline-flex;align-items:center;gap:8px;opacity:0.85;">
+          <span style="border:2px solid rgba(255,255,255,0.3);border-top:2px solid white;border-radius:50%;width:14px;height:14px;animation:spin 0.8s linear infinite;display:inline-block;"></span>
+          Creando...
+        </button>
+        <button style="padding:12px 24px;background:var(--azul);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:not-allowed;font-family:inherit;display:inline-flex;align-items:center;gap:8px;opacity:0.5;">
+          Deshabilitado
+        </button>
+      </div>
+    </div>
+    <table class="spec-table">
+      <thead><tr><th>Estado</th><th>Background</th><th>Cursor</th><th>Extra</th></tr></thead>
+      <tbody>
+        <tr><td>Normal</td><td><code>var(--azul)</code> = #267ab0</td><td><code>pointer</code></td><td>&mdash;</td></tr>
+        <tr><td>Loading</td><td><code>#6b9fc7</code> (azul claro)</td><td><code>not-allowed</code></td><td>Spinner blanco 14px + texto "...ando"</td></tr>
+        <tr><td>Disabled</td><td><code>var(--azul)</code></td><td><code>not-allowed</code></td><td><code>opacity: 0.5</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection">
+    <h3>Toast notifications</h3>
+    <div class="showcase">
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:360px;">
+        <!-- Success toast -->
+        <div style="display:flex;align-items:center;gap:12px;background:white;border:1px solid var(--slate-100);border-radius:12px;padding:14px 18px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1);">
+          <div style="width:24px;height:24px;background:var(--exito-light);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--exito);font-size:14px;flex-shrink:0;"><i class="bi bi-check-lg"></i></div>
+          <span style="font-size:14px;font-weight:600;color:var(--slate-800);">Agente creado correctamente</span>
+        </div>
+        <!-- Error toast -->
+        <div style="display:flex;align-items:center;gap:12px;background:white;border:1px solid var(--slate-100);border-radius:12px;padding:14px 18px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1);">
+          <div style="width:24px;height:24px;background:var(--error-light);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--error);font-size:14px;flex-shrink:0;"><i class="bi bi-x-lg"></i></div>
+          <span style="font-size:14px;font-weight:600;color:var(--slate-800);">Error al guardar los cambios</span>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <i class="bi bi-info-circle"></i>
+      <div>Toasts via <code>react-hot-toast</code>. Posicion: <code>top-right</code>. Configurado en el root <code>layout.tsx</code> con <code>&lt;Toaster position="top-right" /&gt;</code>. Estilo por defecto del paquete con el tema del navegador.</div>
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h3>Skeleton / placeholder de carga</h3>
+    <div class="showcase">
+      <div style="max-width:300px;">
+        <div style="background:white;border:1px solid var(--slate-100);border-radius:20px;padding:24px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(90deg,var(--slate-100) 25%,var(--slate-50) 50%,var(--slate-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;"></div>
+            <div style="flex:1;">
+              <div style="height:14px;border-radius:4px;background:linear-gradient(90deg,var(--slate-100) 25%,var(--slate-50) 50%,var(--slate-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;margin-bottom:8px;width:70%;"></div>
+              <div style="height:10px;border-radius:4px;background:linear-gradient(90deg,var(--slate-100) 25%,var(--slate-50) 50%,var(--slate-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;width:40%;"></div>
+            </div>
+          </div>
+          <div style="height:12px;border-radius:4px;background:linear-gradient(90deg,var(--slate-100) 25%,var(--slate-50) 50%,var(--slate-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;margin-bottom:12px;"></div>
+          <div style="height:12px;border-radius:4px;background:linear-gradient(90deg,var(--slate-100) 25%,var(--slate-50) 50%,var(--slate-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;width:60%;"></div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+    </style>
+    <div class="annotation">
+      <i class="bi bi-info-circle"></i>
+      <div>Patron recomendado para estados de carga de cards: misma estructura que el componente final pero con bloques de gradiente animado (shimmer). Colores: <code>var(--slate-100)</code> a <code>var(--slate-50)</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="padding: 60px 0; border-top: 1px solid var(--slate-100); text-align: center; margin-top: 40px;">
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;">
+    <div style="width:28px;height:28px;background:var(--azul);border-radius:7px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:800;">F</div>
+    <span style="font-weight:700;font-size:14px;color:var(--slate-800);">Fabrica de Agentes IA</span>
+  </div>
+  <p style="font-size: 13px; color: var(--slate-400);">Manual de Diseno &mdash; v1.1 &mdash; Abril 2026 &mdash; 20 secciones</p>
+  <p style="font-size: 12px; color: var(--slate-300); margin-top: 4px;">Generado para Antonio &middot; Netelip</p>
+</footer>
+
+</div><!-- /.manual -->
+
+</body>
+</html>
