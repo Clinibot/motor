@@ -3,118 +3,426 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QA Checklist — Fábrica de Agentes | Netelip</title>
+<title>QA Checklist — Fábrica de Agentes IA | Netelip</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --azul: #267ab0;
+    --azul-hover: #1e6291;
+    --azul-light: #eff6fb;
+    --gris-bg: #f5f6f8;
+    --gris-borde: #e5e7eb;
+    --gris-texto: #6c757d;
+    --oscuro: #1a2428;
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --exito: #10b981;
+    --exito-light: #ecfdf5;
+    --alerta: #f59e0b;
+    --alerta-light: #fffbeb;
+    --error: #ef4444;
+    --error-light: #fef2f2;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: #1a1a2e; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gris-bg); color: var(--slate-800); font-size: 14px; line-height: 1.5; }
 
-  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 32px 40px; }
-  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-  .header p { font-size: 13px; opacity: 0.7; }
-  .header-meta { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
-  .meta-field { display: flex; flex-direction: column; gap: 4px; }
-  .meta-field label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.05em; }
-  .meta-field input { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; padding: 6px 10px; font-size: 13px; width: 200px; }
-  .meta-field input::placeholder { color: rgba(255,255,255,0.4); }
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--oscuro) 0%, #1d4e6e 50%, var(--azul) 100%);
+    color: white;
+    padding: 40px 48px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -8%;
+    width: 380px;
+    height: 380px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+    filter: blur(80px);
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: 10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 50%;
+    filter: blur(60px);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .header-logo {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+  .header p { font-size: 13px; opacity: 0.6; margin-top: 4px; font-weight: 400; }
+  .header-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .meta-field { display: flex; flex-direction: column; gap: 5px; }
+  .meta-field label {
+    font-size: 10px;
+    font-weight: 700;
+    opacity: 0.45;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .meta-field input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: white;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .meta-field input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); }
+  .meta-field input::placeholder { color: rgba(255,255,255,0.3); }
+  .meta-fixed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.7);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    width: 100%;
+  }
+  .meta-fixed-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--alerta);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
 
-  .progress-bar-wrap { background: white; padding: 14px 40px; border-bottom: 1px solid #e8ecf0; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .progress-label { font-size: 13px; font-weight: 600; white-space: nowrap; }
-  .progress-track { flex: 1; height: 8px; background: #e8ecf0; border-radius: 99px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); border-radius: 99px; transition: width 0.3s ease; width: 0%; }
-  .stats { display: flex; gap: 12px; font-size: 12px; }
-  .stat { display: flex; align-items: center; gap: 4px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot-pass { background: #22c55e; }
-  .dot-fail { background: #ef4444; }
-  .dot-partial { background: #f59e0b; }
-  .dot-na { background: #94a3b8; }
+  /* Progress */
+  .progress-bar-wrap {
+    background: white;
+    padding: 14px 48px;
+    border-bottom: 1px solid var(--gris-borde);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .progress-label { font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--oscuro); }
+  .progress-track { flex: 1; height: 6px; background: var(--gris-borde); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--azul), var(--exito)); border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+  .stats { display: flex; gap: 16px; font-size: 12px; font-weight: 600; }
+  .stat { display: flex; align-items: center; gap: 5px; color: var(--slate-600); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-pass { background: var(--exito); }
+  .dot-fail { background: var(--error); }
+  .dot-partial { background: var(--alerta); }
+  .dot-na { background: var(--slate-400); }
 
-  .main { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+  /* Main */
+  .main { max-width: 1060px; margin: 0 auto; padding: 36px 20px 100px; }
 
-  .section { background: white; border-radius: 12px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-  .section-header { padding: 15px 24px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; border-bottom: 1px solid #f1f5f9; }
-  .section-header:hover { background: #fafbfc; }
-  .section-title { font-size: 14px; font-weight: 700; flex: 1; color: #1e293b; }
-  .section-badge { font-size: 11px; background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 99px; font-weight: 600; }
-  .section-chevron { font-size: 11px; color: #94a3b8; }
+  /* Sections */
+  .section {
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 1px solid var(--gris-borde);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .section-header {
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .section-header:hover { background: var(--slate-50); }
+  .section-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+    color: white;
+  }
+  .section-title { font-size: 15px; font-weight: 700; flex: 1; color: var(--oscuro); }
+  .section-badge {
+    font-size: 11px;
+    background: var(--slate-100);
+    color: var(--slate-500);
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-weight: 700;
+  }
+  .section-badge.complete { background: var(--exito-light); color: var(--exito); }
+  .section-chevron { font-size: 10px; color: var(--slate-400); transition: transform 0.2s; }
   .section-body { display: block; }
   .section-body.collapsed { display: none; }
 
-  .test-case { padding: 14px 24px; border-bottom: 1px solid #f8fafc; display: grid; grid-template-columns: 1fr 230px; gap: 12px; align-items: start; }
+  /* Test case */
+  .test-case {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--slate-100);
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 20px;
+    align-items: start;
+  }
   .test-case:last-child { border-bottom: none; }
-  .test-case:hover { background: #fafbff; }
-  .test-info { display: flex; flex-direction: column; gap: 3px; }
-  .test-id { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-  .test-name { font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.3; }
-  .test-steps { font-size: 11.5px; color: #64748b; line-height: 1.55; margin-top: 3px; }
-  .test-expected { font-size: 11.5px; color: #059669; margin-top: 4px; }
+  .test-case:hover { background: var(--slate-50); }
+  .test-info { display: flex; flex-direction: column; gap: 5px; }
+  .test-id {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .test-name { font-size: 14px; font-weight: 700; color: var(--oscuro); line-height: 1.4; }
+  .test-steps { font-size: 12.5px; color: var(--slate-500); line-height: 1.65; margin-top: 3px; }
+  .test-expected { font-size: 12.5px; color: #059669; margin-top: 6px; font-weight: 500; line-height: 1.5; }
   .test-expected::before { content: "Esperado: "; font-weight: 700; }
 
-  .test-controls { display: flex; flex-direction: column; gap: 6px; }
-  .status-select { padding: 6px 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; background: white; outline: none; width: 100%; }
-  .status-select.pass { border-color: #22c55e; background: #f0fdf4; color: #16a34a; }
-  .status-select.fail { border-color: #ef4444; background: #fef2f2; color: #dc2626; }
-  .status-select.partial { border-color: #f59e0b; background: #fffbeb; color: #d97706; }
-  .status-select.na { border-color: #94a3b8; background: #f8fafc; color: #64748b; }
-  .test-notes { width: 100%; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px; font-family: inherit; resize: vertical; min-height: 32px; color: #374151; }
-  .test-notes:focus { outline: none; border-color: #6366f1; }
+  .test-controls { display: flex; flex-direction: column; gap: 8px; }
+  .status-select {
+    padding: 9px 12px;
+    border: 2px solid var(--gris-borde);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: white;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .status-select.pass { border-color: var(--exito); background: var(--exito-light); color: #059669; }
+  .status-select.fail { border-color: var(--error); background: var(--error-light); color: #dc2626; }
+  .status-select.partial { border-color: var(--alerta); background: var(--alerta-light); color: #b45309; }
+  .status-select.na { border-color: var(--slate-400); background: var(--slate-50); color: var(--slate-500); }
+  .test-notes {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--gris-borde);
+    border-radius: 7px;
+    font-size: 12px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 38px;
+    color: var(--slate-600);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .test-notes:focus { border-color: var(--azul); }
   .test-notes::placeholder { color: #cbd5e1; }
 
-  .severity { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+  /* Severity badges */
+  .severity {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.03em;
+  }
   .sev-critical { background: #fee2e2; color: #dc2626; }
-  .sev-high { background: #fef3c7; color: #d97706; }
+  .sev-high { background: #fef3c7; color: #b45309; }
   .sev-medium { background: #ede9fe; color: #7c3aed; }
-  .sev-low { background: #f0fdf4; color: #16a34a; }
+  .sev-low { background: var(--exito-light); color: #059669; }
 
-  .section-group-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; padding: 10px 24px 4px; background: #fafbfc; border-bottom: 1px solid #f1f5f9; }
+  /* Group label */
+  .section-group-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--slate-400);
+    padding: 14px 28px 8px;
+    background: var(--slate-50);
+    border-bottom: 1px solid var(--slate-100);
+    border-left: 3px solid var(--azul);
+  }
 
-  .summary { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-  .summary h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
-  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-  .summary-card { text-align: center; padding: 14px; border-radius: 10px; }
-  .summary-card.pass { background: #f0fdf4; }
-  .summary-card.fail { background: #fef2f2; }
-  .summary-card.partial { background: #fffbeb; }
-  .summary-card.na { background: #f8fafc; }
-  .summary-num { font-size: 30px; font-weight: 800; display: block; }
-  .summary-num.pass { color: #16a34a; }
-  .summary-num.fail { color: #dc2626; }
-  .summary-num.partial { color: #d97706; }
-  .summary-num.na { color: #64748b; }
-  .summary-label { font-size: 11px; font-weight: 600; margin-top: 2px; color: #64748b; }
-  .notes-general { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 80px; }
-  .notes-general:focus { outline: none; border-color: #6366f1; }
+  /* Summary */
+  .summary {
+    background: white;
+    border-radius: 16px;
+    padding: 36px;
+    border: 1px solid var(--gris-borde);
+    margin-top: 40px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .summary h2 { font-size: 18px; font-weight: 800; margin-bottom: 24px; color: var(--oscuro); }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .summary-card { text-align: center; padding: 22px 16px; border-radius: 14px; }
+  .summary-card.pass { background: var(--exito-light); }
+  .summary-card.fail { background: var(--error-light); }
+  .summary-card.partial { background: var(--alerta-light); }
+  .summary-card.na { background: var(--slate-50); }
+  .summary-num { font-size: 38px; font-weight: 800; display: block; }
+  .summary-num.pass { color: var(--exito); }
+  .summary-num.fail { color: var(--error); }
+  .summary-num.partial { color: var(--alerta); }
+  .summary-num.na { color: var(--slate-400); }
+  .summary-label { font-size: 12px; font-weight: 700; margin-top: 4px; color: var(--slate-500); }
+  .notes-general {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--gris-borde);
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 110px;
+    color: var(--slate-600);
+    outline: none;
+  }
+  .notes-general:focus { border-color: var(--azul); }
 
-  .actions { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
-  .btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-  .btn-primary { background: #6366f1; color: white; }
-  .btn-primary:hover { background: #4f46e5; }
-  .btn-secondary { background: #f1f5f9; color: #374151; }
-  .btn-secondary:hover { background: #e2e8f0; }
+  .actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; flex-wrap: wrap; }
+  .btn {
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--azul); color: white; }
+  .btn-primary:hover { background: var(--azul-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(38,122,176,0.25); }
+  .btn-secondary { background: var(--slate-100); color: var(--slate-600); }
+  .btn-secondary:hover { background: var(--slate-200); color: var(--oscuro); }
 
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--oscuro);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 9999;
+    transition: transform 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Print */
   @media print {
-    .progress-bar-wrap, .actions { display: none; }
-    body { background: white; }
-    .section { box-shadow: none; border: 1px solid #e2e8f0; page-break-inside: avoid; }
+    .progress-bar-wrap, .actions, .toast, .btn { display: none !important; }
+    body { background: white; font-size: 11px; }
+    .header { padding: 20px 24px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .section-icon { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .severity { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .section-group-label { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .main { padding: 16px; max-width: 100%; }
+    .section { box-shadow: none; page-break-inside: avoid; margin-bottom: 10px; border-radius: 8px; }
     .section-body.collapsed { display: block !important; }
+    .test-case { padding: 10px 18px; }
+    .summary { page-break-before: always; box-shadow: none; }
+    .summary-card { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .test-notes { border: 1px solid #ccc; min-height: 20px; }
+    .status-select { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .dot { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .meta-fixed-badge { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .meta-fixed-badge::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+
+  @media (max-width: 768px) {
+    .header { padding: 24px 20px; }
+    .header-meta { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .progress-bar-wrap { padding: 10px 16px; gap: 10px; flex-wrap: wrap; }
+    .test-case { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>QA Checklist — Fabrica de Agentes | Netelip</h1>
-  <p>lafabrica.netelip.com · Plataforma de agentes de voz con IA (Retell AI)</p>
+  <div class="header-top">
+    <div class="header-logo">F</div>
+    <h1>QA Checklist — Fabrica de Agentes IA</h1>
+  </div>
+  <p>lafabrica.netelip.com · Plataforma de agentes de voz con IA · Documento de pruebas para el equipo Netelip</p>
   <div class="header-meta">
     <div class="meta-field"><label>Tester</label><input type="text" id="tester-name" placeholder="Tu nombre" /></div>
     <div class="meta-field"><label>Fecha</label><input type="date" id="test-date" /></div>
     <div class="meta-field"><label>Version / Build</label><input type="text" id="build-version" placeholder="Ej: v1.0.3" /></div>
-    <div class="meta-field"><label>Entorno</label><input type="text" id="environment" value="Produccion" /></div>
+    <div class="meta-field"><label>Entorno</label><div class="meta-fixed-badge" id="environment">Preproduccion</div></div>
   </div>
 </div>
 
 <div class="progress-bar-wrap">
-  <span class="progress-label">Progreso: <span id="progress-pct">0%</span></span>
+  <span class="progress-label">Progreso: <span id="progress-pct">0%</span> <span id="progress-count" style="color:var(--slate-400);font-weight:600;">(0/60)</span></span>
   <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
   <div class="stats">
     <span class="stat"><span class="dot dot-pass"></span><span id="count-pass">0</span> OK</span>
@@ -126,20 +434,21 @@
 
 <div class="main">
 
-<!-- ========== 1. AUTENTICACION ========== -->
+<!-- ========== 1. WIZARD PASO 1 ========== -->
 <div class="section">
   <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">1. Autenticacion y acceso</span>
-    <span class="section-badge" id="badge-1">0/4</span>
-    <span class="section-chevron">v</span>
+    <div class="section-icon" style="background:var(--azul);">1</div>
+    <span class="section-title">1. Wizard — Paso 1: Informacion basica</span>
+    <span class="section-badge" id="badge-1">0/3</span>
+    <span class="section-chevron">&#9660;</span>
   </div>
   <div class="section-body" id="section-1">
     <div class="test-case">
       <div class="test-info">
-        <span class="test-id">AUTH-01 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Login con credenciales validas</span>
-        <span class="test-steps">1. Ir a /login · 2. Email y contrasena correctos · 3. Pulsar "Iniciar sesion"</span>
-        <span class="test-expected">Redirige al Dashboard principal sin errores</span>
+        <span class="test-id">W1-01 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Rellenar y guardar informacion basica</span>
+        <span class="test-steps">1. Editar: Nombre del agente, Nombre de la empresa, Descripcion breve · 2. Avanzar al paso 2 · 3. Volver al paso 1 y comprobar persistencia</span>
+        <span class="test-expected">Todos los campos persisten al navegar entre pasos</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
@@ -148,10 +457,10 @@
     </div>
     <div class="test-case">
       <div class="test-info">
-        <span class="test-id">AUTH-02 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Login con credenciales incorrectas</span>
-        <span class="test-steps">1. Email correcto + contrasena incorrecta · 2. Pulsar "Iniciar sesion"</span>
-        <span class="test-expected">Mensaje de error claro, no redirige</span>
+        <span class="test-id">W1-02 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Seleccionar tipo de agente (cards seleccionables)</span>
+        <span class="test-steps">1. Probar cada tipo: Cualificacion de leads, Agendamiento de citas, Atencion al cliente, Ventas y captacion, Informacion y consultas · 2. Verificar animacion de seleccion (borde azul, check, barra top)</span>
+        <span class="test-expected">Todos los tipos se seleccionan con feedback visual. Los marcados "Proximamente" estan deshabilitados.</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
@@ -160,22 +469,10 @@
     </div>
     <div class="test-case">
       <div class="test-info">
-        <span class="test-id">AUTH-03 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Cierre de sesion y proteccion de rutas</span>
-        <span class="test-steps">1. Usar la opcion de logout · 2. Intentar volver al panel con el boton "atras" del navegador</span>
-        <span class="test-expected">Sesion cerrada, redirige al login, el panel no es accesible</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">AUTH-04 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Login con campos vacios</span>
-        <span class="test-steps">1. Dejar email o contrasena vacios · 2. Pulsar "Iniciar sesion"</span>
-        <span class="test-expected">Validacion de formulario, no envia la peticion</span>
+        <span class="test-id">W1-03 <span class="severity sev-medium">MEDIO</span></span>
+        <span class="test-name">Validacion de nombre obligatorio</span>
+        <span class="test-steps">1. Dejar el nombre del agente vacio · 2. Intentar avanzar al paso 2</span>
+        <span class="test-expected">No avanza. Indicacion visual del campo obligatorio.</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
@@ -185,14 +482,695 @@
   </div>
 </div>
 
-<!-- ========== 2. DASHBOARD ========== -->
+<!-- ========== 2. WIZARD PASO 2 ========== -->
 <div class="section">
   <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">2. Dashboard y estadisticas</span>
-    <span class="section-badge" id="badge-2">0/8</span>
-    <span class="section-chevron">v</span>
+    <div class="section-icon" style="background:var(--azul);">2</div>
+    <span class="section-title">2. Wizard — Paso 2: Cerebro (LLM y comportamiento)</span>
+    <span class="section-badge" id="badge-2">0/4</span>
+    <span class="section-chevron">&#9660;</span>
   </div>
   <div class="section-body" id="section-2">
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W2-01 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Mensaje de inicio con aviso RGPD</span>
+        <span class="test-steps">1. Escribir un mensaje de inicio personalizado · 2. Verificar que incluye la nota legal RGPD · 3. Guardar y llamar · 4. Verificar que el agente dice este mensaje al conectar</span>
+        <span class="test-expected">El agente abre con el mensaje configurado incluyendo la nota legal</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W2-02 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Quien habla primero — agente habla primero</span>
+        <span class="test-steps">1. Configurar "El agente habla primero" · 2. Guardar · 3. Llamar al numero</span>
+        <span class="test-expected">El agente saluda inmediatamente sin esperar al usuario</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W2-03 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Personalidad (pills) y tono se reflejan en llamada</span>
+        <span class="test-steps">1. Seleccionar personalidad: Profesional, Empatico, Amigable, Proactivo, Directo · 2. Seleccionar tono: Formal, Semiformal, Casual · 3. Guardar y llamar</span>
+        <span class="test-expected">El estilo de respuesta del agente corresponde a la combinacion configurada</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Combinacion probada, comportamiento observado..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W2-04 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Idioma del agente segun voz seleccionada</span>
+        <span class="test-steps">1. Seleccionar voz en espanol y verificar prompt en espanol · 2. Seleccionar voz en ingles y verificar prompt en ingles · 3. Seleccionar voz en catalan y verificar prompt en catalan</span>
+        <span class="test-expected">El agente habla en el idioma correspondiente a la voz. Regla: ca=catalan, en=ingles, otro=espanol</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Idioma que falla..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 3. WIZARD PASO 3: VOZ ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:var(--azul);">3</div>
+    <span class="section-title">3. Wizard — Paso 3: Voz del agente</span>
+    <span class="section-badge" id="badge-3">0/7</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-3">
+    <div class="section-group-label">ESPANOL — VOCES PREMIUM</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">VOZ-01 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Carolina (ElevenLabs, femenino) — preview y llamada</span>
+        <span class="test-steps">1. Seleccionar Carolina · 2. Pulsar "Vista previa" · 3. Guardar · 4. Llamada de prueba</span>
+        <span class="test-expected">Preview funciona. Voz natural en llamada. Requiere importacion previa en el workspace.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Calidad 1-5, problema..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">VOZ-02 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">MariCarmen (ElevenLabs, femenino) — preview y llamada</span>
+        <span class="test-steps">1. Seleccionar MariCarmen · 2. Preview · 3. Guardar · 4. Llamada de prueba</span>
+        <span class="test-expected">Preview funciona. Requiere importacion previa.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Calidad 1-5..."></textarea>
+      </div>
+    </div>
+    <div class="section-group-label">INGLES</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">VOZ-03 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Nico (Cartesia, ingles, masculino)</span>
+        <span class="test-steps">1. Seleccionar Nico · 2. Preview · 3. Guardar con agente en ingles · 4. Llamada</span>
+        <span class="test-expected">Voz en ingles correcta. El agente responde en ingles.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Calidad..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">VOZ-04 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Willa (ingles, femenino)</span>
+        <span class="test-steps">1. Seleccionar Willa · 2. Preview · 3. Llamada</span>
+        <span class="test-expected">Voz en ingles natural y clara.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Calidad..."></textarea>
+      </div>
+    </div>
+    <div class="section-group-label">CATALAN</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">VOZ-05 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Cimo (catalan, femenino, Premium)</span>
+        <span class="test-steps">1. Seleccionar Cimo · 2. Preview · 3. Guardar · 4. Llamada</span>
+        <span class="test-expected">Voz en catalan correcta. El agente responde en catalan.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Calidad..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">VOZ-06 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Alloy (catalan, OpenAI Standard)</span>
+        <span class="test-steps">1. Seleccionar Alloy · 2. Preview · 3. Llamada · 4. Comparar calidad vs Premium</span>
+        <span class="test-expected">Funciona. Las voces OpenAI no admiten voice_speed ni voice_temperature.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Diferencia vs Premium..."></textarea>
+      </div>
+    </div>
+    <div class="section-group-label">FILTROS</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">VOZ-07 <span class="severity sev-medium">MEDIO</span></span>
+        <span class="test-name">Filtros por genero (Todos / Masculino / Femenino)</span>
+        <span class="test-steps">1. Pulsar "Masculino" para ver solo voces masculinas · 2. "Femenino" para ver solo femeninas · 3. "Todos" para ver todas</span>
+        <span class="test-expected">Filtros funcionan correctamente. Banderas SVG (ES/EN/CA) visibles.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 4. WIZARD PASO 4: AUDIO ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:var(--azul);">4</div>
+    <span class="section-title">4. Wizard — Paso 4: Audio y procesamiento</span>
+    <span class="section-badge" id="badge-4">0/5</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-4">
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AUD-01 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Volumen del agente (slider)</span>
+        <span class="test-steps">1. Ajustar slider de volumen (ej: 70%) · 2. Verificar badge azul muestra el porcentaje · 3. Guardar · 4. Llamada de prueba</span>
+        <span class="test-expected">Volumen percibido coincide con el configurado. Badge muestra valor correcto.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AUD-02 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Velocidad y temperatura de voz (solo voces no-OpenAI)</span>
+        <span class="test-steps">1. Con voz Cartesia/ElevenLabs, ajustar velocidad y temperatura · 2. Guardar · 3. Llamar · 4. Repetir con voz OpenAI y verificar que los controles no aparecen o no se envian</span>
+        <span class="test-expected">Controles activos para voces no-OpenAI. Para voces OpenAI, los parametros no se envian.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Voz probada, comportamiento..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AUD-03 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Habilitar sonido ambiente</span>
+        <span class="test-steps">1. Activar checkbox "Habilitar sonido ambiente" · 2. Seleccionar tipo (oficina, cafe, etc.) · 3. Ajustar volumen del ambiente · 4. Guardar · 5. Llamada</span>
+        <span class="test-expected">Sonido ambiente audible sin tapar la voz. Tipo corresponde al seleccionado.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Tipo de ruido, nivel..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AUD-04 <span class="severity sev-medium">MEDIO</span></span>
+        <span class="test-name">Desactivar sonido ambiente</span>
+        <span class="test-steps">1. Desactivar checkbox · 2. Guardar · 3. Llamada</span>
+        <span class="test-expected">Sin ruido de fondo. El campo ambient_sound se envia como null (no undefined).</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AUD-05 <span class="severity sev-medium">MEDIO</span></span>
+        <span class="test-name">Cambiar tipo de sonido ambiente entre llamadas</span>
+        <span class="test-steps">1. Configurar tipo "Oficina" · 2. Guardar y llamar · 3. Cambiar a "Cafe" · 4. Guardar y llamar otra vez</span>
+        <span class="test-expected">El sonido cambia entre llamadas. El valor anterior no persiste.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 5. WIZARD PASO 5: HERRAMIENTAS ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:var(--azul);">5</div>
+    <span class="section-title">5. Wizard — Paso 5: Herramientas</span>
+    <span class="section-badge" id="badge-5">0/12</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-5">
+    <div class="section-group-label">CUALIFICACION DE CONTACTO</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-01 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Configurar preguntas de cualificacion (max 3)</span>
+        <span class="test-steps">1. Anadir 2 preguntas con criterio y accion si no cualifica · 2. Intentar anadir una 4a (limite 3) · 3. Guardar</span>
+        <span class="test-expected">Preguntas guardadas. Sistema bloquea mas de 3.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-02 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Cualificacion funciona en llamada</span>
+        <span class="test-steps">1. Con preguntas configuradas, recibir llamada · 2. Responder cumpliendo un criterio y NO cumpliendo otro · 3. Verificar accion correcta (transferir / terminar / continuar)</span>
+        <span class="test-expected">El agente hace las preguntas y ejecuta la accion segun criterio</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Preguntas que fallan..."></textarea>
+      </div>
+    </div>
+    <div class="section-group-label">TRANSFERENCIA DE LLAMADA (solo a numero humano)</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-03 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Transferencia a numero de telefono humano</span>
+        <span class="test-steps">1. Configurar destino con numero real (destination_type: number) · 2. Anadir nombre, descripcion e instruccion de cuando transferir · 3. Llamar y desencadenar condicion</span>
+        <span class="test-expected">Llamada transferida al numero destino. El agente avisa antes de transferir.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Numero destino, comportamiento..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-04 <span class="severity sev-medium">MEDIO</span></span>
+        <span class="test-name">Multiples destinos de transferencia</span>
+        <span class="test-steps">1. Anadir 2 destinos distintos · 2. Guardar · 3. Eliminar uno · 4. Verificar persistencia del restante</span>
+        <span class="test-expected">Gestion de multiples destinos sin errores</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="section-group-label">RESERVA DE CITAS — CAL.COM</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-05 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Reservar cita durante llamada (book_appointment)</span>
+        <span class="test-steps">1. Configurar Cal.com (API Key + Event Type ID + zona horaria) · 2. Llamar · 3. Pedir cita para fecha disponible · 4. Verificar en Cal.com que la cita existe</span>
+        <span class="test-expected">Cita creada en Cal.com. El agente usa slots reales, NO inventa horarios. Telefono normalizado a +34.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Fecha/hora usada..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-06 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Consultar cita existente (check_appointment)</span>
+        <span class="test-steps">1. Con una cita reservada · 2. Llamar y preguntar si tiene cita · 3. Verificar que el agente la encuentra por telefono</span>
+        <span class="test-expected">El agente devuelve la info de la cita existente</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-07 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Cancelar cita durante llamada (cancel_appointment)</span>
+        <span class="test-steps">1. Activar "Permitir cancelacion" · 2. Con cita existente · 3. Llamar y pedir cancelar · 4. Verificar en Cal.com</span>
+        <span class="test-expected">Cancelacion ejecutada en Cal.com. Si ya estaba cancelada, no reintenta (idempotencia).</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-08 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Disponibilidad en lenguaje natural (webhook inbound)</span>
+        <span class="test-steps">1. Con Cal.com activo, llamar al numero · 2. Preguntar disponibilidad · 3. Verificar que el agente menciona horarios reales</span>
+        <span class="test-expected">El agente usa la disponibilidad inyectada por el webhook inbound via OpenAI</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Disponibilidad real vs mencionada..."></textarea>
+      </div>
+    </div>
+    <div class="section-group-label">DATOS A RECOGER DE LA LLAMADA</div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-09 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Variables predefinidas (Resumen, Exitosa, Sentimiento)</span>
+        <span class="test-steps">1. Llamada completa · 2. Abrir detalle en dashboard · 3. Verificar las 3 variables predefinidas</span>
+        <span class="test-expected">Valores coherentes con la conversacion mantenida</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Variable incorrecta..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-10 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Variables personalizadas — Texto y Booleano</span>
+        <span class="test-steps">1. Crear variable Texto (ej: "Motivo") y Booleano (ej: "Primera llamada") · 2. Llamar mencionando datos · 3. Verificar extraccion</span>
+        <span class="test-expected">Variables extraidas reflejan lo dicho en la llamada</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-11 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Variables personalizadas — Numero</span>
+        <span class="test-steps">1. Crear variable tipo Numero · 2. Llamar mencionando un dato numerico · 3. Verificar que el valor extraido es numerico</span>
+        <span class="test-expected">El Numero devuelve valor numerico correcto</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">H-12 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Agente sin Cal.com — seccion Calendario inyectada</span>
+        <span class="test-steps">1. Desactivar Cal.com · 2. Guardar · 3. Llamar y pedir una cita</span>
+        <span class="test-expected">El agente indica que NO puede gestionar citas (seccion Calendario inyectada automaticamente en el prompt)</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 6. WIZARD PASO 6 ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:var(--azul);">6</div>
+    <span class="section-title">6. Wizard — Paso 6: Resumen y base de conocimiento</span>
+    <span class="section-badge" id="badge-6">0/5</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-6">
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W6-01 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Pagina de resumen — navegar a cada paso</span>
+        <span class="test-steps">1. Abrir paso 6 · 2. Clic en "Ir al paso" para cada uno de los 5 pasos anteriores</span>
+        <span class="test-expected">Cada enlace navega al paso correcto</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W6-02 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Subir documento a la base de conocimiento</span>
+        <span class="test-steps">1. Subir un PDF via dropzone (arrastrar o clic) · 2. Verificar que aparece en la lista con nombre (sin extension) · 3. Guardar y llamar · 4. Preguntar algo del documento</span>
+        <span class="test-expected">Documento subido. Nombre sin extension. El agente responde con info del documento.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Tipo archivo, precision respuesta..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W6-03 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Multiples formatos de archivo (PDF, DOCX, TXT, MD)</span>
+        <span class="test-steps">1. Subir un archivo de cada tipo · 2. Verificar que todos aparecen en la lista · 3. Verificar limite de 25MB</span>
+        <span class="test-expected">Todos los formatos aceptados. Archivos mayores de 25MB rechazados.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Formato que falla..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W6-04 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Notas adicionales al prompt</span>
+        <span class="test-steps">1. Escribir notas (ej: "Horarios L-V 9-18h") · 2. Guardar · 3. Llamar preguntando por horarios</span>
+        <span class="test-expected">El agente incorpora las notas a su comportamiento</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">W6-05 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Guardar cambios y verificar persistencia total</span>
+        <span class="test-steps">1. Completar todos los pasos · 2. Guardar · 3. Reabrir agente en edicion · 4. Recorrer los 6 pasos verificando que todo persiste</span>
+        <span class="test-expected">Todos los cambios persisten: nombre, voz, herramientas, KB, notas</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Campo que no persiste..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 7. MIS AGENTES ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:var(--exito);">7</div>
+    <span class="section-title">7. Mis agentes IA</span>
+    <span class="section-badge" id="badge-7">0/5</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-7">
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AG-01 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Crear nuevo agente desde el wizard completo</span>
+        <span class="test-steps">1. Pulsar "Nuevo Agente" en el topbar · 2. Completar los 6 pasos del wizard · 3. Pulsar "Crear agente" en el paso 6 · 4. Verificar que aparece en la lista de agentes</span>
+        <span class="test-expected">Agente creado correctamente. Card visible con nombre, estado "Activo" y badge verde.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AG-02 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Editar agente existente</span>
+        <span class="test-steps">1. Pulsar "Editar" en un agente · 2. Verificar que el wizard carga con los datos del agente · 3. Modificar algun campo · 4. Guardar · 5. Reabrir y verificar persistencia</span>
+        <span class="test-expected">Wizard carga datos correctos. Cambios se guardan y persisten. URL: /wizard?editId=X&step=N</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Campo que no carga o no persiste..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AG-03 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Probar agente — Web Call (modal de test)</span>
+        <span class="test-steps">1. Pulsar "Probar" en un agente · 2. Verificar que aparece el modal con icono de onda · 3. Pulsar "Iniciar llamada" · 4. Hablar con el agente · 5. Pulsar "Colgar"</span>
+        <span class="test-expected">Modal abre. Llamada WebRTC conecta. El agente responde con la voz y prompt configurados. Se puede colgar sin errores.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Error de conexion, comportamiento del agente..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AG-04 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Eliminar agente</span>
+        <span class="test-steps">1. Pulsar el boton de papelera rojo en un agente · 2. Verificar que pide confirmacion · 3. Confirmar · 4. Verificar que desaparece de la lista</span>
+        <span class="test-expected">Confirmacion antes de eliminar. Agente eliminado de la lista y de Retell.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">AG-05 <span class="severity sev-medium">MEDIO</span></span>
+        <span class="test-name">Nuevo Agente limpia el wizard (resetWizard)</span>
+        <span class="test-steps">1. Editar un agente existente hasta el paso 3 · 2. Volver a la lista · 3. Pulsar "Nuevo Agente" · 4. Verificar que el wizard esta completamente vacio</span>
+        <span class="test-expected">Todos los campos vacios. Ningun dato del agente anterior persiste.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Campo que conserva datos del agente anterior..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 8. MIS NUMEROS ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:var(--alerta);">8</div>
+    <span class="section-title">8. Mis numeros</span>
+    <span class="section-badge" id="badge-8">0/4</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-8">
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">NUM-01 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Listar numeros y estado de conexion</span>
+        <span class="test-steps">1. Ir a "Mis numeros" · 2. Verificar que aparecen los numeros con estado (Conectado/Desconectado), agente asignado y credenciales SIP</span>
+        <span class="test-expected">Tabla con numero, estado, agente asignado y credenciales SIP visibles</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">NUM-02 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Asignar y cambiar agente a numero</span>
+        <span class="test-steps">1. En el desplegable del numero, cambiar el agente asignado · 2. Llamar al numero · 3. Verificar que el nuevo agente contesta</span>
+        <span class="test-expected">El cambio se guarda. La llamada entrante usa el agente nuevo. El numero se pinea a la ultima version del agente.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">NUM-03 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Desasignar agente (Sin agente / Desactivado)</span>
+        <span class="test-steps">1. Seleccionar "Sin agente (Desactivado)" · 2. Llamar al numero</span>
+        <span class="test-expected">El numero no conecta con ningun agente. La llamada no es atendida por la IA.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">NUM-04 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Eliminar numero (con confirmacion)</span>
+        <span class="test-steps">1. Pulsar eliminar en un numero · 2. Verificar que pide confirmacion · 3. Confirmar eliminacion</span>
+        <span class="test-expected">Confirmacion antes de eliminar. Numero desaparece de la lista y de Retell.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 9. LLAMADAS ENTRANTES ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:#dc2626;">9</div>
+    <span class="section-title">9. Llamadas entrantes y rendimiento</span>
+    <span class="section-badge" id="badge-9">0/6</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-9">
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">CALL-01 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Llamada entrante al numero asignado</span>
+        <span class="test-steps">1. Llamar al numero · 2. Verificar que el agente correcto contesta · 3. Comprobar voz, prompt e idioma configurados</span>
+        <span class="test-expected">El agente correcto contesta con la configuracion esperada</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">CALL-02 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Latencia de primera respuesta</span>
+        <span class="test-steps">1. Llamar y hablar inmediatamente · 2. Medir tiempo hasta primera respuesta</span>
+        <span class="test-expected">Primera respuesta en menos de 2 segundos (LLM turbo mode activado)</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Tiempo en segundos..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">CALL-03 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Interrupcion del agente (barge-in)</span>
+        <span class="test-steps">1. Cuando el agente hable, interrumpirle · 2. Verificar que para y escucha</span>
+        <span class="test-expected">El agente deja de hablar y responde a la interrupcion</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">CALL-04 <span class="severity sev-medium">MEDIO</span></span>
+        <span class="test-name">Silencio prolongado (15 segundos)</span>
+        <span class="test-steps">1. Llamar · 2. No decir nada durante 15 segundos</span>
+        <span class="test-expected">El agente maneja el silencio con mensaje de espera o cierre educado</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">CALL-05 <span class="severity sev-high">ALTO</span></span>
+        <span class="test-name">Llamada larga (10+ minutos)</span>
+        <span class="test-steps">1. Conversacion durante 10+ minutos · 2. Observar calidad, cortes, coherencia</span>
+        <span class="test-expected">Calidad estable sin cortes ni degradacion</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Minuto del problema..."></textarea>
+      </div>
+    </div>
+    <div class="test-case">
+      <div class="test-info">
+        <span class="test-id">CALL-06 <span class="severity sev-critical">CRITICO</span></span>
+        <span class="test-name">Actualizacion de agente se refleja en la siguiente llamada</span>
+        <span class="test-steps">1. Editar prompt del agente · 2. Guardar · 3. Llamar inmediatamente · 4. Verificar que usa el prompt nuevo</span>
+        <span class="test-expected">Los cambios se reflejan inmediatamente. El numero se pinea a la ultima version del agente.</span>
+      </div>
+      <div class="test-controls">
+        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 10. DASHBOARD ========== -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-icon" style="background:#8b5cf6;">10</div>
+    <span class="section-title">10. Dashboard y estadisticas</span>
+    <span class="section-badge" id="badge-10">0/8</span>
+    <span class="section-chevron">&#9660;</span>
+  </div>
+  <div class="section-body" id="section-10">
     <div class="test-case">
       <div class="test-info">
         <span class="test-id">DASH-01 <span class="severity sev-critical">CRITICO</span></span>
@@ -208,9 +1186,9 @@
     <div class="test-case">
       <div class="test-info">
         <span class="test-id">DASH-02 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Graficos del dashboard (llamadas, sentimiento, motivos, por agente)</span>
-        <span class="test-steps">1. Revisar los 4 graficos: Llamadas en el tiempo, Sentimiento de usuarios, Motivos de desconexion, Llamadas por agente · 2. Cambiar el selector de periodo (Hoy / 7 dias / 30 dias)</span>
-        <span class="test-expected">Los graficos se renderizan correctamente y se actualizan al cambiar el periodo</span>
+        <span class="test-name">Graficos (llamadas, sentimiento, motivos, por agente)</span>
+        <span class="test-steps">1. Revisar los 4 graficos: Llamadas en el tiempo, Sentimiento, Motivos de desconexion, Llamadas por agente · 2. Cambiar selector de periodo (Hoy / 7 dias / 30 dias / Personalizado)</span>
+        <span class="test-expected">Los graficos se renderizan y actualizan al cambiar periodo</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
@@ -221,810 +1199,79 @@
       <div class="test-info">
         <span class="test-id">DASH-03 <span class="severity sev-critical">CRITICO</span></span>
         <span class="test-name">Listado de llamadas recientes</span>
-        <span class="test-steps">1. Bajar al listado "Llamadas recientes" · 2. Verificar que aparecen con: Fecha y hora, Usuario (numero o Web Call), Agente, Duracion, Sentimiento, Estado (Exitosa/Fallida)</span>
-        <span class="test-expected">Todas las llamadas listadas con los metadatos correctos, ordenadas por fecha descendente</span>
+        <span class="test-steps">1. Bajar al listado "Llamadas recientes" · 2. Verificar: Fecha/hora, Usuario (numero o Web Call), Agente, Duracion, Sentimiento, Estado</span>
+        <span class="test-expected">Todas las llamadas con metadatos correctos, ordenadas por fecha descendente</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Campo que falta o con datos incorrectos..."></textarea>
+        <textarea class="test-notes" placeholder="Campo que falta o incorrecto..."></textarea>
       </div>
     </div>
     <div class="test-case">
       <div class="test-info">
         <span class="test-id">DASH-04 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Buscar y filtrar llamadas recientes</span>
-        <span class="test-steps">1. Usar el buscador "Buscar por numero o nombre" · 2. Usar el filtro "Todos los agentes" para filtrar por un agente concreto</span>
+        <span class="test-name">Buscar y filtrar llamadas</span>
+        <span class="test-steps">1. Usar el buscador "Buscar por numero o nombre" · 2. Usar el filtro "Todos los agentes" para filtrar por agente concreto</span>
         <span class="test-expected">Busqueda y filtro reducen correctamente la lista de resultados</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Busqueda que no funciona, filtro incorrecto..."></textarea>
+        <textarea class="test-notes" placeholder="Notas..."></textarea>
       </div>
     </div>
     <div class="test-case">
       <div class="test-info">
         <span class="test-id">DASH-05 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Detalle de llamada — transcripcion y descripcion</span>
-        <span class="test-steps">1. Hacer clic en una llamada del listado · 2. Verificar que se abre el detalle con: descripcion/resumen de la llamada, transcripcion completa con turnos diferenciados</span>
+        <span class="test-name">Detalle de llamada — transcripcion y resumen</span>
+        <span class="test-steps">1. Clic en una llamada del listado · 2. Verificar: resumen/descripcion, transcripcion completa con turnos diferenciados (agente vs usuario)</span>
         <span class="test-expected">Transcripcion legible, resumen coherente con lo hablado</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Precision de transcripcion, errores en el resumen..."></textarea>
+        <textarea class="test-notes" placeholder="Precision, errores en el resumen..."></textarea>
       </div>
     </div>
     <div class="test-case">
       <div class="test-info">
         <span class="test-id">DASH-06 <span class="severity sev-critical">CRITICO</span></span>
         <span class="test-name">Detalle de llamada — variables de datos extraidos</span>
-        <span class="test-steps">1. Abrir detalle de una llamada en la que el agente tenia configuradas variables de extraccion · 2. Verificar que las variables predefinidas (Llamada exitosa, Sentimiento) y las personalizadas aparecen con sus valores</span>
-        <span class="test-expected">Todas las variables configuradas se muestran con el valor extraido de la conversacion</span>
+        <span class="test-steps">1. Abrir detalle de llamada con variables de extraccion configuradas · 2. Verificar: variables predefinidas (Llamada exitosa, Sentimiento) + personalizadas</span>
+        <span class="test-expected">Todas las variables configuradas aparecen con valores extraidos de la conversacion</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Variables que faltan o con valores incorrectos..."></textarea>
+        <textarea class="test-notes" placeholder="Variable ausente o con valor incorrecto..."></textarea>
       </div>
     </div>
     <div class="test-case">
       <div class="test-info">
         <span class="test-id">DASH-07 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Exportar llamadas</span>
-        <span class="test-steps">1. Pulsar el boton "Exportar" en el listado de llamadas recientes · 2. Verificar que se descarga un archivo con los datos</span>
-        <span class="test-expected">Archivo descargado correctamente con los datos de las llamadas visibles</span>
+        <span class="test-name">Exportar llamadas (CSV)</span>
+        <span class="test-steps">1. Pulsar "Exportar" en el listado · 2. Verificar que se descarga un archivo CSV</span>
+        <span class="test-expected">Archivo descargado con todas las columnas y datos visibles</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Formato del archivo, datos que faltan..."></textarea>
+        <textarea class="test-notes" placeholder="Formato, datos que faltan..."></textarea>
       </div>
     </div>
     <div class="test-case">
       <div class="test-info">
         <span class="test-id">DASH-08 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Selector de periodo personalizado</span>
-        <span class="test-steps">1. En el selector de periodo, elegir "Personalizado" · 2. Definir un rango de fechas · 3. Verificar que los KPIs y graficos se actualizan para ese rango</span>
-        <span class="test-expected">Los datos reflejan correctamente el rango de fechas personalizado</span>
+        <span class="test-name">Balance en el topbar</span>
+        <span class="test-steps">1. Verificar que el topbar muestra "Balance" con el coste total en euros · 2. Hacer una llamada y verificar que se actualiza</span>
+        <span class="test-expected">Balance visible en formato correcto y se actualiza tras llamadas</span>
       </div>
       <div class="test-controls">
         <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
         <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 3. MIS NUMEROS ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">3. Mis numeros</span>
-    <span class="section-badge" id="badge-3">0/4</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-3">
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">NUM-01 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Listar numeros y estado de conexion</span>
-        <span class="test-steps">1. Ir a "Mis numeros" · 2. Verificar que aparecen los numeros con su estado (Conectado/Desconectado) y el agente asignado</span>
-        <span class="test-expected">Tabla con numero, estado y agente asignado visibles correctamente</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">NUM-02 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Asignar y cambiar agente a numero</span>
-        <span class="test-steps">1. En el desplegable del numero, cambiar el agente asignado · 2. Llamar al numero · 3. Verificar que el nuevo agente contesta</span>
-        <span class="test-expected">El cambio de agente se guarda y la llamada entrante usa el agente nuevo</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">NUM-03 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Desasignar agente (Sin agente / Desactivado)</span>
-        <span class="test-steps">1. En el desplegable, seleccionar "Sin agente (Desactivado)" · 2. Llamar al numero</span>
-        <span class="test-expected">El numero no conecta con ningun agente. La llamada no es atendida por la IA.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">NUM-04 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Editar y eliminar numero</span>
-        <span class="test-steps">1. Pulsar "Editar numero" y modificar algun campo · 2. Guardar · 3. Intentar eliminar un numero (verificar que pide confirmacion)</span>
-        <span class="test-expected">Edicion guardada correctamente. La eliminacion pide confirmacion antes de ejecutarse.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 4. WIZARD PASO 1: INFO BASICA ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">4. Wizard — Paso 1: Informacion basica</span>
-    <span class="section-badge" id="badge-4">0/3</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-4">
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W1-01 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Rellenar y guardar informacion basica</span>
-        <span class="test-steps">1. Abrir wizard de edicion · 2. Editar: Nombre del agente, Nombre de la empresa, Descripcion breve · 3. Avanzar al paso siguiente · 4. Volver al paso 1 y comprobar que los datos persisten</span>
-        <span class="test-expected">Todos los campos se guardan y persisten al navegar entre pasos</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Campo que no persiste..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W1-02 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Tipos de agente (desplegable)</span>
-        <span class="test-steps">1. Probar cada opcion del tipo de agente: Cualificacion de leads, Agendamiento de citas, Atencion al cliente, Ventas y captacion, Informacion y consultas · 2. Guardar con cada tipo y comprobar que se refleja correctamente</span>
-        <span class="test-expected">Todos los tipos se pueden seleccionar y guardar sin errores</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Tipo con problema..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W1-03 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Validacion de campos obligatorios</span>
-        <span class="test-steps">1. Intentar avanzar al paso 2 dejando el nombre del agente vacio</span>
-        <span class="test-expected">Validacion impide avanzar y senala el campo obligatorio</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 5. WIZARD PASO 2: CEREBRO (LLM) ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">5. Wizard — Paso 2: Cerebro (Modelo de IA y comportamiento)</span>
-    <span class="section-badge" id="badge-5">0/5</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-5">
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W2-01 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Seleccionar Gemini 3.0 Flash y verificar en llamada</span>
-        <span class="test-steps">1. Seleccionar "Gemini 3.0 Flash" · 2. Guardar · 3. Hacer llamada entrante · 4. Verificar que el agente responde con normalidad</span>
-        <span class="test-expected">El modelo carga, se guarda y el agente funciona correctamente en llamada</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Comportamiento del agente, errores..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W2-02 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Seleccionar GPT-4.1 y verificar en llamada</span>
-        <span class="test-steps">1. Cambiar a "GPT-4.1" · 2. Guardar · 3. Hacer llamada entrante · 4. Verificar que el agente responde correctamente</span>
-        <span class="test-expected">El modelo carga, se guarda y el agente funciona en llamada</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Comportamiento del agente, errores..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W2-03 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Quien habla primero — agente habla primero</span>
-        <span class="test-steps">1. Configurar "El agente habla primero" · 2. Guardar · 3. Llamar al numero · 4. Verificar que el agente abre la conversacion con el mensaje de inicio</span>
-        <span class="test-expected">El agente saluda inmediatamente al conectar, sin esperar al usuario</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W2-04 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Quien habla primero — usuario habla primero</span>
-        <span class="test-steps">1. Configurar "El usuario habla primero" · 2. Guardar · 3. Llamar al numero · 4. Verificar que el agente espera en silencio a que el usuario hable</span>
-        <span class="test-expected">El agente permanece en silencio hasta que el usuario dice algo</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W2-05 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Personalidad y tono se reflejan en llamada</span>
-        <span class="test-steps">1. Seleccionar una combinacion de personalidad (ej: Empatico + Amigable) y tono (Casual) · 2. Guardar · 3. Hacer llamada · 4. Comprobar que el estilo de respuesta corresponde</span>
-        <span class="test-expected">El agente usa el estilo de comunicacion configurado de forma coherente</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Combinacion probada, comportamiento observado..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 6. WIZARD PASO 3: VOZ ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">6. Wizard — Paso 3: Voz del agente</span>
-    <span class="section-badge" id="badge-6">0/12</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-6">
-    <div class="section-group-label">ESPANOL — voces Premium</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-01 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Carolina — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Carolina · 2. Pulsar Preview · 3. Guardar · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz suena natural en llamada. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-02 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Manuel — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Manuel · 2. Preview · 3. Guardar · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz suena natural. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-03 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Santiago — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Santiago · 2. Preview · 3. Guardar · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz suena natural. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-04 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">MariCarmen — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar MariCarmen · 2. Preview · 3. Guardar · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz suena natural. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-05 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Sara Martin — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Sara Martin · 2. Preview · 3. Guardar · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz suena natural. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-06 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Andrea — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Andrea · 2. Preview · 3. Guardar · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz suena natural. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="section-group-label">INGLES — voces Premium</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-07 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Nico (ingles, masculino) — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Nico · 2. Preview · 3. Guardar con agente en ingles · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz en ingles correcta, acento natural. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-08 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Willa (ingles, femenino) — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Willa · 2. Preview · 3. Guardar · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz en ingles natural y clara.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="section-group-label">CATALAN — voces Multilingue</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-09 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Cimo (catalan, femenino, Premium) — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Cimo · 2. Preview · 3. Guardar con agente en catalan · 4. Llamada de prueba</span>
-        <span class="test-expected">Preview funciona. Voz en catalan correcta y natural. Nivel de volumen adecuado.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, problema observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-10 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Alloy (catalan, masculino, Standard) — preview y llamada</span>
-        <span class="test-steps">1. Seleccionar Alloy · 2. Preview · 3. Guardar · 4. Llamada de prueba · 5. Comparar calidad con voces Premium</span>
-        <span class="test-expected">Preview funciona. Notar diferencia de calidad vs Premium (es Standard).</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Calidad 1-5, diferencia vs Premium..."></textarea>
-      </div>
-    </div>
-    <div class="section-group-label">FILTROS Y CLONACION</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-11 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Filtros por genero (Todos / Masculino / Femenino)</span>
-        <span class="test-steps">1. Pulsar "Masculino" — verificar que solo aparecen voces masculinas · 2. Pulsar "Femenino" — solo femeninas · 3. Pulsar "Todos" — aparecen todas</span>
-        <span class="test-expected">Los filtros funcionan correctamente y muestran solo las voces del genero seleccionado</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Filtro que no funciona..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">VOZ-12 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Clonar voz — proceso completo</span>
-        <span class="test-steps">1. Pulsar "Clonar voz" · 2. Seguir el proceso de clonacion (subir muestra de audio) · 3. Asignar la voz clonada al agente · 4. Guardar · 5. Hacer llamada de prueba</span>
-        <span class="test-expected">Proceso de clonacion completa sin errores. La voz clonada aparece en el selector y funciona en llamada.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Error en el proceso, calidad de la clonacion..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 7. WIZARD PASO 4: AUDIO ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">7. Wizard — Paso 4: Audio y procesamiento</span>
-    <span class="section-badge" id="badge-7">0/3</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-7">
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">AUD-01 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Volumen del agente — ajuste y verificacion</span>
-        <span class="test-steps">1. Ajustar el slider de volumen a un valor diferente (ej: 70%) · 2. Guardar · 3. Hacer llamada de prueba · 4. Verificar que el volumen percibido coincide con el configurado</span>
-        <span class="test-expected">El cambio de volumen se refleja en la llamada. La voz sigue siendo inteligible.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Nivel configurado vs percibido, observaciones..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">AUD-02 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Habilitar sonido ambiente</span>
-        <span class="test-steps">1. Activar el checkbox "Habilitar sonido ambiente (Ruido de fondo)" · 2. Guardar · 3. Hacer llamada de prueba · 4. Verificar que se escucha un ruido de fondo sutil</span>
-        <span class="test-expected">Sonido ambiente audible de fondo sin tapar la voz del agente. Suena natural.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Tipo de ruido, nivel, si interfiere con la voz..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">AUD-03 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Desactivar sonido ambiente</span>
-        <span class="test-steps">1. Desactivar el checkbox de sonido ambiente · 2. Guardar · 3. Hacer llamada de prueba</span>
-        <span class="test-expected">Sin ningun ruido de fondo en la llamada tras desactivarlo</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 8. WIZARD PASO 5: HERRAMIENTAS ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">8. Wizard — Paso 5: Herramientas</span>
-    <span class="section-badge" id="badge-8">0/12</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-8">
-    <div class="section-group-label">CUALIFICACION DE CONTACTO</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-01 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Configurar preguntas de cualificacion (max 3)</span>
-        <span class="test-steps">1. Anadir 2 preguntas de cualificacion · 2. Para cada una: escribir la pregunta, el criterio de cualificacion y la accion si no cualifica · 3. Intentar anadir una 4a pregunta (el limite es 3) · 4. Guardar</span>
-        <span class="test-expected">Las preguntas se guardan. El sistema bloquea anadir mas de 3.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-02 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Preguntas de cualificacion — funcionan en llamada</span>
-        <span class="test-steps">1. Con preguntas configuradas, recibir llamada · 2. Responder cumpliendo los criterios en una pregunta y no cumpliendo en otra · 3. Verificar que el agente reacciona segun la accion configurada (transferir / terminar / continuar)</span>
-        <span class="test-expected">El agente hace las preguntas y ejecuta la accion correcta segun si el criterio se cumple o no</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Preguntas que no se hacen, acciones que no se ejecutan..."></textarea>
-      </div>
-    </div>
-    <div class="section-group-label">TRANSFERENCIA DE LLAMADA</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-03 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Transferencia a numero de telefono (humano)</span>
-        <span class="test-steps">1. Configurar destino tipo "Humano (Numero)" con un numero real · 2. Anadir instruccion de cuando transferir · 3. Llamar al agente y desencadenar la condicion de transferencia</span>
-        <span class="test-expected">La llamada llega al numero destino. El agente avisa antes de transferir.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Numero destino probado, comportamiento al transferir..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-04 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Transferencia a otro agente IA</span>
-        <span class="test-steps">1. Configurar destino tipo "Otro agente IA" y seleccionar un agente · 2. Llamar y desencadenar la condicion de transferencia · 3. Verificar que la llamada pasa al agente IA destino</span>
-        <span class="test-expected">La llamada se transfiere al agente IA seleccionado y este contesta correctamente</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Agente IA destino, comportamiento..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-05 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Anadir y eliminar multiples destinos de transferencia</span>
-        <span class="test-steps">1. Anadir 2 destinos de transferencia distintos · 2. Guardar · 3. Eliminar uno de ellos · 4. Verificar que el restante persiste</span>
-        <span class="test-expected">Se pueden gestionar multiples destinos sin errores</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="section-group-label">RESERVA DE CITAS — CAL.COM</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-06 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Reservar cita durante llamada</span>
-        <span class="test-steps">1. Configurar Cal.com (API Key + Event Type ID + zona horaria) · 2. Recibir llamada · 3. Pedir una cita para una fecha disponible · 4. Verificar en Cal.com que la cita queda creada</span>
-        <span class="test-expected">La cita se crea en Cal.com. El agente confirma la reserva con fecha y hora durante la llamada.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Fecha/hora usada, comportamiento del agente..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-07 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Cancelar cita existente durante llamada</span>
-        <span class="test-steps">1. Activar "Permitir cancelacion de citas" · 2. Con una cita reservada previamente · 3. Llamar y pedir cancelar la cita · 4. Verificar en Cal.com que la cita queda cancelada</span>
-        <span class="test-expected">La cancelacion se ejecuta en Cal.com. El agente confirma la cancelacion.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-08 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Consulta de disponibilidad en agenda</span>
-        <span class="test-steps">1. Durante una llamada, preguntar por la disponibilidad para una fecha concreta · 2. Verificar que el agente consulta Cal.com y devuelve huecos reales</span>
-        <span class="test-expected">El agente informa de los horarios disponibles segun el calendario real de Cal.com</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Disponibilidad devuelta vs real en Cal.com..."></textarea>
-      </div>
-    </div>
-    <div class="section-group-label">DATOS A RECOGER DE LA LLAMADA</div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-09 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Variables predefinidas (Resumen, Llamada exitosa, Sentimiento)</span>
-        <span class="test-steps">1. Hacer una llamada completa · 2. Abrir el detalle en el dashboard · 3. Verificar que aparecen las 3 variables predefinidas con sus valores: Resumen (texto), Llamada exitosa (Si/No), Sentimiento del usuario (texto)</span>
-        <span class="test-expected">Las 3 variables tienen valores coherentes con la conversacion mantenida</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Variable con valor incorrecto o ausente..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-10 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Variables personalizadas — Texto y Booleano</span>
-        <span class="test-steps">1. Crear una variable tipo "Texto" (ej: Motivo de consulta) y una tipo "Booleano" (ej: Es primera llamada) · 2. Hacer llamada mencionando el motivo · 3. Verificar en el detalle que ambas variables tienen valor</span>
-        <span class="test-expected">Las variables extraidas reflejan correctamente lo dicho en la llamada</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Variable que no se extrae, valor incorrecto..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">H-11 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Variables personalizadas — Selector y Numero</span>
-        <span class="test-steps">1. Crear una variable tipo "Selector" (con opciones fijas) y una tipo "Numero" · 2. Hacer llamada · 3. Verificar que los valores extraidos son del tipo correcto</span>
-        <span class="test-expected">El Selector devuelve una de las opciones definidas. El Numero devuelve un valor numerico.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-id">H-12 <span class="severity sev-high">ALTO</span></div>
-      <div class="test-info">
-        <span class="test-name">Variables visibles en el dashboard / estadisticas</span>
-        <span class="test-steps">1. Tras varias llamadas con variables activas · 2. Ir al dashboard · 3. Verificar que los datos extraidos aparecen en el panel de estadisticas, no solo en el detalle individual</span>
-        <span class="test-expected">Las variables de extraccion son accesibles y visibles de forma agregada en el panel</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 9. WIZARD PASO 6: RESUMEN Y BASE DE CONOCIMIENTO ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">9. Wizard — Paso 6: Resumen y base de conocimiento</span>
-    <span class="section-badge" id="badge-9">0/5</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-9">
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W6-01 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Pagina de resumen — navegar a cada paso con "Ir al paso"</span>
-        <span class="test-steps">1. Abrir el paso 6 (Resumen) · 2. Hacer clic en "Ir al paso" para cada uno de los 5 pasos anteriores · 3. Verificar que navega al paso correcto</span>
-        <span class="test-expected">Cada boton "Ir al paso" lleva al paso correspondiente correctamente</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Paso que no navega bien..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W6-02 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Subir documento a la base de conocimiento</span>
-        <span class="test-steps">1. En el paso 6, subir un archivo PDF · 2. Verificar que aparece en la lista de documentos subidos · 3. Guardar y hacer llamada · 4. Preguntar algo que este en el documento · 5. Verificar que el agente responde con esa informacion</span>
-        <span class="test-expected">El documento se sube correctamente y el agente usa su contenido para responder</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Tipo de archivo subido, precision de respuesta..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W6-03 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Reglas para la base de conocimiento</span>
-        <span class="test-steps">1. Escribir una regla concreta (ej: "Si te preguntan por precios, cita los exactos sin redondear") · 2. Guardar · 3. Hacer llamada preguntando por un precio del documento · 4. Verificar que la respuesta sigue la regla</span>
-        <span class="test-expected">El agente aplica la regla al consultar el documento. La respuesta es precisa segun la regla.</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Regla configurada, comportamiento observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W6-04 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Notas adicionales al prompt</span>
-        <span class="test-steps">1. Escribir unas notas adicionales (ej: "Los horarios de atencion son L-V de 9 a 18h") · 2. Guardar · 3. Hacer llamada preguntando por los horarios · 4. Verificar que el agente los menciona correctamente</span>
-        <span class="test-expected">El agente incorpora las notas adicionales a su comportamiento general</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Nota configurada, respuesta observada..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">W6-05 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Guardar cambios y verificar persistencia</span>
-        <span class="test-steps">1. Completar todos los pasos del wizard · 2. Pulsar "Guardar cambios" en el paso 6 · 3. Volver a abrir el agente en edicion · 4. Verificar que todos los cambios persisten</span>
-        <span class="test-expected">Todos los cambios guardados persisten correctamente al reabrir el agente</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Campo que no persiste tras guardar..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 10. LLAMADAS ENTRANTES ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">10. Llamadas entrantes y rendimiento</span>
-    <span class="section-badge" id="badge-10">0/5</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-10">
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">CALL-01 <span class="severity sev-critical">CRITICO</span></span>
-        <span class="test-name">Llamada entrante al numero asignado</span>
-        <span class="test-steps">1. Llamar al numero · 2. Verificar que el agente asignado contesta · 3. Comprobar que usa el prompt y la voz correctos</span>
-        <span class="test-expected">El agente correcto contesta con la configuracion esperada</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">CALL-02 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Latencia de primera respuesta</span>
-        <span class="test-steps">1. Llamar y hablar inmediatamente al conectar · 2. Medir cuanto tarda el agente en responder</span>
-        <span class="test-expected">Primera respuesta del agente en menos de 2 segundos</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Tiempo de respuesta observado en segundos..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">CALL-03 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Interrupcion del agente (barge-in)</span>
-        <span class="test-steps">1. Cuando el agente este hablando, interrumpirle con una frase · 2. Verificar que el agente para y escucha</span>
-        <span class="test-expected">El agente deja de hablar y responde a la interrupcion</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">CALL-04 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Silencio prolongado</span>
-        <span class="test-steps">1. Llamar · 2. No decir nada durante 15 segundos · 3. Observar la reaccion del agente</span>
-        <span class="test-expected">El agente maneja el silencio con un mensaje de espera o cierra educadamente</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Comportamiento observado..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">CALL-05 <span class="severity sev-high">ALTO</span></span>
-        <span class="test-name">Llamada de larga duracion (10+ minutos)</span>
-        <span class="test-steps">1. Mantener conversacion durante mas de 10 minutos · 2. Observar calidad de voz, cortes y coherencia</span>
-        <span class="test-expected">Calidad estable durante toda la llamada, sin cortes ni degradacion</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Minuto en que aparecio el problema..."></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 11. UI GENERAL ========== -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <span class="section-title">11. UI y experiencia general</span>
-    <span class="section-badge" id="badge-11">0/3</span>
-    <span class="section-chevron">v</span>
-  </div>
-  <div class="section-body" id="section-11">
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">UX-01 <span class="severity sev-medium">MEDIO</span></span>
-        <span class="test-name">Mensajes de error y exito</span>
-        <span class="test-steps">1. Provocar un error (guardar sin rellenar obligatorios) · 2. Completar una accion exitosa · 3. Revisar los mensajes de feedback</span>
-        <span class="test-expected">Mensajes claros, en espanol, con informacion util sobre que paso</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Mensajes en ingles, confusos o ausentes..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">UX-02 <span class="severity sev-low">BAJO</span></span>
-        <span class="test-name">Estados de carga y doble envio</span>
-        <span class="test-steps">1. Guardar un agente con mucha configuracion · 2. Verificar que hay spinner o indicador de carga · 3. Comprobar que el boton se deshabilita para evitar doble clic</span>
-        <span class="test-expected">Indicador de carga visible, boton deshabilitado mientras guarda</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Notas..."></textarea>
-      </div>
-    </div>
-    <div class="test-case">
-      <div class="test-info">
-        <span class="test-id">UX-03 <span class="severity sev-low">BAJO</span></span>
-        <span class="test-name">Navegacion general sin errores</span>
-        <span class="test-steps">1. Navegar por: Dashboard, Mis agentes IA, Mis numeros, Ayuda y soporte · 2. Comprobar que todas las secciones cargan sin pantallas en blanco ni errores en consola</span>
-        <span class="test-expected">Todas las secciones cargan en menos de 3 segundos, sin errores criticos</span>
-      </div>
-      <div class="test-controls">
-        <select class="status-select" onchange="updateStatus(this)"><option value="">— Estado —</option><option value="pass">Pasa</option><option value="fail">Falla</option><option value="partial">Parcial</option><option value="na">N/A</option></select>
-        <textarea class="test-notes" placeholder="Seccion con problema..."></textarea>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ========== RESUMEN ========== -->
-<div class="summary">
+<div class="summary" id="summary-section">
   <h2>Resumen del QA</h2>
   <div class="summary-grid">
     <div class="summary-card pass"><span class="summary-num pass" id="sum-pass">0</span><div class="summary-label">Pasan</div></div>
@@ -1032,15 +1279,18 @@
     <div class="summary-card partial"><span class="summary-num partial" id="sum-partial">0</span><div class="summary-label">Parciales</div></div>
     <div class="summary-card na"><span class="summary-num na" id="sum-na">0</span><div class="summary-label">No aplica</div></div>
   </div>
-  <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Observaciones generales / Bugs criticos</label>
-  <textarea class="notes-general" placeholder="Anota aqui los bugs mas importantes, bloqueos, o cualquier observacion relevante..."></textarea>
+  <label style="font-size:13px;font-weight:700;display:block;margin-bottom:8px;color:var(--oscuro);">Observaciones generales / Bugs criticos</label>
+  <textarea class="notes-general" id="notes-general" placeholder="Anota aqui los bugs mas importantes, bloqueos, o cualquier observacion relevante para el equipo de desarrollo..."></textarea>
   <div class="actions">
-    <button class="btn btn-secondary" onclick="window.print()">Imprimir / Exportar PDF</button>
-    <button class="btn btn-primary" onclick="copyReport()">Copiar resumen de bugs</button>
+    <button class="btn btn-secondary" onclick="resetAll()">Limpiar todo</button>
+    <button class="btn btn-secondary" onclick="window.print()">Imprimir / PDF</button>
+    <button class="btn btn-primary" onclick="copyReport()">Copiar informe</button>
   </div>
 </div>
 
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
   document.getElementById('test-date').value = new Date().toISOString().split('T')[0];
@@ -1049,12 +1299,13 @@
     const body = header.nextElementSibling;
     const chevron = header.querySelector('.section-chevron');
     body.classList.toggle('collapsed');
-    chevron.textContent = body.classList.contains('collapsed') ? '>' : 'v';
+    chevron.innerHTML = body.classList.contains('collapsed') ? '&#9654;' : '&#9660;';
   }
 
   function updateStatus(select) {
     select.className = 'status-select ' + (select.value || '');
     updateCounts();
+    autoSave();
   }
 
   function updateCounts() {
@@ -1066,61 +1317,191 @@
       else if(s.value==='partial'){partial++;done++;}
       else if(s.value==='na'){na++;done++;}
     });
-    const pct = selects.length ? Math.round(done/selects.length*100) : 0;
-    document.getElementById('progress-pct').textContent = pct+'%';
-    document.getElementById('progress-fill').style.width = pct+'%';
-    ['pass','fail','partial','na'].forEach(k => {
-      document.getElementById('count-'+k).textContent = eval(k);
-      document.getElementById('sum-'+k).textContent = eval(k);
-    });
+    const total = selects.length;
+    const pct = total ? Math.round(done/total*100) : 0;
 
-    // Update section badges
+    document.getElementById('progress-pct').textContent = pct+'%';
+    document.getElementById('progress-count').textContent = '('+done+'/'+total+')';
+    document.getElementById('progress-fill').style.width = pct+'%';
+    document.getElementById('count-pass').textContent = pass;
+    document.getElementById('count-fail').textContent = fail;
+    document.getElementById('count-partial').textContent = partial;
+    document.getElementById('count-na').textContent = na;
+    document.getElementById('sum-pass').textContent = pass;
+    document.getElementById('sum-fail').textContent = fail;
+    document.getElementById('sum-partial').textContent = partial;
+    document.getElementById('sum-na').textContent = na;
+
     document.querySelectorAll('.section-body').forEach((body, i) => {
       const ss = body.querySelectorAll('.status-select');
       const d = Array.from(ss).filter(s=>s.value!=='').length;
       const b = document.getElementById('badge-'+(i+1));
-      if(b) b.textContent = d+'/'+ss.length;
+      if(b) {
+        b.textContent = d+'/'+ss.length;
+        b.className = 'section-badge' + (d===ss.length && ss.length>0 ? ' complete' : '');
+      }
     });
   }
 
-  function copyReport() {
-    const tester = document.getElementById('tester-name').value||'Sin nombre';
-    const date = document.getElementById('test-date').value||'Sin fecha';
-    const build = document.getElementById('build-version').value||'-';
-    let report = 'QA REPORT — Fabrica de Agentes | Netelip\n';
-    report += 'Tester: '+tester+' | Fecha: '+date+' | Build: '+build+'\n';
-    report += '─'.repeat(50)+'\n\n';
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
 
-    const cases = document.querySelectorAll('.test-case');
+  function getState() {
+    const state = {
+      tester: document.getElementById('tester-name').value,
+      date: document.getElementById('test-date').value,
+      build: document.getElementById('build-version').value,
+      env: 'Preproduccion',
+      notes: document.getElementById('notes-general').value,
+      tests: []
+    };
+    document.querySelectorAll('.test-case').forEach(tc => {
+      const id = tc.querySelector('.test-id');
+      const sel = tc.querySelector('.status-select');
+      const notes = tc.querySelector('.test-notes');
+      state.tests.push({
+        id: id ? id.textContent.replace(/\s+/g,' ').split(' ')[0] : '',
+        status: sel?.value||'',
+        notes: notes?.value||''
+      });
+    });
+    return state;
+  }
+
+  function loadState(state) {
+    if (!state) return;
+    document.getElementById('tester-name').value = state.tester||'';
+    document.getElementById('test-date').value = state.date||'';
+    document.getElementById('build-version').value = state.build||'';
+    document.getElementById('notes-general').value = state.notes||'';
+
+    if (state.tests && state.tests[0] && state.tests[0].id) {
+      const idMap = {};
+      state.tests.forEach(t => { if(t.id) idMap[t.id] = t; });
+      document.querySelectorAll('.test-case').forEach(tc => {
+        const idEl = tc.querySelector('.test-id');
+        if (!idEl) return;
+        const testId = idEl.textContent.replace(/\s+/g,' ').split(' ')[0];
+        const saved = idMap[testId];
+        if (!saved) return;
+        const sel = tc.querySelector('.status-select');
+        const notes = tc.querySelector('.test-notes');
+        if (sel) { sel.value = saved.status; sel.className = 'status-select ' + (saved.status||''); }
+        if (notes) notes.value = saved.notes;
+      });
+    } else {
+      const cases = document.querySelectorAll('.test-case');
+      (state.tests||[]).forEach((t, i) => {
+        if (!cases[i]) return;
+        const sel = cases[i].querySelector('.status-select');
+        const notes = cases[i].querySelector('.test-notes');
+        if (sel) { sel.value = t.status; sel.className = 'status-select ' + (t.status||''); }
+        if (notes) notes.value = t.notes;
+      });
+    }
+    updateCounts();
+  }
+
+  function autoSave() {
+    localStorage.setItem('fabrica-qa-checklist', JSON.stringify(getState()));
+  }
+
+  function resetAll() {
+    if (!confirm('Esto limpiara todos los estados y notas. Continuar?')) return;
+    document.querySelectorAll('.status-select').forEach(s => { s.value=''; s.className='status-select'; });
+    document.querySelectorAll('.test-notes').forEach(n => n.value='');
+    document.getElementById('notes-general').value = '';
+    localStorage.removeItem('fabrica-qa-checklist');
+    updateCounts();
+    showToast('Checklist limpiado');
+  }
+
+  document.querySelectorAll('.test-notes, .notes-general, #tester-name, #build-version').forEach(el => {
+    el.addEventListener('input', autoSave);
+  });
+  document.getElementById('test-date').addEventListener('change', autoSave);
+
+  function copyReport() {
+    const state = getState();
+    const total = document.querySelectorAll('.test-case .status-select').length;
+    const pass = document.getElementById('sum-pass').textContent;
+    const fail = document.getElementById('sum-fail').textContent;
+    const partial = document.getElementById('sum-partial').textContent;
+    const na = document.getElementById('sum-na').textContent;
+
+    let report = '══════════════════════════════════════════════════\n';
+    report += '  QA REPORT — Fabrica de Agentes IA | Netelip\n';
+    report += '══════════════════════════════════════════════════\n\n';
+    report += 'Tester:  '+(state.tester||'Sin nombre')+'\n';
+    report += 'Fecha:   '+(state.date||'Sin fecha')+'\n';
+    report += 'Build:   '+(state.build||'-')+'\n';
+    report += 'Entorno: Preproduccion\n\n';
+    report += '──────────────────────────────────────────────────\n';
+    report += 'RESUMEN: '+pass+' OK | '+fail+' Fallan | '+partial+' Parciales | '+na+' N/A | '+total+' Total\n';
+    report += '──────────────────────────────────────────────────\n\n';
+
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(sec => {
+      const title = sec.querySelector('.section-title');
+      if (!title) return;
+      report += title.textContent.toUpperCase() + '\n';
+      sec.querySelectorAll('.test-case').forEach(tc => {
+        const idEl = tc.querySelector('.test-id');
+        const nameEl = tc.querySelector('.test-name');
+        const sel = tc.querySelector('.status-select');
+        const notes = tc.querySelector('.test-notes');
+        if (!idEl||!sel) return;
+        const id = idEl.textContent.replace(/\s+/g,' ').trim().split(' ')[0];
+        const name = nameEl ? nameEl.textContent.trim() : '';
+        let status = '[ ]';
+        if (sel.value==='pass') status = '[OK]';
+        else if (sel.value==='fail') status = '[FALLA]';
+        else if (sel.value==='partial') status = '[PARCIAL]';
+        else if (sel.value==='na') status = '[N/A]';
+        report += '  '+status+' '+id+' — '+name+'\n';
+        if (notes && notes.value) report += '         > '+notes.value+'\n';
+      });
+      report += '\n';
+    });
+
     const failed = [];
-    cases.forEach(tc => {
+    document.querySelectorAll('.test-case').forEach(tc => {
       const idEl = tc.querySelector('.test-id');
       const nameEl = tc.querySelector('.test-name');
       const sel = tc.querySelector('.status-select');
       const notes = tc.querySelector('.test-notes');
       if (!idEl||!sel) return;
       if(sel.value==='fail'||sel.value==='partial'){
-        const id = idEl.textContent.replace(/\s+/g,' ').trim();
+        const id = idEl.textContent.replace(/\s+/g,' ').trim().split(' ')[0];
         const name = nameEl ? nameEl.textContent.trim() : '';
-        failed.push('['+sel.value.toUpperCase()+'] '+id+' — '+name+(notes&&notes.value?'\n  → '+notes.value:''));
+        const tag = sel.value==='fail' ? 'FALLA' : 'PARCIAL';
+        failed.push('['+tag+'] '+id+' — '+name+(notes&&notes.value?'\n         > '+notes.value:''));
       }
     });
 
-    const pass=document.getElementById('sum-pass').textContent;
-    const fail=document.getElementById('sum-fail').textContent;
-    const partial=document.getElementById('sum-partial').textContent;
-    const na=document.getElementById('sum-na').textContent;
-    report += 'RESUMEN: '+pass+' OK | '+fail+' Fallan | '+partial+' Parciales | '+na+' N/A\n\n';
-    report += failed.length ? 'BUGS / INCIDENCIAS:\n'+failed.join('\n')+'\n\n' : 'Sin bugs registrados.\n\n';
-    const gen = document.querySelector('.notes-general').value;
-    if(gen) report += 'OBSERVACIONES GENERALES:\n'+gen;
+    if (failed.length) {
+      report += '══════════════════════════════════════════════════\n';
+      report += 'BUGS / INCIDENCIAS ('+failed.length+')\n';
+      report += '══════════════════════════════════════════════════\n\n';
+      report += failed.join('\n\n')+'\n\n';
+    }
 
-    navigator.clipboard.writeText(report).then(()=>{
-      const btn = event.target;
-      btn.textContent='Copiado!';
-      setTimeout(()=>btn.textContent='Copiar resumen de bugs',2000);
-    });
+    if (state.notes) {
+      report += '──────────────────────────────────────────────────\n';
+      report += 'OBSERVACIONES GENERALES:\n'+state.notes+'\n';
+    }
+
+    navigator.clipboard.writeText(report).then(() => showToast('Informe copiado al portapapeles'));
   }
+
+  try {
+    const saved = localStorage.getItem('fabrica-qa-checklist');
+    if (saved) loadState(JSON.parse(saved));
+  } catch(e) {}
 </script>
 </body>
 </html>
