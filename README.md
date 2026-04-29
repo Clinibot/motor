@@ -335,3 +335,7 @@ webhookAuth.ts   |       100%   |      100%  |          100%
 | `phone_numbers` | Números asignados a workspaces y agentes |
 | `calls` | Registro de llamadas (post-call analysis) |
 | `alert_settings` | Configuración de alertas por workspace |
+
+
+---
+Last updated: Wed Apr 29 13:50:30 CEST 2026
