@@ -47,9 +47,9 @@ for (const { key, feature } of RECOMMENDED) {
 
 // Typed exports — use these instead of process.env.X! to avoid scattered non-null assertions.
 export const env = {
-    NEXT_PUBLIC_SUPABASE_URL:      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    SUPABASE_SERVICE_ROLE_KEY:     process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    NEXT_PUBLIC_SUPABASE_URL:      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    SUPABASE_SERVICE_ROLE_KEY:     process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     // Prefer explicit NEXT_PUBLIC_SITE_URL; fall back to VERCEL_URL (auto-injected
     // by Vercel on every deployment). If neither is set (local dev without .env.local),
     // defaults to empty string — agent creation still works but registered webhook
