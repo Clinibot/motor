@@ -41,10 +41,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-    const authError = await requireAdmin();
-    if (authError) return authError;
-
     try {
+        const authError = await requireAdmin();
+        if (authError) return authError;
+
         const supabaseAdmin = createSupabaseAdmin();
         const body = await req.json();
         const { name, retell_api_key } = body;
@@ -68,9 +68,10 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, workspace: newWorkspace });
     } catch (error: unknown) {
-        console.error("Error creating workspace:", error);
+        const msg = error instanceof Error ? error.message : JSON.stringify(error);
+        console.error("Error creating workspace:", msg);
         return NextResponse.json(
-            { success: false, error: error instanceof Error ? error.message : "Failed to create workspace" },
+            { success: false, error: msg },
             { status: 500 }
         );
     }
