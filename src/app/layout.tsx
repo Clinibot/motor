@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Fábrica de Agentes | Netelip',
+  title: 'IA de voz para llamadas | Netelip',
   description: 'Creador de agentes de IA integrados con Retell AI',
   icons: {
     icon: [

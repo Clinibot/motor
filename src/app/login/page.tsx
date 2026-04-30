@@ -49,7 +49,7 @@ export default function LoginPage() {
                         <text x="5" y="28" fontFamily="Inter, sans-serif" fontSize="26" fontWeight="700" fill="#267ab0">netelip</text>
                     </svg>
                     <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6c757d', fontWeight: 500 }}>
-                        Fábrica de Agentes IA
+                        IA de voz para llamadas
                     </p>
                 </div>
 

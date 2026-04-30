@@ -36,7 +36,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
                 <Link href="/dashboard" className="sidebar-logo">
                     <div className="logo-dot">F</div>
                     <div>
-                        <div className="logo-text">Fábrica de Agentes IA</div>
+                        <div className="logo-text">IA de voz para llamadas</div>
                         <div className="logo-sub">netelip</div>
                     </div>
                 </Link>
