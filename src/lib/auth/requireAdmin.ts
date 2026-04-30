@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient as createLocalClient } from '@/lib/supabase/server';
+import { createSupabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * Shared admin guard for API routes.
@@ -19,7 +20,9 @@ export async function requireAdmin(): Promise<NextResponse | null> {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    // Use admin client to bypass RLS when reading the role
+    const supabaseAdmin = createSupabaseAdmin();
+    const { data: profile } = await supabaseAdmin
         .from('users')
         .select('role')
         .eq('id', user.id)
