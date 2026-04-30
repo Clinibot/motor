@@ -37,7 +37,6 @@ export default function DashboardSidebar({ user }: SidebarProps) {
                     <div className="logo-dot">F</div>
                     <div>
                         <div className="logo-text">IA de voz para llamadas</div>
-                        <div className="logo-sub">netelip</div>
                     </div>
                 </Link>
             </div>
